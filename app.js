@@ -497,8 +497,18 @@ function gerarTimesheetAcordo() {
     }
 
     const ordenados = [...acordo.periodos].sort((a, b) => a.inicio.localeCompare(b.inicio));
-    const inicio = new Date(ordenados[0].inicio);
-    const fim = new Date(ordenados[ordenados.length - 1].fim);
+    // Determine timesheet range based on fiscal year that starts in April and ends in March
+    const primeiroPeriodoInicio = new Date(ordenados[0].inicio);
+    // fiscal year starts in April (month index 3)
+    const FISCAL_START_MONTH = 3;
+    let fiscalStartYear = primeiroPeriodoInicio.getFullYear();
+    if (primeiroPeriodoInicio.getMonth() < FISCAL_START_MONTH) {
+        // if the first period begins in Jan/Feb/Mar, the fiscal cycle started the previous year
+        fiscalStartYear = primeiroPeriodoInicio.getFullYear() - 1;
+    }
+    const inicio = new Date(fiscalStartYear, FISCAL_START_MONTH, 1); // April 1st of fiscalStartYear
+    // fim = last day of March of the next year
+    const fim = new Date(fiscalStartYear + 1, FISCAL_START_MONTH, 0);
 
     const content = document.getElementById('timesheetContent');
     content.innerHTML = '';
