@@ -496,18 +496,48 @@ function gerarTimesheetAcordo() {
         return;
     }
 
-    const ordenados = [...acordo.periodos].sort((a, b) => a.inicio.localeCompare(b.inicio));
-    // Determine timesheet range based on fiscal year that starts in April and ends in March
-    const primeiroPeriodoInicio = new Date(ordenados[0].inicio);
-    // fiscal year starts in April (month index 3)
-    const FISCAL_START_MONTH = 3;
-    let fiscalStartYear = primeiroPeriodoInicio.getFullYear();
-    if (primeiroPeriodoInicio.getMonth() < FISCAL_START_MONTH) {
-        // if the first period begins in Jan/Feb/Mar, the fiscal cycle started the previous year
-        fiscalStartYear = primeiroPeriodoInicio.getFullYear() - 1;
+    // Parse period dates robustly (accept ISO 'YYYY-MM-DD' or 'DD/MM/YYYY')
+    function parseDateString(s) {
+        if (!s) return null;
+        // detect dd/mm/yyyy
+        const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m) {
+            const day = Number(m[1]);
+            const mon = Number(m[2]) - 1;
+            const yr = Number(m[3]);
+            return new Date(yr, mon, day);
+        }
+        // fallback to Date parsing (ISO expected)
+        const d = new Date(s);
+        if (!isNaN(d.getTime())) return d;
+        return null;
     }
-    const inicio = new Date(fiscalStartYear, FISCAL_START_MONTH, 1); // April 1st of fiscalStartYear
-    // fim = last day of March of the next year
+
+    // Normalize periods with parsed inicio/fim and sort by parsed inicio
+    const ordenados = [...acordo.periodos].map(p => ({
+        ...p,
+        _inicioDate: parseDateString(p.inicio),
+        _fimDate: parseDateString(p.fim)
+    })).sort((a, b) => (a._inicioDate || 0) - (b._inicioDate || 0));
+
+    // Determine fiscal year start (April -> next March). Prefer a period that starts in Apr..Dec.
+    const FISCAL_START_MONTH = 3; // April (0-based index)
+    let fiscalStartYear = null;
+    for (const p of ordenados) {
+        if (p._inicioDate) {
+            const m = p._inicioDate.getMonth();
+            const y = p._inicioDate.getFullYear();
+            if (m >= FISCAL_START_MONTH) { fiscalStartYear = y; break; }
+        }
+    }
+    if (fiscalStartYear === null) {
+        // no period starts in Apr..Dec — use earliest period year and shift back one year
+        const first = ordenados[0];
+        const y = first && first._inicioDate ? first._inicioDate.getFullYear() : (new Date()).getFullYear();
+        fiscalStartYear = y - 1;
+    }
+
+    const inicio = new Date(fiscalStartYear, FISCAL_START_MONTH, 1);
     const fim = new Date(fiscalStartYear + 1, FISCAL_START_MONTH, 0);
 
     const content = document.getElementById('timesheetContent');
