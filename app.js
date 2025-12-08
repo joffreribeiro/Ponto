@@ -549,11 +549,7 @@ function gerarTimesheetAcordo() {
         thTipo.textContent = 'TIPO';
         trHead.appendChild(thTipo);
 
-        // coluna inicial: Saldo Anterior (saldo acumulado do mês anterior)
-        const thSaldoHrs = document.createElement('th');
-        thSaldoHrs.className = 'saldo-header saldo-label';
-        thSaldoHrs.innerHTML = '<div class="vertical-label">Saldo Anterior</div><div class="saldo-value"></div>';
-        trHead.appendChild(thSaldoHrs);
+        // (no extra initial saldo column)
 
         const dias = [];
         for (let dia = 1; dia <= ultimoDia; dia++) {
@@ -574,11 +570,7 @@ function gerarTimesheetAcordo() {
             dias.push({ data: d, dataStr, isWeekend });
         }
 
-        // coluna final: Saldo Acumulado (Saldo Anterior + Saldo do mês)
-        const thSaldoAc = document.createElement('th');
-        thSaldoAc.className = 'saldo-header saldo-label';
-        thSaldoAc.innerHTML = '<div class="vertical-label">Saldo Acumulado</div><div class="saldo-value"></div>';
-        trHead.appendChild(thSaldoAc);
+        // (no extra final saldo column)
 
         thead.appendChild(trHead);
         table.appendChild(thead);
@@ -606,15 +598,7 @@ function gerarTimesheetAcordo() {
             return calcularHorasDiaComContexto(dia.dataStr, r);
         }
 
-        // references to the th value containers in the header for saldo display
-        let thSaldoHrsValue = null;
-        let thSaldoAcValue = null;
-
-        // after we know how many rows, make the header saldo th span through the saldo row
-        thSaldoHrs.rowSpan = numRows + 1; // header row + tbody rows
-        thSaldoAc.rowSpan = numRows + 1;
-        thSaldoHrsValue = thSaldoHrs.querySelector('.saldo-value');
-        thSaldoAcValue = thSaldoAc.querySelector('.saldo-value');
+        // no header saldo THs in this version
 
         // saldo anterior = saldo acumulado até o mês anterior
         let saldoMes = 0;
@@ -779,17 +763,6 @@ function gerarTimesheetAcordo() {
         tdLabelSaldo.textContent = 'SALDO MÊS';
         trSaldoMes.appendChild(tdLabelSaldo);
 
-        // Saldo Hrs (saldo acumulado do mês anterior)
-        const tdSaldoHrsVal = document.createElement('td');
-        if (saldoAnterior && saldoAnterior !== 0) {
-            tdSaldoHrsVal.textContent = minutesToHHMM(saldoAnterior);
-            if (saldoAnterior > 0) tdSaldoHrsVal.classList.add('saldo-positivo');
-            if (saldoAnterior < 0) tdSaldoHrsVal.classList.add('saldo-negativo');
-        } else {
-            tdSaldoHrsVal.textContent = '';
-        }
-        trSaldoMes.appendChild(tdSaldoHrsVal);
-
         // Saldo do mês (spans the days columns)
         const tdSaldoMes = document.createElement('td');
         tdSaldoMes.colSpan = dias.length;
@@ -798,35 +771,7 @@ function gerarTimesheetAcordo() {
         if (saldoMes < 0) tdSaldoMes.classList.add('saldo-negativo');
         trSaldoMes.appendChild(tdSaldoMes);
 
-        // Saldo Acumulado = saldoAnterior + saldoMes
-        const saldoAcumuladoMes = (saldoAnterior || 0) + (saldoMes || 0);
-        const tdSaldoAcFinal = document.createElement('td');
-        tdSaldoAcFinal.textContent = minutesToHHMM(saldoAcumuladoMes);
-        if (saldoAcumuladoMes > 0) tdSaldoAcFinal.classList.add('saldo-positivo');
-        if (saldoAcumuladoMes < 0) tdSaldoAcFinal.classList.add('saldo-negativo');
-        trSaldoMes.appendChild(tdSaldoAcFinal);
-
-        // populate the header merged TH value containers (they span header through Saldo do Dia)
-        if (thSaldoHrsValue) {
-            if (saldoAnterior !== 0) {
-                thSaldoHrsValue.textContent = minutesToHHMM(saldoAnterior);
-                thSaldoHrsValue.classList.remove('saldo-positivo', 'saldo-negativo');
-                if (saldoAnterior > 0) thSaldoHrsValue.classList.add('saldo-positivo');
-                if (saldoAnterior < 0) thSaldoHrsValue.classList.add('saldo-negativo');
-            } else {
-                thSaldoHrsValue.textContent = '';
-            }
-        }
-        if (thSaldoAcValue) {
-            if (saldoAcumuladoMes !== 0) {
-                thSaldoAcValue.textContent = minutesToHHMM(saldoAcumuladoMes);
-                thSaldoAcValue.classList.remove('saldo-positivo', 'saldo-negativo');
-                if (saldoAcumuladoMes > 0) thSaldoAcValue.classList.add('saldo-positivo');
-                if (saldoAcumuladoMes < 0) thSaldoAcValue.classList.add('saldo-negativo');
-            } else {
-                thSaldoAcValue.textContent = '';
-            }
-        }
+        // (no header saldo value population in this reverted version)
 
         // update global accumulated saldo
         saldoAcumuladoGeral = saldoAcumuladoMes;
