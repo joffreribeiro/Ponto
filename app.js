@@ -527,15 +527,6 @@ function gerarTimesheetAcordo() {
 
         const primeiroDiaMes = new Date(ano, mes, 1);
         const ultimoDiaMes = new Date(ano, mes + 1, 0);
-        const tdSaldoHrsVal = document.createElement('td');
-        if (saldoAnterior && saldoAnterior !== 0) {
-            tdSaldoHrsVal.textContent = minutesToHHMM(saldoAnterior);
-            if (saldoAnterior > 0) tdSaldoHrsVal.classList.add('saldo-positivo');
-            if (saldoAnterior < 0) tdSaldoHrsVal.classList.add('saldo-negativo');
-        } else {
-            tdSaldoHrsVal.textContent = '';
-        }
-        trSaldoMes.appendChild(tdSaldoHrsVal);
 
         const titulo = document.createElement('div');
         titulo.className = 'timesheet-header';
@@ -773,7 +764,15 @@ function gerarTimesheetAcordo() {
                 tr.appendChild(td);
             });
 
-            // note: final merged Saldo Acumulado cell created at rowIndex === 0
+            // create final merged Saldo Acumulado cell at the end of the first row
+            if (rowIndex === 0 && !saldoAcCellRef) {
+                const tdSaldoAc = document.createElement('td');
+                tdSaldoAc.rowSpan = spanUntilHoras;
+                tdSaldoAc.className = 'evento-vertical';
+                tdSaldoAc.textContent = '';
+                tr.appendChild(tdSaldoAc);
+                saldoAcCellRef = tdSaldoAc;
+            }
 
             tbody.appendChild(tr);
         }
