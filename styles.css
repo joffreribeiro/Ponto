@@ -460,7 +460,7 @@ td.evento-vertical {
     letter-spacing: 0.08em;
 }
 
-./* Styling for merged saldo header cells used as vertical labels */
+/* Styling for merged saldo header cells used as vertical labels */
 .evento-vertical.saldo-label {
     text-orientation: upright;
     writing-mode: vertical-rl;
@@ -468,6 +468,19 @@ td.evento-vertical {
     font-size: 12px;
     line-height: 1.8;
     padding: 6px 6px;
+}
+
+/* Force header THs and their content to horizontal by default so days stay horizontal. */
+.timesheet-table thead th,
+.timesheet-table thead th * {
+    writing-mode: horizontal-tb !important;
+    text-orientation: initial !important;
+}
+
+/* Re-enable vertical for the saldo header label specifically */
+.timesheet-table thead th.saldo-header .vertical-label {
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
 }
 
 /* Header saldo cells: contain a vertical label and a value area aligned to bottom */
