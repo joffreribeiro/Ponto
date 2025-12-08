@@ -527,15 +527,15 @@ function gerarTimesheetAcordo() {
 
         const primeiroDiaMes = new Date(ano, mes, 1);
         const ultimoDiaMes = new Date(ano, mes + 1, 0);
-        const ultimoDia = ultimoDiaMes.getDate();
-
-        if (ultimoDiaMes < inicio || primeiroDiaMes > fim) {
-            dataAux.setMonth(dataAux.getMonth() + 1);
-            continue;
+        const tdSaldoHrsVal = document.createElement('td');
+        if (saldoAnterior && saldoAnterior !== 0) {
+            tdSaldoHrsVal.textContent = minutesToHHMM(saldoAnterior);
+            if (saldoAnterior > 0) tdSaldoHrsVal.classList.add('saldo-positivo');
+            if (saldoAnterior < 0) tdSaldoHrsVal.classList.add('saldo-negativo');
+        } else {
+            tdSaldoHrsVal.textContent = '';
         }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'timesheet-mes';
+        trSaldoMes.appendChild(tdSaldoHrsVal);
 
         const titulo = document.createElement('div');
         titulo.className = 'timesheet-header';
@@ -554,9 +554,9 @@ function gerarTimesheetAcordo() {
         thTipo.textContent = 'TIPO';
         trHead.appendChild(thTipo);
 
-        // coluna inicial: Saldo de Hrs (saldo acumulado do mês anterior)
+        // coluna inicial: Saldo Anterior (saldo acumulado do mês anterior)
         const thSaldoHrs = document.createElement('th');
-        thSaldoHrs.textContent = 'Saldo Hrs';
+        thSaldoHrs.textContent = 'Saldo Anterior';
         trHead.appendChild(thSaldoHrs);
 
         const dias = [];
@@ -578,7 +578,7 @@ function gerarTimesheetAcordo() {
             dias.push({ data: d, dataStr, isWeekend });
         }
 
-        // coluna final: Saldo Acumulado (Saldo Hrs + Saldo do mês)
+        // coluna final: Saldo Acumulado (Saldo Anterior + Saldo do mês)
         const thSaldoAc = document.createElement('th');
         thSaldoAc.textContent = 'Saldo Acumulado';
         trHead.appendChild(thSaldoAc);
@@ -612,6 +612,9 @@ function gerarTimesheetAcordo() {
         // saldo anterior = saldo acumulado até o mês anterior
         let saldoMes = 0;
         const saldoAnterior = saldoAcumuladoGeral || 0;
+        // how many rows to span up to (and including) 'Horas Trabalhadas' (rowIndex 6)
+        const spanUntilHoras = 7;
+        let saldoAcCellRef = null;
 
         for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
             const tr = document.createElement('tr');
@@ -623,18 +626,22 @@ function gerarTimesheetAcordo() {
             tdLabel.textContent = labels[rowIndex];
             tr.appendChild(tdLabel);
 
-            // primeira coluna após o rótulo: Saldo Hrs (mostramos apenas na linha 'Saldo do Dia')
-            const tdSaldoHrs = document.createElement('td');
-            if (rowIndex === 7) {
+            // primeira coluna após o rótulo: Saldo Anterior (merge até 'Horas Trabalhadas')
+            if (rowIndex === 0) {
+                const tdSaldoAnterior = document.createElement('td');
+                tdSaldoAnterior.rowSpan = spanUntilHoras; // span rows 0..6
+                tdSaldoAnterior.className = 'evento-vertical';
                 if (saldoAnterior && saldoAnterior !== 0) {
-                    tdSaldoHrs.textContent = minutesToHHMM(saldoAnterior);
-                    if (saldoAnterior > 0) tdSaldoHrs.classList.add('saldo-positivo');
-                    if (saldoAnterior < 0) tdSaldoHrs.classList.add('saldo-negativo');
+                    tdSaldoAnterior.textContent = minutesToHHMM(saldoAnterior);
+                    if (saldoAnterior > 0) tdSaldoAnterior.classList.add('saldo-positivo');
+                    if (saldoAnterior < 0) tdSaldoAnterior.classList.add('saldo-negativo');
                 } else {
-                    tdSaldoHrs.textContent = '';
+                    tdSaldoAnterior.textContent = '';
                 }
+                tr.appendChild(tdSaldoAnterior);
+
+                // final merged Saldo Acumulado will be created after the day cells so it appears at the end
             }
-            tr.appendChild(tdSaldoHrs);
 
             dias.forEach((dia, colIdx) => {
                 const ev = eventos[colIdx];
@@ -766,10 +773,7 @@ function gerarTimesheetAcordo() {
                 tr.appendChild(td);
             });
 
-            // coluna final (Saldo Acumulado) - por linha deixamos em branco; será preenchida na linha SALDO MÊS
-            const tdSaldoAcCol = document.createElement('td');
-            tdSaldoAcCol.textContent = '';
-            tr.appendChild(tdSaldoAcCol);
+            // note: final merged Saldo Acumulado cell created at rowIndex === 0
 
             tbody.appendChild(tr);
         }
@@ -809,6 +813,18 @@ function gerarTimesheetAcordo() {
         if (saldoAcumuladoMes > 0) tdSaldoAcFinal.classList.add('saldo-positivo');
         if (saldoAcumuladoMes < 0) tdSaldoAcFinal.classList.add('saldo-negativo');
         trSaldoMes.appendChild(tdSaldoAcFinal);
+
+        // Also write the value into the merged final cell (if present)
+        if (saldoAcCellRef) {
+            if (saldoAcumuladoMes !== 0) {
+                saldoAcCellRef.textContent = minutesToHHMM(saldoAcumuladoMes);
+                saldoAcCellRef.classList.remove('saldo-positivo', 'saldo-negativo');
+                if (saldoAcumuladoMes > 0) saldoAcCellRef.classList.add('saldo-positivo');
+                if (saldoAcumuladoMes < 0) saldoAcCellRef.classList.add('saldo-negativo');
+            } else {
+                saldoAcCellRef.textContent = '';
+            }
+        }
 
         // update global accumulated saldo
         saldoAcumuladoGeral = saldoAcumuladoMes;
