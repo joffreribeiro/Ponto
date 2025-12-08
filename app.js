@@ -665,18 +665,24 @@ function gerarTimesheetAcordo() {
                             if (calc.status === 'extra') td.classList.add('saldo-positivo');
                             if (calc.status === 'falta') td.classList.add('saldo-negativo');
                         } else if (rowIndex === 7) {
-                            td.textContent = minutesToHHMM(calc.saldo);
+                            // show saldo only when non-zero
+                            if (calc.saldo !== 0) {
+                                td.textContent = minutesToHHMM(calc.saldo);
 
-                            if (calc.saldo > 0) {
-                                td.classList.add('saldo-positivo');
-                                totalExtras++;
-                            }
-                            if (calc.saldo < 0) {
-                                td.classList.add('saldo-negativo');
-                                totalFaltas++;
-                            }
+                                if (calc.saldo > 0) {
+                                    td.classList.add('saldo-positivo');
+                                    totalExtras++;
+                                }
+                                if (calc.saldo < 0) {
+                                    td.classList.add('saldo-negativo');
+                                    totalFaltas++;
+                                }
 
-                            saldoMes += calc.saldo || 0;
+                                saldoMes += calc.saldo || 0;
+                            } else {
+                                // zero saldo -> leave cell empty (no text, no saldo classes)
+                                td.textContent = '';
+                            }
                         }
                     } else {
                         // dia útil sem registro -> potencial falta
