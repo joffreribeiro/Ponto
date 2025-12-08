@@ -423,9 +423,9 @@ td {
 }
 
 /* célula de feriado */
-/* Células verticais de eventos no timesheet */
-.feriado-cell,
-.evento-vertical {
+/* Células verticais de eventos no timesheet: apply only to TDs so headers aren't affected */
+td.feriado-cell,
+td.evento-vertical {
     /* vertical text for event cells (keep table semantics) */
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -439,8 +439,8 @@ td {
     vertical-align: middle;
 }
 
-/* ensure the vertical text doesn't overflow visually */
-.evento-vertical { 
+/* ensure the vertical text for event TDs doesn't overflow visually */
+td.evento-vertical { 
     overflow: hidden; 
     text-overflow: ellipsis;
     /* stack Latin letters one per line where supported */
