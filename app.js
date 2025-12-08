@@ -25,6 +25,7 @@ function inicializar() {
     carregarDados();
     configurarAbas();
     configurarSubAbas();
+    configurarModalAcordo();
     carregarConfiguracoes();
     atualizarDashboard();
     renderizarTabelaRegistros();
@@ -911,6 +912,28 @@ function preencherModalAcordo() {
     document.getElementById('regraTipo').value = '';
     document.getElementById('regraVale').value = '';
 
+    // reset editing flags
+    if (acordoEmEdicao) {
+        acordoEmEdicao.editingPeriodoIndex = null;
+        acordoEmEdicao.editingRegraIndex = null;
+    }
+
+    // default panel to overview
+    const sideBtns = document.querySelectorAll('.acordo-side-btn');
+    sideBtns.forEach(b => b.classList.remove('active'));
+    const panels = document.querySelectorAll('.acordo-panel');
+    panels.forEach(p => p.classList.remove('active'));
+    const defaultBtn = document.querySelector('.acordo-side-btn[data-panel="acordo-overview"]');
+    const defaultPanel = document.getElementById('acordo-overview');
+    if (defaultBtn) defaultBtn.classList.add('active');
+    if (defaultPanel) defaultPanel.classList.add('active');
+
+    // set add buttons to default text
+    const btnP = document.getElementById('btnAdicionarPeriodo');
+    if (btnP) btnP.textContent = 'Adicionar Período';
+    const btnR = document.getElementById('btnAdicionarRegra');
+    if (btnR) btnR.textContent = 'Adicionar Regra';
+
     renderizarListasAcordo();
 }
 
@@ -922,37 +945,95 @@ function renderizarListasAcordo() {
 
     (acordoEmEdicao.periodos || []).forEach((p, idx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${p.inicio}</td>
-            <td>${p.fim}</td>
-            <td>${p.minutosExtras} min</td>
-            <td>
-                <button type="button" class="btn-error">🗑️</button>
-            </td>
-        `;
-        const btn = tr.querySelector('button');
-        btn.addEventListener('click', () => removerPeriodoAcordo(idx));
+
+        const tdInicio = document.createElement('td');
+        tdInicio.textContent = p.inicio;
+        tr.appendChild(tdInicio);
+
+        const tdFim = document.createElement('td');
+        tdFim.textContent = p.fim;
+        tr.appendChild(tdFim);
+
+        const tdMin = document.createElement('td');
+        tdMin.textContent = `${p.minutosExtras} min`;
+        tr.appendChild(tdMin);
+
+        const tdActions = document.createElement('td');
+
+        const btnEdit = document.createElement('button');
+        btnEdit.type = 'button';
+        btnEdit.className = 'btn-secondary';
+        btnEdit.textContent = '✏️';
+        btnEdit.addEventListener('click', () => editarPeriodoAcordo(idx));
+        tdActions.appendChild(btnEdit);
+
+        const btnDel = document.createElement('button');
+        btnDel.type = 'button';
+        btnDel.className = 'btn-error';
+        btnDel.textContent = '🗑️';
+        btnDel.addEventListener('click', () => removerPeriodoAcordo(idx));
+        tdActions.appendChild(btnDel);
+
+        tr.appendChild(tdActions);
         tbodyPeriodos.appendChild(tr);
     });
 
     (acordoEmEdicao.regrasHorario || []).forEach((r, idx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${r.inicio}</td>
-            <td>${r.fim}</td>
-            <td>${r.minutosExtras}</td>
-            <td>${r.inicioExpediente || ''}</td>
-            <td>${r.almocoMin} min</td>
-            <td>${r.tolAlmoco} min</td>
-            <td>${r.tolSaida} min</td>
-            <td>${r.tipo || ''}</td>
-            <td>R$ ${Number(r.vale || 0).toFixed(2)}</td>
-            <td>
-                <button type="button" class="btn-error">🗑️</button>
-            </td>
-        `;
-        const btn = tr.querySelector('button');
-        btn.addEventListener('click', () => removerRegraHorario(idx));
+
+        const tdInicio = document.createElement('td');
+        tdInicio.textContent = r.inicio;
+        tr.appendChild(tdInicio);
+
+        const tdFim = document.createElement('td');
+        tdFim.textContent = r.fim;
+        tr.appendChild(tdFim);
+
+        const tdMinExtras = document.createElement('td');
+        tdMinExtras.textContent = r.minutosExtras;
+        tr.appendChild(tdMinExtras);
+
+        const tdInicioExp = document.createElement('td');
+        tdInicioExp.textContent = r.inicioExpediente || '';
+        tr.appendChild(tdInicioExp);
+
+        const tdAlm = document.createElement('td');
+        tdAlm.textContent = `${r.almocoMin} min`;
+        tr.appendChild(tdAlm);
+
+        const tdTolAlm = document.createElement('td');
+        tdTolAlm.textContent = `${r.tolAlmoco} min`;
+        tr.appendChild(tdTolAlm);
+
+        const tdTolSaida = document.createElement('td');
+        tdTolSaida.textContent = `${r.tolSaida} min`;
+        tr.appendChild(tdTolSaida);
+
+        const tdTipo = document.createElement('td');
+        tdTipo.textContent = r.tipo || '';
+        tr.appendChild(tdTipo);
+
+        const tdVale = document.createElement('td');
+        tdVale.textContent = `R$ ${Number(r.vale || 0).toFixed(2)}`;
+        tr.appendChild(tdVale);
+
+        const tdActions = document.createElement('td');
+
+        const btnEdit = document.createElement('button');
+        btnEdit.type = 'button';
+        btnEdit.className = 'btn-secondary';
+        btnEdit.textContent = '✏️';
+        btnEdit.addEventListener('click', () => editarRegraHorario(idx));
+        tdActions.appendChild(btnEdit);
+
+        const btnDel = document.createElement('button');
+        btnDel.type = 'button';
+        btnDel.className = 'btn-error';
+        btnDel.textContent = '🗑️';
+        btnDel.addEventListener('click', () => removerRegraHorario(idx));
+        tdActions.appendChild(btnDel);
+
+        tr.appendChild(tdActions);
         tbodyRegras.appendChild(tr);
     });
 }
@@ -971,7 +1052,16 @@ function adicionarPeriodoAcordo() {
         return;
     }
 
-    acordoEmEdicao.periodos.push({ inicio, fim, minutosExtras });
+    const editing = acordoEmEdicao.editingPeriodoIndex;
+    if (editing != null) {
+        acordoEmEdicao.periodos[editing] = { inicio, fim, minutosExtras };
+        acordoEmEdicao.editingPeriodoIndex = null;
+        const btn = document.getElementById('btnAdicionarPeriodo');
+        if (btn) btn.textContent = 'Adicionar Período';
+    } else {
+        acordoEmEdicao.periodos.push({ inicio, fim, minutosExtras });
+    }
+
     renderizarListasAcordo();
 
     document.getElementById('periodoInicio').value = '';

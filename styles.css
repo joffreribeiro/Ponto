@@ -617,6 +617,41 @@ textarea {
     max-width: 860px;
 }
 
+/* Acordo modal: sidebar layout */
+.acordo-modal-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 18px;
+    align-items: start;
+}
+.acordo-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.acordo-side-btn {
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    background: #f8fafc;
+    cursor: pointer;
+}
+.acordo-side-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.acordo-main { min-height: 120px; }
+.acordo-panel { display: none; }
+.acordo-panel.active { display: block; }
+
+@media (max-width: 800px) {
+    .acordo-modal-grid { grid-template-columns: 1fr; }
+    .acordo-sidebar { flex-direction: row; overflow-x: auto; }
+    .acordo-side-btn { white-space: nowrap; }
+}
+
 .modal-content h2 {
     margin: 0;
     font-size: 18px;
