@@ -523,7 +523,18 @@ function gerarTimesheetAcordo() {
     // Determine fiscal year start (April -> next March) using the most recent period start.
     // Find the latest _inicioDate among periods; then set fiscalStartYear so the fiscal
     // year that contains that date starts on April of the appropriate year.
-    const FISCAL_START_MONTH = 3; // April (0-based index)
+    // Determine fiscal start month per acordo if provided, otherwise default to April
+    let fiscalStartMonth = 3; // April (0-based index)
+    if (acordo && typeof acordo.fiscalStartMonth !== 'undefined' && acordo.fiscalStartMonth !== null) {
+        const raw = Number(acordo.fiscalStartMonth);
+        if (!isNaN(raw)) {
+            let candidate = raw;
+            // allow 1-12 input (convert to 0-based)
+            if (candidate >= 1 && candidate <= 12) candidate = candidate - 1;
+            // accept 0-11 as-is
+            if (candidate >= 0 && candidate <= 11) fiscalStartMonth = candidate;
+        }
+    }
     let fiscalStartYear;
     const latest = ordenados.reduce((acc, p) => {
         if (!p._inicioDate) return acc;
@@ -532,15 +543,15 @@ function gerarTimesheetAcordo() {
     if (latest) {
         const m = latest.getMonth();
         const y = latest.getFullYear();
-        fiscalStartYear = (m >= FISCAL_START_MONTH) ? y : (y - 1);
+        fiscalStartYear = (m >= fiscalStartMonth) ? y : (y - 1);
     } else {
         // fallback: current year
         const now = new Date();
-        fiscalStartYear = (now.getMonth() >= FISCAL_START_MONTH) ? now.getFullYear() : (now.getFullYear() - 1);
+        fiscalStartYear = (now.getMonth() >= fiscalStartMonth) ? now.getFullYear() : (now.getFullYear() - 1);
     }
 
-    const inicio = new Date(fiscalStartYear, FISCAL_START_MONTH, 1);
-    const fim = new Date(fiscalStartYear + 1, FISCAL_START_MONTH, 0);
+    const inicio = new Date(fiscalStartYear, fiscalStartMonth, 1);
+    const fim = new Date(fiscalStartYear + 1, fiscalStartMonth, 0);
 
     const content = document.getElementById('timesheetContent');
     content.innerHTML = '';
