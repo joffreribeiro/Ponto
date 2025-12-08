@@ -144,6 +144,27 @@ function configurarSubAbas() {
     });
 }
 
+function configurarModalAcordo() {
+    const sideBtns = document.querySelectorAll('.acordo-side-btn');
+    sideBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const alvo = btn.dataset.panel;
+            sideBtns.forEach(b => b.classList.remove('active'));
+            const panels = document.querySelectorAll('.acordo-panel');
+            panels.forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            const sec = document.getElementById(alvo);
+            if (sec) sec.classList.add('active');
+        });
+    });
+
+    const btnP = document.getElementById('btnAdicionarPeriodo');
+    if (btnP) btnP.addEventListener('click', adicionarPeriodoAcordo);
+    const btnR = document.getElementById('btnAdicionarRegra');
+    if (btnR) btnR.addEventListener('click', adicionarRegraHorario);
+}
+
 // Acordos e regras
 
 function obterAcordoPorData(dataStr) {
@@ -1038,6 +1059,34 @@ function renderizarListasAcordo() {
     });
 }
 
+function editarPeriodoAcordo(index) {
+    const p = acordoEmEdicao.periodos[index];
+    if (!p) return;
+    document.getElementById('periodoInicio').value = p.inicio;
+    document.getElementById('periodoFim').value = p.fim;
+    document.getElementById('periodoMinutosExtras').value = p.minutosExtras || 0;
+    acordoEmEdicao.editingPeriodoIndex = index;
+    const btn = document.getElementById('btnAdicionarPeriodo');
+    if (btn) btn.textContent = 'Salvar Período';
+}
+
+function editarRegraHorario(index) {
+    const r = acordoEmEdicao.regrasHorario[index];
+    if (!r) return;
+    document.getElementById('regraInicio').value = r.inicio || '';
+    document.getElementById('regraFim').value = r.fim || '';
+    document.getElementById('regraMinutosExtras').value = r.minutosExtras || 0;
+    document.getElementById('regraInicioExpediente').value = r.inicioExpediente || '';
+    document.getElementById('regraAlmoco').value = r.almocoMin ?? 60;
+    document.getElementById('regraTolAlmoco').value = r.tolAlmoco ?? 5;
+    document.getElementById('regraTolSaida').value = r.tolSaida ?? 5;
+    document.getElementById('regraTipo').value = r.tipo || '';
+    document.getElementById('regraVale').value = r.vale || '';
+    acordoEmEdicao.editingRegraIndex = index;
+    const btn = document.getElementById('btnAdicionarRegra');
+    if (btn) btn.textContent = 'Salvar Regra';
+}
+
 function adicionarPeriodoAcordo() {
     const inicio = document.getElementById('periodoInicio').value;
     const fim = document.getElementById('periodoFim').value;
@@ -1094,17 +1143,35 @@ function adicionarRegraHorario() {
         return;
     }
 
-    acordoEmEdicao.regrasHorario.push({
-        inicio,
-        fim,
-        minutosExtras,
-        inicioExpediente,
-        almocoMin,
-        tolAlmoco,
-        tolSaida,
-        tipo,
-        vale
-    });
+    const editing = acordoEmEdicao.editingRegraIndex;
+    if (editing != null) {
+        acordoEmEdicao.regrasHorario[editing] = {
+            inicio,
+            fim,
+            minutosExtras,
+            inicioExpediente,
+            almocoMin,
+            tolAlmoco,
+            tolSaida,
+            tipo,
+            vale
+        };
+        acordoEmEdicao.editingRegraIndex = null;
+        const btn = document.getElementById('btnAdicionarRegra');
+        if (btn) btn.textContent = 'Adicionar Regra';
+    } else {
+        acordoEmEdicao.regrasHorario.push({
+            inicio,
+            fim,
+            minutosExtras,
+            inicioExpediente,
+            almocoMin,
+            tolAlmoco,
+            tolSaida,
+            tipo,
+            vale
+        });
+    }
 
     renderizarListasAcordo();
 
