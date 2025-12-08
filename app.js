@@ -853,8 +853,14 @@ function salvarEvento() {
     const dataInicioEvento = document.getElementById('dataInicioEvento').value;
     const dataFimEvento = document.getElementById('dataFimEvento').value;
     const impactoEvento = document.getElementById('impactoEvento').value;
-    const acordoIdxRaw = document.getElementById('acordoEventoSelect') ? document.getElementById('acordoEventoSelect').value : '';
-    const acordoIndex = acordoIdxRaw === '' ? null : Number(acordoIdxRaw);
+    const acordoSelEl = document.getElementById('acordoEventoSelect');
+    const acordoIdxRaw = acordoSelEl ? acordoSelEl.value : '';
+    // acordo selection is mandatory
+    if (!acordoIdxRaw) {
+        alert('Selecione um Acordo antes de salvar o evento.');
+        return;
+    }
+    const acordoIndex = Number(acordoIdxRaw);
 
     if (!descricaoEvento || !dataInicioEvento) {
         alert('Preencha pelo menos descrição e data inicial.');
@@ -890,7 +896,7 @@ function limparEvento() {
     document.getElementById('dataFimEvento').value = '';
     document.getElementById('impactoEvento').value = 'folga';
     const acordoSel = document.getElementById('acordoEventoSelect');
-    if (acordoSel) acordoSel.value = '';
+    if (acordoSel) acordoSel.selectedIndex = 0;
     eventoEmEdicaoIndex = null;
     eventoAcordoPreselected = null;
     const saveBtn = document.querySelector('button[onclick="salvarEvento()"]');
