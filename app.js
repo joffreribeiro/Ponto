@@ -26,7 +26,7 @@ function inicializar() {
     configurarAbas();
     configurarSubAbas();
     configurarModalAcordo();
-    carregarConfiguracoes();
+    // global UI-based configurações removed — agreement rules supply tolerances now
     atualizarDashboard();
     renderizarTabelaRegistros();
     renderizarEventos();
@@ -245,9 +245,9 @@ function calcularHorasDiaComContexto(dataStr, registro) {
     let regra = obterRegraHorarioParaData(acordo, dataStr);
     if (!regra) {
         regra = {
-            almocoMin: dados.configuracoes.almocoMinutos || 60,
-            tolAlmoco: 5,
-            tolSaida: dados.configuracoes.toleranciaAtraso || 5
+            almocoMin: 60,
+            tolAlmoco: 0,
+            tolSaida: 0
         };
     }
 
@@ -770,13 +770,23 @@ function gerarTimesheetAcordo() {
 // Configurações
 
 function salvarConfiguracoes() {
-    const tipoJornada = Number(document.getElementById('tipoJornada').value);
-    const entradaPadrao = document.getElementById('entradaPadrao').value;
-    const saidaPadrao = document.getElementById('saidaPadrao').value;
-    const almocoMinutos = Number(document.getElementById('almocoMinutos').value || 60);
-    const toleranciaAtraso = Number(document.getElementById('toleranciaAtraso').value || 5);
-    const inicioPeriodoBanco = document.getElementById('inicioPeriodoBanco').value;
-    const fimPeriodoBanco = document.getElementById('fimPeriodoBanco').value;
+    // If the configuration UI is present, read values; otherwise keep existing config
+    const cfg = dados.configuracoes || {};
+    const tipoJornadaEl = document.getElementById('tipoJornada');
+    const entradaPadraoEl = document.getElementById('entradaPadrao');
+    const saidaPadraoEl = document.getElementById('saidaPadrao');
+    const almocoMinutosEl = document.getElementById('almocoMinutos');
+    const toleranciaEl = document.getElementById('toleranciaAtraso');
+    const inicioBancoEl = document.getElementById('inicioPeriodoBanco');
+    const fimBancoEl = document.getElementById('fimPeriodoBanco');
+
+    const tipoJornada = tipoJornadaEl ? Number(tipoJornadaEl.value) : (cfg.tipoJornada || 44);
+    const entradaPadrao = entradaPadraoEl ? entradaPadraoEl.value : (cfg.entradaPadrao || '');
+    const saidaPadrao = saidaPadraoEl ? saidaPadraoEl.value : (cfg.saidaPadrao || '');
+    const almocoMinutos = almocoMinutosEl ? Number(almocoMinutosEl.value || 60) : (cfg.almocoMinutos || 60);
+    const toleranciaAtraso = toleranciaEl ? Number(toleranciaEl.value || 5) : (cfg.toleranciaAtraso || 5);
+    const inicioPeriodoBanco = inicioBancoEl ? inicioBancoEl.value : (cfg.inicioPeriodoBanco || '');
+    const fimPeriodoBanco = fimBancoEl ? fimBancoEl.value : (cfg.fimPeriodoBanco || '');
 
     dados.configuracoes = {
         tipoJornada,
@@ -789,20 +799,29 @@ function salvarConfiguracoes() {
     };
 
     salvarDados();
-    mostrarAlert('alertAreaConfig', 'Configurações salvas com sucesso.', 'success');
+    if (document.getElementById('alertAreaConfig')) {
+        mostrarAlert('alertAreaConfig', 'Configurações salvas com sucesso.', 'success');
+    }
     atualizarDashboard();
 }
 
 function carregarConfiguracoes() {
     const cfg = dados.configuracoes || {};
+    const tipoJornadaEl = document.getElementById('tipoJornada');
+    const entradaPadraoEl = document.getElementById('entradaPadrao');
+    const saidaPadraoEl = document.getElementById('saidaPadrao');
+    const almocoMinutosEl = document.getElementById('almocoMinutos');
+    const toleranciaEl = document.getElementById('toleranciaAtraso');
+    const inicioBancoEl = document.getElementById('inicioPeriodoBanco');
+    const fimBancoEl = document.getElementById('fimPeriodoBanco');
 
-    document.getElementById('tipoJornada').value = cfg.tipoJornada || 44;
-    document.getElementById('entradaPadrao').value = cfg.entradaPadrao || '';
-    document.getElementById('saidaPadrao').value = cfg.saidaPadrao || '';
-    document.getElementById('almocoMinutos').value = cfg.almocoMinutos ?? 60;
-    document.getElementById('toleranciaAtraso').value = cfg.toleranciaAtraso ?? 5;
-    document.getElementById('inicioPeriodoBanco').value = cfg.inicioPeriodoBanco || '';
-    document.getElementById('fimPeriodoBanco').value = cfg.fimPeriodoBanco || '';
+    if (tipoJornadaEl) tipoJornadaEl.value = cfg.tipoJornada || 44;
+    if (entradaPadraoEl) entradaPadraoEl.value = cfg.entradaPadrao || '';
+    if (saidaPadraoEl) saidaPadraoEl.value = cfg.saidaPadrao || '';
+    if (almocoMinutosEl) almocoMinutosEl.value = cfg.almocoMinutos ?? 60;
+    if (toleranciaEl) toleranciaEl.value = cfg.toleranciaAtraso ?? 5;
+    if (inicioBancoEl) inicioBancoEl.value = cfg.inicioPeriodoBanco || '';
+    if (fimBancoEl) fimBancoEl.value = cfg.fimPeriodoBanco || '';
 }
 
 // Eventos
@@ -1490,7 +1509,6 @@ function importarDados(event) {
             }
             dados = json;
             salvarDados();
-            carregarConfiguracoes();
             atualizarDashboard();
             renderizarTabelaRegistros();
             renderizarEventos();
