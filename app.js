@@ -773,7 +773,8 @@ function gerarTimesheetAcordo() {
 
         // (no header saldo value population in this reverted version)
 
-        // update global accumulated saldo
+        // compute and update global accumulated saldo
+        const saldoAcumuladoMes = (saldoAnterior || 0) + (saldoMes || 0);
         saldoAcumuladoGeral = saldoAcumuladoMes;
 
         tbody.appendChild(trSaldoMes);
