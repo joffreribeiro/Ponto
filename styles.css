@@ -426,22 +426,21 @@ td {
 /* Células verticais de eventos no timesheet */
 .feriado-cell,
 .evento-vertical {
-    /* vertical text for event cells */
+    /* vertical text for event cells (keep table semantics) */
     writing-mode: vertical-rl;
     text-orientation: mixed;
     font-weight: 600;
     font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 6px;
-    min-width: 38px; /* narrow column look */
+    /* do NOT change display: keep as table-cell to preserve table layout */
+    padding: 6px 4px;
+    min-width: 28px; /* compact column look */
     white-space: nowrap;
+    text-align: center;
     vertical-align: middle;
 }
 
-/* ensure the vertical text wraps nicely when space is tight */
-.evento-vertical { overflow: hidden; }
+/* ensure the vertical text doesn't overflow visually */
+.evento-vertical { overflow: hidden; text-overflow: ellipsis; }
 
 /* Feriado */
 .feriado-cell,
