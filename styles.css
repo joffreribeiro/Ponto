@@ -394,6 +394,16 @@ td {
     min-width: 80px;
 }
 
+/* Ensure non-saldo header THs render horizontally (protect against inheritance) */
+.timesheet-table thead th:not(.saldo-header) {
+    writing-mode: horizontal-tb !important;
+    text-orientation: initial !important;
+}
+.timesheet-table thead th:not(.saldo-header) .th-dia {
+    writing-mode: horizontal-tb !important;
+    text-orientation: initial !important;
+}
+
 /* dia da semana em cima, número embaixo */
 .th-dia {
     display: flex;
@@ -408,25 +418,6 @@ td {
 .th-dia-num {
     font-size: 11px;
     margin-top: 2px;
-}
-
-/* Ensure table header cells are horizontal by default so only saldo headers are vertical */
-.timesheet-table thead th {
-    writing-mode: horizontal-tb !important;
-    text-orientation: initial !important;
-}
-
-/* Re-enable vertical for saldo header label areas specifically */
-.timesheet-table thead th.saldo-header .vertical-label,
-.timesheet-table thead th.saldo-label .vertical-label {
-    writing-mode: vertical-rl !important;
-    text-orientation: upright !important;
-}
-
-/* Force the inner day container to horizontal to avoid inherited vertical rules */
-.timesheet-table thead th .th-dia {
-    writing-mode: horizontal-tb !important;
-    text-orientation: initial !important;
 }
 
 /* linhas especiais */

@@ -551,7 +551,7 @@ function gerarTimesheetAcordo() {
 
         // coluna inicial: Saldo Anterior (saldo acumulado do mês anterior)
         const thSaldoHrs = document.createElement('th');
-        thSaldoHrs.className = 'saldo-header evento-vertical saldo-label';
+        thSaldoHrs.className = 'saldo-header saldo-label';
         thSaldoHrs.innerHTML = '<div class="vertical-label">Saldo Anterior</div><div class="saldo-value"></div>';
         trHead.appendChild(thSaldoHrs);
 
@@ -576,7 +576,7 @@ function gerarTimesheetAcordo() {
 
         // coluna final: Saldo Acumulado (Saldo Anterior + Saldo do mês)
         const thSaldoAc = document.createElement('th');
-        thSaldoAc.className = 'saldo-header evento-vertical saldo-label';
+        thSaldoAc.className = 'saldo-header saldo-label';
         thSaldoAc.innerHTML = '<div class="vertical-label">Saldo Acumulado</div><div class="saldo-value"></div>';
         trHead.appendChild(thSaldoAc);
 
