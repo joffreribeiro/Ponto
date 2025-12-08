@@ -550,6 +550,18 @@ function gerarTimesheetAcordo() {
         fiscalStartYear = (now.getMonth() >= fiscalStartMonth) ? now.getFullYear() : (now.getFullYear() - 1);
     }
 
+    // If the acordo name contains a year range like '2025-2026', prefer that start year
+    // This helps when the acordo is explicitly named for a fiscal cycle.
+    if (acordo && acordo.nome) {
+        const m = acordo.nome.match(/(\d{4})\s*[-\/]\s*(\d{4})/);
+        if (m) {
+            const nameStartYear = Number(m[1]);
+            if (!isNaN(nameStartYear)) {
+                fiscalStartYear = nameStartYear;
+            }
+        }
+    }
+
     const inicio = new Date(fiscalStartYear, fiscalStartMonth, 1);
     const fim = new Date(fiscalStartYear + 1, fiscalStartMonth, 0);
 
