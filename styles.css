@@ -1,0 +1,681 @@
+/* ================================================
+   Paleta de cores
+   ================================================ */
+:root {
+    --bg-page: #e8edf3;
+    --bg-header: #ffffff;
+    --bg-card: #ffffff;
+    --bg-soft: #f5f7fb;
+
+    --primary: #0b6ea4;
+    --primary-soft: #e3f3fb;
+    --primary-dark: #084f77;
+
+    --text-main: #1f2933;
+    --text-muted: #6b7280;
+
+    --border-soft: #dde4f0;
+    --border-table: #d0d7e2;
+
+    --positive: #0a9a63;
+    --negative: #d9534f;
+
+    --shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+/* ================================================
+   Reset / base
+   ================================================ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-main);
+    background: var(--bg-page);
+}
+
+body {
+    line-height: 1.4;
+}
+
+/* ================================================
+   Header / título
+   ================================================ */
+header {
+    text-align: center;
+    padding-top: 24px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 26px;
+    color: var(--primary-dark);
+}
+
+.subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* ================================================
+   Container principal / conteúdo
+   ================================================ */
+.container {
+    max-width: 1600px;
+    margin: 20px auto 40px;
+    padding: 0 16px;
+}
+
+.content {
+    background: var(--bg-header);
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    padding: 20px 22px 24px;
+    box-shadow: var(--shadow-soft);
+}
+
+/* ================================================
+   Abas principais (Dashboard / Ponto / Config)
+   ================================================ */
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0 12px;
+}
+
+.tab-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+    filter: brightness(0.96);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ================================================
+   Dashboard
+   ================================================ */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr;
+    gap: 16px;
+}
+
+.card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+    padding: 16px 18px;
+}
+
+.card h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    color: var(--primary-dark);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.stat {
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-soft);
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.lista-avisos {
+    padding-left: 18px;
+    margin: 4px 0 0;
+    font-size: 13px;
+}
+
+/* ================================================
+   Sub-abas Ponto (Registros / Timesheet)
+   ================================================ */
+.subtabs {
+    display: flex;
+    gap: 8px;
+    margin: -4px 0 12px;
+}
+
+.subtab-btn {
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #f3f4f6;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+}
+
+.subtab-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.subtab-content {
+    display: none;
+}
+
+.subtab-content.active {
+    display: block;
+}
+
+/* ================================================
+   Toolbar / botões superiores
+   ================================================ */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.toolbar label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.toolbar select {
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    padding: 5px 8px;
+    font-size: 13px;
+    background: #ffffff;
+}
+
+.toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.flex-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+button {
+    font-family: inherit;
+}
+
+/* Botões padrão */
+.btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    border-radius: 999px;
+    border: none;
+    padding: 7px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-outline {
+    background: #f3f4f6;
+    color: var(--text-main);
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: var(--text-main);
+    border-radius: 999px;
+    border: 1px solid #dde3ed;
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.btn-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 999px;
+    border: 1px solid #fecaca;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* upload "disfarçado" de botão */
+.file-label {
+    position: relative;
+    overflow: hidden;
+}
+
+.file-label input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* ================================================
+   Tabelas (Registros / Eventos)
+   ================================================ */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    background: #ffffff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th,
+td {
+    padding: 6px 8px;
+    border: 1px solid var(--border-table);
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* cabeçalho geral */
+.table-container thead th {
+    background: #f3f4f6;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+
+/* saldos */
+.saldo-positivo {
+    color: var(--positive);
+    font-weight: 600;
+}
+
+.saldo-negativo {
+    color: var(--negative);
+    font-weight: 600;
+}
+
+/* ================================================
+   Timesheet
+   ================================================ */
+.timesheet-mes {
+    margin-top: 14px;
+}
+
+.timesheet-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-main);
+    background: var(--primary-soft);
+    padding: 6px 10px;
+    border-radius: 6px 6px 0 0;
+}
+
+.timesheet-mes .table-container {
+    margin-top: 0;
+    border-radius: 0 0 10px 10px;
+    border-top: none;
+}
+
+.timesheet-table thead th {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+/* Fins de semana no timesheet (coluna em azul bem claro) */
+.timesheet-table td.col-fimsemana {
+    background: #e0f2fe;     /* azul clarinho, diferente do cinza padrão */
+}
+
+
+
+.timesheet-table thead th:first-child {
+    min-width: 80px;
+}
+
+/* dia da semana em cima, número embaixo */
+.th-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+}
+.th-dia-semana {
+    font-size: 11px;
+    font-weight: 600;
+}
+.th-dia-num {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* linhas especiais */
+.row-duracao-almoco {
+    background: #fff8d6;
+}
+.row-separador td {
+    border-top: 2px solid #cfd8e3;
+}
+.row-saldo-mes td {
+    background: #f9fafb; /* quase branco, neutro */
+    font-weight: 600;
+}
+
+/* célula de feriado */
+/* Células verticais de eventos no timesheet */
+.feriado-cell,
+.evento-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+/* Feriado */
+.feriado-cell,
+.evento-feriado {
+    background: #ffe4e6;
+    color: #9f1239;
+}
+
+/* Férias */
+.evento-ferias {
+    background: #fef9c3; /* amarelo clarinho */
+    color: #854d0e;
+}
+
+/* Afastamento */
+.evento-afastamento {
+    background: #e0f2fe; /* azul clarinho */
+    color: #075985;
+}
+
+/* Viagem a serviço */
+.evento-viagem {
+    background: #ede9fe; /* lilás clarinho */
+    color: #5b21b6;
+}
+
+/* Outros tipos (se você criar depois) */
+.evento-outro {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* Abono - Acordo (não conta como falta) */
+.evento-abono-acordo {
+    background: #dcfce7; /* verde clarinho */
+    color: #166534;
+}
+
+/* Compensar - Acordo (gera hora negativa se não trabalhado) */
+.evento-compensar-acordo {
+    background: #fef3c7; /* laranja claro */
+    color: #92400e;
+}
+
+/* destaque extra / falta */
+.dia-extra {
+    background: #ecfdf3;
+}
+.dia-falta {
+    background: #fef2f2;
+}
+
+/* ================================================
+   Configurações / formulários
+   ================================================ */
+.small-text {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.card-header-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 14px;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.form-group label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="time"],
+input[type="date"],
+select,
+textarea {
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    padding: 6px 9px;
+    font-size: 13px;
+    outline: none;
+    background: #ffffff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(11, 110, 164, 0.18);
+}
+
+textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* ================================================
+   Acordos cards
+   ================================================ */
+.acordo-card {
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    box-shadow: var(--shadow-soft);
+}
+
+.acordo-titulo {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.acordo-subtitulo {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    color: var(--text-muted);
+}
+
+.acordo-lista {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 12px;
+}
+
+/* ================================================
+   Modais
+   ================================================ */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: var(--shadow-soft);
+}
+
+.modal-large {
+    max-width: 860px;
+}
+
+.modal-content h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--primary-dark);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+/* ================================================
+   Alerts
+   ================================================ */
+.alert {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.alert-success {
+    background: #ecfdf3;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* ================================================
+   Responsivo
+   ================================================ */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-grid-3,
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .tabs {
+        flex-wrap: wrap;
+    }
+}
+
+/* Linha entre Saída e Horas Trabalhadas */
+.row-separador-azul td {
+    background: #dbeffd !important;  /* azul leve */
+    border-top: 2px solid #353636 !important; /* azul mais forte */
+}
+
+
+
