@@ -423,6 +423,12 @@ td {
     text-orientation: upright !important;
 }
 
+/* Force the inner day container to horizontal to avoid inherited vertical rules */
+.timesheet-table thead th .th-dia {
+    writing-mode: horizontal-tb !important;
+    text-orientation: initial !important;
+}
+
 /* linhas especiais */
 .row-duracao-almoco {
     background: #BFBFBF;
