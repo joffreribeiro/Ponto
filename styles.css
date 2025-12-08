@@ -460,8 +460,7 @@ td.evento-vertical {
     letter-spacing: 0.08em;
 }
 
-<<<<<<< HEAD
-/* Styling for merged saldo header cells used as vertical labels */
+./* Styling for merged saldo header cells used as vertical labels */
 .evento-vertical.saldo-label {
     text-orientation: upright;
     writing-mode: vertical-rl;
