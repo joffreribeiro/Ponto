@@ -385,7 +385,7 @@ td {
 
 /* Fins de semana no timesheet (coluna em azul bem claro) */
 .timesheet-table td.col-fimsemana {
-    background: #e0f2fe;     /* azul clarinho, diferente do cinza padrão */
+    background: #BFBFBF;     /* azul clarinho, diferente do cinza padrão */
 }
 
 
@@ -729,7 +729,7 @@ textarea {
 
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul td {
-    background: #dbeffd !important;  /* azul leve */
+    background: #BFBFBF !important;  /* azul leve */
     border-top: 2px solid #BFBFBF !important; /* azul mais forte */
 }
 
