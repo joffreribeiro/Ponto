@@ -606,6 +606,10 @@ function gerarTimesheetAcordo() {
             return calcularHorasDiaComContexto(dia.dataStr, r);
         }
 
+        // references to the th value containers in the header for saldo display
+        let thSaldoHrsValue = null;
+        let thSaldoAcValue = null;
+
         // after we know how many rows, make the header saldo th span through the saldo row
         thSaldoHrs.rowSpan = numRows + 1; // header row + tbody rows
         thSaldoAc.rowSpan = numRows + 1;
@@ -618,9 +622,6 @@ function gerarTimesheetAcordo() {
         // how many rows to span up to (and including) 'Horas Trabalhadas' (rowIndex 6)
         const spanUntilHoras = 8; // include Saldo do Dia (rows 0..7)
         // (old merged tbody cell ref removed; header THs now hold merged labels/values)
-        // references to the th value containers in the header for saldo display
-        let thSaldoHrsValue = null;
-        let thSaldoAcValue = null;
 
         for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
             const tr = document.createElement('tr');
