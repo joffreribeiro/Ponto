@@ -608,20 +608,22 @@ textarea {
     background: #ffffff;
     border-radius: 12px;
     padding: 18px 20px;
-    max-width: 600px;
+    max-width: 760px;
     width: 100%;
     box-shadow: var(--shadow-soft);
 }
 
 .modal-large {
-    max-width: 860px;
+    /* Acordo modal needs more horizontal room for the sidebar + 3-column forms */
+    max-width: 1100px;
 }
 
 /* Acordo modal: sidebar layout */
 .acordo-modal-grid {
     display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 18px;
+    /* slightly wider sidebar and more gap for comfortable spacing */
+    grid-template-columns: 260px 1fr;
+    gap: 22px;
     align-items: start;
 }
 .acordo-sidebar {
@@ -698,11 +700,12 @@ textarea {
         grid-template-columns: 1fr;
     }
     .form-grid-3,
-    .form-grid-2 {
-        grid-template-columns: 1fr;
+    .form-grid-3 {
+        display: grid;
+        /* reserve a reasonable minimum for each column so inputs don't collapse */
+        grid-template-columns: repeat(3, minmax(200px, 1fr));
+        gap: 10px 14px;
     }
-    .tabs {
-        flex-wrap: wrap;
     }
 }
 
