@@ -450,6 +450,16 @@ td {
     letter-spacing: 0.08em;
 }
 
+/* Styling for merged saldo header cells used as vertical labels */
+.evento-vertical.saldo-label {
+    text-orientation: upright;
+    writing-mode: vertical-rl;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1.8;
+    padding: 6px 6px;
+}
+
 /* Feriado */
 .feriado-cell,
 .evento-feriado {
