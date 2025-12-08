@@ -520,21 +520,23 @@ function gerarTimesheetAcordo() {
         _fimDate: parseDateString(p.fim)
     })).sort((a, b) => (a._inicioDate || 0) - (b._inicioDate || 0));
 
-    // Determine fiscal year start (April -> next March).
-    // Prefer the most recent period that starts in April..December (choose latest year),
-    // otherwise fall back to using the earliest period and shifting back a year.
+    // Determine fiscal year start (April -> next March) using the most recent period start.
+    // Find the latest _inicioDate among periods; then set fiscalStartYear so the fiscal
+    // year that contains that date starts on April of the appropriate year.
     const FISCAL_START_MONTH = 3; // April (0-based index)
-    let fiscalStartYear = null;
-    const aprilPlus = ordenados.filter(p => p._inicioDate && p._inicioDate.getMonth() >= FISCAL_START_MONTH);
-    if (aprilPlus.length > 0) {
-        // pick the one with latest start date (most recent fiscal cycle)
-        aprilPlus.sort((a, b) => b._inicioDate - a._inicioDate);
-        fiscalStartYear = aprilPlus[0]._inicioDate.getFullYear();
+    let fiscalStartYear;
+    const latest = ordenados.reduce((acc, p) => {
+        if (!p._inicioDate) return acc;
+        return (!acc || p._inicioDate > acc) ? p._inicioDate : acc;
+    }, null);
+    if (latest) {
+        const m = latest.getMonth();
+        const y = latest.getFullYear();
+        fiscalStartYear = (m >= FISCAL_START_MONTH) ? y : (y - 1);
     } else {
-        // no period starts in Apr..Dec — use earliest period year and shift back one year
-        const first = ordenados[0];
-        const y = first && first._inicioDate ? first._inicioDate.getFullYear() : (new Date()).getFullYear();
-        fiscalStartYear = y - 1;
+        // fallback: current year
+        const now = new Date();
+        fiscalStartYear = (now.getMonth() >= FISCAL_START_MONTH) ? now.getFullYear() : (now.getFullYear() - 1);
     }
 
     const inicio = new Date(fiscalStartYear, FISCAL_START_MONTH, 1);
