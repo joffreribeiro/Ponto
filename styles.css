@@ -440,7 +440,15 @@ td {
 }
 
 /* ensure the vertical text doesn't overflow visually */
-.evento-vertical { overflow: hidden; text-overflow: ellipsis; }
+.evento-vertical { 
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    /* stack Latin letters one per line where supported */
+    text-orientation: upright;
+    line-height: 1.6;
+    white-space: normal; /* allow vertical stacking */
+    letter-spacing: 0.08em;
+}
 
 /* Feriado */
 .feriado-cell,
