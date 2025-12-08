@@ -410,6 +410,19 @@ td {
     margin-top: 2px;
 }
 
+/* Ensure table header cells are horizontal by default so only saldo headers are vertical */
+.timesheet-table thead th {
+    writing-mode: horizontal-tb !important;
+    text-orientation: initial !important;
+}
+
+/* Re-enable vertical for saldo header label areas specifically */
+.timesheet-table thead th.saldo-header .vertical-label,
+.timesheet-table thead th.saldo-label .vertical-label {
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
+}
+
 /* linhas especiais */
 .row-duracao-almoco {
     background: #BFBFBF;
