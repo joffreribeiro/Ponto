@@ -19,7 +19,6 @@
     <nav class="tabs">
         <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
         <button class="tab-btn" data-tab="ponto">Ponto</button>
-        <button class="tab-btn" data-tab="config">Configurações</button>
     </nav>
 
     <div class="content">
@@ -60,6 +59,7 @@
             <div class="subtabs">
                 <button class="subtab-btn active" data-subtab="ponto-registros">Registros</button>
                 <button class="subtab-btn" data-subtab="ponto-timesheet">Timesheet</button>
+                <button class="subtab-btn" data-subtab="ponto-config">Configurações</button>
             </div>
 
             <!-- SUB-ABA REGISTROS -->
@@ -137,6 +137,150 @@
                 </div>
 
                 <div id="timesheetContent"></div>
+            </div>
+
+            <!-- SUB-ABA CONFIGURAÇÕES (moved from top-level) -->
+            <div id="ponto-config" class="subtab-content">
+
+            <div id="alertAreaConfig"></div>
+
+            <div class="card">
+                <div class="card-header-inline">
+                    <h2>Acordos Coletivos</h2>
+                    <button class="btn-primary" type="button" onclick="novoAcordo()">+ Novo Acordo</button>
+                </div>
+                <p class="small-text">
+                    Cadastre os acordos (ex.: 2025–2026), com os períodos de compensação de abril a março
+                    e as regras de horário (minutos extras, horário de início, tolerâncias, vale etc.).
+                </p>
+                <div id="listaAcordos"></div>
+            </div>
+
+            <div class="card">
+                <h2>Feriados e Eventos</h2>
+                <p class="small-text">
+                    Use para feriados, férias, afastamentos ou outros eventos que impactam a jornada.
+                </p>
+
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="tipoEvento">Tipo:</label>
+<select id="tipoEvento">
+    <option value="feriado">Feriado</option>
+    <option value="ferias">Férias</option>
+    <option value="afastamento">Afastamento</option>
+    <option value="viagem">Viagem a Serviço</option>
+    <option value="abono_acordo">Abono - Acordo</option>
+    <option value="compensar_acordo">Compensar - Acordo</option>
+</select>
+
+
+                    </div>
+                    <div class="form-group">
+                        <label for="impactoEvento">Impacto no ponto:</label>
+                        <select id="impactoEvento">
+                            <option value="folga">Folga (não conta como falta)</option>
+                            <option value="compensa">Compensar depois</option>
+                            <option value="ignorar">Ignorar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="descricaoEvento">Descrição:</label>
+                        <input type="text" id="descricaoEvento" placeholder="Ex.: Feriado Nacional">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataInicioEvento">Início:</label>
+                        <input type="date" id="dataInicioEvento">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataFimEvento">Fim:</label>
+                        <input type="date" id="dataFimEvento">
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 8px;">
+                    <button class="btn-secondary" type="button" onclick="limparEvento()">Limpar</button>
+                    <button class="btn-primary" type="button" onclick="salvarEvento()">Salvar Evento</button>
+                </div>
+
+                <div class="table-container" style="margin-top: 12px;">
+                    <table id="tabelaEventos">
+                        <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Impacto</th>
+                            <th>Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Configurações da Jornada</h2>
+                <p class="small-text">
+                    Parâmetros gerais usados como padrão quando não houver regra específica em um acordo.
+                </p>
+
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="tipoJornada">Tipo de jornada (horas semanais):</label>
+                        <select id="tipoJornada">
+                            <option value="40">40 horas</option>
+                            <option value="44">44 horas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="entradaPadrao">Entrada padrão:</label>
+                        <input type="time" id="entradaPadrao">
+                    </div>
+                    <div class="form-group">
+                        <label for="saidaPadrao">Saída padrão:</label>
+                        <input type="time" id="saidaPadrao">
+                    </div>
+                    <div class="form-group">
+                        <label for="almocoMinutos">Almoço (minutos):</label>
+                        <input type="number" id="almocoMinutos" min="0" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="toleranciaAtraso">Tolerância saída (minutos):</label>
+                        <input type="number" id="toleranciaAtraso" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="inicioPeriodoBanco">Início período banco:</label>
+                        <input type="date" id="inicioPeriodoBanco">
+                    </div>
+                    <div class="form-group">
+                        <label for="fimPeriodoBanco">Fim período banco:</label>
+                        <input type="date" id="fimPeriodoBanco">
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top: 10px;">
+                    <button class="btn-primary" type="button" onclick="salvarConfiguracoes()">
+                        Salvar Configurações
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Backup / Restauração</h2>
+                <p class="small-text">
+                    Exporte seus dados em JSON para backup ou importe em outro navegador.
+                </p>
+                <div class="form-row">
+                    <button class="btn-secondary" type="button" onclick="exportarDados()">Exportar JSON</button>
+                    <label class="btn-secondary file-label">
+                        Importar JSON
+                        <input type="file" accept=".json" onchange="importarDados(event)">
+                    </label>
+                </div>
+            </div>
+
             </div>
         </section>
 
