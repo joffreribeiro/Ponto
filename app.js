@@ -527,6 +527,10 @@ function gerarTimesheetAcordo() {
 
         const primeiroDiaMes = new Date(ano, mes, 1);
         const ultimoDiaMes = new Date(ano, mes + 1, 0);
+        const ultimoDia = ultimoDiaMes.getDate();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'timesheet-mes';
 
         const titulo = document.createElement('div');
         titulo.className = 'timesheet-header';
