@@ -17,6 +17,7 @@ let dados = {
 
 let eventoSelecionadoIndex = null;
 let eventoEmEdicaoIndex = null;
+let eventoAcordoPreselected = null;
 let acordoEmEdicao = null;
 let acordoEmEdicaoIndex = null;
 
@@ -165,6 +166,24 @@ function configurarModalAcordo() {
     if (btnP) btnP.addEventListener('click', adicionarPeriodoAcordo);
     const btnR = document.getElementById('btnAdicionarRegra');
     if (btnR) btnR.addEventListener('click', adicionarRegraHorario);
+
+    // wire acordo selection in events form: if user selects an acordo before creating/editing an event
+    const acordoSelect = document.getElementById('acordoEventoSelect');
+    if (acordoSelect) {
+        acordoSelect.addEventListener('change', () => {
+            const v = acordoSelect.value;
+            eventoAcordoPreselected = v === '' ? null : Number(v);
+            // if editing an existing event, immediately persist the choice
+            if (eventoEmEdicaoIndex != null) {
+                const ev = dados.eventos[eventoEmEdicaoIndex];
+                if (ev) {
+                    ev.acordoIndex = eventoAcordoPreselected;
+                    salvarDados();
+                    renderizarEventos();
+                }
+            }
+        });
+    }
 }
 
 // Acordos e regras
@@ -873,6 +892,7 @@ function limparEvento() {
     const acordoSel = document.getElementById('acordoEventoSelect');
     if (acordoSel) acordoSel.value = '';
     eventoEmEdicaoIndex = null;
+    eventoAcordoPreselected = null;
     const saveBtn = document.querySelector('button[onclick="salvarEvento()"]');
     if (saveBtn) saveBtn.textContent = 'Salvar Evento';
 }
