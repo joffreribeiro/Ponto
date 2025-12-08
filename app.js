@@ -527,10 +527,22 @@ function gerarTimesheetAcordo() {
 
         const primeiroDiaMes = new Date(ano, mes, 1);
         const ultimoDiaMes = new Date(ano, mes + 1, 0);
+<<<<<<< HEAD
         const ultimoDia = ultimoDiaMes.getDate();
 
         const wrapper = document.createElement('div');
         wrapper.className = 'timesheet-mes';
+=======
+        const tdSaldoHrsVal = document.createElement('td');
+        if (saldoAnterior && saldoAnterior !== 0) {
+            tdSaldoHrsVal.textContent = minutesToHHMM(saldoAnterior);
+            if (saldoAnterior > 0) tdSaldoHrsVal.classList.add('saldo-positivo');
+            if (saldoAnterior < 0) tdSaldoHrsVal.classList.add('saldo-negativo');
+        } else {
+            tdSaldoHrsVal.textContent = '';
+        }
+        trSaldoMes.appendChild(tdSaldoHrsVal);
+>>>>>>> parent of 77a443a (Update app.js)
 
         const titulo = document.createElement('div');
         titulo.className = 'timesheet-header';
@@ -765,8 +777,12 @@ function gerarTimesheetAcordo() {
                 tr.appendChild(td);
             });
 
+<<<<<<< HEAD
             // create final merged Saldo Acumulado cell at the end of the first row
             // the merged Saldo Acumulado header is handled in the THEAD (thSaldoAc)
+=======
+            // note: final merged Saldo Acumulado cell created at rowIndex === 0
+>>>>>>> parent of 77a443a (Update app.js)
 
             tbody.appendChild(tr);
         }
