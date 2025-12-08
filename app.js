@@ -687,15 +687,20 @@ function gerarTimesheetAcordo() {
                             if (calc.status === 'extra') td.classList.add('saldo-positivo');
                             if (calc.status === 'falta') td.classList.add('saldo-negativo');
                         } else if (rowIndex === 7) {
-                            td.textContent = minutesToHHMM(calc.saldo);
+                            // Only display saldo when non-zero (user requested no zero display)
+                            if (calc.saldo !== 0) {
+                                td.textContent = minutesToHHMM(calc.saldo);
 
-                            if (calc.saldo > 0) {
-                                td.classList.add('saldo-positivo');
-                                totalExtras++;
-                            }
-                            if (calc.saldo < 0) {
-                                td.classList.add('saldo-negativo');
-                                totalFaltas++;
+                                if (calc.saldo > 0) {
+                                    td.classList.add('saldo-positivo');
+                                    totalExtras++;
+                                }
+                                if (calc.saldo < 0) {
+                                    td.classList.add('saldo-negativo');
+                                    totalFaltas++;
+                                }
+                            } else {
+                                td.textContent = '';
                             }
 
                             saldoMes += calc.saldo || 0;
