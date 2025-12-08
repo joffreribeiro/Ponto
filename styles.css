@@ -460,6 +460,26 @@ td {
     padding: 6px 6px;
 }
 
+/* Header saldo cells: contain a vertical label and a value area aligned to bottom */
+.saldo-header {
+    padding: 4px 6px;
+}
+.saldo-header .vertical-label {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    white-space: normal;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1.6;
+    display: block;
+}
+.saldo-header .saldo-value {
+    display: block;
+    margin-top: 6px;
+    font-weight: 600;
+    text-align: center;
+}
+
 /* Feriado */
 .feriado-cell,
 .evento-feriado {
