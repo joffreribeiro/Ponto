@@ -958,10 +958,12 @@ function atualizarSelectAcordosEventos() {
     const select = document.getElementById('acordoEventoSelect');
     if (!select) return;
     select.innerHTML = '';
-    const optEmpty = document.createElement('option');
-    optEmpty.value = '';
-    optEmpty.textContent = '(Nenhum)';
-    select.appendChild(optEmpty);
+    const optPlaceholder = document.createElement('option');
+    optPlaceholder.value = '';
+    optPlaceholder.disabled = true;
+    optPlaceholder.selected = true;
+    optPlaceholder.textContent = '(Selecione um acordo)';
+    select.appendChild(optPlaceholder);
 
     dados.acordos.forEach((a, idx) => {
         const opt = document.createElement('option');
