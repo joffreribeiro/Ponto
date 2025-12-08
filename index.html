@@ -486,127 +486,115 @@
     <div class="modal-content modal-large">
         <h2>Acordo Coletivo</h2>
 
-        <div class="acordo-modal-grid">
-            <aside class="acordo-sidebar">
-                <button type="button" class="acordo-side-btn active" data-panel="acordo-overview">Visão Geral</button>
-                <button type="button" class="acordo-side-btn" data-panel="acordo-periodos">Períodos</button>
-                <button type="button" class="acordo-side-btn" data-panel="acordo-regras">Regras</button>
-            </aside>
+        <div class="form-group" style="margin-top: 10px;">
+            <label for="acordoNome">Nome do acordo (ex.: 2025-2026):</label>
+            <input type="text" id="acordoNome" placeholder="Ex.: 2025-2026">
+        </div>
 
-            <main class="acordo-main">
-                <section id="acordo-overview" class="acordo-panel active">
-                    <div class="form-group" style="margin-top: 10px;">
-                        <label for="acordoNome">Nome do acordo (ex.: 2025-2026):</label>
-                        <input type="text" id="acordoNome" placeholder="Ex.: 2025-2026">
-                    </div>
-                </section>
+        <h3 style="margin-top: 18px;">Períodos de Compensação</h3>
+        <p class="small-text">
+            Você pode ter mais de um período dentro do mesmo acordo (por exemplo, se o acordo mudar no meio do ano).
+        </p>
 
-                <section id="acordo-periodos" class="acordo-panel">
-                    <h3 style="margin-top: 6px;">Períodos de Compensação</h3>
-                    <p class="small-text">Você pode ter mais de um período dentro do mesmo acordo.</p>
+        <div class="form-grid-3" style="margin-top: 8px;">
+            <div class="form-group">
+                <label for="periodoInicio">Início:</label>
+                <input type="date" id="periodoInicio">
+            </div>
+            <div class="form-group">
+                <label for="periodoFim">Fim:</label>
+                <input type="date" id="periodoFim">
+            </div>
+            <div class="form-group">
+                <label for="periodoMinutosExtras">Minutos extras/dia:</label>
+                <input type="number" id="periodoMinutosExtras" min="0" step="1">
+            </div>
+        </div>
 
-                    <div class="form-grid-3" style="margin-top: 8px;">
-                        <div class="form-group">
-                            <label for="periodoInicio">Início:</label>
-                            <input type="date" id="periodoInicio">
-                        </div>
-                        <div class="form-group">
-                            <label for="periodoFim">Fim:</label>
-                            <input type="date" id="periodoFim">
-                        </div>
-                        <div class="form-group">
-                            <label for="periodoMinutosExtras">Minutos extras/dia:</label>
-                            <input type="number" id="periodoMinutosExtras" min="0" step="1">
-                        </div>
-                    </div>
+        <div class="form-row" style="margin-top: 8px;">
+            <button type="button" class="btn-secondary" onclick="adicionarPeriodoAcordo()">Adicionar Período</button>
+        </div>
 
-                    <div class="form-row" style="margin-top: 8px;">
-                        <button id="btnAdicionarPeriodo" type="button" class="btn-secondary">Adicionar Período</button>
-                    </div>
+        <div class="table-container" style="margin-top: 10px;">
+            <table>
+                <thead>
+                <tr>
+                    <th>Início</th>
+                    <th>Fim</th>
+                    <th>Minutos extras/dia</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+                <tbody id="tabelaPeriodosAcordo"></tbody>
+            </table>
+        </div>
 
-                    <div class="table-container" style="margin-top: 10px;">
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Início</th>
-                                <th>Fim</th>
-                                <th>Minutos extras/dia</th>
-                                <th>Ações</th>
-                            </tr>
-                            </thead>
-                            <tbody id="tabelaPeriodosAcordo"></tbody>
-                        </table>
-                    </div>
-                </section>
+        <h3 style="margin-top: 20px;">Regras de Horário</h3>
+        <p class="small-text">
+            Defina as regras de horário (entrada, almoço, tolerâncias, vale) que podem mudar durante o acordo.
+        </p>
 
-                <section id="acordo-regras" class="acordo-panel">
-                    <h3 style="margin-top: 6px;">Regras de Horário</h3>
-                    <p class="small-text">Defina regras de horário (entrada, almoço, tolerâncias, vale).</p>
+        <div class="form-grid-3" style="margin-top: 8px;">
+            <div class="form-group">
+                <label for="regraInicio">Início validade:</label>
+                <input type="date" id="regraInicio">
+            </div>
+            <div class="form-group">
+                <label for="regraFim">Fim validade:</label>
+                <input type="date" id="regraFim">
+            </div>
+            <div class="form-group">
+                <label for="regraMinutosExtras">Minutos extras/dia:</label>
+                <input type="number" id="regraMinutosExtras" min="0" step="1">
+            </div>
+            <div class="form-group">
+                <label for="regraInicioExpediente">Início do expediente padrão:</label>
+                <input type="time" id="regraInicioExpediente">
+            </div>
+            <div class="form-group">
+                <label for="regraAlmoco">Almoço (min):</label>
+                <input type="number" id="regraAlmoco" min="0" step="5" value="60">
+            </div>
+            <div class="form-group">
+                <label for="regraTolAlmoco">Tolerância almoço (min):</label>
+                <input type="number" id="regraTolAlmoco" min="0" step="1" value="5">
+            </div>
+            <div class="form-group">
+                <label for="regraTolSaida">Tolerância saída (min):</label>
+                <input type="number" id="regraTolSaida" min="0" step="1" value="5">
+            </div>
+            <div class="form-group">
+                <label for="regraTipo">Tipo (descrição):</label>
+                <input type="text" id="regraTipo" placeholder="Ex.: rotina normal">
+            </div>
+            <div class="form-group">
+                <label for="regraVale">Vale (R$):</label>
+                <input type="number" id="regraVale" min="0" step="0.01">
+            </div>
+        </div>
 
-                    <div class="form-grid-3" style="margin-top: 8px;">
-                        <div class="form-group">
-                            <label for="regraInicio">Início validade:</label>
-                            <input type="date" id="regraInicio">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraFim">Fim validade:</label>
-                            <input type="date" id="regraFim">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraMinutosExtras">Minutos extras/dia:</label>
-                            <input type="number" id="regraMinutosExtras" min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraInicioExpediente">Início do expediente padrão:</label>
-                            <input type="time" id="regraInicioExpediente">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraAlmoco">Almoço (min):</label>
-                            <input type="number" id="regraAlmoco" min="0" step="5" value="60">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraTolAlmoco">Tolerância almoço (min):</label>
-                            <input type="number" id="regraTolAlmoco" min="0" step="1" value="5">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraTolSaida">Tolerância saída (min):</label>
-                            <input type="number" id="regraTolSaida" min="0" step="1" value="5">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraTipo">Tipo (descrição):</label>
-                            <input type="text" id="regraTipo" placeholder="Ex.: rotina normal">
-                        </div>
-                        <div class="form-group">
-                            <label for="regraVale">Vale (R$):</label>
-                            <input type="number" id="regraVale" min="0" step="0.01">
-                        </div>
-                    </div>
+        <div class="form-row" style="margin-top: 8px;">
+            <button type="button" class="btn-secondary" onclick="adicionarRegraHorario()">Adicionar Regra</button>
+        </div>
 
-                    <div class="form-row" style="margin-top: 8px;">
-                        <button id="btnAdicionarRegra" type="button" class="btn-secondary">Adicionar Regra</button>
-                    </div>
-
-                    <div class="table-container" style="margin-top: 10px;">
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Início</th>
-                                <th>Fim</th>
-                                <th>Min extras/dia</th>
-                                <th>Entrada padrão</th>
-                                <th>Almoço</th>
-                                <th>Tol. almoço</th>
-                                <th>Tol. saída</th>
-                                <th>Tipo</th>
-                                <th>Vale</th>
-                                <th>Ações</th>
-                            </tr>
-                            </thead>
-                            <tbody id="tabelaRegrasAcordo"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </main>
+        <div class="table-container" style="margin-top: 10px;">
+            <table>
+                <thead>
+                <tr>
+                    <th>Início</th>
+                    <th>Fim</th>
+                    <th>Min extras/dia</th>
+                    <th>Entrada padrão</th>
+                    <th>Almoço</th>
+                    <th>Tol. almoço</th>
+                    <th>Tol. saída</th>
+                    <th>Tipo</th>
+                    <th>Vale</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+                <tbody id="tabelaRegrasAcordo"></tbody>
+            </table>
         </div>
 
         <div class="modal-buttons">
