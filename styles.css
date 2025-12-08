@@ -412,7 +412,7 @@ td {
 
 /* linhas especiais */
 .row-duracao-almoco {
-    background: #fff8d6;
+    background: #BFBFBF;
 }
 .row-separador td {
     border-top: 2px solid #BFBFBF;
@@ -426,11 +426,22 @@ td {
 /* Células verticais de eventos no timesheet */
 .feriado-cell,
 .evento-vertical {
+    /* vertical text for event cells */
     writing-mode: vertical-rl;
     text-orientation: mixed;
     font-weight: 600;
     font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    min-width: 38px; /* narrow column look */
+    white-space: nowrap;
+    vertical-align: middle;
 }
+
+/* ensure the vertical text wraps nicely when space is tight */
+.evento-vertical { overflow: hidden; }
 
 /* Feriado */
 .feriado-cell,
