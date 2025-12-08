@@ -944,7 +944,7 @@ function salvarEvento() {
         return;
     }
 
-    const ev = {
+    const evento = {
         tipoEvento,
         descricaoEvento,
         dataInicioEvento,
@@ -953,13 +953,20 @@ function salvarEvento() {
         acordoIndex
     };
 
+    if (tipoEvento === 'compensar-acordo') {
+        evento.entrada = document.getElementById('entradaCompensar').value;
+        evento.saidaAlmoco = document.getElementById('saidaAlmocoCompensar').value;
+        evento.retornoAlmoco = document.getElementById('retornoAlmocoCompensar').value;
+        evento.saida = document.getElementById('saidaCompensar').value;
+    }
+
     if (eventoEmEdicaoIndex != null) {
-        dados.eventos[eventoEmEdicaoIndex] = ev;
+        dados.eventos[eventoEmEdicaoIndex] = evento;
         eventoEmEdicaoIndex = null;
         const btn = document.querySelector('button[onclick="salvarEvento()"]');
         if (btn) btn.textContent = 'Salvar Evento';
     } else {
-        dados.eventos.push(ev);
+        dados.eventos.push(evento);
     }
     salvarDados();
     renderizarEventos();
@@ -1702,3 +1709,9 @@ function mostrarAlert(elementId, mensagem, tipo) {
     div.textContent = mensagem;
     area.appendChild(div);
 }
+
+// Mostrar/ocultar campos de horários para compensar-acordo
+document.getElementById('tipoEvento').addEventListener('change', function() {
+  const campos = document.getElementById('camposCompensarAcordo');
+  campos.style.display = this.value === 'compensar-acordo' ? 'block' : 'none';
+});
