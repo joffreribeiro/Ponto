@@ -16,6 +16,7 @@ let dados = {
 };
 
 let eventoSelecionadoIndex = null;
+let eventoEmEdicaoIndex = null;
 let acordoEmEdicao = null;
 let acordoEmEdicaoIndex = null;
 
@@ -32,6 +33,7 @@ function inicializar() {
     renderizarEventos();
     renderizarAcordos();
     atualizarSelectAcordosTimesheet();
+    atualizarSelectAcordosEventos();
 }
 inicializar();
 
@@ -832,6 +834,8 @@ function salvarEvento() {
     const dataInicioEvento = document.getElementById('dataInicioEvento').value;
     const dataFimEvento = document.getElementById('dataFimEvento').value;
     const impactoEvento = document.getElementById('impactoEvento').value;
+    const acordoIdxRaw = document.getElementById('acordoEventoSelect') ? document.getElementById('acordoEventoSelect').value : '';
+    const acordoIndex = acordoIdxRaw === '' ? null : Number(acordoIdxRaw);
 
     if (!descricaoEvento || !dataInicioEvento) {
         alert('Preencha pelo menos descrição e data inicial.');
@@ -843,10 +847,18 @@ function salvarEvento() {
         descricaoEvento,
         dataInicioEvento,
         dataFimEvento: dataFimEvento || dataInicioEvento,
-        impactoEvento
+        impactoEvento,
+        acordoIndex
     };
 
-    dados.eventos.push(ev);
+    if (eventoEmEdicaoIndex != null) {
+        dados.eventos[eventoEmEdicaoIndex] = ev;
+        eventoEmEdicaoIndex = null;
+        const btn = document.querySelector('button[onclick="salvarEvento()"]');
+        if (btn) btn.textContent = 'Salvar Evento';
+    } else {
+        dados.eventos.push(ev);
+    }
     salvarDados();
     renderizarEventos();
     limparEvento();
@@ -858,6 +870,11 @@ function limparEvento() {
     document.getElementById('dataInicioEvento').value = '';
     document.getElementById('dataFimEvento').value = '';
     document.getElementById('impactoEvento').value = 'folga';
+    const acordoSel = document.getElementById('acordoEventoSelect');
+    if (acordoSel) acordoSel.value = '';
+    eventoEmEdicaoIndex = null;
+    const saveBtn = document.querySelector('button[onclick="salvarEvento()"]');
+    if (saveBtn) saveBtn.textContent = 'Salvar Evento';
 }
 
 function renderizarEventos() {
@@ -875,6 +892,10 @@ function renderizarEventos() {
         tdDesc.textContent = e.descricaoEvento;
         tr.appendChild(tdDesc);
 
+        const tdAcordo = document.createElement('td');
+        tdAcordo.textContent = (e.acordoIndex != null && dados.acordos[e.acordoIndex]) ? (dados.acordos[e.acordoIndex].nome || `Acordo ${e.acordoIndex + 1}`) : '';
+        tr.appendChild(tdAcordo);
+
         const tdInicio = document.createElement('td');
         tdInicio.textContent = e.dataInicioEvento;
         tr.appendChild(tdInicio);
@@ -888,6 +909,13 @@ function renderizarEventos() {
         tr.appendChild(tdImpacto);
 
         const tdActions = document.createElement('td');
+        const btnEdit = document.createElement('button');
+        btnEdit.type = 'button';
+        btnEdit.className = 'btn-secondary';
+        btnEdit.textContent = '✏️';
+        btnEdit.addEventListener('click', () => abrirEditarEvento(idx));
+        tdActions.appendChild(btnEdit);
+
         const btnDel = document.createElement('button');
         btnDel.type = 'button';
         btnDel.className = 'btn-error';
@@ -900,9 +928,41 @@ function renderizarEventos() {
     });
 }
 
+function atualizarSelectAcordosEventos() {
+    const select = document.getElementById('acordoEventoSelect');
+    if (!select) return;
+    select.innerHTML = '';
+    const optEmpty = document.createElement('option');
+    optEmpty.value = '';
+    optEmpty.textContent = '(Nenhum)';
+    select.appendChild(optEmpty);
+
+    dados.acordos.forEach((a, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = a.nome || `Acordo ${idx + 1}`;
+        select.appendChild(opt);
+    });
+}
+
 function abrirModalExcluirEvento(index) {
     eventoSelecionadoIndex = index;
     document.getElementById('modalConfirmarEvento').classList.add('active');
+}
+
+function abrirEditarEvento(index) {
+    const e = dados.eventos[index];
+    if (!e) return;
+    document.getElementById('tipoEvento').value = e.tipoEvento || 'feriado';
+    document.getElementById('descricaoEvento').value = e.descricaoEvento || '';
+    document.getElementById('dataInicioEvento').value = e.dataInicioEvento || '';
+    document.getElementById('dataFimEvento').value = e.dataFimEvento || '';
+    document.getElementById('impactoEvento').value = e.impactoEvento || 'folga';
+    const acordoSel = document.getElementById('acordoEventoSelect');
+    if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
+    eventoEmEdicaoIndex = index;
+    const saveBtn = document.querySelector('button[onclick="salvarEvento()"]');
+    if (saveBtn) saveBtn.textContent = 'Salvar Alteração';
 }
 
 function fecharModalEvento() {
@@ -1234,6 +1294,7 @@ function salvarAcordo() {
     salvarDados();
     renderizarAcordos();
     atualizarSelectAcordosTimesheet();
+    atualizarSelectAcordosEventos();
     fecharModalAcordo();
 }
 
@@ -1307,6 +1368,9 @@ function renderizarAcordos() {
         div.appendChild(btnRow);
         container.appendChild(div);
     });
+    // keep selects in sync
+    atualizarSelectAcordosTimesheet();
+    atualizarSelectAcordosEventos();
 }
 
 // Exportar/Importar CSV/PDF/JSON (mesmo que antes)
