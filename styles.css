@@ -415,7 +415,7 @@ td {
     background: #fff8d6;
 }
 .row-separador td {
-    border-top: 2px solid #cfd8e3;
+    border-top: 2px solid #BFBFBF;
 }
 .row-saldo-mes td {
     background: #f9fafb; /* quase branco, neutro */
@@ -674,7 +674,7 @@ textarea {
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul td {
     background: #dbeffd !important;  /* azul leve */
-    border-top: 2px solid #df1659 !important; /* azul mais forte */
+    border-top: 2px solid #BFBFBF !important; /* azul mais forte */
 }
 
 

@@ -573,6 +573,17 @@ function gerarTimesheetAcordo() {
 
                 // Evento
                 if (ev) {
+                    // special handling: compensar_acordo should NOT create a merged vertical cell
+                    // nor display text — only color the individual day cell. For other event types
+                    // we keep the existing merged vertical cell behavior.
+                    if (ev.tipoEvento === 'compensar_acordo') {
+                        const td = document.createElement('td');
+                        td.className = 'evento-compensar-acordo';
+                        // do not set textContent and do not set rowSpan: color-only per-cell
+                        tr.appendChild(td);
+                        return;
+                    }
+
                     if (!eventoSpanCriado[colIdx] && rowIndex === 0) {
                         const td = document.createElement('td');
                         td.rowSpan = numRows;
