@@ -1494,36 +1494,72 @@ function importarRegistrosCSV(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
+        console.log('Arquivo selecionado:', file.name, 'tamanho:', file.size, 'bytes');
+
         const reader = new FileReader();
+        
         reader.onload = function (e) {
             try {
-                const text = e.target.result;
+                const arrayBuffer = e.target.result;
+                let text = '';
                 
-                // Validar se arquivo tem conteúdo
-                if (!text || text.trim().length === 0) {
-                    throw new Error('Arquivo vazio.');
+                // Se for um arquivo de texto simples
+                if (file.type === 'text/tab-separated-values' || file.type === 'text/plain' || file.name.endsWith('.tsv')) {
+                    const decoder = new TextDecoder('utf-8');
+                    text = decoder.decode(arrayBuffer);
+                } else if (file.name.endsWith('.xls')) {
+                    // Tentar decodificar como texto (alguns .xls são salvos como texto)
+                    const decoder = new TextDecoder('utf-8');
+                    text = decoder.decode(arrayBuffer);
+                    
+                    // Se não conseguir ler como texto, tentar decodificar manualmente
+                    if (!text || text.length === 0) {
+                        console.log('Tentando decodificar como binary...');
+                        const bytes = new Uint8Array(arrayBuffer);
+                        text = String.fromCharCode.apply(null, bytes);
+                    }
+                } else {
+                    const decoder = new TextDecoder('utf-8');
+                    text = decoder.decode(arrayBuffer);
                 }
                 
-                console.log('Arquivo lido, tamanho:', text.length);
+                console.log('Arquivo decodificado, tamanho:', text.length);
+                console.log('Primeiros 200 chars:', text.substring(0, 200));
                 
-                // Detectar separador e processar
+                // Validar conteúdo
+                if (!text || text.trim().length === 0) {
+                    throw new Error('Arquivo vazio ou ilegível.');
+                }
+                
+                // Detectar separador
                 const linhas = text.split(/\r?\n/).filter(l => l.trim());
                 
                 if (linhas.length < 2) {
                     throw new Error('Arquivo com poucos dados.');
                 }
                 
-                // Detectar separador (TAB ou espaços múltiplos)
-                const separador = linhas[0].includes('\t') ? '\t' : /\s{2,}/;
-                const separadorNome = separador === '\t' ? 'TAB' : 'ESPAÇOS';
+                console.log('Total de linhas:', linhas.length);
+                console.log('Primeira linha:', linhas[0].substring(0, 150));
+                
+                // Detectar separador (TAB, vírgula ou espaços)
+                let separador = '\t';
+                if (!linhas[0].includes('\t') && linhas[0].includes(',')) {
+                    separador = ',';
+                } else if (!linhas[0].includes('\t') && !linhas[0].includes(',')) {
+                    // Pode ser espaços ou outro separador
+                    separador = /\s+/;
+                }
+                
+                const separadorNome = separador === '\t' ? 'TAB' : (separador === ',' ? 'VÍRGULA' : 'ESPAÇOS');
                 console.log('Separador detectado:', separadorNome);
-                console.log('Cabeçalho:', linhas[0].substring(0, 100));
                 
                 const registros = [];
                 
                 // Processar dados (começar do índice 1 para pular cabeçalho)
                 for (let i = 1; i < linhas.length; i++) {
-                    const cols = linhas[i].split(separador).map(c => c.trim());
+                    const cols = linhas[i].split(separador).map(c => c.trim()).filter(c => c);
+                    
+                    console.log(`Linha ${i}: ${cols.length} colunas:`, cols.slice(0, 3));
                     
                     if (cols.length < 2 || !cols[0]) continue;
                     
@@ -1548,7 +1584,7 @@ function importarRegistrosCSV(event) {
                         registros.push({ 
                             data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
                         });
-                        console.log(`✓ Linha ${i}: ${data} ${entrada}`);
+                        console.log(`✓ Linha ${i} OK: ${data} ${entrada}`);
                     } else {
                         console.log(`✗ Linha ${i} ignorada: data inválida "${data}"`);
                     }
@@ -1557,7 +1593,7 @@ function importarRegistrosCSV(event) {
                 console.log('Total de registros válidos:', registros.length);
 
                 if (registros.length === 0) {
-                    throw new Error('Nenhum registro válido encontrado.\n\nVerifique se o arquivo está em formato correto (TSV separado por TAB).');
+                    throw new Error('Nenhum registro válido encontrado.\n\nVerifique se o arquivo está em formato TSV (separado por TAB) com datas no formato YYYY-MM-DD ou DD/MM/YYYY.');
                 }
 
                 const substituir = confirm(`Importar ${registros.length} registros?\n\nOK = Substituir todos\nCancelar = Mesclar`);
@@ -1592,7 +1628,8 @@ function importarRegistrosCSV(event) {
             event.target.value = '';
         };
         
-        reader.readAsText(file);
+        // Ler como ArrayBuffer para suportar arquivos binários
+        reader.readAsArrayBuffer(file);
     } catch (error) {
         console.error('ERRO:', error);
         mostrarAlertaGlobal('Erro: ' + error.message, 'error');
