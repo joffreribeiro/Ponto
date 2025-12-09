@@ -1455,68 +1455,51 @@ function exportarRegistrosCSV() {
             return;
         }
 
-        // Criar arquivo XLSX (Excel 2007+)
-        // XLSX é um ZIP contendo XMLs - vamos usar uma abordagem simplificada com HTML que Excel entende
-        
-        let html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-        th { background-color: #f0f0f0; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <table>
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Entrada</th>
-                <th>Saída Almoço</th>
-                <th>Retorno Almoço</th>
-                <th>Saída</th>
-                <th>Observações</th>
-            </tr>
-        </thead>
-        <tbody>
-`;
+        // Verificar se biblioteca XLSX está disponível
+        if (typeof XLSX === 'undefined') {
+            alert('Biblioteca Excel não carregada. Recarregue a página.');
+            return;
+        }
 
+        // Criar dados para planilha
+        const dados = [];
+        
+        // Cabeçalho
+        dados.push(['Data', 'Entrada', 'Saída Almoço', 'Retorno Almoço', 'Saída', 'Observações']);
+        
+        // Dados
         AppState.dados.registros
             .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
             .forEach(r => {
-                html += `
-            <tr>
-                <td>${r.data || ''}</td>
-                <td>${r.entrada || ''}</td>
-                <td>${r.saidaAlmoco || ''}</td>
-                <td>${r.retornoAlmoco || ''}</td>
-                <td>${r.saida || ''}</td>
-                <td>${r.observacoes || ''}</td>
-            </tr>
-`;
+                dados.push([
+                    r.data || '',
+                    r.entrada || '',
+                    r.saidaAlmoco || '',
+                    r.retornoAlmoco || '',
+                    r.saida || '',
+                    r.observacoes || ''
+                ]);
             });
 
-        html += `
-        </tbody>
-    </table>
-</body>
-</html>
-`;
+        // Criar workbook e worksheet
+        const worksheet = XLSX.utils.aoa_to_sheet(dados);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Registros');
+        
+        // Ajustar largura das colunas
+        worksheet['!cols'] = [
+            { wch: 12 }, // Data
+            { wch: 10 }, // Entrada
+            { wch: 15 }, // Saída Almoço
+            { wch: 15 }, // Retorno Almoço
+            { wch: 10 }, // Saída
+            { wch: 20 }  // Observações
+        ];
 
-        const blob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.xlsx`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Exportar
+        XLSX.writeFile(workbook, `registros_${new Date().toISOString().split('T')[0]}.xlsx`);
 
-        mostrarAlertaGlobal('Registros exportados como XLSX!', 'success');
+        mostrarAlertaGlobal('Registros exportados com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao exportar registros:', error);
         mostrarAlertaGlobal('Erro ao exportar: ' + error.message, 'error');
