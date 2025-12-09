@@ -1447,7 +1447,7 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
     alert(mensagem);
 }
 
-// Exportar/Importar Registros - Formato Excel (TSV)
+// Exportar/Importar Registros - Formato Excel (CSV)
 function exportarRegistrosCSV() {
     try {
         if (!AppState.dados.registros.length) {
@@ -1455,8 +1455,8 @@ function exportarRegistrosCSV() {
             return;
         }
 
-        // Criar CSV/TSV simples (Excel reconhece nativamente)
-        let conteudo = 'Data\tEntrada\tSaída Almoço\tRetorno Almoço\tSaída\tObservações\n';
+        // Criar CSV com valores entre aspas (formato universal Excel)
+        let conteudo = 'Data,Entrada,Saída Almoço,Retorno Almoço,Saída,Observações\n';
         
         AppState.dados.registros
             .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
@@ -1468,21 +1468,21 @@ function exportarRegistrosCSV() {
                     r.retornoAlmoco || '',
                     r.saida || '',
                     r.observacoes || ''
-                ].join('\t');
+                ].map(v => `"${v}"`).join(',');
                 conteudo += linha + '\n';
             });
 
-        const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/tab-separated-values;charset=utf-8' });
+        const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/csv;charset=utf-8' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.xls`);
+        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        mostrarAlertaGlobal('Registros exportados com sucesso!', 'success');
+        mostrarAlertaGlobal('Registros exportados como CSV. Você pode abrir no Excel e salvar como .xls se preferir.', 'success');
     } catch (error) {
         console.error('Erro ao exportar registros:', error);
         mostrarAlertaGlobal('Erro ao exportar: ' + error.message, 'error');
@@ -1494,74 +1494,72 @@ function importarRegistrosCSV(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        console.log('Arquivo selecionado:', file.name, 'tamanho:', file.size, 'bytes');
+        console.log('Arquivo selecionado:', file.name, 'tipo:', file.type);
 
         const reader = new FileReader();
         
         reader.onload = function (e) {
             try {
-                const arrayBuffer = e.target.result;
                 let text = '';
                 
-                // Se for um arquivo de texto simples
-                if (file.type === 'text/tab-separated-values' || file.type === 'text/plain' || file.name.endsWith('.tsv')) {
-                    const decoder = new TextDecoder('utf-8');
-                    text = decoder.decode(arrayBuffer);
-                } else if (file.name.endsWith('.xls')) {
-                    // Tentar decodificar como texto (alguns .xls são salvos como texto)
+                // Se for um arquivo de texto
+                if (file.type.startsWith('text/') || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+                    text = e.target.result;
+                } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                    // Tentar decodificar arquivo binário como texto
+                    const arrayBuffer = e.target.result;
                     const decoder = new TextDecoder('utf-8');
                     text = decoder.decode(arrayBuffer);
                     
-                    // Se não conseguir ler como texto, tentar decodificar manualmente
-                    if (!text || text.length === 0) {
-                        console.log('Tentando decodificar como binary...');
-                        const bytes = new Uint8Array(arrayBuffer);
-                        text = String.fromCharCode.apply(null, bytes);
+                    // Se falhar, tentar com latin-1
+                    if (!text || text.includes('\x00')) {
+                        const decoder2 = new TextDecoder('iso-8859-1');
+                        text = decoder2.decode(arrayBuffer);
                     }
                 } else {
-                    const decoder = new TextDecoder('utf-8');
-                    text = decoder.decode(arrayBuffer);
+                    text = e.target.result;
                 }
                 
                 console.log('Arquivo decodificado, tamanho:', text.length);
-                console.log('Primeiros 200 chars:', text.substring(0, 200));
+                console.log('Primeiros 150 chars:', text.substring(0, 150));
                 
-                // Validar conteúdo
-                if (!text || text.trim().length === 0) {
+                // Limpar caracteres de controle e bytes nulos
+                text = text.replace(/\x00/g, '').trim();
+                
+                if (!text || text.length === 0) {
                     throw new Error('Arquivo vazio ou ilegível.');
                 }
                 
-                // Detectar separador
-                const linhas = text.split(/\r?\n/).filter(l => l.trim());
+                // Dividir em linhas
+                const linhas = text.split(/\r?\n/).filter(l => l && l.trim().length > 0);
                 
                 if (linhas.length < 2) {
-                    throw new Error('Arquivo com poucos dados.');
+                    throw new Error('Arquivo sem dados suficientes.');
                 }
                 
                 console.log('Total de linhas:', linhas.length);
-                console.log('Primeira linha:', linhas[0].substring(0, 150));
+                console.log('Cabeçalho:', linhas[0].substring(0, 150));
                 
-                // Detectar separador (TAB, vírgula ou espaços)
-                let separador = '\t';
-                if (!linhas[0].includes('\t') && linhas[0].includes(',')) {
-                    separador = ',';
-                } else if (!linhas[0].includes('\t') && !linhas[0].includes(',')) {
-                    // Pode ser espaços ou outro separador
-                    separador = /\s+/;
+                // Detectar separador
+                let separador = ',';
+                if (linhas[0].includes('\t')) {
+                    separador = '\t';
+                } else if (linhas[0].includes(';')) {
+                    separador = ';';
                 }
                 
-                const separadorNome = separador === '\t' ? 'TAB' : (separador === ',' ? 'VÍRGULA' : 'ESPAÇOS');
-                console.log('Separador detectado:', separadorNome);
+                console.log('Separador detectado:', separador === ',' ? 'VÍRGULA' : (separador === '\t' ? 'TAB' : 'PONTO-VÍRGULA'));
                 
                 const registros = [];
                 
                 // Processar dados (começar do índice 1 para pular cabeçalho)
                 for (let i = 1; i < linhas.length; i++) {
-                    const cols = linhas[i].split(separador).map(c => c.trim()).filter(c => c);
+                    // Remover aspas e dividir
+                    const cols = linhas[i]
+                        .split(separador)
+                        .map(c => c.trim().replace(/^"|"$/g, ''));
                     
-                    console.log(`Linha ${i}: ${cols.length} colunas:`, cols.slice(0, 3));
-                    
-                    if (cols.length < 2 || !cols[0]) continue;
+                    if (cols.length < 1 || !cols[0]) continue;
                     
                     let data = cols[0];
                     const entrada = cols[1] || '';
@@ -1584,16 +1582,14 @@ function importarRegistrosCSV(event) {
                         registros.push({ 
                             data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
                         });
-                        console.log(`✓ Linha ${i} OK: ${data} ${entrada}`);
-                    } else {
-                        console.log(`✗ Linha ${i} ignorada: data inválida "${data}"`);
+                        console.log(`✓ Linha ${i}: ${data} ${entrada}`);
                     }
                 }
 
                 console.log('Total de registros válidos:', registros.length);
 
                 if (registros.length === 0) {
-                    throw new Error('Nenhum registro válido encontrado.\n\nVerifique se o arquivo está em formato TSV (separado por TAB) com datas no formato YYYY-MM-DD ou DD/MM/YYYY.');
+                    throw new Error('Nenhum registro válido encontrado.\n\nCertifique-se que:\n- A primeira linha é o cabeçalho\n- Primeira coluna tem datas (DD/MM/YYYY ou YYYY-MM-DD)\n- Separador é vírgula, TAB ou ponto-vírgula');
                 }
 
                 const substituir = confirm(`Importar ${registros.length} registros?\n\nOK = Substituir todos\nCancelar = Mesclar`);
@@ -1628,8 +1624,12 @@ function importarRegistrosCSV(event) {
             event.target.value = '';
         };
         
-        // Ler como ArrayBuffer para suportar arquivos binários
-        reader.readAsArrayBuffer(file);
+        // Ler como texto para formatos texto, como ArrayBuffer para binários
+        if (file.type.startsWith('text/') || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+            reader.readAsText(file, 'utf-8');
+        } else {
+            reader.readAsArrayBuffer(file);
+        }
     } catch (error) {
         console.error('ERRO:', error);
         mostrarAlertaGlobal('Erro: ' + error.message, 'error');
