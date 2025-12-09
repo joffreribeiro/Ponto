@@ -511,6 +511,11 @@ function gerarTimesheetAcordo() {
             thTipo.textContent = 'TIPO';
             trHead.appendChild(thTipo);
 
+            // Cabeçalho Saldo Anterior
+            const thSaldoAnterior = document.createElement('th');
+            thSaldoAnterior.className = 'th-saldo-anterior';
+            trHead.appendChild(thSaldoAnterior);
+
             const dias = [];
             for (let dia = 1; dia <= ultimoDia; dia++) {
                 const d = new Date(ano, mes, dia);
@@ -529,6 +534,11 @@ function gerarTimesheetAcordo() {
                 const isWeekend = (dow === 0 || dow === 6);
                 dias.push({ data: d, dataStr, isWeekend });
             }
+
+            // Cabeçalho Saldo Acumulado
+            const thSaldoAcumulado = document.createElement('th');
+            thSaldoAcumulado.className = 'th-saldo-acumulado';
+            trHead.appendChild(thSaldoAcumulado);
 
             thead.appendChild(trHead);
             table.appendChild(thead);
