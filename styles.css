@@ -824,13 +824,13 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    padding: 1px 2px;
     writing-mode: vertical-rl;
     text-orientation: upright;
     white-space: normal;
     font-size: 9px;
-    line-height: 1;
+    line-height: 1 !important;
     letter-spacing: 0.05em;
+    padding: 1px 2px !important;
+    height: auto !important;
 }
 
