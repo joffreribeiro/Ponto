@@ -628,10 +628,8 @@ textarea {
     background: #ffffff;
     border-radius: 12px;
     padding: 18px 20px;
-    max-width: 1100px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-width: 760px;
+    width: 100%;
     box-shadow: var(--shadow-soft);
 }
 
@@ -670,16 +668,8 @@ textarea {
 .acordo-panel { display: none; }
 .acordo-panel.active { display: block; }
 
-/* Lateral sidebar layout para modal */
-.acordo-panels {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 16px;
-    align-items: start;
-}
-
 @media (max-width: 800px) {
-    .acordo-panels { grid-template-columns: 1fr; }
+    .acordo-modal-grid { grid-template-columns: 1fr; }
     .acordo-sidebar { flex-direction: row; overflow-x: auto; }
     .acordo-side-btn { white-space: nowrap; }
 }
