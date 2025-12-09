@@ -1447,9 +1447,131 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
     alert(mensagem);
 }
 
-// Exportar/Importar (funções mantidas para compatibilidade com HTML)
-function exportarRegistrosCSV() { alert('Exportação em desenvolvimento'); }
-function importarRegistrosCSV(event) { alert('Importação em desenvolvimento'); }
+// Exportar/Importar Registros (CSV compatível com Excel)
+function exportarRegistrosCSV() {
+    try {
+        if (!AppState.dados.registros.length) {
+            alert('Nenhum registro para exportar.');
+            return;
+        }
+
+        const headers = ['Data', 'Entrada', 'SaidaAlmoco', 'RetornoAlmoco', 'Saida', 'Observacoes'];
+
+        const esc = (val) => String(val ?? '').replace(/"/g, '""');
+
+        const rows = AppState.dados.registros
+            .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
+            .map(r => [
+                esc(r.data),
+                esc(r.entrada),
+                esc(r.saidaAlmoco),
+                esc(r.retornoAlmoco),
+                esc(r.saida),
+                esc(r.observacoes)
+            ]);
+
+        const csv = [headers.join(','), ...rows.map(row => row.map(v => `"${v}"`).join(','))].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        mostrarAlertaGlobal('Registros exportados com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao exportar registros:', error);
+        mostrarAlertaGlobal('Erro ao exportar: ' + error.message, 'error');
+    }
+}
+
+function importarRegistrosCSV(event) {
+    try {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const text = e.target.result;
+                const linhas = text.trim().split(/\r?\n/);
+                if (linhas.length < 2) throw new Error('Arquivo vazio ou sem dados.');
+
+                const parseLine = (line) => {
+                    const parts = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < line.length; i++) {
+                        const ch = line[i];
+                        if (ch === '"') {
+                            if (inQuotes && line[i + 1] === '"') {
+                                current += '"';
+                                i++;
+                            } else {
+                                inQuotes = !inQuotes;
+                            }
+                        } else if (ch === ',' && !inQuotes) {
+                            parts.push(current.trim());
+                            current = '';
+                        } else {
+                            current += ch;
+                        }
+                    }
+                    parts.push(current.trim());
+                    return parts;
+                };
+
+                const registros = [];
+                for (let i = 1; i < linhas.length; i++) {
+                    const cols = parseLine(linhas[i]).map(c => c.replace(/^"|"$/g, ''));
+                    if (cols.length < 6) continue;
+                    const [data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes] = cols;
+                    const reg = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes };
+                    const erros = Validators.validateRegistro(reg);
+                    if (erros.length === 0) registros.push(reg);
+                }
+
+                if (!registros.length) throw new Error('Nenhum registro válido encontrado.');
+
+                const substituir = confirm(`Encontrados ${registros.length} registros. Deseja substituir todos os existentes? (OK = substituir, Cancelar = mesclar/atualizar)`);
+
+                if (substituir) {
+                    AppState.dados.registros = registros.sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+                } else {
+                    registros.forEach(novo => {
+                        const idx = AppState.dados.registros.findIndex(r => r.data === novo.data);
+                        if (idx >= 0) {
+                            AppState.dados.registros[idx] = novo;
+                        } else {
+                            AppState.dados.registros.push(novo);
+                        }
+                    });
+                }
+
+                AppState.save();
+                atualizarDashboard();
+                renderizarTabelaRegistros();
+                mostrarAlertaGlobal('Registros importados com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao importar registros:', error);
+                mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
+            } finally {
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    } catch (error) {
+        console.error('Erro ao importar registros:', error);
+        mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
+        event.target.value = '';
+    }
+}
+
+// stubs restantes
 function exportarRegistrosPDF() { alert('PDF em desenvolvimento'); }
 function exportarTimesheetCSV() { alert('Exportação timesheet em desenvolvimento'); }
 function exportarTimesheetPDF() { alert('PDF timesheet em desenvolvimento'); }
