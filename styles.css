@@ -382,15 +382,21 @@ td {
     background: var(--primary);
     color: #ffffff;
     font-weight: 600;
-    font-size: 11px;
-    padding: 1px 2px;
-    line-height: 0.9;
+    font-size: 11px !important;
+    padding: 1px 2px !important;
+    line-height: 0.9 !important;
 }
 
 .timesheet-table tbody td {
-    padding: 1px 2px;
-    line-height: 0.9;
-    font-size: 11px;
+    padding: 1px 2px !important;
+    line-height: 0.9 !important;
+    font-size: 11px !important;
+}
+
+.timesheet-table td.feriado-cell,
+.timesheet-table td.evento-vertical {
+    padding: 1px 2px !important;
+    line-height: 0.9 !important;
 }
 
 /* Fins de semana no timesheet (coluna em azul bem claro) */
