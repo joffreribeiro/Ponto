@@ -587,8 +587,8 @@ function gerarTimesheetAcordo() {
                 tr.appendChild(tdLabel);
 
                 // Coluna Saldo Anterior (PRIMEIRA coluna após label)
-                const tdSaldoAnterior = document.createElement('td');
                 if (rowIndex === 0) {
+                    const tdSaldoAnterior = document.createElement('td');
                     tdSaldoAnterior.rowSpan = numRows - 1;
                     tdSaldoAnterior.className = 'col-saldo-anterior';
                     const saldoDiv = document.createElement('div');
@@ -597,11 +597,8 @@ function gerarTimesheetAcordo() {
                     labelSpan.textContent = 'Saldo Anterior';
                     saldoDiv.appendChild(labelSpan);
                     tdSaldoAnterior.appendChild(saldoDiv);
-                } else {
-                    // Células vazias para manter a estrutura
-                    tdSaldoAnterior.textContent = '';
+                    tr.appendChild(tdSaldoAnterior);
                 }
-                tr.appendChild(tdSaldoAnterior);
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
@@ -729,8 +726,8 @@ function gerarTimesheetAcordo() {
                 });
 
                 // Coluna Saldo Acumulado (ÚLTIMA coluna)
-                const tdSaldoAcumulado = document.createElement('td');
                 if (rowIndex === 0) {
+                    const tdSaldoAcumulado = document.createElement('td');
                     tdSaldoAcumulado.rowSpan = numRows - 1;
                     tdSaldoAcumulado.className = 'col-saldo-acumulado';
                     const saldoDiv = document.createElement('div');
@@ -739,11 +736,8 @@ function gerarTimesheetAcordo() {
                     labelSpan.textContent = 'Saldo Acumulado';
                     saldoDiv.appendChild(labelSpan);
                     tdSaldoAcumulado.appendChild(saldoDiv);
-                } else {
-                    // Células vazias para manter a estrutura
-                    tdSaldoAcumulado.textContent = '';
+                    tr.appendChild(tdSaldoAcumulado);
                 }
-                tr.appendChild(tdSaldoAcumulado);
 
                 tbody.appendChild(tr);
             }
