@@ -734,9 +734,9 @@ function gerarTimesheetAcordo() {
                     tdSaldoAcumulado.className = 'col-saldo-acumulado';
                     const saldoDiv = document.createElement('div');
                     saldoDiv.className = 'saldo-vertical-text';
-                    const valorSpan = document.createElement('span');
-                    valorSpan.textContent = DateUtils.minutesToTime(saldoAcumuladoAtual || 0);
-                    saldoDiv.appendChild(valorSpan);
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = 'Saldo Acumulado';
+                    saldoDiv.appendChild(labelSpan);
                     tdSaldoAcumulado.appendChild(saldoDiv);
                 }
                 tr.appendChild(tdSaldoAcumulado);
