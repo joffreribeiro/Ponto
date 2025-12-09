@@ -328,7 +328,7 @@ table {
 
 th,
 td {
-    padding: 6px 8px;
+    padding: 4px 6px;
     border: 1px solid var(--border-table);
     text-align: center;
     white-space: nowrap;
@@ -816,10 +816,11 @@ textarea {
     align-items: center;
     justify-content: center;
     height: 100%;
-    padding: 6px;
+    padding: 2px 3px;
     writing-mode: vertical-lr;
     text-orientation: mixed;
     white-space: nowrap;
+    font-size: 11px;
 }
 
 
