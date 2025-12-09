@@ -98,6 +98,12 @@ function configurarSubAbas() {
             btn.classList.add('active');
             const sec = document.getElementById(alvo);
             if (sec) sec.classList.add('active');
+
+            // Re-renderiza listas quando abre a aba de acordos/eventos
+            if (alvo === 'ponto-config') {
+                renderizarAcordos();
+                renderizarEventos();
+            }
         });
     });
 }
