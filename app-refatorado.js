@@ -1447,7 +1447,7 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
     alert(mensagem);
 }
 
-// Exportar/Importar Registros - Formato Excel XLSX
+// Exportar/Importar Registros - Formato Excel CSV
 function exportarRegistrosCSV() {
     try {
         if (!AppState.dados.registros.length) {
@@ -1455,51 +1455,36 @@ function exportarRegistrosCSV() {
             return;
         }
 
-        // Verificar se biblioteca XLSX está disponível
-        if (typeof XLSX === 'undefined') {
-            alert('Biblioteca Excel não carregada. Recarregue a página.');
-            return;
-        }
-
-        // Criar dados para planilha
-        const dados = [];
+        // Criar CSV separado por ponto-vírgula (padrão Excel em PT-BR)
+        let csv = 'Data;Entrada;Saída Almoço;Retorno Almoço;Saída;Observações\n';
         
-        // Cabeçalho
-        dados.push(['Data', 'Entrada', 'Saída Almoço', 'Retorno Almoço', 'Saída', 'Observações']);
-        
-        // Dados
         AppState.dados.registros
             .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
             .forEach(r => {
-                dados.push([
+                const linha = [
                     r.data || '',
                     r.entrada || '',
                     r.saidaAlmoco || '',
                     r.retornoAlmoco || '',
                     r.saida || '',
                     r.observacoes || ''
-                ]);
+                ].map(v => `"${v}"`).join(';');
+                csv += linha + '\n';
             });
 
-        // Criar workbook e worksheet
-        const worksheet = XLSX.utils.aoa_to_sheet(dados);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Registros');
-        
-        // Ajustar largura das colunas
-        worksheet['!cols'] = [
-            { wch: 12 }, // Data
-            { wch: 10 }, // Entrada
-            { wch: 15 }, // Saída Almoço
-            { wch: 15 }, // Retorno Almoço
-            { wch: 10 }, // Saída
-            { wch: 20 }  // Observações
-        ];
+        // Exportar com BOM UTF-8 para Excel reconhecer caracteres acentuados
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
 
-        // Exportar
-        XLSX.writeFile(workbook, `registros_${new Date().toISOString().split('T')[0]}.xlsx`);
-
-        mostrarAlertaGlobal('Registros exportados com sucesso!', 'success');
+        mostrarAlertaGlobal('Registros exportados como CSV. Abra no Excel - abrirá em colunas automaticamente!', 'success');
     } catch (error) {
         console.error('Erro ao exportar registros:', error);
         mostrarAlertaGlobal('Erro ao exportar: ' + error.message, 'error');
@@ -1511,7 +1496,7 @@ function importarRegistrosCSV(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        console.log('Arquivo selecionado:', file.name, 'tipo:', file.type, 'tamanho:', file.size);
+        console.log('Arquivo selecionado:', file.name, 'tipo:', file.type);
 
         const reader = new FileReader();
         
@@ -1519,14 +1504,9 @@ function importarRegistrosCSV(event) {
             try {
                 let registros = [];
                 
-                // Se for Excel (.xls ou .xlsx), usar biblioteca XLSX
-                if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx') || file.type === 'application/vnd.ms-excel' || file.type.includes('spreadsheet')) {
+                // Se for arquivo binário Excel (.xls, .xlsx), tentar com XLSX
+                if ((file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) && typeof XLSX !== 'undefined') {
                     console.log('Lendo arquivo Excel com biblioteca XLSX...');
-                    
-                    // Usando a biblioteca XLSX global
-                    if (typeof XLSX === 'undefined') {
-                        throw new Error('Biblioteca XLSX não carregada. Recarregue a página.');
-                    }
                     
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
@@ -1541,9 +1521,8 @@ function importarRegistrosCSV(event) {
                     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     
                     console.log('Total de linhas na planilha:', rows.length);
-                    console.log('Primeiras 3 linhas:', rows.slice(0, 3));
                     
-                    // Processar dados (começar do índice 1 para pular cabeçalho)
+                    // Processar dados
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
                         
@@ -1556,28 +1535,18 @@ function importarRegistrosCSV(event) {
                         const saida = row[4] || '';
                         const observacoes = row[5] || '';
                         
-                        // Converter data DD/MM/YYYY → YYYY-MM-DD
-                        if (data && typeof data === 'string' && data.includes('/')) {
+                        // Converter data Excel para YYYY-MM-DD
+                        if (typeof data === 'number') {
+                            const date = new Date((data - 25569) * 86400 * 1000);
+                            data = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                        } else if (typeof data === 'string' && data.includes('/')) {
                             const partes = data.split('/');
                             if (partes.length === 3) {
                                 const [d, m, y] = partes;
                                 data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
                             }
-                        } else if (typeof data === 'number') {
-                            // Excel armazena datas como números (serial date)
-                            // Converter número Excel para data
-                            const date = new Date((data - 25569) * 86400 * 1000);
-                            data = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                         }
                         
-                        // Converter strings para strings de hora
-                        if (typeof entrada === 'number' && entrada > 0 && entrada < 1) {
-                            const hours = Math.floor(entrada * 24);
-                            const minutes = Math.floor((entrada * 24 - hours) * 60);
-                            entrada = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                        }
-                        
-                        // Validar data
                         if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
                             registros.push({ 
                                 data: data.toString(), 
@@ -1587,13 +1556,11 @@ function importarRegistrosCSV(event) {
                                 saida: saida?.toString() || '', 
                                 observacoes: observacoes?.toString() || '' 
                             });
-                            console.log(`✓ Linha ${i}: ${data} ${entrada}`);
-                        } else {
-                            console.log(`✗ Linha ${i} ignorada: data inválida "${data}"`);
+                            console.log(`✓ Linha ${i}: ${data}`);
                         }
                     }
                 } else {
-                    // Para arquivos texto (CSV, TSV, TXT)
+                    // Para arquivos texto (CSV, TXT)
                     console.log('Lendo arquivo texto...');
                     
                     let text = e.target.result;
@@ -1609,12 +1576,12 @@ function importarRegistrosCSV(event) {
                         throw new Error('Arquivo sem dados suficientes.');
                     }
                     
-                    // Detectar separador
-                    let separador = ',';
+                    // Detectar separador (ponto-vírgula, vírgula ou tab)
+                    let separador = ';';
                     if (linhas[0].includes('\t')) {
                         separador = '\t';
-                    } else if (linhas[0].includes(';')) {
-                        separador = ';';
+                    } else if (!linhas[0].includes(';') && linhas[0].includes(',')) {
+                        separador = ',';
                     }
                     
                     console.log('Separador detectado:', separador);
