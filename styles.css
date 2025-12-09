@@ -328,11 +328,12 @@ table {
 
 th,
 td {
-    padding: 2px 3px;
+    padding: 1px 2px;
     border: 1px solid var(--border-table);
     text-align: center;
     white-space: nowrap;
-    line-height: 1;
+    line-height: 0.9;
+    font-size: 11px;
 }
 
 /* cabeçalho geral */
