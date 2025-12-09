@@ -726,13 +726,57 @@ textarea {
         grid-template-columns: repeat(3, minmax(200px, 1fr));
         gap: 10px 14px;
     }
-    }
 }
 
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul td {
     background: #BFBFBF !important;  /* azul leve */
     border-top: 2px solid #BFBFBF !important; /* azul mais forte */
+}
+
+/* ================================================
+   Scroll navigation para tabelas
+   ================================================ */
+.table-scroll-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scroll-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-soft);
+    background: #f3f4f6;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.scroll-btn:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+}
+
+.scroll-btn-left {
+    order: -1;
+}
+
+.scroll-btn-right {
+    order: 3;
+}
+
+#tableScrollContainer {
+    flex: 1;
+    overflow-x: auto;
+    scroll-behavior: smooth;
 }
 
 

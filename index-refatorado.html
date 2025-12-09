@@ -135,6 +135,13 @@
                         <button type="button" class="btn-primary" onclick="abrirModalEvento()">
                             + Novo Evento / Feriado
                         </button>
+                        <button type="button" class="btn-secondary" onclick="exportarEventosExcel()">
+                            Exportar Excel
+                        </button>
+                        <label class="file-label btn-secondary">
+                            Importar Excel
+                            <input type="file" accept=".xlsx,.xls,.csv" onchange="importarEventosExcel(event)" />
+                        </label>
                     </div>
                 </div>
 
@@ -260,8 +267,10 @@
 
                     <div id="acordo-regras" class="acordo-panel">
                         <h3>Regras de Horário</h3>
-                        <div class="table-container">
-                            <table>
+                        <div class="table-scroll-nav">
+                            <button class="scroll-btn scroll-btn-left" onclick="scrollTableLeft(event)">‹</button>
+                            <div class="table-container" id="tableScrollContainer">
+                                <table>
                                 <thead>
                                     <tr>
                                         <th>Início</th>
@@ -278,6 +287,8 @@
                                 </thead>
                                 <tbody id="tabelaRegrasAcordo"></tbody>
                             </table>
+                            </div>
+                            <button class="scroll-btn scroll-btn-right" onclick="scrollTableRight(event)">›</button>
                         </div>
                         <div class="form-group">
                             <label>Nova Regra:</label>

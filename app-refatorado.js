@@ -1398,3 +1398,140 @@ function exportarDados() { alert('Backup em desenvolvimento'); }
 function importarDados(event) { alert('Restauração em desenvolvimento'); }
 function salvarConfiguracoes() { alert('Configurações em desenvolvimento'); }
 function carregarConfiguracoes() { alert('Carregamento de configurações em desenvolvimento'); }
+
+// ============= SCROLL NAVIGATION =============
+function scrollTableLeft(event) {
+    event.preventDefault();
+    const container = document.getElementById('tableScrollContainer');
+    if (container) {
+        container.scrollLeft -= 200;
+    }
+}
+
+function scrollTableRight(event) {
+    event.preventDefault();
+    const container = document.getElementById('tableScrollContainer');
+    if (container) {
+        container.scrollLeft += 200;
+    }
+}
+
+// ============= EXPORT/IMPORT EVENTOS EXCEL =============
+
+function exportarEventosExcel() {
+    try {
+        if (!AppState.dados.eventos.length) {
+            alert('Nenhum evento para exportar.');
+            return;
+        }
+
+        // Cabeçalhos
+        const headers = ['Tipo', 'Descrição', 'Acordo', 'Início', 'Fim', 'Impacto'];
+        
+        // Converter eventos para linhas CSV
+        const rows = AppState.dados.eventos.map(ev => [
+            ev.tipoEvento || '',
+            ev.descricaoEvento || '',
+            (ev.acordoIndex != null && AppState.dados.acordos[ev.acordoIndex]) 
+                ? AppState.dados.acordos[ev.acordoIndex].nome 
+                : '',
+            ev.dataInicioEvento || '',
+            ev.dataFimEvento || '',
+            ev.impactoEvento || ''
+        ]);
+
+        // Montar CSV
+        const csv = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        // Criar blob e download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `eventos_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        mostrarAlertaGlobal('Eventos exportados com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao exportar eventos:', error);
+        mostrarAlertaGlobal('Erro ao exportar: ' + error.message, 'error');
+    }
+}
+
+function importarEventosExcel(event) {
+    try {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const text = e.target.result;
+                const linhas = text.trim().split('\n');
+                
+                if (linhas.length < 2) {
+                    throw new Error('Arquivo vazio ou inválido.');
+                }
+
+                // Pular cabeçalho
+                const eventos = [];
+                for (let i = 1; i < linhas.length; i++) {
+                    const linha = linhas[i];
+                    const colunas = linha.split(',').map(col => col.replace(/^"|"$/g, '').trim());
+
+                    if (colunas.length < 6) continue;
+
+                    const [tipo, descricao, acordoNome, dataInicio, dataFim, impacto] = colunas;
+
+                    // Localizar índice do acordo pelo nome
+                    let acordoIndex = null;
+                    if (acordoNome) {
+                        const acordoIdx = AppState.dados.acordos.findIndex(a => a.nome === acordoNome);
+                        if (acordoIdx >= 0) acordoIndex = acordoIdx;
+                    }
+
+                    const evento = {
+                        tipoEvento: tipo || 'feriado',
+                        descricaoEvento: descricao || '',
+                        dataInicioEvento: dataInicio || '',
+                        dataFimEvento: dataFim || dataInicio || '',
+                        impactoEvento: impacto || 'folga',
+                        acordoIndex: acordoIndex
+                    };
+
+                    // Validar evento
+                    const erros = Validators.validateEvento(evento);
+                    if (erros.length === 0) {
+                        eventos.push(evento);
+                    }
+                }
+
+                if (eventos.length === 0) {
+                    throw new Error('Nenhum evento válido encontrado no arquivo.');
+                }
+
+                // Perguntar se deseja adicionar ou substituir
+                if (confirm(`Encontrados ${eventos.length} eventos. Deseja adicioná-los aos existentes?`)) {
+                    AppState.dados.eventos.push(...eventos);
+                    AppState.save();
+                    renderizarEventos();
+                    mostrarAlertaGlobal(`${eventos.length} eventos importados com sucesso!`, 'success');
+                }
+            } catch (error) {
+                console.error('Erro ao processar arquivo:', error);
+                mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // Reset input para permitir reselecionar
+    } catch (error) {
+        console.error('Erro ao importar eventos:', error);
+        mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
+    }
+}
