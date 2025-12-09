@@ -789,6 +789,7 @@ textarea {
     scroll-behavior: smooth;
 }
 
+<<<<<<< HEAD
 /* ================================================
    Colunas de Saldo (Anterior e Acumulado)
    ================================================ */
@@ -823,5 +824,7 @@ textarea {
     font-size: 11px;
 }
 
+=======
+>>>>>>> parent of 6797e94 (colunas de saldos)
 
 
