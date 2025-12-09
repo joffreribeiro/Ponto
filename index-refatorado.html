@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Ponto Avançado - Versão Modularizada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+    <h1>Controle de Ponto Avançado</h1>
+    <p class="subtitle">Gestão de jornada, acordos coletivos e timesheet em um só lugar.</p>
+    <p style="font-size: 12px; color: #999;">Versão 2.0 - Modularizada com Validação Robusta</p>
+</header>
+
+<div class="container">
+    <!-- Abas principais -->
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="ponto">Ponto</button>
+    </nav>
+
+    <div class="content">
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Resumo da Jornada</h2>
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <span class="stat-label">Horas Trabalhadas (período)</span>
+                            <span id="horasPeriodo" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Saldo de Banco de Horas</span>
+                            <span id="saldoBancoHoras" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Horas Extras</span>
+                            <span id="horasExtras" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Horas em Acordo</span>
+                            <span id="horasAcordo" class="stat-value">00:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Avisos</h2>
+                    <ul id="listaAvisos" class="lista-avisos"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- PONTO (sub-abas) -->
+        <section id="ponto" class="tab-content">
+            <div class="subtabs">
+                <button class="subtab-btn active" data-subtab="ponto-registros">Registros</button>
+                <button class="subtab-btn" data-subtab="ponto-timesheet">Timesheet</button>
+                <button class="subtab-btn" data-subtab="ponto-config">Acordos</button>
+            </div>
+
+            <!-- Registros -->
+            <div id="ponto-registros" class="subtab-content active">
+                <div class="toolbar">
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="abrirModalRegistro()">
+                            + Novo Registro
+                        </button>
+                    </div>
+                </div>
+
+                <div id="alertAreaRegistro"></div>
+
+                <div class="table-container">
+                    <table id="tabelaRegistros">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Entrada</th>
+                                <th>Saída Almoço</th>
+                                <th>Retorno Almoço</th>
+                                <th>Saída</th>
+                                <th>Horas Trabalhadas</th>
+                                <th>Saldo</th>
+                                <th>Observações</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timesheet -->
+            <div id="ponto-timesheet" class="subtab-content">
+                <div class="toolbar">
+                    <div>
+                        <label for="acordoTimesheet">Acordo:</label>
+                        <select id="acordoTimesheet"></select>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
+                            Gerar Timesheet
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
+                            Exportar CSV
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
+                            Exportar PDF
+                        </button>
+                    </div>
+                </div>
+                <div id="timesheetContent"></div>
+            </div>
+
+            <!-- Acordos -->
+            <div id="ponto-config" class="subtab-content">
+                <div class="toolbar">
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="novoAcordo()">
+                            + Novo Acordo
+                        </button>
+                    </div>
+                </div>
+                <div id="listaAcordos"></div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Modal Registro -->
+<div id="modalRegistro" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Registro de Ponto</h2>
+            <button type="button" class="modal-close" onclick="fecharModalRegistro()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="dataRegistro">Data (YYYY-MM-DD):</label>
+                <input type="date" id="dataRegistro" required>
+            </div>
+            <div class="form-group">
+                <label for="entradaRegistro">Entrada (HH:MM):</label>
+                <input type="time" id="entradaRegistro" required>
+            </div>
+            <div class="form-group">
+                <label for="saidaAlmocoRegistro">Saída Almoço (HH:MM):</label>
+                <input type="time" id="saidaAlmocoRegistro">
+            </div>
+            <div class="form-group">
+                <label for="retornoAlmocoRegistro">Retorno Almoço (HH:MM):</label>
+                <input type="time" id="retornoAlmocoRegistro">
+            </div>
+            <div class="form-group">
+                <label for="saidaRegistro">Saída (HH:MM):</label>
+                <input type="time" id="saidaRegistro" required>
+            </div>
+            <div class="form-group">
+                <label for="observacoesRegistro">Observações:</label>
+                <textarea id="observacoesRegistro" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="fecharModalRegistro()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="salvarRegistro()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Acordo -->
+<div id="modalAcordo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Gerenciar Acordo</h2>
+            <button type="button" class="modal-close" onclick="fecharModalAcordo()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="acordoNome">Nome do Acordo:</label>
+                <input type="text" id="acordoNome" required>
+            </div>
+
+            <div class="acordo-panels">
+                <div class="acordo-sidebar">
+                    <button type="button" class="acordo-side-btn active" data-panel="acordo-overview">
+                        Resumo
+                    </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-periodos">
+                        Períodos
+                    </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-regras">
+                        Regras
+                    </button>
+                </div>
+
+                <div class="acordo-content">
+                    <div id="acordo-overview" class="acordo-panel active">
+                        <p>Defina os períodos de compensação e regras de horário para este acordo.</p>
+                    </div>
+
+                    <div id="acordo-periodos" class="acordo-panel">
+                        <h3>Períodos de Compensação</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Minutos Extras/dia</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaPeriodosAcordo"></tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <label>Novo Período:</label>
+                            <input type="date" id="periodoInicio" placeholder="Início">
+                            <input type="date" id="periodoFim" placeholder="Fim">
+                            <input type="number" id="periodoMinutosExtras" placeholder="Minutos extras/dia" value="0">
+                            <button type="button" class="btn-secondary" id="btnAdicionarPeriodo">
+                                Adicionar Período
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="acordo-regras" class="acordo-panel">
+                        <h3>Regras de Horário</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Min Extras</th>
+                                        <th>Início Expediente</th>
+                                        <th>Almoço</th>
+                                        <th>Tol. Almoço</th>
+                                        <th>Tol. Saída</th>
+                                        <th>Tipo</th>
+                                        <th>Vale (R$)</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaRegrasAcordo"></tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <label>Nova Regra:</label>
+                            <input type="date" id="regraInicio" placeholder="Início">
+                            <input type="date" id="regraFim" placeholder="Fim">
+                            <input type="number" id="regraMinutosExtras" placeholder="Minutos extras" value="0">
+                            <input type="time" id="regraInicioExpediente" placeholder="Início expediente">
+                            <input type="number" id="regraAlmoco" placeholder="Almoço (min)" value="60">
+                            <input type="number" id="regraTolAlmoco" placeholder="Tol. almoço (min)" value="5">
+                            <input type="number" id="regraTolSaida" placeholder="Tol. saída (min)" value="5">
+                            <input type="text" id="regraTipo" placeholder="Tipo">
+                            <input type="number" id="regraVale" placeholder="Vale (R$)" value="0">
+                            <button type="button" class="btn-secondary" id="btnAdicionarRegra">
+                                Adicionar Regra
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="fecharModalAcordo()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="salvarAcordo()">Salvar Acordo</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts em ordem: utilitários antes da aplicação -->
+<script src="dateUtils.js"></script>
+<script src="validators.js"></script>
+<script src="storage.js"></script>
+<script src="calculations.js"></script>
+<script src="app-refatorado.js"></script>
+
+</body>
+</html>
