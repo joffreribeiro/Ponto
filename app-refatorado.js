@@ -574,12 +574,7 @@ function gerarTimesheetAcordo() {
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
-                    const isCompensar = ev && (
-                        ev.tipoEvento === 'compensar_acordo' ||
-                        ev.tipoEvento === 'compensacao_acordo' ||
-                        ev.tipoEvento === 'compensação_acordo' ||
-                        ev.impactoEvento === 'trabalho'
-                    );
+                    const isCompensar = ev && ev.tipoEvento === 'compensar_acordo';
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
                     if (ev && !isCompensar) {
