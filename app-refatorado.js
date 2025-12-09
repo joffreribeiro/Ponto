@@ -589,7 +589,7 @@ function gerarTimesheetAcordo() {
                 // Coluna Saldo Anterior (PRIMEIRA coluna após label)
                 if (rowIndex === 0) {
                     const tdSaldoAnterior = document.createElement('td');
-                    tdSaldoAnterior.rowSpan = numRows - 1;
+                    tdSaldoAnterior.rowSpan = numRows; // inclui a linha "Saldo do Dia"
                     tdSaldoAnterior.className = 'col-saldo-anterior';
                     const saldoDiv = document.createElement('div');
                     saldoDiv.className = 'saldo-vertical-text';
@@ -728,7 +728,7 @@ function gerarTimesheetAcordo() {
                 // Coluna Saldo Acumulado (ÚLTIMA coluna)
                 if (rowIndex === 0) {
                     const tdSaldoAcumulado = document.createElement('td');
-                    tdSaldoAcumulado.rowSpan = numRows - 1;
+                    tdSaldoAcumulado.rowSpan = numRows; // inclui a linha "Saldo do Dia"
                     tdSaldoAcumulado.className = 'col-saldo-acumulado';
                     const saldoDiv = document.createElement('div');
                     saldoDiv.className = 'saldo-vertical-text';
