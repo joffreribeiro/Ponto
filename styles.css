@@ -814,7 +814,9 @@ textarea {
     color: #ffffff;
     font-weight: 600;
     font-size: 11px;
-    min-width: 90px;
+    min-width: 12px;
+    width: 12px;
+    max-width: 12px;
 }
 
 .col-saldo-anterior,
@@ -826,9 +828,9 @@ textarea {
     text-align: center;
     padding: 0;
     vertical-align: middle;
-    width: 10px;
-    min-width: 10px;
-    max-width: 10px;
+    width: 12px;
+    min-width: 12px;
+    max-width: 12px;
 }
 
 .saldo-vertical-text {
