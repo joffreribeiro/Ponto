@@ -513,6 +513,7 @@ function gerarTimesheetAcordo() {
 
             // Coluna Saldo Anterior
             const thSaldoAnterior = document.createElement('th');
+            thSaldoAnterior.textContent = 'Saldo Anterior';
             thSaldoAnterior.className = 'th-saldo-anterior';
             trHead.appendChild(thSaldoAnterior);
 
@@ -537,6 +538,7 @@ function gerarTimesheetAcordo() {
 
             // Coluna Saldo Acumulado
             const thSaldoAcumulado = document.createElement('th');
+            thSaldoAcumulado.textContent = 'Saldo Acumulado';
             thSaldoAcumulado.className = 'th-saldo-acumulado';
             trHead.appendChild(thSaldoAcumulado);
 
