@@ -568,16 +568,10 @@ function gerarTimesheetAcordo() {
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
+                    const isCompensar = ev && ev.tipoEvento === 'compensar_acordo';
 
-                    // Evento
-                    if (ev) {
-                        if (ev.tipoEvento === 'compensar_acordo') {
-                            const td = document.createElement('td');
-                            td.className = 'evento-compensar-acordo';
-                            tr.appendChild(td);
-                            return;
-                        }
-
+                    // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
+                    if (ev && !isCompensar) {
                         if (!eventoSpanCriado[colIdx] && rowIndex === 0) {
                             const td = document.createElement('td');
                             td.rowSpan = numRows;
@@ -627,9 +621,10 @@ function gerarTimesheetAcordo() {
                         return;
                     }
 
-                    // Dia útil normal
+                    // Dia útil normal (ou compensação de acordo)
                     const r = mapaReg[dia.dataStr] || null;
                     const td = document.createElement('td');
+                    if (isCompensar) td.classList.add('evento-compensar-acordo');
 
                     if (rowIndex === 0) td.textContent = r && r.entrada || '';
                     if (rowIndex === 1) td.textContent = r && r.saidaAlmoco || '';
