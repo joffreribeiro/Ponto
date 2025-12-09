@@ -56,14 +56,35 @@
         <!-- PONTO (sub-abas) -->
         <section id="ponto" class="tab-content">
             <div class="subtabs">
-                <button class="subtab-btn active" data-subtab="ponto-registros">Registros</button>
-                <button class="subtab-btn" data-subtab="ponto-eventos">Eventos</button>
-                <button class="subtab-btn" data-subtab="ponto-timesheet">Timesheet</button>
-                <button class="subtab-btn" data-subtab="ponto-config">Acordos</button>
+                <button class="subtab-btn active" data-subtab="ponto-timesheet">Timesheet</button>
+                <button class="subtab-btn" data-subtab="ponto-registros">Registros</button>
+                <button class="subtab-btn" data-subtab="ponto-config">Acordos/Eventos</button>
+            </div>
+
+            <!-- Timesheet -->
+            <div id="ponto-timesheet" class="subtab-content active">
+                <div class="toolbar">
+                    <div>
+                        <label for="acordoTimesheet">Acordo:</label>
+                        <select id="acordoTimesheet"></select>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
+                            Gerar Timesheet
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
+                            Exportar CSV
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
+                            Exportar PDF
+                        </button>
+                    </div>
+                </div>
+                <div id="timesheetContent"></div>
             </div>
 
             <!-- Registros -->
-            <div id="ponto-registros" class="subtab-content active">
+            <div id="ponto-registros" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
                         <button type="button" class="btn-primary" onclick="abrirModalRegistro()">
@@ -122,29 +143,7 @@
                 </div>
             </div>
 
-            <!-- Timesheet -->
-            <div id="ponto-timesheet" class="subtab-content">
-                <div class="toolbar">
-                    <div>
-                        <label for="acordoTimesheet">Acordo:</label>
-                        <select id="acordoTimesheet"></select>
-                    </div>
-                    <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
-                            Gerar Timesheet
-                        </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
-                            Exportar CSV
-                        </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
-                            Exportar PDF
-                        </button>
-                    </div>
-                </div>
-                <div id="timesheetContent"></div>
-            </div>
-
-            <!-- Acordos -->
+            <!-- Acordos/Eventos -->
             <div id="ponto-config" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
@@ -154,6 +153,31 @@
                     </div>
                 </div>
                 <div id="listaAcordos"></div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <h3>Eventos / Feriados vinculados</h3>
+                        <button type="button" class="btn-primary" onclick="abrirModalEvento()">
+                            + Novo Evento / Feriado
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table id="tabelaEventos">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descrição</th>
+                                    <th>Acordo</th>
+                                    <th>Início</th>
+                                    <th>Fim</th>
+                                    <th>Impacto</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
