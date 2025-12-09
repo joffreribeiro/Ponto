@@ -1502,18 +1502,40 @@ function importarRegistrosCSV(event) {
                 if (linhas.length < 2) throw new Error('Arquivo vazio ou sem dados.');
 
                 const parseLine = (line) => {
-                    // Split por tab
-                    return line.split('\t').map(c => c.trim());
+                    // Split por tab ou vírgula, dependendo do formato
+                    if (line.includes('\t')) {
+                        return line.split('\t').map(c => c.trim());
+                    } else {
+                        return line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                    }
                 };
 
                 const registros = [];
                 for (let i = 1; i < linhas.length; i++) {
-                    const cols = parseLine(linhas[i]);
-                    if (cols.length < 6) continue;
-                    const [data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes] = cols;
-                    const reg = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes };
+                    const linha = linhas[i].trim();
+                    if (!linha) continue; // pular linhas vazias
+                    
+                    const cols = parseLine(linha);
+                    if (cols.length < 5) continue; // mínimo: data, entrada, saidaAlmoco, retornoAlmoco, saida
+                    
+                    const [data, entrada, saidaAlmoco, retornoAlmoco, saida, ...resto] = cols;
+                    const observacoes = resto.join(' ').trim(); // juntar colunas extras como observações
+                    
+                    const reg = { 
+                        data: data || '', 
+                        entrada: entrada || '', 
+                        saidaAlmoco: saidaAlmoco || '', 
+                        retornoAlmoco: retornoAlmoco || '', 
+                        saida: saida || '', 
+                        observacoes: observacoes || '' 
+                    };
+                    
                     const erros = Validators.validateRegistro(reg);
-                    if (erros.length === 0) registros.push(reg);
+                    if (erros.length === 0) {
+                        registros.push(reg);
+                    } else {
+                        console.warn(`Linha ${i + 1} inválida:`, erros.join(', '));
+                    }
                 }
 
                 if (!registros.length) throw new Error('Nenhum registro válido encontrado.');
