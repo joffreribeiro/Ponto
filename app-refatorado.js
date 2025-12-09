@@ -1357,6 +1357,9 @@ function renderizarAcordos() {
             div.appendChild(btnRow);
             container.appendChild(div);
         });
+
+        // Garantir que a tabela de eventos vinculados esteja sincronizada
+        renderizarEventos();
     } catch (error) {
         console.error('Erro ao renderizar acordos:', error);
     }
