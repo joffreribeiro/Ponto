@@ -576,7 +576,7 @@ function gerarTimesheetAcordo() {
                 tdLabel.textContent = labels[rowIndex];
                 tr.appendChild(tdLabel);
 
-                // Coluna Saldo Anterior
+                // Coluna Saldo Anterior (PRIMEIRA coluna após label)
                 const tdSaldoAnterior = document.createElement('td');
                 if (rowIndex === 0) {
                     tdSaldoAnterior.rowSpan = numRows - 1;
@@ -587,6 +587,9 @@ function gerarTimesheetAcordo() {
                     labelSpan.textContent = 'Saldo Anterior';
                     saldoDiv.appendChild(labelSpan);
                     tdSaldoAnterior.appendChild(saldoDiv);
+                } else {
+                    // Células vazias para manter a estrutura
+                    tdSaldoAnterior.textContent = '';
                 }
                 tr.appendChild(tdSaldoAnterior);
 
@@ -715,7 +718,7 @@ function gerarTimesheetAcordo() {
                     tr.appendChild(td);
                 });
 
-                // Coluna Saldo Acumulado
+                // Coluna Saldo Acumulado (ÚLTIMA coluna)
                 const tdSaldoAcumulado = document.createElement('td');
                 if (rowIndex === 0) {
                     tdSaldoAcumulado.rowSpan = numRows - 1;
@@ -726,6 +729,9 @@ function gerarTimesheetAcordo() {
                     labelSpan.textContent = 'Saldo Acumulado';
                     saldoDiv.appendChild(labelSpan);
                     tdSaldoAcumulado.appendChild(saldoDiv);
+                } else {
+                    // Células vazias para manter a estrutura
+                    tdSaldoAcumulado.textContent = '';
                 }
                 tr.appendChild(tdSaldoAcumulado);
 
@@ -740,6 +746,15 @@ function gerarTimesheetAcordo() {
             tdLabelSaldo.textContent = 'SALDO MÊS';
             trSaldoMes.appendChild(tdLabelSaldo);
 
+            // Coluna Saldo Anterior na linha SALDO MÊS
+            const tdSaldoAnteriorMes = document.createElement('td');
+            tdSaldoAnteriorMes.className = 'col-saldo-anterior';
+            tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+            if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
+            if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+            trSaldoMes.appendChild(tdSaldoAnteriorMes);
+
+            // Coluna Saldo do Mês (spanning all days)
             const tdSaldoMes = document.createElement('td');
             tdSaldoMes.colSpan = dias.length;
             tdSaldoMes.textContent = DateUtils.minutesToTime(saldoMes);
@@ -747,8 +762,16 @@ function gerarTimesheetAcordo() {
             if (saldoMes < 0) tdSaldoMes.classList.add('saldo-negativo');
             trSaldoMes.appendChild(tdSaldoMes);
 
+            // Coluna Saldo Acumulado na linha SALDO MÊS
             const saldoAcumuladoMes = (saldoAnterior || 0) + (saldoMes || 0);
             saldoAcumuladoGeral = saldoAcumuladoMes;
+
+            const tdSaldoAcumuladoMes = document.createElement('td');
+            tdSaldoAcumuladoMes.className = 'col-saldo-acumulado';
+            tdSaldoAcumuladoMes.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
+            if (saldoAcumuladoMes > 0) tdSaldoAcumuladoMes.classList.add('saldo-positivo');
+            if (saldoAcumuladoMes < 0) tdSaldoAcumuladoMes.classList.add('saldo-negativo');
+            trSaldoMes.appendChild(tdSaldoAcumuladoMes);
 
             tbody.appendChild(trSaldoMes);
 
