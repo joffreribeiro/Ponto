@@ -1447,7 +1447,7 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
     alert(mensagem);
 }
 
-// Exportar/Importar Registros
+// Exportar/Importar Registros - Formato Excel
 function exportarRegistrosCSV() {
     try {
         if (!AppState.dados.registros.length) {
@@ -1455,29 +1455,41 @@ function exportarRegistrosCSV() {
             return;
         }
 
-        // Criar arquivo separado por TAB (Excel reconhece automaticamente)
-        const headers = ['Data', 'Entrada', 'Saída Almoço', 'Retorno Almoço', 'Saída', 'Observações'];
-        let csv = headers.join('\t') + '\n';
+        // Criar HTML table para Excel
+        let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        html += '<head><meta charset="utf-8"/></head><body><table border="1">';
+        
+        // Cabeçalho
+        html += '<tr>';
+        html += '<th>Data</th>';
+        html += '<th>Entrada</th>';
+        html += '<th>Saída Almoço</th>';
+        html += '<th>Retorno Almoço</th>';
+        html += '<th>Saída</th>';
+        html += '<th>Observações</th>';
+        html += '</tr>';
 
+        // Dados
         AppState.dados.registros
             .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
             .forEach(r => {
-                const row = [
-                    r.data || '',
-                    r.entrada || '',
-                    r.saidaAlmoco || '',
-                    r.retornoAlmoco || '',
-                    r.saida || '',
-                    r.observacoes || ''
-                ];
-                csv += row.join('\t') + '\n';
+                html += '<tr>';
+                html += `<td>${r.data || ''}</td>`;
+                html += `<td>${r.entrada || ''}</td>`;
+                html += `<td>${r.saidaAlmoco || ''}</td>`;
+                html += `<td>${r.retornoAlmoco || ''}</td>`;
+                html += `<td>${r.saida || ''}</td>`;
+                html += `<td>${r.observacoes || ''}</td>`;
+                html += '</tr>';
             });
 
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/plain;charset=utf-8' });
+        html += '</table></body></html>';
+
+        const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.txt`);
+        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.xls`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -1499,33 +1511,28 @@ function importarRegistrosCSV(event) {
         reader.onload = function (e) {
             try {
                 const text = e.target.result;
-                console.log('Primeiros 200 caracteres:', text.substring(0, 200));
+                console.log('Arquivo lido, tamanho:', text.length);
                 
-                const linhas = text.trim().split(/\r?\n/);
-                if (linhas.length < 2) throw new Error('Arquivo vazio ou sem dados.');
-
-                // Detectar separador (TAB ou espaços)
-                const separador = linhas[0].includes('\t') ? '\t' : /\s{2,}/;
-                console.log('Separador:', separador === '\t' ? 'TAB' : 'ESPAÇOS');
+                // Parse HTML table do Excel
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const rows = doc.querySelectorAll('table tr');
+                
+                if (rows.length < 2) throw new Error('Arquivo Excel vazio ou sem dados.');
 
                 const registros = [];
-                for (let i = 1; i < linhas.length; i++) {
-                    const linha = linhas[i].trim();
-                    if (!linha) continue;
+                // Começar do índice 1 para pular cabeçalho
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].querySelectorAll('td');
+                    if (cells.length < 2) continue;
                     
-                    const cols = linha.split(separador).map(c => c.trim()).filter(c => c);
-                    if (cols.length < 2) {
-                        console.log(`Linha ${i + 1} ignorada:`, cols);
-                        continue;
-                    }
-                    
-                    // Extrair campos
-                    let data = cols[0];
-                    const entrada = cols[1] || '';
-                    const saidaAlmoco = cols[2] || '';
-                    const retornoAlmoco = cols[3] || '';
-                    const saida = cols[4] || '';
-                    const observacoes = cols[5] || '';
+                    // Extrair valores das células
+                    let data = cells[0]?.textContent.trim() || '';
+                    const entrada = cells[1]?.textContent.trim() || '';
+                    const saidaAlmoco = cells[2]?.textContent.trim() || '';
+                    const retornoAlmoco = cells[3]?.textContent.trim() || '';
+                    const saida = cells[4]?.textContent.trim() || '';
+                    const observacoes = cells[5]?.textContent.trim() || '';
                     
                     // Converter data DD/MM/YYYY → YYYY-MM-DD
                     if (data && data.includes('/')) {
@@ -1533,26 +1540,24 @@ function importarRegistrosCSV(event) {
                         data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
                     }
                     
-                    const reg = { 
-                        data: data, 
-                        entrada: entrada, 
-                        saidaAlmoco: saidaAlmoco, 
-                        retornoAlmoco: retornoAlmoco, 
-                        saida: saida, 
-                        observacoes: observacoes 
-                    };
-                    
-                    // Validar apenas data
+                    // Validar data
                     if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        registros.push(reg);
-                        console.log(`Linha ${i + 1} OK:`, reg);
+                        registros.push({ 
+                            data: data, 
+                            entrada: entrada, 
+                            saidaAlmoco: saidaAlmoco, 
+                            retornoAlmoco: retornoAlmoco, 
+                            saida: saida, 
+                            observacoes: observacoes 
+                        });
+                        console.log(`Linha ${i} importada:`, data, entrada);
                     } else {
-                        console.log(`Linha ${i + 1} data inválida:`, data);
+                        console.log(`Linha ${i} ignorada - data inválida:`, data);
                     }
                 }
 
                 if (!registros.length) {
-                    throw new Error('Nenhum registro válido.\n\nFormato esperado:\nData\tEntrada\tSaída Almoço\tRetorno Almoço\tSaída\tObservações\n2024-01-15\t08:00\t12:00\t13:00\t18:00\t');
+                    throw new Error('Nenhum registro válido encontrado no arquivo Excel.');
                 }
 
                 const substituir = confirm(`Importar ${registros.length} registros?\n\nOK = Substituir todos\nCancelar = Mesclar`);
@@ -1573,7 +1578,7 @@ function importarRegistrosCSV(event) {
                 AppState.save();
                 atualizarDashboard();
                 renderizarTabelaRegistros();
-                mostrarAlertaGlobal(`${registros.length} registros importados!`, 'success');
+                mostrarAlertaGlobal(`${registros.length} registros importados com sucesso!`, 'success');
             } catch (error) {
                 console.error('Erro:', error);
                 mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
