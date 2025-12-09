@@ -593,12 +593,10 @@ function gerarTimesheetAcordo() {
                     tdSaldoAnterior.className = 'col-saldo-anterior';
                     const saldoDiv = document.createElement('div');
                     saldoDiv.className = 'saldo-vertical-text';
-                    const valorSpan = document.createElement('span');
-                    valorSpan.textContent = DateUtils.minutesToTime(saldoAnterior);
-                    saldoDiv.appendChild(valorSpan);
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = 'Saldo Anterior';
+                    saldoDiv.appendChild(labelSpan);
                     tdSaldoAnterior.appendChild(saldoDiv);
-                    if (saldoAnterior > 0) tdSaldoAnterior.classList.add('saldo-positivo');
-                    if (saldoAnterior < 0) tdSaldoAnterior.classList.add('saldo-negativo');
                 }
                 tr.appendChild(tdSaldoAnterior);
 
