@@ -1528,128 +1528,142 @@ function importarRegistrosCSV(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        console.log('Arquivo selecionado:', file.name, 'tipo:', file.type);
+        console.log('Arquivo selecionado:', file.name, 'tipo:', file.type, 'tamanho:', file.size);
 
         const reader = new FileReader();
         
         reader.onload = function (e) {
             try {
-                let text = '';
-                
-                // Se for um arquivo de texto ou HTML
-                if (file.type.startsWith('text/') || file.name.endsWith('.csv') || file.name.endsWith('.txt') || file.name.endsWith('.html')) {
-                    text = e.target.result;
-                } else {
-                    // Para arquivos binários (.xls, .xlsx), tentar decodificar
-                    const arrayBuffer = e.target.result;
-                    const decoder = new TextDecoder('utf-8');
-                    text = decoder.decode(arrayBuffer);
-                    
-                    // Se não funcionar, tentar com latin-1
-                    if (!text || text.length === 0) {
-                        const decoder2 = new TextDecoder('iso-8859-1');
-                        text = decoder2.decode(arrayBuffer);
-                    }
-                }
-                
-                console.log('Arquivo decodificado, tamanho:', text.length);
-                console.log('Primeiros 200 chars:', text.substring(0, 200));
-                
-                // Limpar caracteres de controle e bytes nulos
-                text = text.replace(/\x00/g, '').trim();
-                
-                if (!text || text.length === 0) {
-                    throw new Error('Arquivo vazio ou ilegível.');
-                }
-                
-                // Tentar parse como HTML/XML primeiro (para .xlsx e arquivos Excel salvos em HTML)
                 let registros = [];
                 
-                if (text.includes('<table') || text.includes('<tr') || text.includes('table')) {
-                    console.log('Detectado formato HTML/XLSX');
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(text, 'text/html');
-                    const rows = doc.querySelectorAll('tr');
+                // Se for Excel (.xls ou .xlsx), usar biblioteca XLSX
+                if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx') || file.type === 'application/vnd.ms-excel' || file.type.includes('spreadsheet')) {
+                    console.log('Lendo arquivo Excel com biblioteca XLSX...');
                     
-                    console.log('Total de linhas <tr>:', rows.length);
+                    // Usando a biblioteca XLSX global
+                    if (typeof XLSX === 'undefined') {
+                        throw new Error('Biblioteca XLSX não carregada. Recarregue a página.');
+                    }
                     
-                    if (rows.length > 1) {
-                        for (let i = 1; i < rows.length; i++) {
-                            const cells = rows[i].querySelectorAll('td, th');
-                            
-                            if (cells.length >= 1) {
-                                let data = cells[0]?.textContent.trim() || '';
-                                const entrada = cells[1]?.textContent.trim() || '';
-                                const saidaAlmoco = cells[2]?.textContent.trim() || '';
-                                const retornoAlmoco = cells[3]?.textContent.trim() || '';
-                                const saida = cells[4]?.textContent.trim() || '';
-                                const observacoes = cells[5]?.textContent.trim() || '';
-                                
-                                // Converter data DD/MM/YYYY → YYYY-MM-DD
-                                if (data && data.includes('/')) {
-                                    const partes = data.split('/');
-                                    if (partes.length === 3) {
-                                        const [d, m, y] = partes;
-                                        data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-                                    }
-                                }
-                                
-                                if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                    registros.push({ 
-                                        data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
-                                    });
-                                    console.log(`✓ Linha ${i}: ${data}`);
-                                }
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    console.log('Planilhas encontradas:', workbook.SheetNames);
+                    
+                    // Pegar a primeira planilha
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // Converter para JSON
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    console.log('Total de linhas na planilha:', rows.length);
+                    console.log('Primeiras 3 linhas:', rows.slice(0, 3));
+                    
+                    // Processar dados (começar do índice 1 para pular cabeçalho)
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        
+                        if (!row || row.length === 0) continue;
+                        
+                        let data = row[0];
+                        const entrada = row[1] || '';
+                        const saidaAlmoco = row[2] || '';
+                        const retornoAlmoco = row[3] || '';
+                        const saida = row[4] || '';
+                        const observacoes = row[5] || '';
+                        
+                        // Converter data DD/MM/YYYY → YYYY-MM-DD
+                        if (data && typeof data === 'string' && data.includes('/')) {
+                            const partes = data.split('/');
+                            if (partes.length === 3) {
+                                const [d, m, y] = partes;
+                                data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
                             }
+                        } else if (typeof data === 'number') {
+                            // Excel armazena datas como números (serial date)
+                            // Converter número Excel para data
+                            const date = new Date((data - 25569) * 86400 * 1000);
+                            data = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                        }
+                        
+                        // Converter strings para strings de hora
+                        if (typeof entrada === 'number' && entrada > 0 && entrada < 1) {
+                            const hours = Math.floor(entrada * 24);
+                            const minutes = Math.floor((entrada * 24 - hours) * 60);
+                            entrada = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                        }
+                        
+                        // Validar data
+                        if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            registros.push({ 
+                                data: data.toString(), 
+                                entrada: entrada?.toString() || '', 
+                                saidaAlmoco: saidaAlmoco?.toString() || '', 
+                                retornoAlmoco: retornoAlmoco?.toString() || '', 
+                                saida: saida?.toString() || '', 
+                                observacoes: observacoes?.toString() || '' 
+                            });
+                            console.log(`✓ Linha ${i}: ${data} ${entrada}`);
+                        } else {
+                            console.log(`✗ Linha ${i} ignorada: data inválida "${data}"`);
                         }
                     }
-                }
-                
-                // Se não achou registros em HTML, tentar como CSV/TSV
-                if (registros.length === 0) {
-                    console.log('Tentando formato CSV/TSV');
+                } else {
+                    // Para arquivos texto (CSV, TSV, TXT)
+                    console.log('Lendo arquivo texto...');
+                    
+                    let text = e.target.result;
+                    text = text.replace(/\x00/g, '').trim();
+                    
+                    if (!text || text.length === 0) {
+                        throw new Error('Arquivo vazio.');
+                    }
+                    
                     const linhas = text.split(/\r?\n/).filter(l => l && l.trim().length > 0);
                     
-                    if (linhas.length >= 2) {
-                        // Detectar separador
-                        let separador = ',';
-                        if (linhas[0].includes('\t')) {
-                            separador = '\t';
-                        } else if (linhas[0].includes(';')) {
-                            separador = ';';
+                    if (linhas.length < 2) {
+                        throw new Error('Arquivo sem dados suficientes.');
+                    }
+                    
+                    // Detectar separador
+                    let separador = ',';
+                    if (linhas[0].includes('\t')) {
+                        separador = '\t';
+                    } else if (linhas[0].includes(';')) {
+                        separador = ';';
+                    }
+                    
+                    console.log('Separador detectado:', separador);
+                    
+                    for (let i = 1; i < linhas.length; i++) {
+                        const cols = linhas[i]
+                            .split(separador)
+                            .map(c => c.trim().replace(/^"|"$/g, ''));
+                        
+                        if (cols.length < 1 || !cols[0]) continue;
+                        
+                        let data = cols[0];
+                        const entrada = cols[1] || '';
+                        const saidaAlmoco = cols[2] || '';
+                        const retornoAlmoco = cols[3] || '';
+                        const saida = cols[4] || '';
+                        const observacoes = cols[5] || '';
+                        
+                        // Converter data
+                        if (data && data.includes('/')) {
+                            const partes = data.split('/');
+                            if (partes.length === 3) {
+                                const [d, m, y] = partes;
+                                data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+                            }
                         }
                         
-                        console.log('Separador detectado:', separador);
-                        
-                        for (let i = 1; i < linhas.length; i++) {
-                            const cols = linhas[i]
-                                .split(separador)
-                                .map(c => c.trim().replace(/^"|"$/g, ''));
-                            
-                            if (cols.length < 1 || !cols[0]) continue;
-                            
-                            let data = cols[0];
-                            const entrada = cols[1] || '';
-                            const saidaAlmoco = cols[2] || '';
-                            const retornoAlmoco = cols[3] || '';
-                            const saida = cols[4] || '';
-                            const observacoes = cols[5] || '';
-                            
-                            // Converter data
-                            if (data && data.includes('/')) {
-                                const partes = data.split('/');
-                                if (partes.length === 3) {
-                                    const [d, m, y] = partes;
-                                    data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-                                }
-                            }
-                            
-                            if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                registros.push({ 
-                                    data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
-                                });
-                                console.log(`✓ Linha ${i}: ${data}`);
-                            }
+                        if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            registros.push({ 
+                                data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
+                            });
+                            console.log(`✓ Linha ${i}: ${data}`);
                         }
                     }
                 }
@@ -1692,11 +1706,11 @@ function importarRegistrosCSV(event) {
             event.target.value = '';
         };
         
-        // Ler como texto para formatos texto, como ArrayBuffer para binários
-        if (file.type.startsWith('text/') || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
-            reader.readAsText(file, 'utf-8');
-        } else {
+        // Ler como texto ou ArrayBuffer conforme o tipo
+        if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
             reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file, 'utf-8');
         }
     } catch (error) {
         console.error('ERRO:', error);
