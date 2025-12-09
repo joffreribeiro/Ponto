@@ -1447,7 +1447,7 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
     alert(mensagem);
 }
 
-// Exportar/Importar Registros - Formato Excel
+// Exportar/Importar Registros - Formato Excel (TSV)
 function exportarRegistrosCSV() {
     try {
         if (!AppState.dados.registros.length) {
@@ -1455,38 +1455,24 @@ function exportarRegistrosCSV() {
             return;
         }
 
-        // Criar HTML table para Excel com marcador
-        let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">';
-        html += '<head><meta charset="utf-8"/><meta name="generator" content="sistema-ponto"/></head><body>';
-        html += '<table border="1" data-source="sistema-ponto">';
+        // Criar CSV/TSV simples (Excel reconhece nativamente)
+        let conteudo = 'Data\tEntrada\tSaída Almoço\tRetorno Almoço\tSaída\tObservações\n';
         
-        // Cabeçalho
-        html += '<tr>';
-        html += '<th>Data</th>';
-        html += '<th>Entrada</th>';
-        html += '<th>Saída Almoço</th>';
-        html += '<th>Retorno Almoço</th>';
-        html += '<th>Saída</th>';
-        html += '<th>Observações</th>';
-        html += '</tr>';
-
-        // Dados
         AppState.dados.registros
             .sort((a, b) => (a.data || '').localeCompare(b.data || ''))
             .forEach(r => {
-                html += '<tr>';
-                html += `<td>${r.data || ''}</td>`;
-                html += `<td>${r.entrada || ''}</td>`;
-                html += `<td>${r.saidaAlmoco || ''}</td>`;
-                html += `<td>${r.retornoAlmoco || ''}</td>`;
-                html += `<td>${r.saida || ''}</td>`;
-                html += `<td>${r.observacoes || ''}</td>`;
-                html += '</tr>';
+                const linha = [
+                    r.data || '',
+                    r.entrada || '',
+                    r.saidaAlmoco || '',
+                    r.retornoAlmoco || '',
+                    r.saida || '',
+                    r.observacoes || ''
+                ].join('\t');
+                conteudo += linha + '\n';
             });
 
-        html += '</table></body></html>';
-
-        const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/tab-separated-values;charset=utf-8' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -1518,109 +1504,60 @@ function importarRegistrosCSV(event) {
                     throw new Error('Arquivo vazio.');
                 }
                 
-                console.log('=== IMPORTAÇÃO INICIADA ===');
-                console.log('Tamanho do arquivo:', text.length);
-                console.log('Primeiros 300 chars:', text.substring(0, 300));
-                console.log('Últimos 100 chars:', text.substring(text.length - 100));
+                console.log('Arquivo lido, tamanho:', text.length);
                 
-                let registros = [];
-                let formatoDetectado = 'desconhecido';
+                // Detectar separador e processar
+                const linhas = text.split(/\r?\n/).filter(l => l.trim());
                 
-                // Método 1: Tentar parse HTML (arquivo .xls exportado)
-                if (text.includes('<table') || text.includes('<tr') || text.includes('<td')) {
-                    formatoDetectado = 'HTML';
-                    console.log('Formato detectado: HTML');
-                    
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(text, 'text/html');
-                    const rows = doc.querySelectorAll('tr');
-                    
-                    console.log('Total de linhas <tr>:', rows.length);
-                    
-                    if (rows.length > 1) {
-                        // Começar do índice 1 para pular cabeçalho
-                        for (let i = 1; i < rows.length; i++) {
-                            const cells = rows[i].querySelectorAll('td, th');
-                            
-                            if (cells.length >= 2) {
-                                let data = cells[0]?.textContent.trim() || '';
-                                const entrada = cells[1]?.textContent.trim() || '';
-                                const saidaAlmoco = cells[2]?.textContent.trim() || '';
-                                const retornoAlmoco = cells[3]?.textContent.trim() || '';
-                                const saida = cells[4]?.textContent.trim() || '';
-                                const observacoes = cells[5]?.textContent.trim() || '';
-                                
-                                console.log(`Linha ${i}: data="${data}", entrada="${entrada}"`);
-                                
-                                // Converter data DD/MM/YYYY → YYYY-MM-DD
-                                if (data && data.includes('/')) {
-                                    const [d, m, y] = data.split('/');
-                                    data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-                                }
-                                
-                                if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                    registros.push({ 
-                                        data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
-                                    });
-                                }
-                            }
-                        }
-                    }
+                if (linhas.length < 2) {
+                    throw new Error('Arquivo com poucos dados.');
                 }
                 
-                // Método 2: Tentar formato texto (TSV/CSV) se não achou registros em HTML
-                if (registros.length === 0) {
-                    console.log('Tentando formato texto...');
-                    const linhas = text.split(/\r?\n/).filter(l => l.trim());
+                // Detectar separador (TAB ou espaços múltiplos)
+                const separador = linhas[0].includes('\t') ? '\t' : /\s{2,}/;
+                const separadorNome = separador === '\t' ? 'TAB' : 'ESPAÇOS';
+                console.log('Separador detectado:', separadorNome);
+                console.log('Cabeçalho:', linhas[0].substring(0, 100));
+                
+                const registros = [];
+                
+                // Processar dados (começar do índice 1 para pular cabeçalho)
+                for (let i = 1; i < linhas.length; i++) {
+                    const cols = linhas[i].split(separador).map(c => c.trim());
                     
-                    if (linhas.length > 1) {
-                        // Detectar separador
-                        let separador = '\t';
-                        if (!linhas[0].includes('\t') && linhas[0].includes(',')) {
-                            separador = ',';
-                        } else if (!linhas[0].includes('\t') && !linhas[0].includes(',')) {
-                            separador = /\s{2,}/; // Múltiplos espaços
+                    if (cols.length < 2 || !cols[0]) continue;
+                    
+                    let data = cols[0];
+                    const entrada = cols[1] || '';
+                    const saidaAlmoco = cols[2] || '';
+                    const retornoAlmoco = cols[3] || '';
+                    const saida = cols[4] || '';
+                    const observacoes = cols[5] || '';
+                    
+                    // Converter data DD/MM/YYYY → YYYY-MM-DD
+                    if (data && data.includes('/')) {
+                        const partes = data.split('/');
+                        if (partes.length === 3) {
+                            const [d, m, y] = partes;
+                            data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
                         }
-                        
-                        formatoDetectado = separador === '\t' ? 'TSV' : (separador === ',' ? 'CSV' : 'TEXTO');
-                        console.log('Formato detectado:', formatoDetectado);
-                        console.log('Linha cabeçalho:', linhas[0]);
-                        
-                        for (let i = 1; i < linhas.length; i++) {
-                            const cols = linhas[i].split(separador).map(c => c.trim().replace(/^"|"$/g, ''));
-                            
-                            console.log(`Linha ${i}: ${cols.length} colunas`, cols);
-                            
-                            if (cols.length >= 2) {
-                                let data = cols[0];
-                                const entrada = cols[1] || '';
-                                const saidaAlmoco = cols[2] || '';
-                                const retornoAlmoco = cols[3] || '';
-                                const saida = cols[4] || '';
-                                const observacoes = cols[5] || '';
-                                
-                                // Converter data DD/MM/YYYY → YYYY-MM-DD
-                                if (data && data.includes('/')) {
-                                    const [d, m, y] = data.split('/');
-                                    data = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-                                }
-                                
-                                if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                                    registros.push({ 
-                                        data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
-                                    });
-                                }
-                            }
-                        }
+                    }
+                    
+                    // Validar data
+                    if (data && data.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        registros.push({ 
+                            data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes 
+                        });
+                        console.log(`✓ Linha ${i}: ${data} ${entrada}`);
+                    } else {
+                        console.log(`✗ Linha ${i} ignorada: data inválida "${data}"`);
                     }
                 }
 
-                console.log('=== RESULTADO ===');
-                console.log('Formato:', formatoDetectado);
-                console.log('Registros válidos:', registros.length);
+                console.log('Total de registros válidos:', registros.length);
 
                 if (registros.length === 0) {
-                    throw new Error(`Nenhum registro válido encontrado.\n\nFormato detectado: ${formatoDetectado}\n\nVerifique no console (F12) os detalhes da importação.`);
+                    throw new Error('Nenhum registro válido encontrado.\n\nVerifique se o arquivo está em formato correto (TSV separado por TAB).');
                 }
 
                 const substituir = confirm(`Importar ${registros.length} registros?\n\nOK = Substituir todos\nCancelar = Mesclar`);
