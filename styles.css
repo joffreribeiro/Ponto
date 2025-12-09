@@ -818,6 +818,10 @@ textarea {
     font-weight: 600;
     text-align: center;
     padding: 0;
+    vertical-align: middle;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
 }
 
 .saldo-vertical-text {
@@ -832,5 +836,6 @@ textarea {
     letter-spacing: 0.05em;
     padding: 1px 2px !important;
     height: auto !important;
+    width: 100%;
 }
 
