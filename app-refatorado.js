@@ -50,6 +50,7 @@ function inicializar() {
         configurarAbas();
         configurarSubAbas();
         configurarModalAcordo();
+        configurarModalEvento();
         atualizarDashboard();
         renderizarTabelaRegistros();
         renderizarEventos();
@@ -136,6 +137,17 @@ function configurarModalAcordo() {
             }
         });
     }
+}
+
+function configurarModalEvento() {
+    const modal = document.getElementById('modalEvento');
+    if (!modal) return;
+
+    const btnClose = modal.querySelector('.modal-close');
+    if (btnClose) btnClose.addEventListener('click', fecharModalEvento);
+
+    const btnCancel = modal.querySelector('.btn-cancelar-evento');
+    if (btnCancel) btnCancel.addEventListener('click', fecharModalEvento);
 }
 
 // ============= DASHBOARD =============
@@ -820,7 +832,9 @@ function salvarEvento() {
 
         AppState.save();
         renderizarEventos();
+        renderizarAcordos();
         limparEvento();
+        fecharModalEvento();
         mostrarAlertaGlobal('Evento salvo com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao salvar evento:', error);
@@ -835,7 +849,13 @@ function limparEvento() {
     document.getElementById('dataFimEvento').value = '';
     document.getElementById('impactoEvento').value = 'folga';
     const acordoSel = document.getElementById('acordoEventoSelect');
-    if (acordoSel) acordoSel.selectedIndex = 0;
+    if (acordoSel) {
+        if (AppState.eventoAcordoPreselected != null) {
+            acordoSel.value = String(AppState.eventoAcordoPreselected);
+        } else {
+            acordoSel.selectedIndex = 0;
+        }
+    }
     AppState.eventoEmEdicao = null;
     AppState.eventoAcordoPreselected = null;
 }
@@ -861,12 +881,22 @@ function abrirEditarEvento(index) {
 
 function abrirModalExcluirEvento(index) {
     AppState.eventoSelecionado = index;
-    document.getElementById('modalConfirmarEvento').classList.add('active');
+    const modal = document.getElementById('modalConfirmarEvento');
+    if (modal) {
+        modal.classList.add('active');
+    } else {
+        if (confirm('Deseja realmente excluir este evento?')) {
+            deletarEventoConfirmado();
+        }
+    }
 }
 
 function fecharModalEvento() {
     AppState.eventoSelecionado = null;
-    document.getElementById('modalConfirmarEvento').classList.remove('active');
+    const modal = document.getElementById('modalConfirmarEvento');
+    if (modal) modal.classList.remove('active');
+    const modalEvento = document.getElementById('modalEvento');
+    if (modalEvento) modalEvento.classList.remove('active');
 }
 
 function deletarEventoConfirmado() {
@@ -901,6 +931,28 @@ function atualizarSelectAcordosEventos() {
         opt.textContent = a.nome || `Acordo ${idx + 1}`;
         select.appendChild(opt);
     });
+}
+
+function abrirModalEventoParaAcordo(acordoIndex) {
+    try {
+        if (acordoIndex == null || !AppState.dados.acordos[acordoIndex]) {
+            throw new Error('Acordo inválido para criar evento');
+        }
+        AppState.eventoAcordoPreselected = acordoIndex;
+        AppState.eventoEmEdicao = null;
+        limparEvento();
+
+        const acordoSel = document.getElementById('acordoEventoSelect');
+        if (acordoSel) {
+            acordoSel.value = String(acordoIndex);
+        }
+
+        const modal = document.getElementById('modalEvento');
+        if (modal) modal.classList.add('active');
+    } catch (error) {
+        console.error('Erro ao abrir modal de evento:', error);
+        mostrarAlertaGlobal(error.message, 'error');
+    }
 }
 
 // ============= ACORDOS =============
@@ -1239,6 +1291,31 @@ function renderizarAcordos() {
             });
             div.appendChild(ul2);
 
+            const subt3 = document.createElement('div');
+            subt3.className = 'acordo-subtitulo';
+            subt3.textContent = 'Eventos e feriados:';
+            div.appendChild(subt3);
+
+            const ul3 = document.createElement('ul');
+            ul3.className = 'acordo-lista';
+            const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
+            if (!eventosAcordo.length) {
+                const li = document.createElement('li');
+                li.className = 'small-text';
+                li.textContent = 'Nenhum evento vinculado';
+                ul3.appendChild(li);
+            } else {
+                eventosAcordo.forEach(ev => {
+                    const li = document.createElement('li');
+                    const fim = ev.dataFimEvento && ev.dataFimEvento !== ev.dataInicioEvento
+                        ? ` a ${ev.dataFimEvento}`
+                        : '';
+                    li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${ev.dataInicioEvento}${fim})`;
+                    ul3.appendChild(li);
+                });
+            }
+            div.appendChild(ul3);
+
             const btnRow = document.createElement('div');
             btnRow.className = 'form-row';
             const btnEditar = document.createElement('button');
@@ -1247,6 +1324,13 @@ function renderizarAcordos() {
             btnEditar.textContent = 'Editar';
             btnEditar.addEventListener('click', () => editarAcordo(idx));
             btnRow.appendChild(btnEditar);
+
+            const btnEventos = document.createElement('button');
+            btnEventos.type = 'button';
+            btnEventos.className = 'btn-secondary';
+            btnEventos.textContent = 'Eventos';
+            btnEventos.addEventListener('click', () => abrirModalEventoParaAcordo(idx));
+            btnRow.appendChild(btnEventos);
 
             div.appendChild(btnRow);
             container.appendChild(div);

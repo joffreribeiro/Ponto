@@ -276,6 +276,58 @@
     </div>
 </div>
 
+    <!-- Modal Evento -->
+    <div id="modalEvento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Evento / Feriado</h2>
+                <button type="button" class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="acordoEventoSelect">Acordo:</label>
+                    <select id="acordoEventoSelect"></select>
+                </div>
+                <div class="form-group">
+                    <label for="tipoEvento">Tipo:</label>
+                    <select id="tipoEvento">
+                        <option value="feriado">Feriado</option>
+                        <option value="ferias">Férias</option>
+                        <option value="afastamento">Afastamento</option>
+                        <option value="viagem">Viagem</option>
+                        <option value="abono_acordo">Abono acordo</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="descricaoEvento">Descrição:</label>
+                    <input type="text" id="descricaoEvento" placeholder="Ex: Feriado estadual" />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dataInicioEvento">Início:</label>
+                        <input type="date" id="dataInicioEvento" />
+                    </div>
+                    <div class="form-group">
+                        <label for="dataFimEvento">Fim:</label>
+                        <input type="date" id="dataFimEvento" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="impactoEvento">Impacto:</label>
+                    <select id="impactoEvento">
+                        <option value="folga">Folga</option>
+                        <option value="trabalho">Trabalho</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary btn-cancelar-evento">Cancelar</button>
+                <button type="button" class="btn-primary" onclick="salvarEvento()">Salvar Evento</button>
+            </div>
+        </div>
+    </div>
+
 <!-- Scripts em ordem: utilitários antes da aplicação -->
 <script src="dateUtils.js"></script>
 <script src="validators.js"></script>
