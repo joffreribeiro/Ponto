@@ -56,14 +56,36 @@
         <!-- PONTO (sub-abas) -->
         <section id="ponto" class="tab-content">
             <div class="subtabs">
-                <button class="subtab-btn active" data-subtab="ponto-registros">Registros</button>
-                <button class="subtab-btn" data-subtab="ponto-eventos">Eventos</button>
-                <button class="subtab-btn" data-subtab="ponto-timesheet">Timesheet</button>
+                <button class="subtab-btn active" data-subtab="ponto-timesheet">Timesheet</button>
+                <button class="subtab-btn" data-subtab="ponto-registros">Registros</button>
                 <button class="subtab-btn" data-subtab="ponto-config">Acordos</button>
+                <button class="subtab-btn" data-subtab="ponto-eventos">Eventos</button>
+            </div>
+
+            <!-- Timesheet -->
+            <div id="ponto-timesheet" class="subtab-content active">
+                <div class="toolbar">
+                    <div>
+                        <label for="acordoTimesheet">Acordo:</label>
+                        <select id="acordoTimesheet"></select>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
+                            Gerar Timesheet
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
+                            Exportar CSV
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
+                            Exportar PDF
+                        </button>
+                    </div>
+                </div>
+                <div id="timesheetContent"></div>
             </div>
 
             <!-- Registros -->
-            <div id="ponto-registros" class="subtab-content active">
+            <div id="ponto-registros" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
                         <button type="button" class="btn-primary" onclick="abrirModalRegistro()">
@@ -94,6 +116,18 @@
                 </div>
             </div>
 
+            <!-- Acordos -->
+            <div id="ponto-config" class="subtab-content">
+                <div class="toolbar">
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-primary" onclick="novoAcordo()">
+                            + Novo Acordo
+                        </button>
+                    </div>
+                </div>
+                <div id="listaAcordos"></div>
+            </div>
+
             <!-- Eventos -->
             <div id="ponto-eventos" class="subtab-content">
                 <div class="toolbar">
@@ -120,40 +154,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-            </div>
-
-            <!-- Timesheet -->
-            <div id="ponto-timesheet" class="subtab-content">
-                <div class="toolbar">
-                    <div>
-                        <label for="acordoTimesheet">Acordo:</label>
-                        <select id="acordoTimesheet"></select>
-                    </div>
-                    <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
-                            Gerar Timesheet
-                        </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
-                            Exportar CSV
-                        </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
-                            Exportar PDF
-                        </button>
-                    </div>
-                </div>
-                <div id="timesheetContent"></div>
-            </div>
-
-            <!-- Acordos -->
-            <div id="ponto-config" class="subtab-content">
-                <div class="toolbar">
-                    <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="novoAcordo()">
-                            + Novo Acordo
-                        </button>
-                    </div>
-                </div>
-                <div id="listaAcordos"></div>
             </div>
         </section>
     </div>

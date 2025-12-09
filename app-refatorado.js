@@ -99,9 +99,12 @@ function configurarSubAbas() {
             const sec = document.getElementById(alvo);
             if (sec) sec.classList.add('active');
 
-            // Re-renderiza listas quando abre a aba de acordos/eventos
+            // Re-renderiza listas quando abre a aba de acordos
             if (alvo === 'ponto-config') {
                 renderizarAcordos();
+            }
+            // Re-renderiza eventos quando abre a aba de eventos
+            if (alvo === 'ponto-eventos') {
                 renderizarEventos();
             }
         });
@@ -1363,9 +1366,6 @@ function renderizarAcordos() {
             div.appendChild(btnRow);
             container.appendChild(div);
         });
-
-        // Garantir que a tabela de eventos vinculados esteja sincronizada
-        renderizarEventos();
     } catch (error) {
         console.error('Erro ao renderizar acordos:', error);
     }
