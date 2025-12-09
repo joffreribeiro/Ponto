@@ -173,6 +173,25 @@ function atualizarDashboard() {
         document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totais.totalSaldo);
         document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
         document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
+        
+        // Debug: log detalhado dos cálculos de novembro
+        console.log('=== CÁLCULO DE HORAS TRABALHADAS ===');
+        console.log('Total de registros:', AppState.dados.registros.length);
+        console.log('Acordos configurados:', AppState.dados.acordos.length);
+        console.log('Eventos:', AppState.dados.eventos.length);
+        console.log('Totais:', totais);
+        
+        // Detalhar novembro
+        const novembroRegs = AppState.dados.registros.filter(r => r.data.startsWith('2024-11'));
+        if (novembroRegs.length > 0) {
+            console.log('\n=== NOVEMBRO 2024 ===');
+            novembroRegs.forEach(r => {
+                const calc = Calculations.calculateDayWithContext(
+                    AppState.dados.registros, AppState.dados.eventos, AppState.dados.acordos, r.data, r
+                );
+                console.log(`${r.data}: ${r.entrada}-${r.saida} | Trabalhou ${DateUtils.minutesToTime(calc.trabalhadas)} | Saldo ${DateUtils.minutesToTime(calc.saldo)} | Regra: ${calc.acordo?.nome || 'PADRÃO'}`, calc.detalhes);
+            });
+        }
 
         // Avisos
         const listaAvisos = document.getElementById('listaAvisos');
