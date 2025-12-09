@@ -1470,13 +1470,13 @@ function exportarRegistrosCSV() {
                 esc(r.observacoes)
             ]);
 
-        const csv = [headers.join(','), ...rows.map(row => row.map(v => `"${v}"`).join(','))].join('\n');
+        const csv = [headers.join('\t'), ...rows.map(row => row.map(v => `${v}`).join('\t'))].join('\n');
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/tab-separated-values;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `registros_${new Date().toISOString().split('T')[0]}.txt`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -1502,32 +1502,13 @@ function importarRegistrosCSV(event) {
                 if (linhas.length < 2) throw new Error('Arquivo vazio ou sem dados.');
 
                 const parseLine = (line) => {
-                    const parts = [];
-                    let current = '';
-                    let inQuotes = false;
-                    for (let i = 0; i < line.length; i++) {
-                        const ch = line[i];
-                        if (ch === '"') {
-                            if (inQuotes && line[i + 1] === '"') {
-                                current += '"';
-                                i++;
-                            } else {
-                                inQuotes = !inQuotes;
-                            }
-                        } else if (ch === ',' && !inQuotes) {
-                            parts.push(current.trim());
-                            current = '';
-                        } else {
-                            current += ch;
-                        }
-                    }
-                    parts.push(current.trim());
-                    return parts;
+                    // Split por tab
+                    return line.split('\t').map(c => c.trim());
                 };
 
                 const registros = [];
                 for (let i = 1; i < linhas.length; i++) {
-                    const cols = parseLine(linhas[i]).map(c => c.replace(/^"|"$/g, ''));
+                    const cols = parseLine(linhas[i]);
                     if (cols.length < 6) continue;
                     const [data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes] = cols;
                     const reg = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes };
