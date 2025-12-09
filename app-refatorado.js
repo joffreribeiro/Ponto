@@ -357,9 +357,371 @@ function atualizarSelectAcordosTimesheet() {
 }
 
 function gerarTimesheetAcordo() {
-    // Esta função mantém a implementação original
-    // por ser muito complexa. Apenas adaptar referências para AppState.dados
-    alert('Timesheet gerado (implementação compatível)');
+    try {
+        const select = document.getElementById('acordoTimesheet');
+        if (!select) {
+            alert('Elemento <select id="acordoTimesheet"> não encontrado.');
+            return;
+        }
+
+        const idx = Number(select.value);
+        if (isNaN(idx) || !AppState.dados.acordos[idx]) {
+            alert('Selecione um acordo válido.');
+            return;
+        }
+
+        const acordo = AppState.dados.acordos[idx];
+        if (!acordo.periodos || !acordo.periodos.length) {
+            alert('Acordo sem períodos de compensação.');
+            return;
+        }
+
+        // Parse period dates robustly (accept ISO 'YYYY-MM-DD' or 'DD/MM/YYYY')
+        function parseDateString(s) {
+            if (!s) return null;
+            // detect dd/mm/yyyy
+            const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (m) {
+                const day = Number(m[1]);
+                const mon = Number(m[2]) - 1;
+                const yr = Number(m[3]);
+                return new Date(yr, mon, day);
+            }
+            // fallback to Date parsing (ISO expected)
+            const d = new Date(s);
+            if (!isNaN(d.getTime())) return d;
+            return null;
+        }
+
+        // Normalize periods with parsed inicio/fim and sort by parsed inicio
+        const ordenados = [...acordo.periodos].map(p => ({
+            ...p,
+            _inicioDate: parseDateString(p.inicio),
+            _fimDate: parseDateString(p.fim)
+        })).sort((a, b) => (a._inicioDate || 0) - (b._inicioDate || 0));
+
+        // Determine fiscal year start (April -> next March) using the most recent period start.
+        let fiscalStartMonth = 3; // April (0-based index)
+        if (acordo && typeof acordo.fiscalStartMonth !== 'undefined' && acordo.fiscalStartMonth !== null) {
+            const raw = Number(acordo.fiscalStartMonth);
+            if (!isNaN(raw)) {
+                let candidate = raw;
+                // allow 1-12 input (convert to 0-based)
+                if (candidate >= 1 && candidate <= 12) candidate = candidate - 1;
+                // accept 0-11 as-is
+                if (candidate >= 0 && candidate <= 11) fiscalStartMonth = candidate;
+            }
+        }
+        
+        let fiscalStartYear;
+        const latest = ordenados.reduce((acc, p) => {
+            if (!p._inicioDate) return acc;
+            return (!acc || p._inicioDate > acc) ? p._inicioDate : acc;
+        }, null);
+        if (latest) {
+            const m = latest.getMonth();
+            const y = latest.getFullYear();
+            fiscalStartYear = (m >= fiscalStartMonth) ? y : (y - 1);
+        } else {
+            // fallback: current year
+            const now = new Date();
+            fiscalStartYear = (now.getMonth() >= fiscalStartMonth) ? now.getFullYear() : (now.getFullYear() - 1);
+        }
+
+        // If the acordo name contains a year range like '2025-2026', prefer that start year
+        if (acordo && acordo.nome) {
+            const m = acordo.nome.match(/(\d{4})\s*[-\/]\s*(\d{4})/);
+            if (m) {
+                const nameStartYear = Number(m[1]);
+                if (!isNaN(nameStartYear)) {
+                    fiscalStartYear = nameStartYear;
+                }
+            }
+        }
+
+        const inicio = new Date(fiscalStartYear, fiscalStartMonth, 1);
+        const fim = new Date(fiscalStartYear + 1, fiscalStartMonth, 0);
+
+        const content = document.getElementById('timesheetContent');
+        content.innerHTML = '';
+
+        const mapaReg = {};
+        AppState.dados.registros.forEach(r => {
+            mapaReg[r.data] = r;
+        });
+
+        const mesNomes = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        const diaSem = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+        let totalExtras = 0;
+        let totalFaltas = 0;
+        let totalFeriados = 0;
+        let saldoAcumuladoGeral = 0;
+
+        const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+
+        while (dataAux <= fim) {
+            const ano = dataAux.getFullYear();
+            const mes = dataAux.getMonth();
+
+            const ultimoDiaMes = new Date(ano, mes + 1, 0);
+            const ultimoDia = ultimoDiaMes.getDate();
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'timesheet-mes';
+
+            const titulo = document.createElement('div');
+            titulo.className = 'timesheet-header';
+            titulo.textContent = `${mesNomes[mes]} de ${ano}`;
+            wrapper.appendChild(titulo);
+
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+
+            const table = document.createElement('table');
+            table.className = 'timesheet-table';
+
+            const thead = document.createElement('thead');
+            const trHead = document.createElement('tr');
+            const thTipo = document.createElement('th');
+            thTipo.textContent = 'TIPO';
+            trHead.appendChild(thTipo);
+
+            const dias = [];
+            for (let dia = 1; dia <= ultimoDia; dia++) {
+                const d = new Date(ano, mes, dia);
+                const dow = d.getDay();
+                const th = document.createElement('th');
+
+                th.innerHTML = `
+                    <div class="th-dia">
+                        <span class="th-dia-semana">${diaSem[dow]}</span>
+                        <span class="th-dia-num">${dia}</span>
+                    </div>
+                `;
+                trHead.appendChild(th);
+
+                const dataStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                const isWeekend = (dow === 0 || dow === 6);
+                dias.push({ data: d, dataStr, isWeekend });
+            }
+
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+
+            const numRows = 8;
+            const labels = [
+                'Entrada',
+                'Saída (Almoço)',
+                'Duração (Almoço)',
+                'Retorno (Almoço)',
+                'Saída',
+                '',
+                'Horas Trabalhadas',
+                'Saldo do Dia'
+            ];
+
+            const eventos = dias.map(d => Calculations.getEventoByData(AppState.dados.eventos, d.dataStr));
+            const eventoSpanCriado = new Array(dias.length).fill(false);
+            const fimSemanaSpanCriado = new Array(dias.length).fill(false);
+
+            function obterCalcDia(dia) {
+                const r = mapaReg[dia.dataStr];
+                return Calculations.calculateDayWithContext(
+                    AppState.dados.registros,
+                    AppState.dados.eventos,
+                    AppState.dados.acordos,
+                    dia.dataStr,
+                    r
+                );
+            }
+
+            let saldoMes = 0;
+            const saldoAnterior = saldoAcumuladoGeral || 0;
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const tr = document.createElement('tr');
+
+                if (rowIndex === 5) tr.classList.add('row-separador-azul');
+                if (rowIndex === 2) tr.classList.add('row-duracao-almoco');
+
+                const tdLabel = document.createElement('td');
+                tdLabel.textContent = labels[rowIndex];
+                tr.appendChild(tdLabel);
+
+                dias.forEach((dia, colIdx) => {
+                    const ev = eventos[colIdx];
+
+                    // Evento
+                    if (ev) {
+                        if (ev.tipoEvento === 'compensar_acordo') {
+                            const td = document.createElement('td');
+                            td.className = 'evento-compensar-acordo';
+                            tr.appendChild(td);
+                            return;
+                        }
+
+                        if (!eventoSpanCriado[colIdx] && rowIndex === 0) {
+                            const td = document.createElement('td');
+                            td.rowSpan = numRows;
+
+                            let classeEvento = 'evento-outro';
+                            switch (ev.tipoEvento) {
+                                case 'feriado':
+                                    classeEvento = 'evento-feriado';
+                                    break;
+                                case 'ferias':
+                                    classeEvento = 'evento-ferias';
+                                    break;
+                                case 'afastamento':
+                                    classeEvento = 'evento-afastamento';
+                                    break;
+                                case 'viagem':
+                                    classeEvento = 'evento-viagem';
+                                    break;
+                                case 'abono_acordo':
+                                    classeEvento = 'evento-abono-acordo';
+                                    break;
+                            }
+
+                            td.className = `${classeEvento} evento-vertical`;
+                            td.textContent = ev.descricaoEvento || ev.tipoEvento;
+
+                            tr.appendChild(td);
+                            eventoSpanCriado[colIdx] = true;
+
+                            if (ev.tipoEvento === 'feriado') {
+                                totalFeriados++;
+                            }
+                        }
+                        return;
+                    }
+
+                    // Fim de semana mesclado
+                    if (dia.isWeekend) {
+                        if (!fimSemanaSpanCriado[colIdx] && rowIndex === 0) {
+                            const td = document.createElement('td');
+                            td.rowSpan = numRows;
+                            td.classList.add('col-fimsemana', 'evento-vertical');
+                            td.textContent = '';
+                            tr.appendChild(td);
+                            fimSemanaSpanCriado[colIdx] = true;
+                        }
+                        return;
+                    }
+
+                    // Dia útil normal
+                    const r = mapaReg[dia.dataStr] || null;
+                    const td = document.createElement('td');
+
+                    if (rowIndex === 0) td.textContent = r && r.entrada || '';
+                    if (rowIndex === 1) td.textContent = r && r.saidaAlmoco || '';
+                    if (rowIndex === 2) {
+                        if (r && r.saidaAlmoco && r.retornoAlmoco) {
+                            const iniAlm = DateUtils.timeToMinutes(r.saidaAlmoco);
+                            const fimAlm = DateUtils.timeToMinutes(r.retornoAlmoco);
+                            if (iniAlm != null && fimAlm != null && fimAlm > iniAlm) {
+                                const dur = fimAlm - iniAlm;
+                                td.textContent = DateUtils.minutesToTime(dur);
+                            }
+                        }
+                    }
+                    if (rowIndex === 3) td.textContent = r && r.retornoAlmoco || '';
+                    if (rowIndex === 4) td.textContent = r && r.saida || '';
+                    if (rowIndex === 5) td.textContent = '';
+
+                    if (rowIndex === 6 || rowIndex === 7) {
+                        const calc = obterCalcDia(dia);
+
+                        if (calc && calc.temRegistro) {
+                            if (rowIndex === 6) {
+                                td.textContent = DateUtils.minutesToTime(calc.trabalhadas);
+                                if (calc.status === 'extra') td.classList.add('saldo-positivo');
+                                if (calc.status === 'falta') td.classList.add('saldo-negativo');
+                            } else if (rowIndex === 7) {
+                                if (calc.saldo !== 0) {
+                                    td.textContent = DateUtils.minutesToTime(calc.saldo);
+
+                                    if (calc.saldo > 0) {
+                                        td.classList.add('saldo-positivo');
+                                        totalExtras++;
+                                    }
+                                    if (calc.saldo < 0) {
+                                        td.classList.add('saldo-negativo');
+                                        totalFaltas++;
+                                    }
+                                } else {
+                                    td.textContent = '';
+                                }
+
+                                saldoMes += calc.saldo || 0;
+                            }
+                        } else {
+                            // dia útil sem registro -> potencial falta
+                            if (!dia.isWeekend && DateUtils.isBusinessDay(dia.data)) {
+                                if (rowIndex === 7) {
+                                    td.textContent = '—';
+                                    td.classList.add('dia-falta');
+                                    totalFaltas++;
+                                }
+                            }
+                        }
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            }
+
+            // Linha saldo mês
+            const trSaldoMes = document.createElement('tr');
+            trSaldoMes.className = 'row-saldo-mes';
+
+            const tdLabelSaldo = document.createElement('td');
+            tdLabelSaldo.textContent = 'SALDO MÊS';
+            trSaldoMes.appendChild(tdLabelSaldo);
+
+            const tdSaldoMes = document.createElement('td');
+            tdSaldoMes.colSpan = dias.length;
+            tdSaldoMes.textContent = DateUtils.minutesToTime(saldoMes);
+            if (saldoMes > 0) tdSaldoMes.classList.add('saldo-positivo');
+            if (saldoMes < 0) tdSaldoMes.classList.add('saldo-negativo');
+            trSaldoMes.appendChild(tdSaldoMes);
+
+            const saldoAcumuladoMes = (saldoAnterior || 0) + (saldoMes || 0);
+            saldoAcumuladoGeral = saldoAcumuladoMes;
+
+            tbody.appendChild(trSaldoMes);
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+            wrapper.appendChild(tableContainer);
+            content.appendChild(wrapper);
+
+            dataAux.setMonth(dataAux.getMonth() + 1);
+        }
+
+        const resumo = document.createElement('div');
+        resumo.className = 'card';
+        resumo.innerHTML = `
+            <h3>Resumo do Acordo</h3>
+            <p class="small-text">
+                Dias com hora extra: <strong>${totalExtras}</strong><br>
+                Dias com falta ou potencial falta: <strong>${totalFaltas}</strong><br>
+                Dias de feriado: <strong>${totalFeriados}</strong>
+            </p>
+        `;
+        content.appendChild(resumo);
+    } catch (error) {
+        console.error('Erro ao gerar timesheet:', error);
+        mostrarAlertaGlobal('Erro ao gerar timesheet: ' + error.message, 'error');
+    }
 }
 
 // ============= EVENTOS =============
