@@ -789,5 +789,26 @@ textarea {
     scroll-behavior: smooth;
 }
 
+/* ================================================
+   Colunas de Saldo (Anterior e Acumulado)
+   ================================================ */
+.th-saldo-anterior,
+.th-saldo-acumulado {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 11px;
+    min-width: 90px;
+}
+
+.col-saldo-anterior,
+.col-saldo-acumulado {
+    background: #f0f7ff;
+    border-left: 2px solid var(--primary);
+    border-right: 2px solid var(--primary);
+    font-weight: 600;
+    text-align: center;
+}
+
 
 

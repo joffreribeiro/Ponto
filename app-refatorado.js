@@ -511,6 +511,12 @@ function gerarTimesheetAcordo() {
             thTipo.textContent = 'TIPO';
             trHead.appendChild(thTipo);
 
+            // Coluna Saldo Anterior
+            const thSaldoAnterior = document.createElement('th');
+            thSaldoAnterior.textContent = 'Saldo Anterior';
+            thSaldoAnterior.className = 'th-saldo-anterior';
+            trHead.appendChild(thSaldoAnterior);
+
             const dias = [];
             for (let dia = 1; dia <= ultimoDia; dia++) {
                 const d = new Date(ano, mes, dia);
@@ -529,6 +535,12 @@ function gerarTimesheetAcordo() {
                 const isWeekend = (dow === 0 || dow === 6);
                 dias.push({ data: d, dataStr, isWeekend });
             }
+
+            // Coluna Saldo Acumulado
+            const thSaldoAcumulado = document.createElement('th');
+            thSaldoAcumulado.textContent = 'Saldo Acumulado';
+            thSaldoAcumulado.className = 'th-saldo-acumulado';
+            trHead.appendChild(thSaldoAcumulado);
 
             thead.appendChild(trHead);
             table.appendChild(thead);
@@ -574,6 +586,17 @@ function gerarTimesheetAcordo() {
                 const tdLabel = document.createElement('td');
                 tdLabel.textContent = labels[rowIndex];
                 tr.appendChild(tdLabel);
+
+                // Coluna Saldo Anterior
+                const tdSaldoAnterior = document.createElement('td');
+                if (rowIndex === 0) {
+                    tdSaldoAnterior.rowSpan = numRows - 1;
+                    tdSaldoAnterior.className = 'col-saldo-anterior';
+                    tdSaldoAnterior.textContent = DateUtils.minutesToTime(saldoAnterior);
+                    if (saldoAnterior > 0) tdSaldoAnterior.classList.add('saldo-positivo');
+                    if (saldoAnterior < 0) tdSaldoAnterior.classList.add('saldo-negativo');
+                }
+                tr.appendChild(tdSaldoAnterior);
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
@@ -697,6 +720,14 @@ function gerarTimesheetAcordo() {
                     tr.appendChild(td);
                 });
 
+                // Coluna Saldo Acumulado
+                const tdSaldoAcumulado = document.createElement('td');
+                if (rowIndex === 0) {
+                    tdSaldoAcumulado.rowSpan = numRows - 1;
+                    tdSaldoAcumulado.className = 'col-saldo-acumulado';
+                }
+                tr.appendChild(tdSaldoAcumulado);
+
                 tbody.appendChild(tr);
             }
 
@@ -708,6 +739,13 @@ function gerarTimesheetAcordo() {
             tdLabelSaldo.textContent = 'SALDO MÊS';
             trSaldoMes.appendChild(tdLabelSaldo);
 
+            const tdSaldoAnteriorMes = document.createElement('td');
+            tdSaldoAnteriorMes.className = 'col-saldo-anterior';
+            tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+            if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
+            if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+            trSaldoMes.appendChild(tdSaldoAnteriorMes);
+
             const tdSaldoMes = document.createElement('td');
             tdSaldoMes.colSpan = dias.length;
             tdSaldoMes.textContent = DateUtils.minutesToTime(saldoMes);
@@ -717,6 +755,13 @@ function gerarTimesheetAcordo() {
 
             const saldoAcumuladoMes = (saldoAnterior || 0) + (saldoMes || 0);
             saldoAcumuladoGeral = saldoAcumuladoMes;
+
+            const tdSaldoAcumuladoMes = document.createElement('td');
+            tdSaldoAcumuladoMes.className = 'col-saldo-acumulado';
+            tdSaldoAcumuladoMes.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
+            if (saldoAcumuladoMes > 0) tdSaldoAcumuladoMes.classList.add('saldo-positivo');
+            if (saldoAcumuladoMes < 0) tdSaldoAcumuladoMes.classList.add('saldo-negativo');
+            trSaldoMes.appendChild(tdSaldoAcumuladoMes);
 
             tbody.appendChild(trSaldoMes);
 
