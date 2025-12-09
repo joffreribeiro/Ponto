@@ -955,6 +955,28 @@ function abrirModalEventoParaAcordo(acordoIndex) {
     }
 }
 
+function abrirModalEvento() {
+    try {
+        if (!AppState.dados.acordos.length) {
+            throw new Error('Cadastre um acordo antes de criar eventos.');
+        }
+        AppState.eventoAcordoPreselected = 0;
+        AppState.eventoEmEdicao = null;
+        limparEvento();
+
+        const acordoSel = document.getElementById('acordoEventoSelect');
+        if (acordoSel) {
+            acordoSel.value = '0';
+        }
+
+        const modal = document.getElementById('modalEvento');
+        if (modal) modal.classList.add('active');
+    } catch (error) {
+        console.error('Erro ao abrir modal de evento:', error);
+        mostrarAlertaGlobal(error.message, 'error');
+    }
+}
+
 // ============= ACORDOS =============
 
 function novoAcordo() {
