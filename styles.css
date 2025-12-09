@@ -808,6 +808,18 @@ textarea {
     border-right: 2px solid var(--primary);
     font-weight: 600;
     text-align: center;
+    padding: 0;
+}
+
+.saldo-vertical-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 6px;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    white-space: nowrap;
 }
 
 

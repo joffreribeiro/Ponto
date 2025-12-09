@@ -574,6 +574,7 @@ function gerarTimesheetAcordo() {
 
             let saldoMes = 0;
             const saldoAnterior = saldoAcumuladoGeral || 0;
+            let saldoAcumuladoAtual = saldoAnterior;
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const tr = document.createElement('tr');
@@ -590,7 +591,12 @@ function gerarTimesheetAcordo() {
                 if (rowIndex === 0) {
                     tdSaldoAnterior.rowSpan = numRows - 1;
                     tdSaldoAnterior.className = 'col-saldo-anterior';
-                    tdSaldoAnterior.textContent = DateUtils.minutesToTime(saldoAnterior);
+                    const saldoDiv = document.createElement('div');
+                    saldoDiv.className = 'saldo-vertical-text';
+                    const valorSpan = document.createElement('span');
+                    valorSpan.textContent = DateUtils.minutesToTime(saldoAnterior);
+                    saldoDiv.appendChild(valorSpan);
+                    tdSaldoAnterior.appendChild(saldoDiv);
                     if (saldoAnterior > 0) tdSaldoAnterior.classList.add('saldo-positivo');
                     if (saldoAnterior < 0) tdSaldoAnterior.classList.add('saldo-negativo');
                 }
@@ -702,6 +708,9 @@ function gerarTimesheetAcordo() {
                                 }
 
                                 saldoMes += calc.saldo || 0;
+                                if (rowIndex === 7) {
+                                    saldoAcumuladoAtual += calc.saldo || 0;
+                                }
                             }
                         } else {
                             // dia útil sem registro -> potencial falta
@@ -723,6 +732,12 @@ function gerarTimesheetAcordo() {
                 if (rowIndex === 0) {
                     tdSaldoAcumulado.rowSpan = numRows - 1;
                     tdSaldoAcumulado.className = 'col-saldo-acumulado';
+                    const saldoDiv = document.createElement('div');
+                    saldoDiv.className = 'saldo-vertical-text';
+                    const valorSpan = document.createElement('span');
+                    valorSpan.textContent = DateUtils.minutesToTime(saldoAcumuladoAtual || 0);
+                    saldoDiv.appendChild(valorSpan);
+                    tdSaldoAcumulado.appendChild(saldoDiv);
                 }
                 tr.appendChild(tdSaldoAcumulado);
 
