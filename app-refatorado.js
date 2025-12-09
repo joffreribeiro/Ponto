@@ -576,7 +576,6 @@ function gerarTimesheetAcordo() {
                 tdLabel.textContent = labels[rowIndex];
                 tr.appendChild(tdLabel);
 
-<<<<<<< HEAD
                 // Coluna Saldo Anterior
                 const tdSaldoAnterior = document.createElement('td');
                 if (rowIndex === 0) {
@@ -591,8 +590,6 @@ function gerarTimesheetAcordo() {
                 }
                 tr.appendChild(tdSaldoAnterior);
 
-=======
->>>>>>> parent of 6797e94 (colunas de saldos)
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
                     const isCompensar = ev && (
@@ -718,7 +715,6 @@ function gerarTimesheetAcordo() {
                     tr.appendChild(td);
                 });
 
-<<<<<<< HEAD
                 // Coluna Saldo Acumulado
                 const tdSaldoAcumulado = document.createElement('td');
                 if (rowIndex === 0) {
@@ -733,8 +729,6 @@ function gerarTimesheetAcordo() {
                 }
                 tr.appendChild(tdSaldoAcumulado);
 
-=======
->>>>>>> parent of 6797e94 (colunas de saldos)
                 tbody.appendChild(tr);
             }
 
