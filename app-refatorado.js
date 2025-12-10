@@ -2248,3 +2248,107 @@ function atualizarSelectTiposEventos() {
         select.value = tipos[0].id;
     }
 }
+
+// ============= ANALYTICS E GRÁFICOS =============
+
+function toggleAnalytics() {
+    const section = document.getElementById('analyticsSection');
+    const toggleText = document.getElementById('analyticsToggleText');
+    
+    if (!section) return;
+    
+    const isVisible = section.style.display !== 'none';
+    
+    if (isVisible) {
+        section.style.display = 'none';
+        toggleText.textContent = 'Mostrar Gráficos';
+        Charts.destroyAll();
+    } else {
+        section.style.display = 'block';
+        toggleText.textContent = 'Ocultar Gráficos';
+        renderAnalytics();
+    }
+}
+
+function renderAnalytics() {
+    try {
+        if (typeof Chart === 'undefined') {
+            Notifications.warning('Chart.js não foi carregado. Recarregue a página.');
+            return;
+        }
+
+        const registros = AppState.dados.registros || [];
+        const eventos = AppState.dados.eventos || [];
+        const acordos = AppState.dados.acordos || [];
+        const tiposEvento = AppState.dados.tiposEvento || [];
+
+        if (registros.length === 0) {
+            Notifications.info('Adicione registros para visualizar gráficos');
+            return;
+        }
+
+        // Usar cache para evitar recalcular
+        Charts.createHoursChart('chartHours', registros);
+        Charts.createBalanceChart('chartBalance', registros, acordos);
+        Charts.createWeeklyHeatmap('chartWeekly', registros);
+        
+        if (eventos.length > 0) {
+            Charts.createEventTypesChart('chartEvents', eventos, tiposEvento);
+        }
+
+        Notifications.success('📊 Gráficos atualizados!');
+    } catch (error) {
+        console.error('Erro ao renderizar analytics:', error);
+        Notifications.error('Erro ao gerar gráficos: ' + error.message);
+    }
+}
+
+// ============= VALIDAÇÃO EM TEMPO REAL =============
+
+function setupRealtimeValidation() {
+    // Validar campos do modal de registro
+    RealtimeValidation.enableForField('dataRegistro', ['required', 'date'], {
+        debounceTime: 300
+    });
+
+    RealtimeValidation.enableForField('entradaRegistro', ['required', 'time'], {
+        debounceTime: 300
+    });
+
+    RealtimeValidation.enableForField('saidaAlmocoRegistro', ['time'], {
+        debounceTime: 300
+    });
+
+    RealtimeValidation.enableForField('retornoAlmocoRegistro', ['time'], {
+        debounceTime: 300
+    });
+
+    RealtimeValidation.enableForField('saidaRegistro', ['required', 'time'], {
+        debounceTime: 300
+    });
+
+    // Validação comparativa: saída > entrada
+    const entradaField = document.getElementById('entradaRegistro');
+    const saidaField = document.getElementById('saidaRegistro');
+    
+    if (entradaField && saidaField) {
+        saidaField.addEventListener('blur', () => {
+            RealtimeValidation.validateComparison(
+                'saidaRegistro',
+                'entradaRegistro',
+                '>',
+                'Saída deve ser posterior à entrada'
+            );
+        });
+    }
+}
+
+// Chamar no init
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (typeof RealtimeValidation !== 'undefined') {
+            setupRealtimeValidation();
+        }
+    }, 500);
+});
+

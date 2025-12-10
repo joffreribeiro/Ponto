@@ -1,0 +1,276 @@
+/**
+ * validation-realtime.js - Validação em tempo real de formulários
+ * Melhora UX com feedback imediato
+ */
+
+const RealtimeValidation = {
+    validators: {},
+    activeFields: new Map(),
+
+    /**
+     * Inicializa validação em tempo real
+     */
+    init() {
+        this.setupDefaultValidators();
+    },
+
+    /**
+     * Configura validadores padrão
+     */
+    setupDefaultValidators() {
+        // Validador de data
+        this.validators.date = {
+            validate: (value) => {
+                if (!value) return { valid: true };
+                const valid = /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value));
+                return {
+                    valid,
+                    message: valid ? '' : 'Data inválida (use formato YYYY-MM-DD)'
+                };
+            },
+            icon: '📅'
+        };
+
+        // Validador de hora
+        this.validators.time = {
+            validate: (value) => {
+                if (!value) return { valid: true };
+                const match = /^(\d{1,2}):(\d{2})$/.test(value);
+                if (!match) return { valid: false, message: 'Hora inválida (use formato HH:MM)' };
+                
+                const [h, m] = value.split(':').map(Number);
+                const valid = h >= 0 && h < 24 && m >= 0 && m < 60;
+                return {
+                    valid,
+                    message: valid ? '' : 'Hora deve estar entre 00:00 e 23:59'
+                };
+            },
+            icon: '⏰'
+        };
+
+        // Validador de required
+        this.validators.required = {
+            validate: (value) => {
+                const valid = value && value.trim().length > 0;
+                return {
+                    valid,
+                    message: valid ? '' : 'Campo obrigatório'
+                };
+            },
+            icon: '⚠️'
+        };
+
+        // Validador de email
+        this.validators.email = {
+            validate: (value) => {
+                if (!value) return { valid: true };
+                const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+                return {
+                    valid,
+                    message: valid ? '' : 'E-mail inválido'
+                };
+            },
+            icon: '📧'
+        };
+
+        // Validador numérico
+        this.validators.number = {
+            validate: (value, min, max) => {
+                if (!value) return { valid: true };
+                const num = Number(value);
+                if (isNaN(num)) return { valid: false, message: 'Deve ser um número' };
+                
+                if (min !== undefined && num < min) {
+                    return { valid: false, message: `Mínimo: ${min}` };
+                }
+                if (max !== undefined && num > max) {
+                    return { valid: false, message: `Máximo: ${max}` };
+                }
+                
+                return { valid: true };
+            },
+            icon: '🔢'
+        };
+    },
+
+    /**
+     * Ativa validação para um campo
+     */
+    enableForField(fieldId, validatorNames, options = {}) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        const config = {
+            validators: Array.isArray(validatorNames) ? validatorNames : [validatorNames],
+            options: options,
+            debounceTime: options.debounceTime || 500
+        };
+
+        this.activeFields.set(fieldId, config);
+
+        // Criar container de feedback
+        let feedback = field.parentElement.querySelector('.validation-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'validation-feedback';
+            field.parentElement.appendChild(feedback);
+        }
+
+        // Event listeners
+        const debouncedValidate = Utils.debounce(() => {
+            this.validateField(fieldId);
+        }, config.debounceTime);
+
+        field.addEventListener('input', debouncedValidate);
+        field.addEventListener('blur', () => this.validateField(fieldId));
+
+        // Validação inicial
+        if (field.value) {
+            this.validateField(fieldId);
+        }
+    },
+
+    /**
+     * Valida um campo específico
+     */
+    validateField(fieldId) {
+        const field = document.getElementById(fieldId);
+        const config = this.activeFields.get(fieldId);
+        if (!field || !config) return true;
+
+        const value = field.value;
+        const feedback = field.parentElement.querySelector('.validation-feedback');
+        
+        let allValid = true;
+        const messages = [];
+
+        // Executar todos os validadores
+        for (const validatorName of config.validators) {
+            const validator = this.validators[validatorName];
+            if (!validator) continue;
+
+            const result = validator.validate(value, config.options.min, config.options.max);
+            if (!result.valid) {
+                allValid = false;
+                messages.push(`${validator.icon} ${result.message}`);
+            }
+        }
+
+        // Atualizar UI
+        field.classList.remove('field-valid', 'field-invalid');
+        
+        if (value) { // Só mostrar validação se houver valor
+            if (allValid) {
+                field.classList.add('field-valid');
+                if (feedback) {
+                    feedback.innerHTML = '<span class="validation-success">✓ Válido</span>';
+                    feedback.className = 'validation-feedback success';
+                }
+            } else {
+                field.classList.add('field-invalid');
+                if (feedback) {
+                    feedback.innerHTML = messages.map(m => 
+                        `<span class="validation-error">${m}</span>`
+                    ).join('');
+                    feedback.className = 'validation-feedback error';
+                }
+            }
+        } else if (feedback) {
+            feedback.innerHTML = '';
+            feedback.className = 'validation-feedback';
+        }
+
+        return allValid;
+    },
+
+    /**
+     * Valida todos os campos ativos
+     */
+    validateAll() {
+        let allValid = true;
+        
+        for (const fieldId of this.activeFields.keys()) {
+            const valid = this.validateField(fieldId);
+            if (!valid) allValid = false;
+        }
+
+        return allValid;
+    },
+
+    /**
+     * Remove validação de um campo
+     */
+    disableForField(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        this.activeFields.delete(fieldId);
+        field.classList.remove('field-valid', 'field-invalid');
+        
+        const feedback = field.parentElement.querySelector('.validation-feedback');
+        if (feedback) {
+            feedback.remove();
+        }
+    },
+
+    /**
+     * Adiciona validador customizado
+     */
+    addValidator(name, validateFn, icon = '⚠️') {
+        this.validators[name] = {
+            validate: validateFn,
+            icon
+        };
+    },
+
+    /**
+     * Validação comparativa (ex: saída > entrada)
+     */
+    validateComparison(field1Id, field2Id, operator, message) {
+        const field1 = document.getElementById(field1Id);
+        const field2 = document.getElementById(field2Id);
+        if (!field1 || !field2) return true;
+
+        const val1 = field1.value;
+        const val2 = field2.value;
+
+        if (!val1 || !val2) return true;
+
+        let valid = false;
+        switch (operator) {
+            case '>':
+                valid = val1 > val2;
+                break;
+            case '<':
+                valid = val1 < val2;
+                break;
+            case '>=':
+                valid = val1 >= val2;
+                break;
+            case '<=':
+                valid = val1 <= val2;
+                break;
+            case '==':
+                valid = val1 == val2;
+                break;
+        }
+
+        if (!valid) {
+            const feedback = field2.parentElement.querySelector('.validation-feedback');
+            if (feedback) {
+                feedback.innerHTML = `<span class="validation-error">⚠️ ${message}</span>`;
+                feedback.className = 'validation-feedback error';
+            }
+            field2.classList.add('field-invalid');
+        }
+
+        return valid;
+    }
+};
+
+// Inicializar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => RealtimeValidation.init());
+} else {
+    RealtimeValidation.init();
+}

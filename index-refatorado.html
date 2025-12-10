@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gestão de jornada, acordos coletivos e timesheet em um só lugar">
+    <meta name="theme-color" content="#0b6ea4">
     <title>Controle de Ponto Avançado - Versão Modularizada</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     <!-- Biblioteca XLSX para importar/exportar arquivos Excel -->
     <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
 </head>
@@ -57,6 +68,45 @@
                 <div class="card">
                     <h2>Avisos</h2>
                     <ul id="listaAvisos" class="lista-avisos"></ul>
+                </div>
+            </div>
+
+            <!-- Analytics e Gráficos -->
+            <div class="card" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 style="margin: 0;">📊 Analytics</h2>
+                    <button type="button" class="btn-secondary" onclick="toggleAnalytics()">
+                        <span id="analyticsToggleText">Mostrar Gráficos</span>
+                    </button>
+                </div>
+                
+                <div id="analyticsSection" style="display: none;">
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <h3>Horas Trabalhadas</h3>
+                            <div class="chart-container">
+                                <canvas id="chartHours"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Saldo Mensal</h3>
+                            <div class="chart-container">
+                                <canvas id="chartBalance"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Distribuição Semanal</h3>
+                            <div class="chart-container">
+                                <canvas id="chartWeekly"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Tipos de Eventos</h3>
+                            <div class="chart-container">
+                                <canvas id="chartEvents"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -476,6 +526,11 @@
 <script src="notifications.js"></script>
 <script src="loading.js"></script>
 <script src="keyboard.js"></script>
+<script src="pagination.js"></script>
+<script src="cache.js"></script>
+<script src="validation-realtime.js"></script>
+<script src="charts.js"></script>
+<script src="pwa.js"></script>
 <script src="dateUtils.js"></script>
 <script src="validators.js"></script>
 <script src="storage.js"></script>
