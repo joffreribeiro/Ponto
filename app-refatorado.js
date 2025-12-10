@@ -513,35 +513,49 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior: deve ser o saldo acumulado no ÚLTIMO DIA DO MÊS ANTERIOR
-        // Se abril é o início, pegar saldo acumulado de 31 de março
+        // Calcular saldo anterior percorrendo cronologicamente todos os dias até o último dia do mês anterior
+        // Isso garante que usamos a mesma lógica de acumulação mostrada no timesheet (ordem de dias importando para o acumulado)
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // Dia 0 = último dia do mês anterior
         const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
-        
+
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
         console.log('Início do acordo:', inicio.toDateString());
         console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
-        
-        // Calcular saldo acumulado até o último dia do mês anterior
-        let saldoAcumuladoGeral = 0;
-        const registrosAteMesAnterior = AppState.dados.registros
-            .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
-            .filter(r => r._d && r._d.getTime() <= ultimoDiaMesAnterior.getTime());
-        
-        console.log('Total de registros até último dia anterior:', registrosAteMesAnterior.length);
-        
-        registrosAteMesAnterior.forEach(r => {
-            const calc = Calculations.calculateDayWithContext(
-                AppState.dados.registros,
-                AppState.dados.eventos,
-                AppState.dados.acordos,
-                DateUtils.normalize(r.data),
-                r
-            );
-            const saldo = calc.saldo || 0;
-            saldoAcumuladoGeral += saldo;
+
+        // Mapa rápido de registros por data (string ISO)
+        const mapaRegistros = {};
+        let dataMin = null;
+        AppState.dados.registros.forEach(r => {
+            const d = DateUtils.parse(r.data);
+            if (!d) return;
+            const iso = DateUtils.normalize(r.data);
+            mapaRegistros[iso] = r; // considera 1 registro por dia
+            if (!dataMin || d < dataMin) dataMin = d;
         });
-        
+
+        if (!dataMin) {
+            console.log('Nenhum registro para calcular saldo anterior');
+        }
+
+        // Percorrer dia a dia até o último dia do mês anterior, acumulando exatamente como no timesheet
+        let saldoAcumuladoGeral = 0;
+        if (dataMin) {
+            let cursor = new Date(dataMin.getFullYear(), dataMin.getMonth(), dataMin.getDate());
+            while (cursor.getTime() <= ultimoDiaMesAnterior.getTime()) {
+                const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+                const reg = mapaRegistros[iso];
+                const calc = Calculations.calculateDayWithContext(
+                    AppState.dados.registros,
+                    AppState.dados.eventos,
+                    AppState.dados.acordos,
+                    iso,
+                    reg
+                );
+                saldoAcumuladoGeral += calc.saldo || 0;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+        }
+
         console.log('Saldo acumulado até', ultimoDiaMesAnteriorStr + ':', saldoAcumuladoGeral);
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
