@@ -1,8 +1,16 @@
-# Gestão de Atividades
+# 🎯 Gestão de Atividades
 
 Sistema completo de gestão de jornada, acordos coletivos e timesheet.
 
-## 🚀 Acesso Rápido
+## 🌐 **Acesse Online**
+
+**🔗 https://joffreribeiro.github.io/Ponto/index-refatorado.html**
+
+📱 **Compartilhe:** Abra [qrcode.html](./qrcode.html) para gerar QR Code
+
+---
+
+## 🚀 Acesso Local
 
 Abra o arquivo `index-refatorado.html` no seu navegador.
 
