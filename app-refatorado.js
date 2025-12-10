@@ -58,6 +58,8 @@ function inicializar() {
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosEventos();
         atualizarSelectTiposEventos();
+        const filtroEventos = document.getElementById('filtroAcordoEventos');
+        if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -859,7 +861,16 @@ function renderizarEventos() {
             (a.dataInicioEvento || '').localeCompare(b.dataInicioEvento || '')
         );
 
-        eventosOrdenados.forEach((e, idx) => {
+        // Filtrar por acordo selecionado (se houver filtro)
+        const filtroEl = document.getElementById('filtroAcordoEventos');
+        const filtroVal = filtroEl ? filtroEl.value : '';
+        const filtroIdx = filtroVal === '' ? null : Number(filtroVal);
+
+        const eventosFiltrados = (filtroIdx === null)
+            ? eventosOrdenados
+            : eventosOrdenados.filter(ev => ev.acordoIndex === filtroIdx);
+
+        eventosFiltrados.forEach((e, idx) => {
             // Encontrar índice original para editar/deletar
             const idxOriginal = AppState.dados.eventos.indexOf(e);
 
@@ -1047,22 +1058,47 @@ function deletarEventoConfirmado() {
 }
 
 function atualizarSelectAcordosEventos() {
-    const select = document.getElementById('acordoEventoSelect');
-    if (!select) return;
-    select.innerHTML = '';
-    const optPlaceholder = document.createElement('option');
-    optPlaceholder.value = '';
-    optPlaceholder.disabled = true;
-    optPlaceholder.selected = true;
-    optPlaceholder.textContent = '(Selecione um acordo)';
-    select.appendChild(optPlaceholder);
+    const selectEvento = document.getElementById('acordoEventoSelect');
+    const selectFiltro = document.getElementById('filtroAcordoEventos');
+
+    if (selectEvento) {
+        selectEvento.innerHTML = '';
+        const optPlaceholder = document.createElement('option');
+        optPlaceholder.value = '';
+        optPlaceholder.disabled = true;
+        optPlaceholder.selected = true;
+        optPlaceholder.textContent = '(Selecione um acordo)';
+        selectEvento.appendChild(optPlaceholder);
+    }
+
+    const filtroValorAtual = selectFiltro ? selectFiltro.value : '';
+    if (selectFiltro) {
+        selectFiltro.innerHTML = '';
+        const optTodos = document.createElement('option');
+        optTodos.value = '';
+        optTodos.textContent = 'Todos os acordos';
+        selectFiltro.appendChild(optTodos);
+    }
 
     AppState.dados.acordos.forEach((a, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = a.nome || `Acordo ${idx + 1}`;
-        select.appendChild(opt);
+        if (selectEvento) {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = a.nome || `Acordo ${idx + 1}`;
+            selectEvento.appendChild(opt);
+        }
+        if (selectFiltro) {
+            const optF = document.createElement('option');
+            optF.value = idx;
+            optF.textContent = a.nome || `Acordo ${idx + 1}`;
+            selectFiltro.appendChild(optF);
+        }
     });
+
+    if (selectFiltro) {
+        const existe = filtroValorAtual === '' || AppState.dados.acordos[filtroValorAtual];
+        selectFiltro.value = existe ? filtroValorAtual : '';
+    }
 }
 
 function abrirModalEventoParaAcordo(acordoIndex) {
@@ -1947,50 +1983,29 @@ function renderizarListaTiposEventos() {
     
     tipos.forEach((tipo, index) => {
         const card = document.createElement('div');
-        card.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            margin-bottom: 6px;
-            background: #f9fafb;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        `;
+        card.className = 'tipo-card';
         
         const colorBox = document.createElement('div');
-        colorBox.style.cssText = `
-            width: 24px;
-            height: 24px;
-            background-color: ${tipo.cor || '#f3f4f6'};
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            flex-shrink: 0;
-        `;
+        colorBox.className = 'tipo-color';
+        colorBox.style.backgroundColor = tipo.cor || '#f3f4f6';
         
         const nameLabel = document.createElement('span');
-        nameLabel.style.cssText = `
-            flex: 1;
-            font-size: 13px;
-            font-weight: 500;
-            color: #1f2933;
-        `;
+        nameLabel.className = 'tipo-name';
         nameLabel.textContent = tipo.nome;
+        
+        const actions = document.createElement('div');
+        actions.className = 'tipo-actions';
         
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.className = 'btn-secondary';
+        editBtn.className = 'btn-secondary btn-sm';
         editBtn.textContent = '✏️ Editar';
-        editBtn.style.fontSize = '11px';
-        editBtn.style.padding = '4px 8px';
         editBtn.onclick = () => abrirEditarTipoEvento(index);
         
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-error';
+        deleteBtn.className = 'btn-error btn-sm';
         deleteBtn.textContent = '🗑️ Deletar';
-        deleteBtn.style.fontSize = '11px';
-        deleteBtn.style.padding = '4px 8px';
         deleteBtn.onclick = () => deletarTipoEvento(index);
         
         // Desabilitar delete se for tipo padrão (primeiros 7)
@@ -2000,10 +2015,12 @@ function renderizarListaTiposEventos() {
             deleteBtn.style.cursor = 'not-allowed';
         }
         
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
         card.appendChild(colorBox);
         card.appendChild(nameLabel);
-        card.appendChild(editBtn);
-        card.appendChild(deleteBtn);
+        card.appendChild(actions);
         container.appendChild(card);
     });
 }
