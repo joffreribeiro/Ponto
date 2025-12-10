@@ -514,13 +514,14 @@ function gerarTimesheetAcordo() {
         let totalFeriados = 0;
 
         // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
-        const inicioDate = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+        // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
+        const inicioMs = inicio.getTime(); // timestamp em ms para comparação precisa
         const registrosMapeados = AppState.dados.registros
             .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
-            .filter(r => r._d && r._d < inicioDate);
+            .filter(r => r._d && r._d.getTime() < inicioMs); // < e não <=
         
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
-        console.log('Início do acordo:', inicioDate);
+        console.log('Início do acordo (ms):', inicioMs);
         console.log('Total de registros:', AppState.dados.registros.length);
         console.log('Registros antes do início:', registrosMapeados.length);
         
