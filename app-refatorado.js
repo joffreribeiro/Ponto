@@ -550,6 +550,19 @@ function gerarTimesheetAcordo() {
                 let saldoMes = 0;
                 for (let dia = 1; dia <= ultimoDia; dia++) {
                     const iso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+                    // Respeitar bloqueio de evento (feriado/abono/etc) como no timesheet
+                    const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
+                    const isCompensar = ev && (
+                        ev.tipoEvento === 'compensar_acordo' ||
+                        ev.tipoEvento === 'compensacao_acordo' ||
+                        ev.tipoEvento === 'compensação_acordo' ||
+                        ev.impactoEvento === 'trabalho'
+                    );
+                    if (ev && !isCompensar) {
+                        continue; // mesma lógica do bloqueio visual: não contabiliza saldo do dia
+                    }
+
                     const reg = mapaRegistros[iso];
                     const calc = Calculations.calculateDayWithContext(
                         AppState.dados.registros,
