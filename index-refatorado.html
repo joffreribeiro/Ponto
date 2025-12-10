@@ -20,10 +20,9 @@
     <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-<header>
-    <h1>Controle de Ponto Avançado</h1>
-    <p class="subtitle">Gestão de jornada, acordos coletivos e timesheet em um só lugar.</p>
-    <p style="font-size: 12px; color: #999;">Versão 2.0 - Modularizada com Validação Robusta</p>
+<header id="mainHeader">
+    <h1>Gestão de Atividades</h1>
+    <p class="subtitle">Joffre Mozart Parada Ribeiro</p>
 </header>
 
 <div class="container">
@@ -42,6 +41,63 @@
     <div class="content">
         <!-- DASHBOARD -->
         <section id="dashboard" class="tab-content active">
+            <!-- Filtros do Dashboard -->
+            <div class="card" style="margin-bottom: 16px;">
+                <div class="dashboard-filters">
+                    <div class="filter-group">
+                        <label for="dashboardFilterAcordo">
+                            <span class="filter-icon">📋</span>
+                            Acordo:
+                        </label>
+                        <select id="dashboardFilterAcordo" onchange="aplicarFiltrosDashboard()">
+                            <option value="">Todos os acordos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="dashboardFilterPeriodo">
+                            <span class="filter-icon">📅</span>
+                            Período:
+                        </label>
+                        <select id="dashboardFilterPeriodo" onchange="aplicarFiltrosDashboard()">
+                            <option value="todos">Todos os registros</option>
+                            <option value="mesAtual" selected>Mês atual</option>
+                            <option value="mesAnterior">Mês anterior</option>
+                            <option value="ultimosTresMeses">Últimos 3 meses</option>
+                            <option value="ultimosSeisMeses">Últimos 6 meses</option>
+                            <option value="anoAtual">Ano atual</option>
+                            <option value="customizado">Período customizado</option>
+                        </select>
+                    </div>
+
+                    <div id="customRangeInputs">
+                        <div class="filter-group">
+                            <label for="dashboardDataInicio">
+                                <span class="filter-icon">📆</span>
+                                De:
+                            </label>
+                            <input type="date" id="dashboardDataInicio" onchange="aplicarFiltrosDashboard()">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="dashboardDataFim">
+                                <span class="filter-icon">📆</span>
+                                Até:
+                            </label>
+                            <input type="date" id="dashboardDataFim" onchange="aplicarFiltrosDashboard()">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="button" class="btn-outline" onclick="limparFiltrosDashboard()" title="Limpar filtros">
+                            🔄 Resetar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="filtroInfo" class="filter-info"></div>
+            </div>
+
             <div class="dashboard-grid">
                 <div class="card">
                     <h2>Resumo da Jornada</h2>
@@ -171,6 +227,13 @@
                             📥 Importar Excel
                         </button>
                         <input id="inputImportRegistros" type="file" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="importarRegistrosCSV(event)">
+                        <button type="button" class="btn-secondary" onclick="salvarBackupLocal()" title="Salvar todos os dados em arquivo">
+                            💾 Backup
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('inputRestaurarBackup').click()" title="Restaurar dados de arquivo">
+                            📂 Restaurar
+                        </button>
+                        <input id="inputRestaurarBackup" type="file" accept=".json" style="display:none" onchange="restaurarBackupLocal(event)">
                     </div>
                     <div class="toolbar-actions">
                         <label for="filtroAcordoRegistros" class="sr-only">Filtro de acordo</label>
@@ -467,11 +530,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="eventoCorFundo">Cor de Fundo:</label>
-                        <input type="color" id="eventoCorFundo" value="#ffe4e6" />
+                        <input type="color" id="eventoCorFundo" value="#2563eb" />
                     </div>
                     <div class="form-group">
                         <label for="eventoCorTexto">Cor do Texto:</label>
-                        <input type="color" id="eventoCorTexto" value="#9f1239" />
+                        <input type="color" id="eventoCorTexto" value="#ffffff" />
                     </div>
                 </div>
                 

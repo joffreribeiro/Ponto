@@ -58,10 +58,16 @@ const Charts = {
                 datasets: [{
                     label: 'Horas Trabalhadas',
                     data: data,
-                    borderColor: '#0b6ea4',
-                    backgroundColor: 'rgba(11, 110, 164, 0.1)',
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
@@ -122,8 +128,10 @@ const Charts = {
                 datasets: [{
                     label: 'Saldo (horas)',
                     data: data,
-                    backgroundColor: data.map(v => v >= 0 ? '#10b981' : '#ef4444'),
-                    borderWidth: 0
+                    backgroundColor: data.map(v => v >= 0 ? '#059669' : '#dc2626'),
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
@@ -166,10 +174,23 @@ const Charts = {
         const labels = Object.keys(counts);
         const data = Object.values(counts);
 
-        // Cores dos tipos
-        const colors = labels.map(tipo => {
+        // Cores dos tipos - paleta profissional com alto contraste
+        const defaultColors = [
+            '#2563eb', // Azul
+            '#7c3aed', // Roxo
+            '#0891b2', // Ciano
+            '#059669', // Verde
+            '#d97706', // Laranja
+            '#dc2626', // Vermelho
+            '#db2777', // Rosa
+            '#6366f1', // Índigo
+            '#0d9488', // Teal
+            '#ea580c'  // Laranja escuro
+        ];
+        
+        const colors = labels.map((tipo, index) => {
             const tipoInfo = tiposEvento.find(t => t.id === tipo);
-            return tipoInfo?.cor || '#f3f4f6';
+            return tipoInfo?.cor || defaultColors[index % defaultColors.length];
         });
 
         return this.createChart(canvasId, {
@@ -182,8 +203,10 @@ const Charts = {
                 datasets: [{
                     data: data,
                     backgroundColor: colors,
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
+                    borderWidth: 4,
+                    borderColor: '#ffffff',
+                    hoverOffset: 8,
+                    hoverBorderWidth: 5
                 }]
             },
             options: {
@@ -192,12 +215,47 @@ const Charts = {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Distribuição de Eventos'
+                        text: 'Distribuição de Eventos',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
                     },
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return ` ${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
+                        }
                     }
-                }
+                },
+                cutout: '65%'
             }
         });
     },
@@ -239,8 +297,18 @@ const Charts = {
                 datasets: [{
                     label: 'Média de Horas',
                     data: data,
-                    backgroundColor: '#0b6ea4',
-                    borderWidth: 0
+                    backgroundColor: [
+                        '#94a3b8',  // Domingo - cinza mais claro
+                        '#2563eb',  // Segunda - azul
+                        '#7c3aed',  // Terça - roxo
+                        '#0891b2',  // Quarta - ciano
+                        '#059669',  // Quinta - verde
+                        '#d97706',  // Sexta - laranja
+                        '#94a3b8'   // Sábado - cinza mais claro
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {

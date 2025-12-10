@@ -25,13 +25,13 @@ const Storage = {
         eventos: [],
         acordos: [],
         tiposEvento: [
-            { id: 'feriado', nome: 'Feriado', cor: '#ffe4e6' },
-            { id: 'ferias', nome: 'Férias', cor: '#fef9c3' },
-            { id: 'afastamento', nome: 'Afastamento', cor: '#e0f2fe' },
-            { id: 'viagem', nome: 'Viagem', cor: '#ede9fe' },
-            { id: 'abono_acordo', nome: 'Abono acordo', cor: '#dcfce7' },
-            { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#fef3c7' },
-            { id: 'outro', nome: 'Outro', cor: '#f3f4f6' }
+            { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
+            { id: 'ferias', nome: 'Férias', cor: '#d97706' },
+            { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
+            { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+            { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+            { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+            { id: 'outro', nome: 'Outro', cor: '#64748b' }
         ]
     },
 
@@ -49,6 +49,37 @@ const Storage = {
             if (!this.isValidDataStructure(parsed)) {
                 console.warn('Estrutura de dados inválida, restaurando padrão');
                 return this.getDefaultData();
+            }
+
+            // Garantir que tiposEvento existe
+            if (!parsed.tiposEvento || !Array.isArray(parsed.tiposEvento)) {
+                console.log('Adicionando tiposEvento aos dados existentes');
+                parsed.tiposEvento = JSON.parse(JSON.stringify(this.DEFAULT_DATA.tiposEvento));
+                this.save(parsed);
+            } else {
+                // Migração: Atualizar cores dos tipos de evento se necessário
+                const defaultTipos = this.DEFAULT_DATA.tiposEvento;
+                parsed.tiposEvento = parsed.tiposEvento.map(tipo => {
+                    const defaultTipo = defaultTipos.find(t => t.id === tipo.id);
+                    // Se a cor for uma cor antiga (pastel), atualiza para a nova
+                    if (defaultTipo && (tipo.cor.startsWith('#ff') || tipo.cor.startsWith('#fe') || tipo.cor.startsWith('#dc') || tipo.cor.startsWith('#e0') || tipo.cor.startsWith('#ed') || tipo.cor.startsWith('#f3'))) {
+                        const isOldColor = tipo.cor.length === 7 && (
+                            tipo.cor === '#ffe4e6' || // feriado antigo
+                            tipo.cor === '#fef9c3' || // ferias antigo
+                            tipo.cor === '#e0f2fe' || // afastamento antigo
+                            tipo.cor === '#ede9fe' || // viagem antigo
+                            tipo.cor === '#dcfce7' || // abono antigo
+                            tipo.cor === '#fef3c7' || // compensar antigo
+                            tipo.cor === '#f3f4f6'    // outro antigo
+                        );
+                        if (isOldColor) {
+                            return { ...tipo, cor: defaultTipo.cor };
+                        }
+                    }
+                    return tipo;
+                });
+                // Salvar migração
+                this.save(parsed);
             }
 
             return parsed;
@@ -109,6 +140,7 @@ const Storage = {
             Array.isArray(dados.eventos) &&
             Array.isArray(dados.acordos)
         );
+        // Nota: tiposEvento é opcional e será adicionado automaticamente se não existir
     },
 
     /**

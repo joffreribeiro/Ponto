@@ -11,6 +11,13 @@ const AppState = {
     eventoAcordoPreselected: null,
     acordoEmEdicao: null,
     acordoEmEdicaoIndex: null,
+    // Filtros do dashboard
+    dashboardFilters: {
+        acordoIndex: null,
+        periodo: 'todos',
+        dataInicio: null,
+        dataFim: null
+    },
 
     /**
      * Inicializa o estado
@@ -51,6 +58,8 @@ function inicializar() {
         configurarSubAbas();
         configurarModalAcordo();
         configurarModalEvento();
+        popularFiltroAcordosDashboard();
+        configurarFiltrosDashboard();
         atualizarDashboard();
         renderizarTabelaRegistros();
         renderizarEventos();
@@ -167,10 +176,244 @@ function configurarModalEvento() {
 
 // ============= DASHBOARD =============
 
+/**
+ * Popula o filtro de acordos do dashboard
+ */
+function popularFiltroAcordosDashboard() {
+    const select = document.getElementById('dashboardFilterAcordo');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">📋 Todos os Acordos</option>';
+    
+    AppState.dados.acordos.forEach((acordo, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = acordo.nome;
+        select.appendChild(option);
+    });
+}
+
+/**
+ * Configura os event listeners dos filtros do dashboard
+ */
+function configurarFiltrosDashboard() {
+    const periodSelect = document.getElementById('dashboardFilterPeriodo');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', function() {
+            const customInputs = document.getElementById('customRangeInputs');
+            if (customInputs) {
+                if (this.value === 'customizado') {
+                    customInputs.classList.add('active');
+                } else {
+                    customInputs.classList.remove('active');
+                }
+            }
+        });
+    }
+}
+
+/**
+ * Calcula o intervalo de datas baseado no período selecionado
+ */
+function calcularIntervaloPeriodo(periodo) {
+    const hoje = new Date();
+    let inicio, fim;
+
+    switch (periodo) {
+        case 'mesAtual':
+            inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+            break;
+        
+        case 'mesAnterior':
+            inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+            fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+            break;
+        
+        case 'ultimosTresMeses':
+            inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
+            fim = hoje;
+            break;
+        
+        case 'ultimosSeisMeses':
+            inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 5, 1);
+            fim = hoje;
+            break;
+        
+        case 'anoAtual':
+            inicio = new Date(hoje.getFullYear(), 0, 1);
+            fim = new Date(hoje.getFullYear(), 11, 31);
+            break;
+        
+        case 'customizado':
+            const dataInicioInput = document.getElementById('dashboardDataInicio');
+            const dataFimInput = document.getElementById('dashboardDataFim');
+            if (dataInicioInput.value && dataFimInput.value) {
+                inicio = DateUtils.parse(dataInicioInput.value);
+                fim = DateUtils.parse(dataFimInput.value);
+            }
+            break;
+        
+        case 'todos':
+        default:
+            return null; // Sem filtro de período
+    }
+
+    return inicio && fim ? { inicio, fim } : null;
+}
+
+/**
+ * Filtra registros baseado nos filtros ativos
+ */
+function filtrarRegistros() {
+    let registrosFiltrados = [...AppState.dados.registros];
+
+    // Filtro por acordo
+    if (AppState.dashboardFilters.acordoIndex !== null) {
+        registrosFiltrados = registrosFiltrados.filter(r => {
+            const calc = Calculations.calculateDayWithContext(
+                AppState.dados.registros,
+                AppState.dados.eventos,
+                AppState.dados.acordos,
+                r.data,
+                r
+            );
+            const acordoAtivo = calc.acordo;
+            const acordoIndex = AppState.dados.acordos.findIndex(a => a === acordoAtivo);
+            return acordoIndex === AppState.dashboardFilters.acordoIndex;
+        });
+    }
+
+    // Filtro por período
+    const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
+    if (intervalo) {
+        registrosFiltrados = registrosFiltrados.filter(r => {
+            const dataReg = DateUtils.parse(r.data);
+            if (!dataReg) return false;
+            return dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
+        });
+    }
+
+    return registrosFiltrados;
+}
+
+/**
+ * Aplica os filtros selecionados no dashboard
+ */
+function aplicarFiltrosDashboard() {
+    const acordoSelect = document.getElementById('dashboardFilterAcordo');
+    const periodoSelect = document.getElementById('dashboardFilterPeriodo');
+
+    // Atualiza o estado dos filtros
+    AppState.dashboardFilters.acordoIndex = acordoSelect.value === '' ? null : parseInt(acordoSelect.value);
+    AppState.dashboardFilters.periodo = periodoSelect.value;
+
+    // Valida datas customizadas
+    if (AppState.dashboardFilters.periodo === 'customizado') {
+        const dataInicioInput = document.getElementById('dashboardDataInicio');
+        const dataFimInput = document.getElementById('dashboardDataFim');
+        
+        if (!dataInicioInput.value || !dataFimInput.value) {
+            Notifications.warning('Por favor, selecione as datas inicial e final');
+            return;
+        }
+
+        const inicio = DateUtils.parse(dataInicioInput.value);
+        const fim = DateUtils.parse(dataFimInput.value);
+
+        if (inicio > fim) {
+            Notifications.warning('A data inicial deve ser anterior à data final');
+            return;
+        }
+    }
+
+    // Recalcula o dashboard com os filtros
+    atualizarDashboard();
+
+    // Mostra informação sobre os filtros ativos
+    mostrarInfoFiltros();
+}
+
+/**
+ * Mostra informação sobre os filtros ativos
+ */
+function mostrarInfoFiltros() {
+    const filterInfo = document.getElementById('filtroInfo');
+    if (!filterInfo) return;
+
+    const acordoSelect = document.getElementById('dashboardFilterAcordo');
+    const periodoSelect = document.getElementById('dashboardFilterPeriodo');
+
+    const temFiltros = AppState.dashboardFilters.acordoIndex !== null || 
+                       AppState.dashboardFilters.periodo !== 'todos';
+
+    if (!temFiltros) {
+        filterInfo.classList.remove('active');
+        return;
+    }
+
+    let texto = '<strong>Filtros ativos:</strong> ';
+    const partes = [];
+
+    if (AppState.dashboardFilters.acordoIndex !== null) {
+        const acordo = AppState.dados.acordos[AppState.dashboardFilters.acordoIndex];
+        partes.push(`Acordo: ${acordo.nome}`);
+    }
+
+    if (AppState.dashboardFilters.periodo !== 'todos') {
+        const periodoTexto = periodoSelect.options[periodoSelect.selectedIndex].text;
+        partes.push(`Período: ${periodoTexto}`);
+    }
+
+    texto += partes.join(' | ');
+    filterInfo.innerHTML = texto;
+    filterInfo.classList.add('active');
+}
+
+/**
+ * Limpa todos os filtros do dashboard
+ */
+function limparFiltrosDashboard() {
+    // Reset dos selects
+    const acordoSelect = document.getElementById('dashboardFilterAcordo');
+    const periodoSelect = document.getElementById('dashboardFilterPeriodo');
+    const customInputs = document.getElementById('customRangeInputs');
+
+    if (acordoSelect) acordoSelect.value = '';
+    if (periodoSelect) periodoSelect.value = 'todos';
+    if (customInputs) customInputs.classList.remove('active');
+
+    // Reset dos inputs de data
+    const dataInicioInput = document.getElementById('dashboardDataInicio');
+    const dataFimInput = document.getElementById('dashboardDataFim');
+    if (dataInicioInput) dataInicioInput.value = '';
+    if (dataFimInput) dataFimInput.value = '';
+
+    // Reset do estado
+    AppState.dashboardFilters = {
+        acordoIndex: null,
+        periodo: 'todos',
+        dataInicio: null,
+        dataFim: null
+    };
+
+    // Recalcula o dashboard sem filtros
+    atualizarDashboard();
+
+    // Esconde a info de filtros
+    const filterInfo = document.getElementById('filtroInfo');
+    if (filterInfo) filterInfo.classList.remove('active');
+
+    Notifications.success('Filtros limpos com sucesso');
+}
+
 function atualizarDashboard() {
     try {
+        // Pega os registros filtrados
+        const registrosFiltrados = filtrarRegistros();
+
         const totais = Calculations.calculatePeriodTotals(
-            AppState.dados.registros,
+            registrosFiltrados,
             AppState.dados.eventos,
             AppState.dados.acordos
         );
@@ -179,6 +422,11 @@ function atualizarDashboard() {
         document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totais.totalSaldo);
         document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
         document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
+        
+        // Atualiza os gráficos com os dados filtrados
+        if (typeof renderAnalytics === 'function') {
+            renderAnalytics();
+        }
         
         // Debug: log detalhado dos cálculos de novembro
         console.log('=== CÁLCULO DE HORAS TRABALHADAS ===');
@@ -964,9 +1212,30 @@ function gerarTimesheetAcordo() {
 function renderizarEventos() {
     try {
         const tbody = document.querySelector('#tabelaEventos tbody');
-        if (!tbody) return;
+        if (!tbody) {
+            console.error('Tabela de eventos não encontrada');
+            return;
+        }
 
         tbody.innerHTML = '';
+
+        console.log('Renderizando eventos:', AppState.dados.eventos.length, 'eventos');
+        console.log('Tipos de evento disponíveis:', AppState.dados.tiposEvento);
+
+        // Garantir que tiposEvento existe
+        if (!AppState.dados.tiposEvento || !Array.isArray(AppState.dados.tiposEvento)) {
+            console.warn('tiposEvento não existe, criando padrão');
+            AppState.dados.tiposEvento = [
+                { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
+                { id: 'ferias', nome: 'Férias', cor: '#d97706' },
+                { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
+                { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+                { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+                { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+                { id: 'outro', nome: 'Outro', cor: '#64748b' }
+            ];
+            AppState.save();
+        }
 
         // Função para converter YYYY-MM-DD para DD/MM/YYYY
         const formatarData = (dataStr) => {
@@ -993,14 +1262,37 @@ function renderizarEventos() {
             ? eventosOrdenados
             : eventosOrdenados.filter(ev => ev.acordoIndex === filtroIdx);
 
+        console.log('Eventos filtrados:', eventosFiltrados.length);
+
+        if (eventosFiltrados.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 7;
+            td.style.textAlign = 'center';
+            td.style.padding = '20px';
+            td.style.color = 'var(--text-muted)';
+            td.textContent = 'Nenhum evento cadastrado';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+
         eventosFiltrados.forEach((e, idx) => {
             // Encontrar índice original para editar/deletar
             const idxOriginal = AppState.dados.eventos.indexOf(e);
 
             const tr = document.createElement('tr');
 
+            // Coluna do tipo de evento com badge colorido
+            const tdTipo = document.createElement('td');
+            const badge = document.createElement('span');
+            badge.className = `evento-badge ${e.tipoEvento}`;
+            const tipoInfo = AppState.dados.tiposEvento.find(t => t.id === e.tipoEvento);
+            badge.textContent = tipoInfo ? tipoInfo.nome : e.tipoEvento;
+            tdTipo.appendChild(badge);
+            tr.appendChild(tdTipo);
+
             const colunas = [
-                { content: e.tipoEvento },
                 { content: e.descricaoEvento },
                 { 
                     content: (e.acordoIndex != null && AppState.dados.acordos[e.acordoIndex]) 
@@ -1900,8 +2192,141 @@ function importarRegistrosCSV(event) {
 function exportarRegistrosPDF() { Notifications.info('📄 Exportação PDF em desenvolvimento'); }
 function exportarTimesheetCSV() { Notifications.info('📊 Exportação de timesheet em desenvolvimento'); }
 function exportarTimesheetPDF() { Notifications.info('📄 PDF timesheet em desenvolvimento'); }
-function exportarDados() { Notifications.info('💾 Backup automático em desenvolvimento'); }
-function importarDados(event) { Notifications.info('📥 Restauração de backup em desenvolvimento'); }
+
+// ============= BACKUP E RESTAURAÇÃO LOCAL =============
+
+/**
+ * Salva todos os dados em um arquivo JSON local
+ */
+function salvarBackupLocal() {
+    try {
+        // Criar objeto com todos os dados
+        const backup = {
+            versao: '2.0',
+            dataBackup: new Date().toISOString(),
+            dados: AppState.dados
+        };
+
+        // Converter para JSON formatado
+        const json = JSON.stringify(backup, null, 2);
+        
+        // Criar blob e download
+        const blob = new Blob([json], { type: 'application/json' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        // Nome do arquivo com data/hora
+        const dataHora = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+        const nomeArquivo = `gestao-atividades-backup-${dataHora}.json`;
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', nomeArquivo);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        Notifications.success(`💾 Backup salvo: ${nomeArquivo}`);
+    } catch (error) {
+        console.error('Erro ao salvar backup:', error);
+        Notifications.error('Erro ao salvar backup: ' + error.message);
+    }
+}
+
+/**
+ * Restaura todos os dados de um arquivo JSON local
+ */
+function restaurarBackupLocal(event) {
+    try {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        // Confirmar antes de restaurar
+        Notifications.confirm(
+            'Restaurar backup irá substituir todos os dados atuais. Deseja continuar?',
+            () => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const backup = JSON.parse(e.target.result);
+                        
+                        // Validar estrutura do backup
+                        if (!backup.dados || !backup.dados.registros || !backup.dados.configuracoes) {
+                            throw new Error('Arquivo de backup inválido');
+                        }
+
+                        // Verificar versão
+                        if (backup.versao) {
+                            console.log('Restaurando backup versão:', backup.versao);
+                        }
+
+                        // Restaurar dados
+                        AppState.dados = backup.dados;
+                        
+                        // Garantir que tiposEvento existe
+                        if (!AppState.dados.tiposEvento || !Array.isArray(AppState.dados.tiposEvento)) {
+                            AppState.dados.tiposEvento = [
+                                { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
+                                { id: 'ferias', nome: 'Férias', cor: '#d97706' },
+                                { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
+                                { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+                                { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+                                { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+                                { id: 'outro', nome: 'Outro', cor: '#64748b' }
+                            ];
+                        }
+
+                        // Salvar no localStorage
+                        AppState.save();
+
+                        // Atualizar interface
+                        atualizarDashboard();
+                        renderizarTabelaRegistros();
+                        renderizarEventos();
+                        renderizarAcordos();
+                        atualizarSelectAcordosTimesheet();
+                        atualizarSelectAcordosRegistros();
+                        atualizarSelectAcordosEventos();
+                        atualizarSelectTiposEventos();
+
+                        const dataBackup = backup.dataBackup ? new Date(backup.dataBackup).toLocaleString('pt-BR') : 'desconhecida';
+                        Notifications.success(`✅ Backup restaurado com sucesso! (Data: ${dataBackup})`);
+                        
+                        console.log('Backup restaurado:', {
+                            registros: AppState.dados.registros.length,
+                            eventos: AppState.dados.eventos.length,
+                            acordos: AppState.dados.acordos.length
+                        });
+                    } catch (error) {
+                        console.error('Erro ao processar backup:', error);
+                        Notifications.error('Erro ao restaurar backup: ' + error.message);
+                    } finally {
+                        event.target.value = '';
+                    }
+                };
+
+                reader.onerror = function() {
+                    Notifications.error('Erro ao ler o arquivo.');
+                    event.target.value = '';
+                };
+
+                reader.readAsText(file, 'utf-8');
+            },
+            () => {
+                event.target.value = '';
+            }
+        );
+    } catch (error) {
+        console.error('Erro ao restaurar backup:', error);
+        Notifications.error('Erro: ' + error.message);
+        event.target.value = '';
+    }
+}
+
+function exportarDados() { Notifications.info('💾 Use o botão "Backup" para salvar os dados'); }
+function importarDados(event) { Notifications.info('📥 Use o botão "Restaurar" para carregar os dados'); }
 function salvarConfiguracoes() { Notifications.info('⚙️ Configurações em desenvolvimento'); }
 function carregarConfiguracoes() { Notifications.info('⚙️ Carregamento de configurações em desenvolvimento'); }
 
@@ -2277,23 +2702,42 @@ function renderAnalytics() {
             return;
         }
 
-        const registros = AppState.dados.registros || [];
+        // Usa os registros filtrados pelo dashboard
+        const registros = filtrarRegistros();
         const eventos = AppState.dados.eventos || [];
         const acordos = AppState.dados.acordos || [];
         const tiposEvento = AppState.dados.tiposEvento || [];
 
         if (registros.length === 0) {
-            Notifications.info('Adicione registros para visualizar gráficos');
+            Notifications.info('Nenhum registro encontrado com os filtros aplicados');
             return;
         }
 
-        // Usar cache para evitar recalcular
+        // Filtra eventos pelo mesmo período dos registros
+        let eventosFiltrados = eventos;
+        const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
+        if (intervalo) {
+            eventosFiltrados = eventos.filter(e => {
+                const dataEvento = DateUtils.parse(e.data);
+                if (!dataEvento) return false;
+                return dataEvento >= intervalo.inicio && dataEvento <= intervalo.fim;
+            });
+        }
+
+        // Criar gráficos com dados filtrados
         Charts.createHoursChart('chartHours', registros);
         Charts.createBalanceChart('chartBalance', registros, acordos);
         Charts.createWeeklyHeatmap('chartWeekly', registros);
         
-        if (eventos.length > 0) {
-            Charts.createEventTypesChart('chartEvents', eventos, tiposEvento);
+        if (eventosFiltrados.length > 0) {
+            Charts.createEventTypesChart('chartEvents', eventosFiltrados, tiposEvento);
+        } else {
+            // Limpa o gráfico de eventos se não houver dados
+            const canvas = document.getElementById('chartEvents');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
         }
 
         Notifications.success('📊 Gráficos atualizados!');
