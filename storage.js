@@ -6,6 +6,8 @@
 const STORAGE_KEY = 'controle_ponto_avancado_v1';
 
 const Storage = {
+    _saveTimer: null,
+
     /**
      * Dados padrão/esquema
      */
@@ -70,6 +72,22 @@ const Storage = {
             console.error('Erro ao salvar dados:', error);
             return false;
         }
+    },
+
+    /**
+     * Salva dados com debounce (otimizado para múltiplas chamadas)
+     * @param {Object} dados - Dados a salvar
+     * @param {number} delay - Delay em ms (padrão 1000ms)
+     */
+    saveDebounced(dados, delay = 1000) {
+        if (this._saveTimer) {
+            clearTimeout(this._saveTimer);
+        }
+
+        this._saveTimer = setTimeout(() => {
+            this.save(dados);
+            this._saveTimer = null;
+        }, delay);
     },
 
     /**

@@ -343,7 +343,7 @@ function salvarRegistro() {
         // Validar
         const erros = Validators.validateRegistro(registro);
         if (erros.length > 0) {
-            mostrarAlert('alertAreaRegistro', erros.join(' | '), 'error');
+            Notifications.error(erros.join(' • '));
             return;
         }
 
@@ -359,10 +359,10 @@ function salvarRegistro() {
         atualizarDashboard();
         renderizarTabelaRegistros();
         fecharModalRegistro();
-        mostrarAlert('alertAreaRegistro', 'Registro salvo com sucesso!', 'success');
+        Notifications.success('✅ Registro salvo com sucesso!');
     } catch (error) {
         console.error('Erro ao salvar registro:', error);
-        mostrarAlert('alertAreaRegistro', 'Erro ao salvar: ' + error.message, 'error');
+        Notifications.error('Erro ao salvar: ' + error.message);
     }
 }
 
@@ -387,16 +387,19 @@ function editarRegistro(index) {
 
 function excluirRegistro(index) {
     try {
-        if (!confirm('Deseja realmente excluir este registro?')) return;
-
-        AppState.dados.registros.splice(index, 1);
-        AppState.save();
-        atualizarDashboard();
-        renderizarTabelaRegistros();
-        mostrarAlert('alertAreaRegistro', 'Registro deletado.', 'success');
+        Notifications.confirm(
+            'Deseja realmente excluir este registro?',
+            () => {
+                AppState.dados.registros.splice(index, 1);
+                Storage.saveDebounced(AppState.dados);
+                atualizarDashboard();
+                renderizarTabelaRegistros();
+                Notifications.success('🗑️ Registro deletado.');
+            }
+        );
     } catch (error) {
         console.error('Erro ao excluir registro:', error);
-        mostrarAlert('alertAreaRegistro', 'Erro ao deletar: ' + error.message, 'error');
+        Notifications.error('Erro ao deletar: ' + error.message);
     }
 }
 
@@ -447,19 +450,19 @@ function gerarTimesheetAcordo() {
     try {
         const select = document.getElementById('acordoTimesheet');
         if (!select) {
-            alert('Elemento <select id="acordoTimesheet"> não encontrado.');
+            Notifications.error('Elemento de seleção de acordo não encontrado.');
             return;
         }
 
         const idx = Number(select.value);
         if (isNaN(idx) || !AppState.dados.acordos[idx]) {
-            alert('Selecione um acordo válido.');
+            Notifications.warning('Selecione um acordo válido.');
             return;
         }
 
         const acordo = AppState.dados.acordos[idx];
         if (!acordo.periodos || !acordo.periodos.length) {
-            alert('Acordo sem períodos de compensação.');
+            Notifications.warning('Acordo sem períodos de compensação.');
             return;
         }
 
@@ -1676,7 +1679,7 @@ function mostrarAlertaGlobal(mensagem, tipo = 'error') {
 function exportarRegistrosCSV() {
     try {
         if (!AppState.dados.registros.length) {
-            alert('Nenhum registro para exportar.');
+            Notifications.warning('Nenhum registro para exportar.');
             return;
         }
 
@@ -1894,13 +1897,13 @@ function importarRegistrosCSV(event) {
 }
 
 // stubs restantes
-function exportarRegistrosPDF() { alert('PDF em desenvolvimento'); }
-function exportarTimesheetCSV() { alert('Exportação timesheet em desenvolvimento'); }
-function exportarTimesheetPDF() { alert('PDF timesheet em desenvolvimento'); }
-function exportarDados() { alert('Backup em desenvolvimento'); }
-function importarDados(event) { alert('Restauração em desenvolvimento'); }
-function salvarConfiguracoes() { alert('Configurações em desenvolvimento'); }
-function carregarConfiguracoes() { alert('Carregamento de configurações em desenvolvimento'); }
+function exportarRegistrosPDF() { Notifications.info('📄 Exportação PDF em desenvolvimento'); }
+function exportarTimesheetCSV() { Notifications.info('📊 Exportação de timesheet em desenvolvimento'); }
+function exportarTimesheetPDF() { Notifications.info('📄 PDF timesheet em desenvolvimento'); }
+function exportarDados() { Notifications.info('💾 Backup automático em desenvolvimento'); }
+function importarDados(event) { Notifications.info('📥 Restauração de backup em desenvolvimento'); }
+function salvarConfiguracoes() { Notifications.info('⚙️ Configurações em desenvolvimento'); }
+function carregarConfiguracoes() { Notifications.info('⚙️ Carregamento de configurações em desenvolvimento'); }
 
 // ============= SCROLL NAVIGATION =============
 function scrollTableLeft(event) {
@@ -1924,7 +1927,7 @@ function scrollTableRight(event) {
 function exportarEventosExcel() {
     try {
         if (!AppState.dados.eventos.length) {
-            alert('Nenhum evento para exportar.');
+            Notifications.warning('Nenhum evento para exportar.');
             return;
         }
 
