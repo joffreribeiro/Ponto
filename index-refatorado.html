@@ -109,13 +109,16 @@
                 <div class="toolbar">
                     <div class="toolbar-actions">
                         <button type="button" class="btn-primary" onclick="abrirModalRegistro()">
-                            + Novo Registro
+                            ➕ Novo Registro
                         </button>
                         <button type="button" class="btn-secondary" onclick="exportarRegistrosCSV()">
-                            Exportar Excel
+                            📊 Exportar Excel
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="exportarRegistrosPDF()">
+                            📄 Exportar PDF
                         </button>
                         <button type="button" class="btn-secondary" onclick="document.getElementById('inputImportRegistros').click()">
-                            Importar Excel
+                            📥 Importar Excel
                         </button>
                         <input id="inputImportRegistros" type="file" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="importarRegistrosCSV(event)">
                     </div>
@@ -247,8 +250,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="fecharModalRegistro()">Cancelar</button>
-            <button type="button" class="btn-primary" onclick="salvarRegistro()">Salvar</button>
+            <button type="button" class="btn-secondary" onclick="fecharModalRegistro()">✖️ Cancelar</button>
+            <button type="button" class="btn-primary" onclick="salvarRegistro()">💾 Salvar</button>
         </div>
     </div>
 </div>
