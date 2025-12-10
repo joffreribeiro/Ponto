@@ -513,90 +513,62 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior: usar o saldo final do acordo anterior (último acordo que termina antes do início atual)
-        const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // Dia 0 = último dia do mês anterior
+        // Calcular saldo anterior repetindo exatamente a lógica de acumulação mensal do timesheet
+        // Estratégia: iterar mês a mês desde o primeiro registro até o mês anterior ao início atual,
+        // acumulando saldoMes e somando ao saldoAcumulado, exatamente como a renderização faz.
+        const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
-
-        // Identificar acordo anterior (maior fim < início atual)
-        let acordoAnterior = null;
-        let fimAcordoAnterior = null;
-        let inicioAcordoAnterior = null;
-        AppState.dados.acordos.forEach(ac => {
-            (ac.periodos || []).forEach(p => {
-                const fim = DateUtils.parse(p.fim);
-                const ini = DateUtils.parse(p.inicio);
-                if (!fim || !ini) return;
-                if (fim.getTime() < inicio.getTime()) {
-                    if (!fimAcordoAnterior || fim > fimAcordoAnterior) {
-                        fimAcordoAnterior = fim;
-                        inicioAcordoAnterior = ini;
-                        acordoAnterior = ac;
-                    }
-                }
-            });
-        });
 
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
         console.log('Início do acordo:', inicio.toDateString());
         console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
-        console.log('Acordo anterior identificado:', acordoAnterior ? acordoAnterior.nome : 'nenhum');
 
-        // Função auxiliar: calcula saldo final de um acordo percorrendo todo o período dele (ou até o último dia antes do novo acordo)
-        function calcularSaldoAcordo(acordoAlvo, limiteMax) {
-            if (!acordoAlvo || !Array.isArray(acordoAlvo.periodos) || !acordoAlvo.periodos.length) return 0;
-
-            let inicioPeriodo = null;
-            let fimPeriodo = null;
-            acordoAlvo.periodos.forEach(p => {
-                const ini = DateUtils.parse(p.inicio);
-                const fim = DateUtils.parse(p.fim);
-                if (!ini || !fim) return;
-                if (!inicioPeriodo || ini < inicioPeriodo) inicioPeriodo = ini;
-                if (!fimPeriodo || fim > fimPeriodo) fimPeriodo = fim;
-            });
-            if (!inicioPeriodo || !fimPeriodo) return 0;
-
-            // Se existir limite (início do novo acordo - 1 dia), não passar dele
-            const fimCalc = limiteMax && limiteMax.getTime() < fimPeriodo.getTime() ? limiteMax : fimPeriodo;
-
-            // Mapa de registros dentro do intervalo
-            const mapaRegistros = {};
-            AppState.dados.registros.forEach(r => {
-                const d = DateUtils.parse(r.data);
-                if (!d) return;
-                if (d.getTime() < inicioPeriodo.getTime() || d.getTime() > fimCalc.getTime()) return;
-                const iso = DateUtils.normalize(r.data);
-                mapaRegistros[iso] = r;
-            });
-
-            let saldo = 0;
-            let cursor = new Date(inicioPeriodo.getFullYear(), inicioPeriodo.getMonth(), inicioPeriodo.getDate());
-            while (cursor.getTime() <= fimCalc.getTime()) {
-                const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
-                const reg = mapaRegistros[iso];
-                const calc = Calculations.calculateDayWithContext(
-                    AppState.dados.registros,
-                    AppState.dados.eventos,
-                    AppState.dados.acordos,
-                    iso,
-                    reg
-                );
-
-                // Só acumula se o acordo retornado for o mesmo acordo alvo
-                if (calc.acordo && calc.acordo.nome === acordoAlvo.nome) {
-                    saldo += calc.saldo || 0;
-                }
-                cursor.setDate(cursor.getDate() + 1);
-            }
-            return saldo;
-        }
+        // Mapa de registros por data
+        const mapaRegistros = {};
+        let dataMin = null;
+        AppState.dados.registros.forEach(r => {
+            const d = DateUtils.parse(r.data);
+            if (!d) return;
+            const iso = DateUtils.normalize(r.data);
+            mapaRegistros[iso] = r;
+            if (!dataMin || d < dataMin) dataMin = d;
+        });
 
         let saldoAcumuladoGeral = 0;
-        if (!acordoAnterior) {
-            saldoAcumuladoGeral = 0;
-            console.log('Não há acordo anterior. Saldo anterior = 0');
+        if (!dataMin) {
+            console.log('Nenhum registro. Saldo anterior = 0');
         } else {
-            saldoAcumuladoGeral = calcularSaldoAcordo(acordoAnterior, ultimoDiaMesAnterior);
+            // iterar meses
+            let cursorMes = new Date(dataMin.getFullYear(), dataMin.getMonth(), 1);
+            const limiteMes = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
+
+            while (cursorMes <= limiteMes) {
+                const ano = cursorMes.getFullYear();
+                const mes = cursorMes.getMonth();
+                const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+
+                let saldoMes = 0;
+                for (let dia = 1; dia <= ultimoDia; dia++) {
+                    const iso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                    const reg = mapaRegistros[iso];
+                    const calc = Calculations.calculateDayWithContext(
+                        AppState.dados.registros,
+                        AppState.dados.eventos,
+                        AppState.dados.acordos,
+                        iso,
+                        reg
+                    );
+                    saldoMes += calc.saldo || 0;
+                }
+
+                const saldoAnteriorMes = saldoAcumuladoGeral;
+                const saldoAcumuladoMes = saldoAnteriorMes + saldoMes;
+                saldoAcumuladoGeral = saldoAcumuladoMes;
+
+                console.log(`[DEBUG MES] ${ano}-${String(mes + 1).padStart(2, '0')} | saldoMes=${saldoMes} | saldoAnterior=${saldoAnteriorMes} | saldoAcumulado=${saldoAcumuladoMes}`);
+
+                cursorMes.setMonth(cursorMes.getMonth() + 1);
+            }
         }
 
         console.log('Saldo acumulado até', ultimoDiaMesAnteriorStr + ':', saldoAcumuladoGeral);
