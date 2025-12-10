@@ -522,10 +522,12 @@ function gerarTimesheetAcordo() {
         
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
         console.log('Início do acordo (ms):', inicioMs);
+        console.log('Início do acordo (Date):', new Date(inicioMs));
         console.log('Total de registros:', AppState.dados.registros.length);
         console.log('Registros antes do início:', registrosMapeados.length);
+        console.log('Acordos disponíveis:', AppState.dados.acordos.length, AppState.dados.acordos.map(a => a.nome));
         
-        let saldoAcumuladoGeral = registrosMapeados.reduce((acc, r) => {
+        let saldoAcumuladoGeral = registrosMapeados.reduce((acc, r, idx) => {
             const calc = Calculations.calculateDayWithContext(
                 AppState.dados.registros,
                 AppState.dados.eventos,
@@ -534,7 +536,10 @@ function gerarTimesheetAcordo() {
                 r
             );
             const saldo = calc.saldo || 0;
-            console.log(`  ${r.data}: saldo = ${saldo}, acumulado = ${acc + saldo}`);
+            const dataNum = r._d?.getTime?.() || 0;
+            const acordoNome = calc.acordo?.nome || 'PADRÃO';
+            const minExtras = calc.regra?.minutosExtras || 0;
+            console.log(`  [${idx}] ${r.data}: saldo = ${saldo}, acumulado = ${acc + saldo} [acordo: ${acordoNome}, regra min extras: ${minExtras}]`);
             return acc + saldo;
         }, 0);
         

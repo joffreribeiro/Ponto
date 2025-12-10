@@ -203,7 +203,8 @@ const Calculations = {
         return {
             ...calc,
             evento,
-            acordo
+            acordo,
+            regra
         };
     },
 
