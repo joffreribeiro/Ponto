@@ -39,11 +39,17 @@ const DateUtils = {
 
     /**
      * Parse data flexível (aceita múltiplos formatos)
+     * Cria data na meia-noite local (não UTC) para comparações consistentes
      */
     parse(str) {
         if (!str) return null;
         const normalized = this.normalize(str);
-        const d = new Date(normalized);
+        const [year, month, day] = normalized.split('-').map(Number);
+        
+        if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+        
+        // Cria data na meia-noite da timezone local
+        const d = new Date(year, month - 1, day, 0, 0, 0, 0);
         return !isNaN(d.getTime()) ? d : null;
     },
 
