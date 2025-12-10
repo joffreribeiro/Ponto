@@ -552,6 +552,9 @@ function gerarTimesheetAcordo() {
                     reg
                 );
                 saldoAcumuladoGeral += calc.saldo || 0;
+                if (iso.startsWith('2025-03-')) {
+                    console.log(`[DEBUG SALDO ANTERIOR] ${iso} | saldo dia=${calc.saldo || 0} | acumulado=${saldoAcumuladoGeral} | evento=${calc.evento?.tipoEvento || '-'} | acordo=${calc.acordo?.nome || '-'} | reg? ${reg ? 'sim' : 'nao'}`);
+                }
                 cursor.setDate(cursor.getDate() + 1);
             }
         }
