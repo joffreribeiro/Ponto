@@ -515,19 +515,32 @@ function gerarTimesheetAcordo() {
 
         // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
         const inicioDate = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
-        let saldoAcumuladoGeral = AppState.dados.registros
+        const registrosMapeados = AppState.dados.registros
             .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
-            .filter(r => r._d && r._d < inicioDate)
-            .reduce((acc, r) => {
-                const calc = Calculations.calculateDayWithContext(
-                    AppState.dados.registros,
-                    AppState.dados.eventos,
-                    AppState.dados.acordos,
-                    DateUtils.normalize(r.data),
-                    r
-                );
-                return acc + (calc.saldo || 0);
-            }, 0);
+            .filter(r => r._d && r._d < inicioDate);
+        
+        console.log('=== CÁLCULO SALDO ANTERIOR ===');
+        console.log('Início do acordo:', inicioDate);
+        console.log('Total de registros:', AppState.dados.registros.length);
+        console.log('Registros antes do início:', registrosMapeados.length);
+        registrosMapeados.forEach(r => {
+            console.log(`  ${r.data} (${r._d})`);
+        });
+        
+        let saldoAcumuladoGeral = registrosMapeados.reduce((acc, r) => {
+            const calc = Calculations.calculateDayWithContext(
+                AppState.dados.registros,
+                AppState.dados.eventos,
+                AppState.dados.acordos,
+                DateUtils.normalize(r.data),
+                r
+            );
+            const saldo = calc.saldo || 0;
+            console.log(`  ${r.data}: saldo = ${saldo}, acumulado = ${acc + saldo}`);
+            return acc + saldo;
+        }, 0);
+        
+        console.log('Saldo acumulado final:', saldoAcumuladoGeral);
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
 
