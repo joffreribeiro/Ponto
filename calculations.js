@@ -124,8 +124,10 @@ const Calculations = {
         // Calcular horas trabalhadas
         const trabalhadas = (saida - entrada) - duracaoAlmoco;
         
-        // Carga esperada = 8h (480 min) + minutos extras do período
-        const carga = 480 + (minutosExtrasPeriodo || 0);
+        // IMPORTANTE: Usar os minutos extras da REGRA DE HORÁRIO, não do período
+        const minutosExtrasRegra = regra.minutosExtras || 0;
+        // Carga esperada = 8h (480 min) + minutos extras da regra
+        const carga = 480 + minutosExtrasRegra;
         let saldo = trabalhadas - carga;
 
         // Aplicar tolerância na saída
@@ -148,7 +150,8 @@ const Calculations = {
                 saida,
                 duracaoAlmoco,
                 carga,
-                minutosExtras: minutosExtrasPeriodo
+                minutosExtrasRegra,
+                minutosExtrasPeriodo
             }
         };
     },

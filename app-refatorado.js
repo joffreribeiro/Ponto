@@ -184,13 +184,23 @@ function atualizarDashboard() {
         // Detalhar novembro
         const novembroRegs = AppState.dados.registros.filter(r => r.data.startsWith('2024-11'));
         if (novembroRegs.length > 0) {
-            console.log('\n=== NOVEMBRO 2024 ===');
-            novembroRegs.forEach(r => {
+            console.log('\n=== NOVEMBRO 2024 - DETALHES DE CÁLCULO ===');
+            novembroRegs.slice(0, 5).forEach(r => {
                 const calc = Calculations.calculateDayWithContext(
                     AppState.dados.registros, AppState.dados.eventos, AppState.dados.acordos, r.data, r
                 );
-                console.log(`${r.data}: ${r.entrada}-${r.saida} | Trabalhou ${DateUtils.minutesToTime(calc.trabalhadas)} | Saldo ${DateUtils.minutesToTime(calc.saldo)} | Regra: ${calc.acordo?.nome || 'PADRÃO'}`, calc.detalhes);
+                const regra = Calculations.getRegraHorarioForDay(calc.acordo, r.data);
+                console.log(`
+${r.data}: ${r.entrada}-${r.saida}
+  ├─ Trabalhou: ${DateUtils.minutesToTime(calc.trabalhadas)}
+  ├─ Carga esperada: ${DateUtils.minutesToTime(480 + (regra.minutosExtras || 0))} (8h + ${regra.minutosExtras || 0}min)
+  ├─ Saldo: ${DateUtils.minutesToTime(calc.saldo)}
+  ├─ Acordo: ${calc.acordo?.nome || 'PADRÃO'}
+  ├─ Regra período: ${regra.inicio} até ${regra.fim}
+  └─ MinutosExtras regra: ${regra.minutosExtras || 0}
+                `);
             });
+            console.log(`Total registros novembro: ${novembroRegs.length}`);
         }
 
         // Avisos
