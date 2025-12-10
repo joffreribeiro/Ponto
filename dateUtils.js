@@ -105,6 +105,19 @@ const DateUtils = {
     },
 
     /**
+     * Formata string de data (qualquer formato aceito por normalize/parse) em DD/MM/YYYY
+     */
+    formatBR(str) {
+        if (!str) return '';
+        const d = this.parse(str);
+        if (!d) return str;
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const ano = d.getFullYear();
+        return `${dia}/${mes}/${ano}`;
+    },
+
+    /**
      * Obtém data atual em formato YYYY-MM-DD
      */
     today() {

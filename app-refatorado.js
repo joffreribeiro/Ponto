@@ -56,10 +56,13 @@ function inicializar() {
         renderizarEventos();
         renderizarAcordos();
         atualizarSelectAcordosTimesheet();
+        atualizarSelectAcordosRegistros();
         atualizarSelectAcordosEventos();
         atualizarSelectTiposEventos();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
         if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
+        const filtroRegistros = document.getElementById('filtroAcordoRegistros');
+        if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -237,10 +240,22 @@ function renderizarTabelaRegistros() {
 
         tbody.innerHTML = '';
 
-        const registrosOrdenados = [...AppState.dados.registros]
-            .sort((a, b) => a.data.localeCompare(b.data));
+        const filtroEl = document.getElementById('filtroAcordoRegistros');
+        const filtroVal = filtroEl ? filtroEl.value : '';
+        const filtroIdx = filtroVal === '' ? null : Number(filtroVal);
 
-        registrosOrdenados.forEach((r, index) => {
+        const registrosOrdenados = AppState.dados.registros
+            .map((r, idx) => ({ ...r, _idx: idx, _d: DateUtils.parse(r.data) }))
+            .filter(r => r._d)
+            .filter(r => {
+                if (filtroIdx === null) return true;
+                const ac = Calculations.getAcordoByData(AppState.dados.acordos, r.data);
+                const acIdx = ac ? AppState.dados.acordos.indexOf(ac) : -1;
+                return acIdx === filtroIdx;
+            })
+            .sort((a, b) => a._d.getTime() - b._d.getTime());
+
+        registrosOrdenados.forEach((r) => {
             const calc = Calculations.calculateDayWithContext(
                 AppState.dados.registros,
                 AppState.dados.eventos,
@@ -256,7 +271,7 @@ function renderizarTabelaRegistros() {
             const tr = document.createElement('tr');
 
             const colunas = [
-                { content: r.data, className: '' },
+                { content: DateUtils.formatBR(r.data), className: '' },
                 { content: r.entrada || '', className: '' },
                 { content: r.saidaAlmoco || '', className: '' },
                 { content: r.retornoAlmoco || '', className: '' },
@@ -281,7 +296,7 @@ function renderizarTabelaRegistros() {
             btnEdit.className = 'btn-secondary';
             btnEdit.setAttribute('title', 'Editar registro');
             btnEdit.innerHTML = '✏️';
-            btnEdit.addEventListener('click', () => editarRegistro(index));
+            btnEdit.addEventListener('click', () => editarRegistro(r._idx));
             tdActions.appendChild(btnEdit);
 
             const btnDel = document.createElement('button');
@@ -289,7 +304,7 @@ function renderizarTabelaRegistros() {
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar registro');
             btnDel.innerHTML = '🗑️';
-            btnDel.addEventListener('click', () => excluirRegistro(index));
+            btnDel.addEventListener('click', () => excluirRegistro(r._idx));
             tdActions.appendChild(btnDel);
 
             tr.appendChild(tdActions);
@@ -400,6 +415,25 @@ function atualizarSelectAcordosTimesheet() {
         select.appendChild(opt);
         return;
     }
+
+    AppState.dados.acordos.forEach((a, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = a.nome || `Acordo ${idx + 1}`;
+        select.appendChild(opt);
+    });
+}
+
+function atualizarSelectAcordosRegistros() {
+    const select = document.getElementById('filtroAcordoRegistros');
+    if (!select) return;
+
+    select.innerHTML = '';
+
+    const optAll = document.createElement('option');
+    optAll.value = '';
+    optAll.textContent = 'Todos os acordos';
+    select.appendChild(optAll);
 
     AppState.dados.acordos.forEach((a, idx) => {
         const opt = document.createElement('option');
