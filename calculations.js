@@ -5,14 +5,38 @@
 
 const Calculations = {
     /**
+     * Normaliza data para formato YYYY-MM-DD para comparação
+     * Aceita DD/MM/YYYY ou YYYY-MM-DD
+     */
+    normalizeDateForComparison(dateStr) {
+        if (!dateStr) return null;
+        
+        // Se já está em YYYY-MM-DD, retorna
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateStr;
+        }
+        
+        // Se está em DD/MM/YYYY, converte
+        const m = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m) {
+            const [, day, month, year] = m;
+            return `${year}-${month}-${day}`;
+        }
+        
+        return null;
+    },
+
+    /**
      * Obtém o evento vigente para uma data específica
      */
     getEventoByData(eventos, dataStr) {
         if (!Array.isArray(eventos) || !dataStr) return null;
         
+        const dataNormalizada = this.normalizeDateForComparison(dataStr);
+        
         return eventos.find(e =>
-            e.dataInicioEvento <= dataStr &&
-            e.dataFimEvento >= dataStr
+            this.normalizeDateForComparison(e.dataInicioEvento) <= dataNormalizada &&
+            this.normalizeDateForComparison(e.dataFimEvento) >= dataNormalizada
         ) || null;
     },
 
@@ -22,11 +46,14 @@ const Calculations = {
     getAcordoByData(acordos, dataStr) {
         if (!Array.isArray(acordos) || !dataStr) return null;
 
+        const dataNormalizada = this.normalizeDateForComparison(dataStr);
+
         for (const acordo of acordos) {
             if (!Array.isArray(acordo.periodos)) continue;
             
             const periodo = acordo.periodos.find(p =>
-                p.inicio <= dataStr && p.fim >= dataStr
+                this.normalizeDateForComparison(p.inicio) <= dataNormalizada && 
+                this.normalizeDateForComparison(p.fim) >= dataNormalizada
             );
             
             if (periodo) return acordo;
@@ -40,8 +67,11 @@ const Calculations = {
     getMinutosExtrasForDay(acordo, dataStr) {
         if (!acordo || !Array.isArray(acordo.periodos) || !dataStr) return 0;
 
+        const dataNormalizada = this.normalizeDateForComparison(dataStr);
+        
         const periodo = acordo.periodos.find(p =>
-            p.inicio <= dataStr && p.fim >= dataStr
+            this.normalizeDateForComparison(p.inicio) <= dataNormalizada && 
+            this.normalizeDateForComparison(p.fim) >= dataNormalizada
         );
 
         return periodo ? Number(periodo.minutosExtras || 0) : 0;
@@ -55,8 +85,11 @@ const Calculations = {
             return this.getDefaultRegra();
         }
 
+        const dataNormalizada = this.normalizeDateForComparison(dataStr);
+
         return acordo.regrasHorario.find(r =>
-            r.inicio <= dataStr && r.fim >= dataStr
+            this.normalizeDateForComparison(r.inicio) <= dataNormalizada && 
+            this.normalizeDateForComparison(r.fim) >= dataNormalizada
         ) || this.getDefaultRegra();
     },
 
