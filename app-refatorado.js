@@ -1536,6 +1536,7 @@ function salvarAcordo() {
         renderizarAcordos();
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosEventos();
+        atualizarSelectAcordosRegistros();
         fecharModalAcordo();
         mostrarAlertaGlobal('Acordo salvo com sucesso!', 'success');
     } catch (error) {
@@ -1646,6 +1647,9 @@ function renderizarAcordos() {
             div.appendChild(btnRow);
             container.appendChild(div);
         });
+
+        // Atualiza selects dependentes (timesheet/eventos já atualizados em salvar, aqui garantimos registros)
+        atualizarSelectAcordosRegistros();
     } catch (error) {
         console.error('Erro ao renderizar acordos:', error);
     }
