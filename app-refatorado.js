@@ -1832,3 +1832,49 @@ function importarEventosExcel(event) {
         mostrarAlertaGlobal('Erro ao importar: ' + error.message, 'error');
     }
 }
+
+// ============= DEBUG E DIAGNÓSTICO =============
+
+// Função para exportar config completa e debug
+function exportarDiagnostico() {
+    const diagnostico = {
+        timestamp: new Date().toISOString(),
+        acordos: AppState.dados.acordos,
+        eventos: AppState.dados.eventos,
+        resumoRegistros: {
+            total: AppState.dados.registros.length,
+            novembro: AppState.dados.registros.filter(r => r.data.startsWith('2024-11')).length,
+            outubro: AppState.dados.registros.filter(r => r.data.startsWith('2024-10')).length
+        },
+        detalhesNovembro: AppState.dados.registros
+            .filter(r => r.data.startsWith('2024-11'))
+            .map(r => {
+                const calc = Calculations.calculateDayWithContext(
+                    AppState.dados.registros, AppState.dados.eventos, AppState.dados.acordos, r.data, r
+                );
+                return {
+                    data: r.data,
+                    entrada: r.entrada,
+                    saida: r.saida,
+                    trabalhadas: DateUtils.minutesToTime(calc.trabalhadas),
+                    saldo: DateUtils.minutesToTime(calc.saldo),
+                    detalhes: calc.detalhes,
+                    acordo: calc.acordo?.nome || 'PADRÃO'
+                };
+            })
+    };
+    
+    const blob = new Blob([JSON.stringify(diagnostico, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `diagnostico_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    console.log('Diagnóstico exportado:', diagnostico);
+}
+
+// Adicionar função ao window para chamar do console
+window.exportarDiagnostico = exportarDiagnostico;
+
