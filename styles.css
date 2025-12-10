@@ -99,6 +99,9 @@ header h1 {
     background: var(--primary-soft);
     color: var(--primary-dark);
     transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .tab-btn:hover {
@@ -191,6 +194,9 @@ header h1 {
     background: #f3f4f6;
     color: var(--text-muted);
     transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .subtab-btn.active {
