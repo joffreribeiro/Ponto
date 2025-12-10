@@ -129,8 +129,9 @@
             <div id="ponto-config" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="novoAcordo()">
-                            + Novo Acordo
+                        <button type="button" class="btn-primary btn-icon" onclick="novoAcordo()">
+                            <span class="icon">🧾</span>
+                            <span>+ Novo Acordo</span>
                         </button>
                     </div>
                 </div>
@@ -145,17 +146,21 @@
                         <select id="filtroAcordoEventos"></select>
                     </div>
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="abrirModalEvento()">
-                            + Novo Evento / Feriado
+                        <button type="button" class="btn-primary btn-icon" onclick="abrirModalEvento()">
+                            <span class="icon">📅</span>
+                            <span>+ Novo Evento / Feriado</span>
                         </button>
-                        <button type="button" class="btn-secondary" onclick="abrirModalNovoTipoEvento()">
-                            ⚙️ Gerenciar Tipos
+                        <button type="button" class="btn-secondary btn-icon" onclick="abrirModalNovoTipoEvento()">
+                            <span class="icon">⚙️</span>
+                            <span>Gerenciar Tipos</span>
                         </button>
-                        <button type="button" class="btn-secondary" onclick="exportarEventosExcel()">
-                            Exportar Excel
+                        <button type="button" class="btn-secondary btn-icon" onclick="exportarEventosExcel()">
+                            <span class="icon">⬇️</span>
+                            <span>Exportar Excel</span>
                         </button>
-                        <label class="file-label btn-secondary">
-                            Importar Excel
+                        <label class="file-label btn-secondary btn-icon">
+                            <span class="icon">⬆️</span>
+                            <span>Importar Excel</span>
                             <input type="file" accept=".xlsx,.xls,.csv" onchange="importarEventosExcel(event)" />
                         </label>
                     </div>
