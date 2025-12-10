@@ -516,16 +516,14 @@ function gerarTimesheetAcordo() {
         // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
         const inicioDate = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
         let saldoAcumuladoGeral = AppState.dados.registros
-            .filter(r => {
-                const d = new Date(r.data);
-                return !isNaN(d) && d < inicioDate;
-            })
+            .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
+            .filter(r => r._d && r._d < inicioDate)
             .reduce((acc, r) => {
                 const calc = Calculations.calculateDayWithContext(
                     AppState.dados.registros,
                     AppState.dados.eventos,
                     AppState.dados.acordos,
-                    r.data,
+                    DateUtils.normalize(r.data),
                     r
                 );
                 return acc + (calc.saldo || 0);
