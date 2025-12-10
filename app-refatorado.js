@@ -514,10 +514,12 @@ function gerarTimesheetAcordo() {
         let totalFeriados = 0;
 
         // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
-        const formatISO = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const inicioStr = formatISO(inicio);
+        const inicioDate = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
         let saldoAcumuladoGeral = AppState.dados.registros
-            .filter(r => r.data < inicioStr)
+            .filter(r => {
+                const d = new Date(r.data);
+                return !isNaN(d) && d < inicioDate;
+            })
             .reduce((acc, r) => {
                 const calc = Calculations.calculateDayWithContext(
                     AppState.dados.registros,
