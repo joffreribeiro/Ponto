@@ -513,12 +513,11 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior usando somente o acordo anterior (último acordo que termina antes do início atual)
-        // Regra: saldoAnterior = saldo acumulado final do acordo anterior (último dia do último período dele)
+        // Calcular saldo anterior: usar o saldo final do acordo anterior (último acordo que termina antes do início atual)
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // Dia 0 = último dia do mês anterior
         const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
 
-        // Identificar acordo anterior (aquele cujo fim é o mais próximo antes do início atual)
+        // Identificar acordo anterior (maior fim < início atual)
         let acordoAnterior = null;
         let fimAcordoAnterior = null;
         let inicioAcordoAnterior = null;
@@ -542,30 +541,36 @@ function gerarTimesheetAcordo() {
         console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
         console.log('Acordo anterior identificado:', acordoAnterior ? acordoAnterior.nome : 'nenhum');
 
-        let saldoAcumuladoGeral = 0;
+        // Função auxiliar: calcula saldo final de um acordo percorrendo todo o período dele (ou até o último dia antes do novo acordo)
+        function calcularSaldoAcordo(acordoAlvo, limiteMax) {
+            if (!acordoAlvo || !Array.isArray(acordoAlvo.periodos) || !acordoAlvo.periodos.length) return 0;
 
-        if (!acordoAnterior) {
-            // Sem acordo anterior: saldo 0
-            saldoAcumuladoGeral = 0;
-            console.log('Não há acordo anterior. Saldo anterior = 0');
-        } else {
-            // Limitar cálculo ao intervalo do acordo anterior (do início ao fim dele, ou até último dia do mês anterior)
-            const inicioCalc = inicioAcordoAnterior;
-            const fimCalc = fimAcordoAnterior < ultimoDiaMesAnterior ? fimAcordoAnterior : ultimoDiaMesAnterior;
+            let inicioPeriodo = null;
+            let fimPeriodo = null;
+            acordoAlvo.periodos.forEach(p => {
+                const ini = DateUtils.parse(p.inicio);
+                const fim = DateUtils.parse(p.fim);
+                if (!ini || !fim) return;
+                if (!inicioPeriodo || ini < inicioPeriodo) inicioPeriodo = ini;
+                if (!fimPeriodo || fim > fimPeriodo) fimPeriodo = fim;
+            });
+            if (!inicioPeriodo || !fimPeriodo) return 0;
 
-            console.log('Calculando saldo do acordo anterior de', inicioCalc.toDateString(), 'até', fimCalc.toDateString());
+            // Se existir limite (início do novo acordo - 1 dia), não passar dele
+            const fimCalc = limiteMax && limiteMax.getTime() < fimPeriodo.getTime() ? limiteMax : fimPeriodo;
 
-            // Mapa de registros do intervalo
+            // Mapa de registros dentro do intervalo
             const mapaRegistros = {};
             AppState.dados.registros.forEach(r => {
                 const d = DateUtils.parse(r.data);
                 if (!d) return;
-                if (d.getTime() < inicioCalc.getTime() || d.getTime() > fimCalc.getTime()) return;
+                if (d.getTime() < inicioPeriodo.getTime() || d.getTime() > fimCalc.getTime()) return;
                 const iso = DateUtils.normalize(r.data);
                 mapaRegistros[iso] = r;
             });
 
-            let cursor = new Date(inicioCalc.getFullYear(), inicioCalc.getMonth(), inicioCalc.getDate());
+            let saldo = 0;
+            let cursor = new Date(inicioPeriodo.getFullYear(), inicioPeriodo.getMonth(), inicioPeriodo.getDate());
             while (cursor.getTime() <= fimCalc.getTime()) {
                 const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
                 const reg = mapaRegistros[iso];
@@ -576,9 +581,22 @@ function gerarTimesheetAcordo() {
                     iso,
                     reg
                 );
-                saldoAcumuladoGeral += calc.saldo || 0;
+
+                // Só acumula se o acordo retornado for o mesmo acordo alvo
+                if (calc.acordo && calc.acordo.nome === acordoAlvo.nome) {
+                    saldo += calc.saldo || 0;
+                }
                 cursor.setDate(cursor.getDate() + 1);
             }
+            return saldo;
+        }
+
+        let saldoAcumuladoGeral = 0;
+        if (!acordoAnterior) {
+            saldoAcumuladoGeral = 0;
+            console.log('Não há acordo anterior. Saldo anterior = 0');
+        } else {
+            saldoAcumuladoGeral = calcularSaldoAcordo(acordoAnterior, ultimoDiaMesAnterior);
         }
 
         console.log('Saldo acumulado até', ultimoDiaMesAnteriorStr + ':', saldoAcumuladoGeral);
