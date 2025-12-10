@@ -449,6 +449,17 @@ td {
     font-weight: 600;
 }
 
+/* Linha entre Saída e Horas Trabalhadas */
+.row-separador-azul {
+    background: #BFBFBF !important;
+}
+
+.row-separador-azul td {
+    background: #BFBFBF !important;
+    border-top: 1px solid #000000 !important;
+    padding: 1px 2px !important;
+}
+
 /* célula de feriado */
 /* Células verticais de eventos no timesheet: apply only to TDs so headers aren't affected */
 td.feriado-cell,
@@ -752,12 +763,6 @@ textarea {
         grid-template-columns: repeat(3, minmax(200px, 1fr));
         gap: 10px 14px;
     }
-}
-
-/* Linha entre Saída e Horas Trabalhadas */
-.row-separador-azul td {
-    background: #BFBFBF !important;  /* azul leve */
-    border-top: 1px solid #000000 !important; /* linha fina preta */
 }
 
 /* ================================================
