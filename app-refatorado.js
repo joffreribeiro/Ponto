@@ -57,6 +57,7 @@ function inicializar() {
         renderizarAcordos();
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosEventos();
+        atualizarSelectTiposEventos();
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -1094,6 +1095,7 @@ function abrirModalEvento() {
         AppState.eventoAcordoPreselected = 0;
         AppState.eventoEmEdicao = null;
         limparEvento();
+        atualizarSelectTiposEventos();
 
         const acordoSel = document.getElementById('acordoEventoSelect');
         if (acordoSel) {
@@ -1922,3 +1924,183 @@ function exportarDiagnostico() {
 // Adicionar função ao window para chamar do console
 window.exportarDiagnostico = exportarDiagnostico;
 
+// ============= GERENCIAMENTO DE TIPOS DE EVENTOS =============
+
+function abrirModalNovoTipoEvento() {
+    renderizarListaTiposEventos();
+    document.getElementById('modalTiposEvento').classList.add('active');
+    document.getElementById('novoTipoNome').value = '';
+    document.getElementById('novoTipoCor').value = '#f3f4f6';
+    document.getElementById('novoTipoNome').focus();
+}
+
+function fecharModalTiposEvento() {
+    document.getElementById('modalTiposEvento').classList.remove('active');
+    atualizarSelectTiposEventos();
+}
+
+function renderizarListaTiposEventos() {
+    const container = document.getElementById('listaTiposEventos');
+    const tipos = AppState.dados.tiposEvento || [];
+    
+    container.innerHTML = '';
+    
+    tipos.forEach((tipo, index) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 6px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        `;
+        
+        const colorBox = document.createElement('div');
+        colorBox.style.cssText = `
+            width: 24px;
+            height: 24px;
+            background-color: ${tipo.cor || '#f3f4f6'};
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+            flex-shrink: 0;
+        `;
+        
+        const nameLabel = document.createElement('span');
+        nameLabel.style.cssText = `
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1f2933;
+        `;
+        nameLabel.textContent = tipo.nome;
+        
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn-secondary';
+        editBtn.textContent = '✏️ Editar';
+        editBtn.style.fontSize = '11px';
+        editBtn.style.padding = '4px 8px';
+        editBtn.onclick = () => abrirEditarTipoEvento(index);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-error';
+        deleteBtn.textContent = '🗑️ Deletar';
+        deleteBtn.style.fontSize = '11px';
+        deleteBtn.style.padding = '4px 8px';
+        deleteBtn.onclick = () => deletarTipoEvento(index);
+        
+        // Desabilitar delete se for tipo padrão (primeiros 7)
+        if (index < 7) {
+            deleteBtn.disabled = true;
+            deleteBtn.style.opacity = '0.5';
+            deleteBtn.style.cursor = 'not-allowed';
+        }
+        
+        card.appendChild(colorBox);
+        card.appendChild(nameLabel);
+        card.appendChild(editBtn);
+        card.appendChild(deleteBtn);
+        container.appendChild(card);
+    });
+}
+
+function adicionarNovoTipoEvento() {
+    const nome = document.getElementById('novoTipoNome').value.trim();
+    const cor = document.getElementById('novoTipoCor').value;
+    
+    if (!nome) {
+        mostrarAlertaGlobal('Digite um nome para o novo tipo', 'error');
+        return;
+    }
+    
+    // Gerar ID baseado no nome (snake_case)
+    const id = nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    
+    // Verificar se já existe
+    if (AppState.dados.tiposEvento.some(t => t.id === id)) {
+        mostrarAlertaGlobal('Este tipo de evento já existe', 'error');
+        return;
+    }
+    
+    const novoTipo = {
+        id: id,
+        nome: nome,
+        cor: cor
+    };
+    
+    AppState.dados.tiposEvento.push(novoTipo);
+    AppState.save();
+    
+    renderizarListaTiposEventos();
+    document.getElementById('novoTipoNome').value = '';
+    document.getElementById('novoTipoCor').value = '#f3f4f6';
+    
+    mostrarAlertaGlobal(`Tipo "${nome}" adicionado com sucesso`, 'success');
+}
+
+function abrirEditarTipoEvento(index) {
+    const tipo = AppState.dados.tiposEvento[index];
+    if (!tipo) return;
+    
+    const novoNome = prompt(`Editar nome do tipo:\n(Atual: "${tipo.nome}")`, tipo.nome);
+    if (novoNome === null) return;
+    
+    if (!novoNome.trim()) {
+        mostrarAlertaGlobal('Nome não pode estar vazio', 'error');
+        return;
+    }
+    
+    AppState.dados.tiposEvento[index].nome = novoNome.trim();
+    AppState.save();
+    
+    renderizarListaTiposEventos();
+    mostrarAlertaGlobal('Tipo atualizado com sucesso', 'success');
+}
+
+function deletarTipoEvento(index) {
+    const tipo = AppState.dados.tiposEvento[index];
+    if (!tipo) return;
+    
+    // Não permite deletar os tipos padrões (primeiros 7)
+    if (index < 7) {
+        mostrarAlertaGlobal('Não é permitido deletar tipos padrão', 'error');
+        return;
+    }
+    
+    if (!confirm(`Tem certeza que deseja deletar "${tipo.nome}"?`)) return;
+    
+    AppState.dados.tiposEvento.splice(index, 1);
+    AppState.save();
+    
+    renderizarListaTiposEventos();
+    mostrarAlertaGlobal('Tipo deletado com sucesso', 'success');
+}
+
+function atualizarSelectTiposEventos() {
+    const select = document.getElementById('tipoEvento');
+    if (!select) return;
+    
+    const tipos = AppState.dados.tiposEvento || [];
+    const valorAtual = select.value;
+    
+    // Guardar valor selecionado se existir
+    select.innerHTML = '';
+    
+    tipos.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = tipo.id;
+        option.textContent = tipo.nome;
+        select.appendChild(option);
+    });
+    
+    // Restaurar valor se ainda existir
+    if (tipos.some(t => t.id === valorAtual)) {
+        select.value = valorAtual;
+    } else if (tipos.length > 0) {
+        select.value = tipos[0].id;
+    }
+}

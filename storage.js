@@ -21,7 +21,16 @@ const Storage = {
             fimPeriodoBanco: ''
         },
         eventos: [],
-        acordos: []
+        acordos: [],
+        tiposEvento: [
+            { id: 'feriado', nome: 'Feriado', cor: '#ffe4e6' },
+            { id: 'ferias', nome: 'Férias', cor: '#fef9c3' },
+            { id: 'afastamento', nome: 'Afastamento', cor: '#e0f2fe' },
+            { id: 'viagem', nome: 'Viagem', cor: '#ede9fe' },
+            { id: 'abono_acordo', nome: 'Abono acordo', cor: '#dcfce7' },
+            { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#fef3c7' },
+            { id: 'outro', nome: 'Outro', cor: '#f3f4f6' }
+        ]
     },
 
     /**
