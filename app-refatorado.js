@@ -513,15 +513,31 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior repetindo exatamente a lógica de acumulação mensal do timesheet
-        // Estratégia: iterar mês a mês desde o primeiro registro até o mês anterior ao início atual,
-        // acumulando saldoMes e somando ao saldoAcumulado, exatamente como a renderização faz.
+        // Calcular saldo anterior repetindo a lógica de acumulação mensal do timesheet,
+        // mas só se houver um acordo anterior. Se este for o primeiro acordo, saldo anterior = 0.
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
+
+        // Detectar acordo anterior (maior fim < início atual)
+        let acordoAnterior = null;
+        let fimAcordoAnterior = null;
+        AppState.dados.acordos.forEach(ac => {
+            (ac.periodos || []).forEach(p => {
+                const fim = DateUtils.parse(p.fim);
+                if (!fim) return;
+                if (fim.getTime() < inicio.getTime()) {
+                    if (!fimAcordoAnterior || fim > fimAcordoAnterior) {
+                        fimAcordoAnterior = fim;
+                        acordoAnterior = ac;
+                    }
+                }
+            });
+        });
 
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
         console.log('Início do acordo:', inicio.toDateString());
         console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
+        console.log('Acordo anterior identificado:', acordoAnterior ? acordoAnterior.nome : 'nenhum');
 
         // Mapa de registros por data
         const mapaRegistros = {};
@@ -535,10 +551,15 @@ function gerarTimesheetAcordo() {
         });
 
         let saldoAcumuladoGeral = 0;
-        if (!dataMin) {
+
+        if (!acordoAnterior) {
+            console.log('Não há acordo anterior. Saldo anterior = 0');
+            saldoAcumuladoGeral = 0;
+        } else if (!dataMin) {
             console.log('Nenhum registro. Saldo anterior = 0');
+            saldoAcumuladoGeral = 0;
         } else {
-            // iterar meses
+            // iterar meses desde o primeiro registro até o mês anterior ao início atual
             let cursorMes = new Date(dataMin.getFullYear(), dataMin.getMonth(), 1);
             const limiteMes = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
 
