@@ -916,6 +916,9 @@ function salvarEvento() {
         const dataInicioEvento = document.getElementById('dataInicioEvento').value;
         const dataFimEvento = document.getElementById('dataFimEvento').value;
         const impactoEvento = document.getElementById('impactoEvento').value;
+        const corFundo = document.getElementById('eventoCorFundo').value;
+        const corTexto = document.getElementById('eventoCorTexto').value;
+        const nomeCSS = document.getElementById('eventoNomeCSS').value;
         const acordoSelEl = document.getElementById('acordoEventoSelect');
         const acordoIdxRaw = acordoSelEl ? acordoSelEl.value : '';
 
@@ -929,7 +932,10 @@ function salvarEvento() {
             dataInicioEvento,
             dataFimEvento: dataFimEvento || dataInicioEvento,
             impactoEvento,
-            acordoIndex: Number(acordoIdxRaw)
+            acordoIndex: Number(acordoIdxRaw),
+            corFundo,
+            corTexto,
+            nomeCSS
         };
 
         // Validar
@@ -964,6 +970,9 @@ function limparEvento() {
     document.getElementById('dataInicioEvento').value = '';
     document.getElementById('dataFimEvento').value = '';
     document.getElementById('impactoEvento').value = 'folga';
+    document.getElementById('eventoCorFundo').value = '#ffe4e6';
+    document.getElementById('eventoCorTexto').value = '#9f1239';
+    document.getElementById('eventoNomeCSS').value = '';
     const acordoSel = document.getElementById('acordoEventoSelect');
     if (acordoSel) {
         if (AppState.eventoAcordoPreselected != null) {
@@ -986,9 +995,15 @@ function abrirEditarEvento(index) {
         document.getElementById('dataInicioEvento').value = e.dataInicioEvento || '';
         document.getElementById('dataFimEvento').value = e.dataFimEvento || '';
         document.getElementById('impactoEvento').value = e.impactoEvento || 'folga';
+        document.getElementById('eventoCorFundo').value = e.corFundo || '#ffe4e6';
+        document.getElementById('eventoCorTexto').value = e.corTexto || '#9f1239';
+        document.getElementById('eventoNomeCSS').value = e.nomeCSS || '';
+        
         const acordoSel = document.getElementById('acordoEventoSelect');
         if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
+        
         AppState.eventoEmEdicao = index;
+        document.getElementById('modalEvento').classList.add('active');
     } catch (error) {
         console.error('Erro ao editar evento:', error);
         mostrarAlertaGlobal(error.message, 'error');

@@ -345,6 +345,7 @@
                         <option value="afastamento">Afastamento</option>
                         <option value="viagem">Viagem</option>
                         <option value="abono_acordo">Abono acordo</option>
+                        <option value="compensar_acordo">Compensar acordo</option>
                         <option value="outro">Outro</option>
                     </select>
                 </div>
@@ -368,6 +369,26 @@
                         <option value="folga">Folga</option>
                         <option value="trabalho">Trabalho</option>
                     </select>
+                </div>
+                
+                <!-- Seção de Cores e Regras -->
+                <hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">
+                <h3 style="font-size: 14px; margin: 8px 0 10px;">Aparência no Timesheet</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventoCorFundo">Cor de Fundo:</label>
+                        <input type="color" id="eventoCorFundo" value="#ffe4e6" />
+                    </div>
+                    <div class="form-group">
+                        <label for="eventoCorTexto">Cor do Texto:</label>
+                        <input type="color" id="eventoCorTexto" value="#9f1239" />
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventoNomeCSS">Nome da Classe CSS (opcional):</label>
+                    <input type="text" id="eventoNomeCSS" placeholder="Ex: evento-customizado" />
                 </div>
             </div>
             <div class="modal-footer">
