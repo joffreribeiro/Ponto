@@ -456,6 +456,7 @@ td {
 
 .row-separador-azul td {
     background: #BFBFBF !important;
+    border: none !important;
     border-top: 1px solid #000000 !important;
     padding: 1px 2px !important;
 }
