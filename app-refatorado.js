@@ -513,21 +513,24 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
-        // Saldo anterior trazido de meses antes do período do acordo (inclui acordo anterior)
-        const inicioMs = inicio.getTime(); // timestamp em ms para comparação precisa
-        const registrosMapeados = AppState.dados.registros
-            .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
-            .filter(r => r._d && r._d.getTime() < inicioMs); // < e não <=
+        // Calcular saldo anterior: deve ser o saldo acumulado no ÚLTIMO DIA DO MÊS ANTERIOR
+        // Se abril é o início, pegar saldo acumulado de 31 de março
+        const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // Dia 0 = último dia do mês anterior
+        const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
         
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
-        console.log('Início do acordo (ms):', inicioMs);
-        console.log('Início do acordo (Date):', new Date(inicioMs));
-        console.log('Total de registros:', AppState.dados.registros.length);
-        console.log('Registros antes do início:', registrosMapeados.length);
-        console.log('Acordos disponíveis:', AppState.dados.acordos.length, AppState.dados.acordos.map(a => a.nome));
+        console.log('Início do acordo:', inicio.toDateString());
+        console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
         
-        let saldoAcumuladoGeral = registrosMapeados.reduce((acc, r, idx) => {
+        // Calcular saldo acumulado até o último dia do mês anterior
+        let saldoAcumuladoGeral = 0;
+        const registrosAteMesAnterior = AppState.dados.registros
+            .map(r => ({ ...r, _d: DateUtils.parse(r.data) }))
+            .filter(r => r._d && r._d.getTime() <= ultimoDiaMesAnterior.getTime());
+        
+        console.log('Total de registros até último dia anterior:', registrosAteMesAnterior.length);
+        
+        registrosAteMesAnterior.forEach(r => {
             const calc = Calculations.calculateDayWithContext(
                 AppState.dados.registros,
                 AppState.dados.eventos,
@@ -536,15 +539,10 @@ function gerarTimesheetAcordo() {
                 r
             );
             const saldo = calc.saldo || 0;
-            const dataNum = r._d?.getTime?.() || 0;
-            const acordoNome = calc.acordo?.nome || 'PADRÃO';
-            const minExtras = calc.regra?.minutosExtras || 0;
-            console.log(`  [${idx}] ${r.data}: saldo = ${saldo}, acumulado = ${acc + saldo} [acordo: ${acordoNome}, regra min extras: ${minExtras}]`);
-            return acc + saldo;
-        }, 0);
+            saldoAcumuladoGeral += saldo;
+        });
         
-        console.log('Último registro incluído:', registrosMapeados[registrosMapeados.length - 1]?.data);
-        console.log('Saldo acumulado final:', saldoAcumuladoGeral);
+        console.log('Saldo acumulado até', ultimoDiaMesAnteriorStr + ':', saldoAcumuladoGeral);
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
 
