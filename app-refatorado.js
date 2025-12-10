@@ -523,9 +523,6 @@ function gerarTimesheetAcordo() {
         console.log('Início do acordo:', inicioDate);
         console.log('Total de registros:', AppState.dados.registros.length);
         console.log('Registros antes do início:', registrosMapeados.length);
-        registrosMapeados.forEach(r => {
-            console.log(`  ${r.data} (${r._d})`);
-        });
         
         let saldoAcumuladoGeral = registrosMapeados.reduce((acc, r) => {
             const calc = Calculations.calculateDayWithContext(
@@ -540,6 +537,7 @@ function gerarTimesheetAcordo() {
             return acc + saldo;
         }, 0);
         
+        console.log('Último registro incluído:', registrosMapeados[registrosMapeados.length - 1]?.data);
         console.log('Saldo acumulado final:', saldoAcumuladoGeral);
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
