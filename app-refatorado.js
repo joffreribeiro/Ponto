@@ -842,7 +842,26 @@ function renderizarEventos() {
 
         tbody.innerHTML = '';
 
-        AppState.dados.eventos.forEach((e, idx) => {
+        // Função para converter YYYY-MM-DD para DD/MM/YYYY
+        const formatarData = (dataStr) => {
+            if (!dataStr) return '';
+            const m = dataStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (m) {
+                const [, year, month, day] = m;
+                return `${day}/${month}/${year}`;
+            }
+            return dataStr;
+        };
+
+        // Ordenar eventos por data inicial (crescente)
+        const eventosOrdenados = [...AppState.dados.eventos].sort((a, b) => 
+            (a.dataInicioEvento || '').localeCompare(b.dataInicioEvento || '')
+        );
+
+        eventosOrdenados.forEach((e, idx) => {
+            // Encontrar índice original para editar/deletar
+            const idxOriginal = AppState.dados.eventos.indexOf(e);
+
             const tr = document.createElement('tr');
 
             const colunas = [
@@ -853,8 +872,8 @@ function renderizarEventos() {
                         ? (AppState.dados.acordos[e.acordoIndex].nome || `Acordo ${e.acordoIndex + 1}`)
                         : ''
                 },
-                { content: e.dataInicioEvento },
-                { content: e.dataFimEvento },
+                { content: formatarData(e.dataInicioEvento) },
+                { content: formatarData(e.dataFimEvento) },
                 { content: e.impactoEvento }
             ];
 
@@ -871,7 +890,7 @@ function renderizarEventos() {
             btnEdit.className = 'btn-secondary';
             btnEdit.setAttribute('title', 'Editar evento');
             btnEdit.innerHTML = '✏️';
-            btnEdit.addEventListener('click', () => abrirEditarEvento(idx));
+            btnEdit.addEventListener('click', () => abrirEditarEvento(idxOriginal));
             tdActions.appendChild(btnEdit);
 
             const btnDel = document.createElement('button');
@@ -879,7 +898,7 @@ function renderizarEventos() {
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar evento');
             btnDel.innerHTML = '🗑️';
-            btnDel.addEventListener('click', () => abrirModalExcluirEvento(idx));
+            btnDel.addEventListener('click', () => abrirModalExcluirEvento(idxOriginal));
             tdActions.appendChild(btnDel);
 
             tr.appendChild(tdActions);
