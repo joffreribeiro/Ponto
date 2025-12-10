@@ -757,7 +757,7 @@ textarea {
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul td {
     background: #BFBFBF !important;  /* azul leve */
-    border-top: 2px solid #BFBFBF !important; /* azul mais forte */
+    border-top: 1px solid #000000 !important; /* linha fina preta */
 }
 
 /* ================================================
