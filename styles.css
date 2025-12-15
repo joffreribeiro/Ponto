@@ -354,12 +354,6 @@ header h1 {
     display: flex;
     gap: 10px;
     margin: -4px 0 16px;
-    position: sticky;
-    top: 72px; /* abaixo do header sticky */
-    z-index: 999;
-    background: #ffffff;
-    padding: 6px 8px;
-    box-shadow: var(--shadow-soft);
 }
 
 .subtab-btn {
@@ -408,12 +402,6 @@ header h1 {
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    position: sticky;
-    top: 126px; /* abaixo das sub-abas fixas */
-    z-index: 998;
-    background: #ffffff;
-    padding: 8px;
-    box-shadow: var(--shadow-soft);
 }
 
 @media (max-width: 780px) {
@@ -958,22 +946,6 @@ textarea {
 }
 .ts-clickable:hover {
     color: var(--primary);
-}
-
-/* ================================================
-   Registro de Ponto: modal mais compacto
-   ================================================ */
-#modalRegistro .modal-content {
-    max-width: 640px;
-}
-#modalRegistro .form-group label {
-    font-size: 11px;
-}
-#modalRegistro input[type="time"],
-#modalRegistro input[type="date"],
-#modalRegistro textarea {
-    padding: 4px 8px;
-    font-size: 12px;
 }
 
 .form-row {
