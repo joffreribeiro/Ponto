@@ -936,6 +936,18 @@ textarea {
     resize: vertical;
 }
 
+/* ================================================
+   Timesheet: células clicáveis
+   ================================================ */
+.ts-clickable {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    cursor: pointer;
+}
+.ts-clickable:hover {
+    color: var(--primary);
+}
+
 .form-row {
     display: flex;
     flex-wrap: wrap;

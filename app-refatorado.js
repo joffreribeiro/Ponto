@@ -577,6 +577,42 @@ function fecharModalRegistro() {
     document.getElementById('modalRegistro').classList.remove('active');
 }
 
+/**
+ * Abre o modal de registro para um dia específico do timesheet.
+ * Preenche campos se já houver registro e foca no campo desejado.
+ * @param {string} dataStr - Data no formato YYYY-MM-DD
+ * @param {('entrada'|'saidaAlmoco'|'retornoAlmoco'|'saida'|null)} focusField
+ */
+function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
+    try {
+        const r = AppState.dados.registros.find(x => x.data === dataStr) || null;
+
+        // Preencher/limpar campos
+        document.getElementById('dataRegistro').value = dataStr;
+        document.getElementById('entradaRegistro').value = (r && r.entrada) || '';
+        document.getElementById('saidaAlmocoRegistro').value = (r && r.saidaAlmoco) || '';
+        document.getElementById('retornoAlmocoRegistro').value = (r && r.retornoAlmoco) || '';
+        document.getElementById('saidaRegistro').value = (r && r.saida) || '';
+        document.getElementById('observacoesRegistro').value = (r && r.observacoes) || '';
+
+        document.getElementById('modalRegistro').classList.add('active');
+
+        // Focar campo solicitado
+        const fieldIdMap = {
+            entrada: 'entradaRegistro',
+            saidaAlmoco: 'saidaAlmocoRegistro',
+            retornoAlmoco: 'retornoAlmocoRegistro',
+            saida: 'saidaRegistro'
+        };
+        if (focusField && fieldIdMap[focusField]) {
+            const el = document.getElementById(fieldIdMap[focusField]);
+            if (el) el.focus();
+        }
+    } catch (error) {
+        console.error('Erro ao abrir edição de dia no timesheet:', error);
+        Notifications.error('Erro ao abrir edição: ' + error.message);
+    }
+}
 function salvarRegistro() {
     try {
         const data = document.getElementById('dataRegistro').value;
@@ -1083,6 +1119,20 @@ function gerarTimesheetAcordo() {
                     if (rowIndex === 3) td.textContent = r && r.retornoAlmoco || '';
                     if (rowIndex === 4) td.textContent = r && r.saida || '';
                     if (rowIndex === 5) td.textContent = '';
+
+                    // Tornar células de horário clicáveis para edição
+                    const focusByRow = {
+                        0: 'entrada',
+                        1: 'saidaAlmoco',
+                        2: null, // duração não é editável diretamente
+                        3: 'retornoAlmoco',
+                        4: 'saida'
+                    };
+                    if ([0,1,2,3,4].includes(rowIndex)) {
+                        td.classList.add('ts-clickable');
+                        td.title = 'Clique para editar este dia';
+                        td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, focusByRow[rowIndex]));
+                    }
 
                     if (rowIndex === 6 || rowIndex === 7) {
                         const calc = obterCalcDia(dia);
