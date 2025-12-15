@@ -1474,6 +1474,7 @@ function salvarEvento() {
         AppState.save();
         renderizarEventos();
         renderizarAcordos();
+        gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         limparEvento();
         fecharModalEvento();
         mostrarAlertaGlobal('Evento salvo com sucesso!', 'success');
@@ -1556,6 +1557,7 @@ function deletarEventoConfirmado() {
         AppState.eventoSelecionado = null;
         AppState.save();
         renderizarEventos();
+        gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         fecharModalEvento();
         mostrarAlertaGlobal('Evento deletado.', 'success');
     } catch (error) {
@@ -1822,6 +1824,11 @@ function removerPeriodoAcordo(index) {
     renderizarListasAcordo();
 }
 
+function salvarAcordoComRefreshTimesheet() {
+    salvarAcordo();
+    gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
+}
+
 function editarRegraHorario(index) {
     try {
         const r = AppState.acordoEmEdicao.regrasHorario[index];
@@ -1924,6 +1931,7 @@ function salvarAcordo() {
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosEventos();
         atualizarSelectAcordosRegistros();
+        gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         fecharModalAcordo();
         mostrarAlertaGlobal('Acordo salvo com sucesso!', 'success');
     } catch (error) {
