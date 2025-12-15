@@ -72,12 +72,6 @@ function inicializar() {
         if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
         const filtroRegistros = document.getElementById('filtroAcordoRegistros');
         if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
-        // Ajusta offset sticky conforme altura real do header
-        const header = document.querySelector('header');
-        if (header) {
-            const h = header.offsetHeight || 100;
-            document.documentElement.style.setProperty('--offset-header', h + 'px');
-        }
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
