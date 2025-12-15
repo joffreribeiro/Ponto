@@ -1121,13 +1121,17 @@ function gerarTimesheetAcordo() {
                     if (rowIndex === 3) td.textContent = r && r.retornoAlmoco || '';
                     if (rowIndex === 4) td.textContent = r && r.saida || '';
                     if (rowIndex === 5) {
+                        // Separador vazio
+                        td.textContent = '';
+                    }
+                    if (rowIndex === 6) {
                         // Observações: editável
                         td.textContent = r && r.observacoes || '';
                         td.classList.add('ts-clickable');
                         td.title = 'Clique para editar observações';
                         td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, 'observacoes'));
                     }
-                    if (rowIndex === 6) {
+                    if (rowIndex === 7) {
                         // Ponto da Saída: saída + expediente + minutos do acordo
                         if (r && r.saida) {
                             const calc = obterCalcDia(dia);
@@ -1147,7 +1151,6 @@ function gerarTimesheetAcordo() {
                             }
                         }
                     }
-                    if (rowIndex === 7) td.textContent = '';
 
                     // Tornar células de horário clicáveis para edição
                     const focusByRow = {
