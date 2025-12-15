@@ -168,6 +168,18 @@ header h1 {
 }
 
 /* ================================================
+   Dashboard: card de filtros fixo
+   ================================================ */
+.dashboard-filters-card {
+    position: sticky;
+    top: calc(var(--offset-header) + 168px); /* Abaixo de tabs, subtabs (só no Dashboard), toolbar */
+    z-index: 996;
+    background: var(--bg-header);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+}
+
+/* ================================================
    Dashboard
    ================================================ */
 .dashboard-grid {
