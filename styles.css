@@ -126,7 +126,7 @@ header h1 {
     margin: 12px 0 12px;
     position: sticky;
     top: var(--offset-header);
-    z-index: 999;
+    z-index: 1052; /* Acima de tudo exceto modais */
     background: #ffffff;
     padding: 6px 8px;
     box-shadow: var(--shadow-soft);
