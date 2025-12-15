@@ -957,7 +957,7 @@ textarea {
 }
 
 /* Registro de Ponto: modal compacto */
-#modalRegistro .modal-content { max-width: 640px; }
+#modalRegistro .modal-content { max-width: 420px; }
 #modalRegistro .form-group label { font-size: 11px; }
 #modalRegistro input[type="time"],
 #modalRegistro input[type="date"],
