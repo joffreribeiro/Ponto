@@ -1133,20 +1133,27 @@ function gerarTimesheetAcordo() {
                         td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, 'observacoes'));
                     }
                     if (rowIndex === 7) {
-                        // Ponto da Saída: saída + expediente + minutos do acordo
-                        if (r && r.saida) {
+                        // Ponto da Saída: entrada + duração almoço + expediente (8h) + minutos extras do acordo
+                        if (r && r.entrada) {
                             const calc = obterCalcDia(dia);
                             if (calc && calc.acordo) {
-                                // Buscar minutos do acordo (minutosExtras no período)
+                                // Buscar regra de horário para obter duração do almoço
+                                const regra = calc.regra || {};
+                                const duracaoAlmoco = regra.duracaoAlmoco || 60; // padrão 60 minutos
+                                
+                                // Buscar minutos extras do acordo (minutosExtras no período)
                                 const periodo = (calc.acordo.periodos || []).find(p => {
                                     const ini = DateUtils.parse(p.inicio);
                                     const fim = DateUtils.parse(p.fim);
                                     return ini && fim && dia.data >= ini && dia.data <= fim;
                                 });
-                                const minutosAcordo = (periodo && periodo.minutosExtras) || 0;
-                                const saida = DateUtils.timeToMinutes(r.saida);
-                                if (saida !== null) {
-                                    const pontoDaSaida = saida + minutosAcordo;
+                                const minutosExtrasAcordo = (periodo && periodo.minutosExtras) || 0;
+                                
+                                // Cálculo: entrada + almoço + expediente (8h = 480min) + extras do acordo
+                                const entrada = DateUtils.timeToMinutes(r.entrada);
+                                if (entrada !== null) {
+                                    const expediente = 480; // 8 horas fixas
+                                    const pontoDaSaida = entrada + duracaoAlmoco + expediente + minutosExtrasAcordo;
                                     td.textContent = DateUtils.minutesToTime(pontoDaSaida);
                                 }
                             }
