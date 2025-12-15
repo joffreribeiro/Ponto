@@ -355,7 +355,7 @@ header h1 {
     gap: 10px;
     margin: -4px 0 16px;
     position: sticky;
-    top: 72px; /* abaixo do header */
+    top: var(--offset-header); /* abaixo do header */
     z-index: 999;
     background: #ffffff;
     padding: 6px 8px;
@@ -409,7 +409,7 @@ header h1 {
     gap: 10px;
     margin-bottom: 10px;
     position: sticky;
-    top: 126px; /* abaixo das sub-abas fixas */
+    top: calc(var(--offset-header) + 54px); /* abaixo das sub-abas fixas */
     z-index: 998;
     background: #ffffff;
     padding: 8px;
@@ -1381,6 +1381,8 @@ textarea {
         transform: translateX(0);
     }
 }
+        /* altura do header para sticky dinâmico */
+        --offset-header: 100px;
 
 /* ================================================
    CONFIRM DIALOG
