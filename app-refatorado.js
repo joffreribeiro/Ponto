@@ -602,7 +602,8 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
             entrada: 'entradaRegistro',
             saidaAlmoco: 'saidaAlmocoRegistro',
             retornoAlmoco: 'retornoAlmocoRegistro',
-            saida: 'saidaRegistro'
+            saida: 'saidaRegistro',
+            observacoes: 'observacoesRegistro'
         };
         if (focusField && fieldIdMap[focusField]) {
             const el = document.getElementById(fieldIdMap[focusField]);
