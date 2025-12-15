@@ -643,6 +643,7 @@ function salvarRegistro() {
         AppState.save();
         atualizarDashboard();
         renderizarTabelaRegistros();
+        gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         fecharModalRegistro();
         Notifications.success('✅ Registro salvo com sucesso!');
     } catch (error) {
@@ -679,6 +680,7 @@ function excluirRegistro(index) {
                 Storage.saveDebounced(AppState.dados);
                 atualizarDashboard();
                 renderizarTabelaRegistros();
+                gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
                 Notifications.success('🗑️ Registro deletado.');
             }
         );
