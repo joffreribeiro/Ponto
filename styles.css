@@ -109,6 +109,14 @@ header h1 {
     box-shadow: var(--shadow-soft);
 }
 
+/* Expande .tabs para usar full width enquanto fica sticky */
+.container .tabs {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
 /* ================================================
    Abas principais (Dashboard / Ponto / Config)
    ================================================ */
@@ -361,8 +369,8 @@ header h1 {
     gap: 10px;
     margin: -4px 0 16px;
     position: sticky;
-    top: var(--offset-header); /* abaixo do header */
-    z-index: 999;
+    top: calc(var(--offset-header) + 56px); /* Abaixo das tabs principais */
+    z-index: 998;
     background: #ffffff;
     padding: 6px 8px;
     box-shadow: var(--shadow-soft);
@@ -415,8 +423,8 @@ header h1 {
     gap: 10px;
     margin-bottom: 10px;
     position: sticky;
-    top: calc(var(--offset-header) + 54px); /* abaixo das sub-abas fixas */
-    z-index: 998;
+    top: calc(var(--offset-header) + 110px); /* Abaixo das tabs + subtabs */
+    z-index: 997;
     background: #ffffff;
     padding: 8px;
     box-shadow: var(--shadow-soft);
