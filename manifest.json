@@ -2,6 +2,7 @@
   "name": "Controle de Ponto Avançado",
   "short_name": "Ponto",
   "description": "Gestão de jornada, acordos coletivos e timesheet",
+  "version": "1.2.0",
   "start_url": "./index-refatorado.html",
   "display": "standalone",
   "background_color": "#e8edf3",
