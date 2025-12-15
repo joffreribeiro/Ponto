@@ -116,6 +116,12 @@ header h1 {
     display: flex;
     gap: 8px;
     margin: 12px 0 12px;
+    position: sticky;
+    top: var(--offset-header);
+    z-index: 999;
+    background: #ffffff;
+    padding: 6px 8px;
+    box-shadow: var(--shadow-soft);
 }
 
 .tab-btn {
