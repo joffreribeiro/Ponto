@@ -966,6 +966,17 @@ textarea {
     font-size: 12px;
 }
 
+/* Evento: modal compacto */
+#modalEvento .modal-content { max-width: 520px; }
+#modalEvento .form-group label { font-size: 11px; }
+#modalEvento input[type="text"],
+#modalEvento input[type="date"],
+#modalEvento input[type="color"],
+#modalEvento select {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
 .form-row {
     display: flex;
     flex-wrap: wrap;

@@ -489,21 +489,23 @@
                 <button type="button" class="modal-close">×</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="acordoEventoSelect">Acordo:</label>
-                    <select id="acordoEventoSelect"></select>
-                </div>
-                <div class="form-group">
-                    <label for="tipoEvento">Tipo:</label>
-                    <select id="tipoEvento">
-                        <option value="feriado">Feriado</option>
-                        <option value="ferias">Férias</option>
-                        <option value="afastamento">Afastamento</option>
-                        <option value="viagem">Viagem</option>
-                        <option value="abono_acordo">Abono acordo</option>
-                        <option value="compensar_acordo">Compensar acordo</option>
-                        <option value="outro">Outro</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="acordoEventoSelect">Acordo:</label>
+                        <select id="acordoEventoSelect"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoEvento">Tipo:</label>
+                        <select id="tipoEvento">
+                            <option value="feriado">Feriado</option>
+                            <option value="ferias">Férias</option>
+                            <option value="afastamento">Afastamento</option>
+                            <option value="viagem">Viagem</option>
+                            <option value="abono_acordo">Abono acordo</option>
+                            <option value="compensar_acordo">Compensar acordo</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="descricaoEvento">Descrição:</label>
@@ -518,18 +520,18 @@
                         <label for="dataFimEvento">Fim:</label>
                         <input type="date" id="dataFimEvento" />
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="impactoEvento">Impacto:</label>
-                    <select id="impactoEvento">
-                        <option value="folga">Folga</option>
-                        <option value="trabalho">Trabalho</option>
-                    </select>
+                    <div class="form-group">
+                        <label for="impactoEvento">Impacto:</label>
+                        <select id="impactoEvento">
+                            <option value="folga">Folga</option>
+                            <option value="trabalho">Trabalho</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <!-- Seção de Cores e Regras -->
-                <hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;">
-                <h3 style="font-size: 14px; margin: 8px 0 10px;">Aparência no Timesheet</h3>
+                <hr style="margin: 8px 0; border: none; border-top: 1px solid #ddd;">
+                <h3 style="font-size: 13px; margin: 6px 0 8px;">Aparência no Timesheet</h3>
                 
                 <div class="form-row">
                     <div class="form-group">
@@ -540,11 +542,10 @@
                         <label for="eventoCorTexto">Cor do Texto:</label>
                         <input type="color" id="eventoCorTexto" value="#ffffff" />
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="eventoNomeCSS">Nome da Classe CSS (opcional):</label>
-                    <input type="text" id="eventoNomeCSS" placeholder="Ex: evento-customizado" />
+                    <div class="form-group">
+                        <label for="eventoNomeCSS">Classe CSS:</label>
+                        <input type="text" id="eventoNomeCSS" placeholder="Ex: evento-customizado" />
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
