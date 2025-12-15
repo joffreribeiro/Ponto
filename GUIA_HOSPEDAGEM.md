@@ -1,5 +1,7 @@
 # 🚀 Guia Completo de Hospedagem - Gestão de Atividades
 
+> Site publicado: https://joffreribeiro.github.io/Ponto/index-refatorado.html
+
 ## **Opção 1: GitHub Pages (Recomendado - Grátis e Simples)**
 
 ### **Passo 1: Instalar o Git**
