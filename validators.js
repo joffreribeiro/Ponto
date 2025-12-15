@@ -44,8 +44,8 @@ const Validators = {
             errors.push('Hora de entrada inválida (use formato HH:MM)');
         }
 
-        // Saída obrigatória
-        if (!this.isValidTime(registro.saida)) {
+        // Saída é OPCIONAL - permite registros com só entrada
+        if (registro.saida && !this.isValidTime(registro.saida)) {
             errors.push('Hora de saída inválida (use formato HH:MM)');
         }
 
@@ -58,8 +58,8 @@ const Validators = {
             errors.push('Hora de retorno de almoço inválida');
         }
 
-        // Saída deve ser após entrada
-        if (this.isValidTime(registro.entrada) && this.isValidTime(registro.saida)) {
+        // Saída deve ser após entrada, mas só valida se saída está preenchida
+        if (this.isValidTime(registro.entrada) && registro.saida && this.isValidTime(registro.saida)) {
             const [hE, mE] = registro.entrada.split(':').map(Number);
             const [hS, mS] = registro.saida.split(':').map(Number);
             const minE = hE * 60 + mE;

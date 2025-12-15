@@ -984,7 +984,7 @@ function gerarTimesheetAcordo() {
 
             const tbody = document.createElement('tbody');
 
-            const numRows = 8;
+            const numRows = 10;
             const labels = [
                 'Entrada',
                 'Saída (Almoço)',
@@ -992,6 +992,8 @@ function gerarTimesheetAcordo() {
                 'Retorno (Almoço)',
                 'Saída',
                 '',
+                'Observações',
+                'Ponto da Saída',
                 'Horas Trabalhadas',
                 'Saldo do Dia'
             ];
@@ -1118,7 +1120,34 @@ function gerarTimesheetAcordo() {
                     }
                     if (rowIndex === 3) td.textContent = r && r.retornoAlmoco || '';
                     if (rowIndex === 4) td.textContent = r && r.saida || '';
-                    if (rowIndex === 5) td.textContent = '';
+                    if (rowIndex === 5) {
+                        // Observações: editável
+                        td.textContent = r && r.observacoes || '';
+                        td.classList.add('ts-clickable');
+                        td.title = 'Clique para editar observações';
+                        td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, 'observacoes'));
+                    }
+                    if (rowIndex === 6) {
+                        // Ponto da Saída: saída + expediente + minutos do acordo
+                        if (r && r.saida) {
+                            const calc = obterCalcDia(dia);
+                            if (calc && calc.acordo) {
+                                // Buscar minutos do acordo (minutosExtras no período)
+                                const periodo = (calc.acordo.periodos || []).find(p => {
+                                    const ini = DateUtils.parse(p.inicio);
+                                    const fim = DateUtils.parse(p.fim);
+                                    return ini && fim && dia.data >= ini && dia.data <= fim;
+                                });
+                                const minutosAcordo = (periodo && periodo.minutosExtras) || 0;
+                                const saida = DateUtils.timeToMinutes(r.saida);
+                                if (saida !== null) {
+                                    const pontoDaSaida = saida + minutosAcordo;
+                                    td.textContent = DateUtils.minutesToTime(pontoDaSaida);
+                                }
+                            }
+                        }
+                    }
+                    if (rowIndex === 7) td.textContent = '';
 
                     // Tornar células de horário clicáveis para edição
                     const focusByRow = {
@@ -1134,15 +1163,15 @@ function gerarTimesheetAcordo() {
                         td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, focusByRow[rowIndex]));
                     }
 
-                    if (rowIndex === 6 || rowIndex === 7) {
+                    if (rowIndex === 8 || rowIndex === 9) {
                         const calc = obterCalcDia(dia);
 
                         if (calc && calc.temRegistro) {
-                            if (rowIndex === 6) {
+                            if (rowIndex === 8) {
                                 td.textContent = DateUtils.minutesToTime(calc.trabalhadas);
                                 if (calc.status === 'extra') td.classList.add('saldo-positivo');
                                 if (calc.status === 'falta') td.classList.add('saldo-negativo');
-                            } else if (rowIndex === 7) {
+                            } else if (rowIndex === 9) {
                                 if (calc.saldo !== 0) {
                                     td.textContent = DateUtils.minutesToTime(calc.saldo);
 
