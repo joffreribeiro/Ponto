@@ -435,6 +435,20 @@ function moveAtividadeToStatus(id, status) {
 
 // Abre o novo modal de atividade completa (com barra lateral)
 function abrirModalAtividade(editId) {
+        // Adiciona auto-preenchimento TED/PTrab -> Objeto/Processo Principal
+        const tedInput = document.getElementById('atividadeTedPtrabCompleta');
+        if (tedInput && !tedInput._autoFillListener) {
+            tedInput.addEventListener('blur', function() {
+                const valor = tedInput.value.trim();
+                if (!valor) return;
+                const match = (AppState.dados.atividades || []).find(x => x.tedPtrab && x.tedPtrab.trim() === valor);
+                if (match) {
+                    if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = match.objeto || '';
+                    if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = match.processoPrincipal || '';
+                }
+            });
+            tedInput._autoFillListener = true;
+        }
     const modal = document.getElementById('modalNovaAtividadeCompleta');
     if (!modal) { alert('Modal de atividade não encontrado!'); return; }
     // Limpa todos os campos
