@@ -271,7 +271,7 @@ function renderizarAtividades() {
     });
 
     const rows = items.map((a, idx) => {
-        const prazo = a.prazo ? DateUtils.formatDate(a.prazo) : '';
+        const prazo = a.prazo ? DateUtils.formatBR(a.prazo) : '';
         const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
         const diasNum = (rawDias === '' || rawDias === null) ? null : Number(rawDias);
         let diasBadge = '';
