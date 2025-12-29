@@ -433,44 +433,114 @@ function moveAtividadeToStatus(id, status) {
     }
 }
 
+// Abre o novo modal de atividade completa (com barra lateral)
 function abrirModalAtividade(editId) {
-    // Sempre usar o painel inline para criar/editar atividade
-    abrirAbaNovaAtividade();
-    const container = document.getElementById('novaAtividadeInline');
-    if (!container) { console.error('Nenhum painel inline disponível para criar/editar atividade.'); return; }
-    // limpar qualquer editId anterior
-    delete container.dataset.editId;
-    // limpar campos inline
-    const inlineIds = ['atividadeOrdemInline','atividadeTedPtrabInline','atividadeObjetoInline','atividadeProcessoPrincipalInline','atividadeAssuntoInline','atividadeProcessoSolicitacaoInline','atividadeDataDocInline','atividadeTipoDocInline','atividadeNumeroDocInline','atividadeRemetenteInline','atividadeDestinatarioInline','atividadeAcaoRealizarInline','atividadePrazoInline','atividadeDiasInline','atividadeObservacoesInline','atividadeFinalizadoInline','atividadeStatusInline'];
-    inlineIds.forEach(id => { const n = document.getElementById(id); if (n) n.value = ''; });
-
-    // Se criando nova atividade (sem editId), pré-preencher a ordem automática
+    const modal = document.getElementById('modalNovaAtividadeCompleta');
+    if (!modal) { alert('Modal de atividade não encontrado!'); return; }
+    // Limpa todos os campos
+    const ids = [
+        'atividadeOrdemCompleta','atividadeTedPtrabCompleta','atividadeObjetoCompleta','atividadeProcessoPrincipalCompleta','atividadeAssuntoCompleta','atividadeProcessoSolicitacaoCompleta','atividadeDataDocCompleta','atividadeTipoDocCompleta','atividadeNumeroDocCompleta','atividadeRemetenteCompleta','atividadeDestinatarioCompleta','atividadeAcaoRealizarCompleta','atividadeTituloCompleta','atividadeDescricaoCompleta','atividadeResponsavelCompleta','atividadePrioridadeCompleta','atividadePrazoCompleta','atividadeDiasCompleta','atividadeStatusCompleta','atividadeProgressoCompleta','atividadeTagsCompleta','atividadeEstimadoCompleta','atividadeGastoCompleta','atividadeLembreteDiasCompleta','atividadeLembreteHorarioCompleta','atividadeObservacoesCompleta','atividadeFinalizadoCompleta','atividadeArquivoCompleta','subtaskInputCompleta','comentarioInputCompleta'];
+    ids.forEach(id => { const n = document.getElementById(id); if (n) { if(n.type==='checkbox') n.checked=false; else n.value=''; }});
+    // Limpa listas
+    ['subtasksListCompleta','anexosListCompleta','comentariosListCompleta'].forEach(id => { const ul = document.getElementById(id); if (ul) ul.innerHTML = ''; });
+    // Preenche ordem automática se for novo
     if (!editId) {
-        const ordEl = document.getElementById('atividadeOrdemInline');
+        const ordEl = document.getElementById('atividadeOrdemCompleta');
         if (ordEl) ordEl.value = gerarProximoOrdem();
     }
-
+    // Se for edição, preencher campos
     if (editId) {
         const a = (AppState.dados.atividades || []).find(x => x.id === editId) || null;
         if (!a) return;
-        container.dataset.editId = editId;
-        if (document.getElementById('atividadeOrdemInline')) document.getElementById('atividadeOrdemInline').value = a.ordem || '';
-        if (document.getElementById('atividadeTedPtrabInline')) document.getElementById('atividadeTedPtrabInline').value = a.tedPtrab || '';
-        if (document.getElementById('atividadeObjetoInline')) document.getElementById('atividadeObjetoInline').value = a.objeto || '';
-        if (document.getElementById('atividadeProcessoPrincipalInline')) document.getElementById('atividadeProcessoPrincipalInline').value = a.processoPrincipal || '';
-        if (document.getElementById('atividadeAssuntoInline')) document.getElementById('atividadeAssuntoInline').value = a.assunto || '';
-        if (document.getElementById('atividadeProcessoSolicitacaoInline')) document.getElementById('atividadeProcessoSolicitacaoInline').value = a.processoSolicitacao || '';
-        if (document.getElementById('atividadeDataDocInline')) document.getElementById('atividadeDataDocInline').value = a.dataDoc || '';
-        if (document.getElementById('atividadeTipoDocInline')) document.getElementById('atividadeTipoDocInline').value = a.tipoDoc || '';
-        if (document.getElementById('atividadeNumeroDocInline')) document.getElementById('atividadeNumeroDocInline').value = a.numeroDoc || '';
-        if (document.getElementById('atividadeRemetenteInline')) document.getElementById('atividadeRemetenteInline').value = a.remetente || '';
-        if (document.getElementById('atividadeDestinatarioInline')) document.getElementById('atividadeDestinatarioInline').value = a.destinatario || '';
-        if (document.getElementById('atividadeAcaoRealizarInline')) document.getElementById('atividadeAcaoRealizarInline').value = a.acaoRealizar || '';
-        if (document.getElementById('atividadeDiasInline')) document.getElementById('atividadeDiasInline').value = typeof a.dias !== 'undefined' ? a.dias : '';
-        if (document.getElementById('atividadeFinalizadoInline')) document.getElementById('atividadeFinalizadoInline').value = a.finalizado ? 'true' : 'false';
-        if (document.getElementById('atividadeStatusInline')) document.getElementById('atividadeStatusInline').value = a.status || 'pendente';
-        if (document.getElementById('atividadeObservacoesInline')) document.getElementById('atividadeObservacoesInline').value = a.observacoes || a.observacoesDoc || '';
+        modal.dataset.editId = editId;
+        if (document.getElementById('atividadeOrdemCompleta')) document.getElementById('atividadeOrdemCompleta').value = a.ordem || '';
+        if (document.getElementById('atividadeTedPtrabCompleta')) document.getElementById('atividadeTedPtrabCompleta').value = a.tedPtrab || '';
+        if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = a.objeto || '';
+        if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = a.processoPrincipal || '';
+        if (document.getElementById('atividadeAssuntoCompleta')) document.getElementById('atividadeAssuntoCompleta').value = a.assunto || '';
+        if (document.getElementById('atividadeProcessoSolicitacaoCompleta')) document.getElementById('atividadeProcessoSolicitacaoCompleta').value = a.processoSolicitacao || '';
+        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = a.dataDoc || '';
+        if (document.getElementById('atividadeTipoDocCompleta')) document.getElementById('atividadeTipoDocCompleta').value = a.tipoDoc || '';
+        if (document.getElementById('atividadeNumeroDocCompleta')) document.getElementById('atividadeNumeroDocCompleta').value = a.numeroDoc || '';
+        if (document.getElementById('atividadeRemetenteCompleta')) document.getElementById('atividadeRemetenteCompleta').value = a.remetente || '';
+        if (document.getElementById('atividadeDestinatarioCompleta')) document.getElementById('atividadeDestinatarioCompleta').value = a.destinatario || '';
+        if (document.getElementById('atividadeAcaoRealizarCompleta')) document.getElementById('atividadeAcaoRealizarCompleta').value = a.acaoRealizar || '';
+        if (document.getElementById('atividadeTituloCompleta')) document.getElementById('atividadeTituloCompleta').value = a.titulo || '';
+        if (document.getElementById('atividadeDescricaoCompleta')) document.getElementById('atividadeDescricaoCompleta').value = a.descricao || '';
+        if (document.getElementById('atividadeResponsavelCompleta')) document.getElementById('atividadeResponsavelCompleta').value = a.responsavel || '';
+        if (document.getElementById('atividadePrioridadeCompleta')) document.getElementById('atividadePrioridadeCompleta').value = a.prioridade || 'media';
+        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = a.prazo || '';
+        if (document.getElementById('atividadeDiasCompleta')) document.getElementById('atividadeDiasCompleta').value = typeof a.dias !== 'undefined' ? a.dias : '';
+        if (document.getElementById('atividadeStatusCompleta')) document.getElementById('atividadeStatusCompleta').value = a.status || 'pendente';
+        if (document.getElementById('atividadeProgressoCompleta')) document.getElementById('atividadeProgressoCompleta').value = a.progresso || 0;
+        if (document.getElementById('atividadeTagsCompleta')) document.getElementById('atividadeTagsCompleta').value = a.tags || '';
+        if (document.getElementById('atividadeEstimadoCompleta')) document.getElementById('atividadeEstimadoCompleta').value = a.tempoEstimado || '';
+        if (document.getElementById('atividadeGastoCompleta')) document.getElementById('atividadeGastoCompleta').value = a.tempoGasto || '';
+        if (document.getElementById('atividadeLembreteDiasCompleta')) document.getElementById('atividadeLembreteDiasCompleta').value = a.lembreteDias || 0;
+        if (document.getElementById('atividadeLembreteHorarioCompleta')) document.getElementById('atividadeLembreteHorarioCompleta').value = a.lembreteHorario || '';
+        if (document.getElementById('atividadeObservacoesCompleta')) document.getElementById('atividadeObservacoesCompleta').value = a.observacoes || '';
+        if (document.getElementById('atividadeFinalizadoCompleta')) document.getElementById('atividadeFinalizadoCompleta').value = a.finalizado ? 'true' : 'false';
+        // Subtarefas, anexos, comentários: implementar se necessário
+    } else {
+        delete modal.dataset.editId;
     }
+    modal.classList.add('active');
+}
+
+function fecharModalNovaAtividadeCompleta() {
+    const modal = document.getElementById('modalNovaAtividadeCompleta');
+    if (modal) modal.classList.remove('active');
+    delete modal.dataset.editId;
+}
+
+function salvarNovaAtividadeCompleta() {
+    // Exemplo: coleta campos e salva no AppState (implementar conforme necessário)
+    const get = id => document.getElementById(id)?.value || '';
+    const atividade = {
+        ordem: get('atividadeOrdemCompleta'),
+        tedPtrab: get('atividadeTedPtrabCompleta'),
+        objeto: get('atividadeObjetoCompleta'),
+        processoPrincipal: get('atividadeProcessoPrincipalCompleta'),
+        assunto: get('atividadeAssuntoCompleta'),
+        processoSolicitacao: get('atividadeProcessoSolicitacaoCompleta'),
+        dataDoc: get('atividadeDataDocCompleta'),
+        tipoDoc: get('atividadeTipoDocCompleta'),
+        numeroDoc: get('atividadeNumeroDocCompleta'),
+        remetente: get('atividadeRemetenteCompleta'),
+        destinatario: get('atividadeDestinatarioCompleta'),
+        acaoRealizar: get('atividadeAcaoRealizarCompleta'),
+        titulo: get('atividadeTituloCompleta'),
+        descricao: get('atividadeDescricaoCompleta'),
+        responsavel: get('atividadeResponsavelCompleta'),
+        prioridade: get('atividadePrioridadeCompleta'),
+        prazo: get('atividadePrazoCompleta'),
+        dias: get('atividadeDiasCompleta'),
+        status: get('atividadeStatusCompleta'),
+        progresso: get('atividadeProgressoCompleta'),
+        tags: get('atividadeTagsCompleta'),
+        tempoEstimado: get('atividadeEstimadoCompleta'),
+        tempoGasto: get('atividadeGastoCompleta'),
+        lembreteDias: get('atividadeLembreteDiasCompleta'),
+        lembreteHorario: get('atividadeLembreteHorarioCompleta'),
+        observacoes: get('atividadeObservacoesCompleta'),
+        finalizado: get('atividadeFinalizadoCompleta') === 'true',
+        // anexos, subtarefas, comentários: implementar se necessário
+    };
+    // Se for edição, atualiza; senão, adiciona
+    const modal = document.getElementById('modalNovaAtividadeCompleta');
+    const editId = modal?.dataset.editId;
+    if (editId) {
+        const idx = (AppState.dados.atividades || []).findIndex(x => x.id === editId);
+        if (idx >= 0) {
+            AppState.dados.atividades[idx] = { ...AppState.dados.atividades[idx], ...atividade };
+        }
+    } else {
+        atividade.id = gerarIdUnico();
+        (AppState.dados.atividades = AppState.dados.atividades || []).push(atividade);
+    }
+    AppState.save();
+    renderizarAtividades();
+    fecharModalNovaAtividadeCompleta();
 }
 
 function fecharModalAtividade() {
