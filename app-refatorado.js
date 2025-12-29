@@ -438,6 +438,12 @@ function moveAtividadeToStatus(id, status) {
     const idx = list.findIndex(x => x.id === id);
     if (idx >= 0) {
         list[idx].status = status;
+        // Se status for 'concluida', marcar como finalizado
+        if (status === 'concluida') {
+            list[idx].finalizado = true;
+        } else {
+            list[idx].finalizado = false;
+        }
         list[idx].atualizadoEm = new Date().toISOString();
         AppState.dados.atividades = list;
         AppState.save();
