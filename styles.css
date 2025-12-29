@@ -1,3 +1,7 @@
+.modal-content.modal-medium {
+    max-width: 900px !important;
+    min-width: 650px !important;
+}
 .modal-content.modal-medium .modal-body {
     display: flex !important;
     flex-direction: row !important;
@@ -7,15 +11,15 @@
 .nova-sidebar {
     flex-shrink: 0 !important;
     min-width: 180px !important;
-    max-width: 210px !important;
-    border-right: 1.5px solid #eee !important;
+    max-width: 220px !important;
+    border-right: 2px solid #1e40af !important;
     padding-right: 12px !important;
-    background: #f8f9fa !important;
+    background: #f0f6ff !important;
     border-radius: 10px !important;
-    box-shadow: var(--shadow-soft) !important;
+    box-shadow: 0 2px 12px rgba(30,64,175,0.08) !important;
     margin-right: 0 !important;
     height: fit-content !important;
-    color: var(--primary-dark) !important;
+    color: #1e40af !important;
     position: static !important;
     z-index: auto !important;
 }
@@ -62,6 +66,10 @@
 }
 
 @media (max-width: 900px) {
+    .modal-content.modal-medium {
+        min-width: 98vw !important;
+        max-width: 99vw !important;
+    }
     .modal-content.modal-medium .modal-body {
         flex-direction: column !important;
     }
