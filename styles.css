@@ -1,12 +1,19 @@
 .modal-content.modal-medium {
     max-width: 900px !important;
     min-width: 650px !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
 }
 .modal-content.modal-medium .modal-body {
     display: flex !important;
     flex-direction: row !important;
     gap: 16px;
     align-items: flex-start;
+    overflow-y: auto !important;
+    max-height: 65vh !important;
+    padding-bottom: 8px;
 }
 .nova-sidebar {
     flex-shrink: 0 !important;
@@ -18,10 +25,12 @@
     border-radius: 10px !important;
     box-shadow: 0 2px 12px rgba(30,64,175,0.08) !important;
     margin-right: 0 !important;
-    height: fit-content !important;
+    height: 100% !important;
     color: #1e40af !important;
-    position: static !important;
-    z-index: auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    align-self: flex-start !important;
 }
 .modal-content.modal-medium .modal-body > div[style*="flex:1"] {
     flex: 1 1 0%;
