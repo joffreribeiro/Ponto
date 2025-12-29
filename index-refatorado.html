@@ -705,175 +705,194 @@
                     <h2>Atividade</h2>
                     <button type="button" class="modal-close" onclick="fecharModalAtividade()">×</button>
                 </div>
-                <div class="modal-body">
-                    <h3 style="margin-top:0;">Dados do Documento / Processo</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeOrdem">Ordem</label>
-                            <input type="text" id="atividadeOrdem" readonly placeholder="Automático" />
+                <div class="modal-body" style="display:flex; gap:16px;">
+                    <!-- Barra lateral de navegação -->
+                    <nav class="nova-sidebar" style="min-width:180px; border-right:1px solid #eee; padding-right:12px;">
+                        <ul style="list-style:none; padding:0; margin:8px 0;">
+                            <li><a href="#" onclick="document.getElementById('atividadeOrdem').scrollIntoView(); return false;">Documento/Processo</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeTitulo').scrollIntoView(); return false;">Título/Descrição</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeResponsavel').scrollIntoView(); return false;">Responsável/Prazo</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeStatus').scrollIntoView(); return false;">Status/Progresso</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeTags').scrollIntoView(); return false;">Tags/Tempo</a></li>
+                            <li><a href="#" onclick="document.getElementById('subtaskInput').scrollIntoView(); return false;">Subtarefas</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeLembreteDias').scrollIntoView(); return false;">Lembretes</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeObservacoes').scrollIntoView(); return false;">Observações</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeFinalizado').scrollIntoView(); return false;">Finalizado</a></li>
+                            <li><a href="#" onclick="document.getElementById('atividadeArquivo').scrollIntoView(); return false;">Anexos</a></li>
+                            <li><a href="#" onclick="document.getElementById('comentarioInput').scrollIntoView(); return false;">Comentários</a></li>
+                        </ul>
+                    </nav>
+                    <!-- Formulário principal -->
+                    <div style="flex:1; padding-left:12px;">
+                        <h3 style="margin-top:0;">Dados do Documento / Processo</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeOrdem">Ordem</label>
+                                <input type="text" id="atividadeOrdem" readonly placeholder="Automático" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeTedPtrab">TED/Ptrab</label>
+                                <input type="text" id="atividadeTedPtrab" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeObjeto">Objeto</label>
+                                <input type="text" id="atividadeObjeto" />
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="atividadeTedPtrab">TED/Ptrab</label>
-                            <input type="text" id="atividadeTedPtrab" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeObjeto">Objeto</label>
-                            <input type="text" id="atividadeObjeto" />
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeProcessoPrincipal">Processo Principal</label>
-                            <input type="text" id="atividadeProcessoPrincipal" />
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeProcessoPrincipal">Processo Principal</label>
+                                <input type="text" id="atividadeProcessoPrincipal" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeAssunto">Assunto</label>
+                                <input type="text" id="atividadeAssunto" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeProcessoSolicitacao">Processo Solicitação</label>
+                                <input type="text" id="atividadeProcessoSolicitacao" />
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="atividadeAssunto">Assunto</label>
-                            <input type="text" id="atividadeAssunto" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeProcessoSolicitacao">Processo Solicitação</label>
-                            <input type="text" id="atividadeProcessoSolicitacao" />
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeDataDoc">Data</label>
-                            <input type="date" id="atividadeDataDoc" />
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeDataDoc">Data</label>
+                                <input type="date" id="atividadeDataDoc" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeTipoDoc">Tipo Doc</label>
+                                <input type="text" id="atividadeTipoDoc" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeNumeroDoc">Nº Doc.</label>
+                                <input type="text" id="atividadeNumeroDoc" />
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="atividadeTipoDoc">Tipo Doc</label>
-                            <input type="text" id="atividadeTipoDoc" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeNumeroDoc">Nº Doc.</label>
-                            <input type="text" id="atividadeNumeroDoc" />
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeRemetente">Remetente</label>
-                            <input type="text" id="atividadeRemetente" />
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeRemetente">Remetente</label>
+                                <input type="text" id="atividadeRemetente" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeDestinatario">Destinatário</label>
+                                <input type="text" id="atividadeDestinatario" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeAcaoRealizar">Ação a Realizar</label>
+                                <input type="text" id="atividadeAcaoRealizar" />
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="atividadeDestinatario">Destinatário</label>
-                            <input type="text" id="atividadeDestinatario" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeAcaoRealizar">Ação a Realizar</label>
-                            <input type="text" id="atividadeAcaoRealizar" />
-                        </div>
-                    </div>
 
-                    <hr />
+                        <hr />
 
-                    <div class="form-group">
-                        <label for="atividadeTitulo">Título</label>
-                        <input type="text" id="atividadeTitulo" />
-                    </div>
-                    <div class="form-group">
-                        <label for="atividadeDescricao">Descrição</label>
-                        <textarea id="atividadeDescricao" rows="3"></textarea>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="atividadeResponsavel">Responsável</label>
-                            <input type="text" id="atividadeResponsavel" />
+                            <label for="atividadeTitulo">Título</label>
+                            <input type="text" id="atividadeTitulo" />
                         </div>
                         <div class="form-group">
-                            <label for="atividadePrioridade">Prioridade</label>
-                            <select id="atividadePrioridade">
-                                <option value="baixa">Baixa</option>
-                                <option value="media">Média</option>
-                                <option value="alta">Alta</option>
-                                <option value="critica">Crítica</option>
+                            <label for="atividadeDescricao">Descrição</label>
+                            <textarea id="atividadeDescricao" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeResponsavel">Responsável</label>
+                                <input type="text" id="atividadeResponsavel" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadePrioridade">Prioridade</label>
+                                <select id="atividadePrioridade">
+                                    <option value="baixa">Baixa</option>
+                                    <option value="media">Média</option>
+                                    <option value="alta">Alta</option>
+                                    <option value="critica">Crítica</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadePrazo">Prazo</label>
+                                <input type="date" id="atividadePrazo" onchange="atualizarDiasFromPrazo('atividadePrazo','atividadeDias')" title="Data limite para a atividade" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeDias">Dias</label>
+                                <input type="number" id="atividadeDias" min="0" readonly title="Dias entre hoje e o prazo (negativo = vencido)" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeStatus">Status</label>
+                                <select id="atividadeStatus">
+                                    <option value="pendente">Pendente</option>
+                                    <option value="em andamento">Em andamento</option>
+                                    <option value="concluida">Concluída</option>
+                                    <option value="bloqueada">Bloqueada</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeProgresso">Progresso (%)</label>
+                                <input type="number" id="atividadeProgresso" min="0" max="100" value="0" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="atividadeTags">Tags (separadas por vírgula)</label>
+                                <input type="text" id="atividadeTags" placeholder="ex: financeiro, urgente" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeEstimado">Tempo estimado (min)</label>
+                                <input type="number" id="atividadeEstimado" min="0" />
+                            </div>
+                            <div class="form-group">
+                                <label for="atividadeGasto">Tempo gasto (min)</label>
+                                <input type="number" id="atividadeGasto" min="0" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <span class="group-label">Subtarefas</span>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input id="subtaskInput" placeholder="Nova subtarefa" style="flex:1;" />
+                                <button class="btn-secondary" onclick="adicionarSubtaskModal()">Adicionar</button>
+                            </div>
+                            <ul id="subtasksList" style="margin-top:8px;list-style:none;padding-left:0;"></ul>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="atividadeLembreteDias">Lembrar X dias antes do prazo (0 para desativar)</label>
+                            <input type="number" id="atividadeLembreteDias" min="0" value="0" />
+                        </div>
+                        <div class="form-group">
+                            <label for="atividadeLembreteHorario">Lembrar em (data/hora específica)</label>
+                            <input type="datetime-local" id="atividadeLembreteHorario" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="atividadeObservacoes">Observações</label>
+                            <textarea id="atividadeObservacoes" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="atividadeFinalizado">Finalizado</label>
+                            <select id="atividadeFinalizado">
+                                <option value="false">Não</option>
+                                <option value="true">Sim</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="atividadePrazo">Prazo</label>
-                            <input type="date" id="atividadePrazo" onchange="atualizarDiasFromPrazo('atividadePrazo','atividadeDias')" title="Data limite para a atividade" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeDias">Dias</label>
-                            <input type="number" id="atividadeDias" min="0" readonly title="Dias entre hoje e o prazo (negativo = vencido)" />
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeStatus">Status</label>
-                            <select id="atividadeStatus">
-                                <option value="pendente">Pendente</option>
-                                <option value="em andamento">Em andamento</option>
-                                <option value="concluida">Concluída</option>
-                                <option value="bloqueada">Bloqueada</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeProgresso">Progresso (%)</label>
-                            <input type="number" id="atividadeProgresso" min="0" max="100" value="0" />
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="atividadeTags">Tags (separadas por vírgula)</label>
-                            <input type="text" id="atividadeTags" placeholder="ex: financeiro, urgente" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeEstimado">Tempo estimado (min)</label>
-                            <input type="number" id="atividadeEstimado" min="0" />
-                        </div>
-                        <div class="form-group">
-                            <label for="atividadeGasto">Tempo gasto (min)</label>
-                            <input type="number" id="atividadeGasto" min="0" />
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <span class="group-label">Subtarefas</span>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input id="subtaskInput" placeholder="Nova subtarefa" style="flex:1;" />
-                            <button class="btn-secondary" onclick="adicionarSubtaskModal()">Adicionar</button>
+                        <div class="form-group">
+                            <label for="atividadeArquivo">Anexar arquivo</label>
+                            <input type="file" id="atividadeArquivo" onchange="adicionarAnexoModal(event)" />
+                            <ul id="anexosList" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
                         </div>
-                        <ul id="subtasksList" style="margin-top:8px;list-style:none;padding-left:0;"></ul>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="atividadeLembreteDias">Lembrar X dias antes do prazo (0 para desativar)</label>
-                        <input type="number" id="atividadeLembreteDias" min="0" value="0" />
-                    </div>
-                    <div class="form-group">
-                        <label for="atividadeLembreteHorario">Lembrar em (data/hora específica)</label>
-                        <input type="datetime-local" id="atividadeLembreteHorario" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="atividadeObservacoes">Observações</label>
-                        <textarea id="atividadeObservacoes" rows="2"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="atividadeFinalizado">Finalizado</label>
-                        <select id="atividadeFinalizado">
-                            <option value="false">Não</option>
-                            <option value="true">Sim</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="atividadeArquivo">Anexar arquivo</label>
-                        <input type="file" id="atividadeArquivo" onchange="adicionarAnexoModal(event)" />
-                        <ul id="anexosList" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
-                    </div>
-
-                    <div class="form-group">
-                        <span class="group-label">Comentários</span>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input id="comentarioInput" placeholder="Adicionar comentário" style="flex:1;" />
-                            <button class="btn-secondary" onclick="adicionarComentarioModal()">Adicionar</button>
+                        <div class="form-group">
+                            <span class="group-label">Comentários</span>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input id="comentarioInput" placeholder="Adicionar comentário" style="flex:1;" />
+                                <button class="btn-secondary" onclick="adicionarComentarioModal()">Adicionar</button>
+                            </div>
+                            <ul id="comentariosList" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
                         </div>
-                        <ul id="comentariosList" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
                     </div>
                 </div>
                 <div class="modal-footer">
