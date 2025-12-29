@@ -328,7 +328,7 @@ function renderizarAtividades() {
     // sempre atualizar tabela se visível
     const tabelaContainer = document.getElementById('atividadesTableContainer');
     if (tabelaContainer && tabelaContainer.style.display !== 'none') {
-        renderizarTabelaAtividades(items);
+        renderizarTabelaAtividades(AppState.dados.atividades || []);
     }
 }
 
