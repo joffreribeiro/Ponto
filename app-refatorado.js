@@ -442,6 +442,9 @@ function moveAtividadeToStatus(id, status) {
         AppState.dados.atividades = list;
         AppState.save();
         renderizarAtividades();
+        if (typeof renderizarTabelaAtividades === 'function') {
+            renderizarTabelaAtividades(AppState.dados.atividades || []);
+        }
     }
 }
 
