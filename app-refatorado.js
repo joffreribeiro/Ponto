@@ -439,10 +439,10 @@ function abrirModalAtividade(editId) {
     if (!modal) { alert('Modal de atividade não encontrado!'); return; }
     // Limpa todos os campos
     const ids = [
-        'atividadeOrdemCompleta','atividadeTedPtrabCompleta','atividadeObjetoCompleta','atividadeProcessoPrincipalCompleta','atividadeAssuntoCompleta','atividadeProcessoSolicitacaoCompleta','atividadeDataDocCompleta','atividadeTipoDocCompleta','atividadeNumeroDocCompleta','atividadeRemetenteCompleta','atividadeDestinatarioCompleta','atividadeAcaoRealizarCompleta','atividadeTituloCompleta','atividadeDescricaoCompleta','atividadeResponsavelCompleta','atividadePrioridadeCompleta','atividadePrazoCompleta','atividadeDiasCompleta','atividadeStatusCompleta','atividadeProgressoCompleta','atividadeTagsCompleta','atividadeEstimadoCompleta','atividadeGastoCompleta','atividadeLembreteDiasCompleta','atividadeLembreteHorarioCompleta','atividadeObservacoesCompleta','atividadeFinalizadoCompleta','atividadeArquivoCompleta','subtaskInputCompleta','comentarioInputCompleta'];
+        'atividadeOrdemCompleta','atividadeTedPtrabCompleta','atividadeObjetoCompleta','atividadeProcessoPrincipalCompleta','atividadeAssuntoCompleta','atividadeProcessoSolicitacaoCompleta','atividadeDataDocCompleta','atividadeTipoDocCompleta','atividadeNumeroDocCompleta','atividadeRemetenteCompleta','atividadeDestinatarioCompleta','atividadeAcaoRealizarCompleta','atividadePrioridadeCompleta','atividadePrazoCompleta','atividadeDiasCompleta','atividadeStatusCompleta','atividadeProgressoCompleta','atividadeTagsCompleta','atividadeLembreteDiasCompleta','atividadeLembreteHorarioCompleta','atividadeObservacoesCompleta','atividadeFinalizadoCompleta','atividadeArquivoCompleta','comentarioInputCompleta'];
     ids.forEach(id => { const n = document.getElementById(id); if (n) { if(n.type==='checkbox') n.checked=false; else n.value=''; }});
     // Limpa listas
-    ['subtasksListCompleta','anexosListCompleta','comentariosListCompleta'].forEach(id => { const ul = document.getElementById(id); if (ul) ul.innerHTML = ''; });
+    ['anexosListCompleta','comentariosListCompleta'].forEach(id => { const ul = document.getElementById(id); if (ul) ul.innerHTML = ''; });
     // Preenche ordem automática se for novo
     if (!editId) {
         const ordEl = document.getElementById('atividadeOrdemCompleta');
@@ -465,22 +465,17 @@ function abrirModalAtividade(editId) {
         if (document.getElementById('atividadeRemetenteCompleta')) document.getElementById('atividadeRemetenteCompleta').value = a.remetente || '';
         if (document.getElementById('atividadeDestinatarioCompleta')) document.getElementById('atividadeDestinatarioCompleta').value = a.destinatario || '';
         if (document.getElementById('atividadeAcaoRealizarCompleta')) document.getElementById('atividadeAcaoRealizarCompleta').value = a.acaoRealizar || '';
-        if (document.getElementById('atividadeTituloCompleta')) document.getElementById('atividadeTituloCompleta').value = a.titulo || '';
-        if (document.getElementById('atividadeDescricaoCompleta')) document.getElementById('atividadeDescricaoCompleta').value = a.descricao || '';
-        if (document.getElementById('atividadeResponsavelCompleta')) document.getElementById('atividadeResponsavelCompleta').value = a.responsavel || '';
         if (document.getElementById('atividadePrioridadeCompleta')) document.getElementById('atividadePrioridadeCompleta').value = a.prioridade || 'media';
         if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = a.prazo || '';
         if (document.getElementById('atividadeDiasCompleta')) document.getElementById('atividadeDiasCompleta').value = typeof a.dias !== 'undefined' ? a.dias : '';
         if (document.getElementById('atividadeStatusCompleta')) document.getElementById('atividadeStatusCompleta').value = a.status || 'pendente';
         if (document.getElementById('atividadeProgressoCompleta')) document.getElementById('atividadeProgressoCompleta').value = a.progresso || 0;
         if (document.getElementById('atividadeTagsCompleta')) document.getElementById('atividadeTagsCompleta').value = a.tags || '';
-        if (document.getElementById('atividadeEstimadoCompleta')) document.getElementById('atividadeEstimadoCompleta').value = a.tempoEstimado || '';
-        if (document.getElementById('atividadeGastoCompleta')) document.getElementById('atividadeGastoCompleta').value = a.tempoGasto || '';
         if (document.getElementById('atividadeLembreteDiasCompleta')) document.getElementById('atividadeLembreteDiasCompleta').value = a.lembreteDias || 0;
         if (document.getElementById('atividadeLembreteHorarioCompleta')) document.getElementById('atividadeLembreteHorarioCompleta').value = a.lembreteHorario || '';
         if (document.getElementById('atividadeObservacoesCompleta')) document.getElementById('atividadeObservacoesCompleta').value = a.observacoes || '';
         if (document.getElementById('atividadeFinalizadoCompleta')) document.getElementById('atividadeFinalizadoCompleta').value = a.finalizado ? 'true' : 'false';
-        // Subtarefas, anexos, comentários: implementar se necessário
+        // anexos, comentários: implementar se necessário
     } else {
         delete modal.dataset.editId;
     }
@@ -509,22 +504,17 @@ function salvarNovaAtividadeCompleta() {
         remetente: get('atividadeRemetenteCompleta'),
         destinatario: get('atividadeDestinatarioCompleta'),
         acaoRealizar: get('atividadeAcaoRealizarCompleta'),
-        titulo: get('atividadeTituloCompleta'),
-        descricao: get('atividadeDescricaoCompleta'),
-        responsavel: get('atividadeResponsavelCompleta'),
         prioridade: get('atividadePrioridadeCompleta'),
         prazo: get('atividadePrazoCompleta'),
         dias: get('atividadeDiasCompleta'),
         status: get('atividadeStatusCompleta'),
         progresso: get('atividadeProgressoCompleta'),
         tags: get('atividadeTagsCompleta'),
-        tempoEstimado: get('atividadeEstimadoCompleta'),
-        tempoGasto: get('atividadeGastoCompleta'),
         lembreteDias: get('atividadeLembreteDiasCompleta'),
         lembreteHorario: get('atividadeLembreteHorarioCompleta'),
         observacoes: get('atividadeObservacoesCompleta'),
         finalizado: get('atividadeFinalizadoCompleta') === 'true',
-        // anexos, subtarefas, comentários: implementar se necessário
+        // anexos, comentários: implementar se necessário
     };
     // Se for edição, atualiza; senão, adiciona
     const modal = document.getElementById('modalNovaAtividadeCompleta');
