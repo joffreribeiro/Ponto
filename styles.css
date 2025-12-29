@@ -1,3 +1,51 @@
+/* Barra lateral de navegação para modais de atividade */
+.nova-sidebar {
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid var(--border-soft);
+    padding: 16px 8px 16px 8px;
+    min-width: 170px;
+    max-width: 210px;
+    box-shadow: var(--shadow-soft);
+    margin-right: 0;
+    height: fit-content;
+}
+.nova-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.nova-sidebar li {
+    margin-bottom: 8px;
+}
+.nova-sidebar a {
+    display: block;
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+.nova-sidebar a:hover, .nova-sidebar a.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+@media (max-width: 900px) {
+    .modal-content.modal-medium .modal-body {
+        flex-direction: column;
+    }
+    .nova-sidebar {
+        min-width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 12px;
+        height: auto;
+    }
+}
 /* ================================================
    Paleta de cores
    ================================================ */
