@@ -1,3 +1,7 @@
+// Gera um ID único simples (timestamp + random)
+function gerarIdUnico() {
+    return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+}
 /**
  * app.js - Versão refatorada com validação robusta
  * Utiliza módulos: storage.js, calculations.js, dateUtils.js, validators.js
