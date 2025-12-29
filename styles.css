@@ -1,3 +1,17 @@
+/* Cores para linhas da tabela de atividades conforme prazo/status */
+.linha-verde {
+    background: #e6fbe6 !important;
+}
+.linha-amarelo {
+    background: #fffbe6 !important;
+}
+.linha-vermelho {
+    background: #ffe6e6 !important;
+}
+.linha-cinza {
+    background: #f3f4f6 !important;
+    color: #888 !important;
+}
 .modal-content.modal-medium {
     max-width: 900px !important;
     min-width: 650px !important;
