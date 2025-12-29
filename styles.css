@@ -1,3 +1,53 @@
+.nova-sidebar {
+    display: block !important;
+    background: #f8f9fa !important;
+    border-radius: 10px !important;
+    border: 2px solid #1e40af !important;
+    padding: 18px 10px 18px 10px !important;
+    min-width: 170px !important;
+    max-width: 210px !important;
+    box-shadow: 0 2px 12px rgba(30,64,175,0.08) !important;
+    margin-right: 0 !important;
+    height: fit-content !important;
+    z-index: 10 !important;
+}
+.nova-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.nova-sidebar li {
+    margin-bottom: 10px;
+}
+.nova-sidebar a {
+    display: block;
+    color: #1e40af !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    background: transparent;
+}
+.nova-sidebar a:hover, .nova-sidebar a.active {
+    background: #dbeafe !important;
+    color: #1e3a8a !important;
+}
+
+@media (max-width: 900px) {
+    .modal-content.modal-medium .modal-body {
+        flex-direction: column !important;
+    }
+    .nova-sidebar {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        border-right: none !important;
+        border-bottom: 2px solid #1e40af !important;
+        margin-bottom: 12px !important;
+        height: auto !important;
+    }
+}
 /* Barra lateral de navegação para modais de atividade */
 .nova-sidebar {
     background: #f8f9fa;
