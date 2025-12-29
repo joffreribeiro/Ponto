@@ -336,11 +336,19 @@ function renderizarTabelaAtividades(items) {
     const tbody = document.querySelector('#tabelaAtividades tbody');
     if (!tbody) return;
     const rows = items.map(a => {
-        const prazo = a.prazo ? DateUtils.formatDate(a.prazo) : '';
-        const dataDoc = a.dataDoc ? DateUtils.formatDate(a.dataDoc) : '';
+        const prazo = a.prazo ? DateUtils.formatBR(a.prazo) : '';
+        const dataDoc = a.dataDoc ? DateUtils.formatBR(a.dataDoc) : '';
         const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
-        const diasDisplay = (rawDias === '' || rawDias === null) ? '' : (Number(rawDias) < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(Number(rawDias))}</span>` : String(Number(rawDias)));
-        return `<tr>
+        const diasNum = Number(rawDias);
+        let corClasse = '';
+        if (a.finalizado) corClasse = 'linha-cinza';
+        else if (!isNaN(diasNum)) {
+            if (diasNum > 10) corClasse = 'linha-verde';
+            else if (diasNum <= 10 && diasNum >= 5) corClasse = 'linha-amarelo';
+            else if (diasNum < 5) corClasse = 'linha-vermelho';
+        }
+        const diasDisplay = (rawDias === '' || rawDias === null) ? '' : (diasNum < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(diasNum)}</span>` : String(diasNum));
+        return `<tr${corClasse ? ` class="${corClasse}"` : ''}>
             <td>${escapeHtml(a.ordem || '')}</td>
             <td>${escapeHtml(a.tedPtrab || '')}</td>
             <td>${escapeHtml(a.objeto || '')}</td>
