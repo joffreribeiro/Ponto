@@ -69,6 +69,28 @@ const Validators = {
             }
         }
 
+        // Periodo do evento (opcional) — aceitar valores específicos
+        if (registro.periodoEvento !== undefined && registro.periodoEvento !== null && registro.periodoEvento !== '') {
+            const allowed = ['dia_todo', 'matutino', 'vespertino'];
+            if (typeof registro.periodoEvento !== 'string' || !allowed.includes(registro.periodoEvento)) {
+                errors.push('Período do registro inválido');
+            }
+        }
+
+        // createLinkedEvent (opcional) deve ser booleano quando presente
+        if (registro.createLinkedEvent !== undefined && registro.createLinkedEvent !== null) {
+            if (typeof registro.createLinkedEvent !== 'boolean') {
+                errors.push('Flag createLinkedEvent inválida');
+            }
+        }
+
+        // Tipo de evento vinculado ao registro (opcional)
+        if (registro.tipoEventoRegistro !== undefined && registro.tipoEventoRegistro !== null && registro.tipoEventoRegistro !== '') {
+            if (typeof registro.tipoEventoRegistro !== 'string') {
+                errors.push('Tipo de evento do registro inválido');
+            }
+        }
+
         return errors;
     },
 
@@ -190,6 +212,14 @@ const Validators = {
         if (evento.acordoIndex !== undefined && evento.acordoIndex !== null) {
             if (!Number.isInteger(evento.acordoIndex) || evento.acordoIndex < 0) {
                 errors.push('Índice de acordo inválido');
+            }
+        }
+
+        // Periodo (opcional) - validar valores permitidos
+        if (evento.periodo !== undefined && evento.periodo !== null) {
+            const allowed = ['dia_todo', 'matutino', 'vespertino'];
+            if (typeof evento.periodo !== 'string' || !allowed.includes(evento.periodo)) {
+                errors.push('Período do evento inválido');
             }
         }
 

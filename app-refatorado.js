@@ -54,6 +54,7 @@ const AppState = {
 function inicializar() {
     try {
         AppState.init();
+        ensureTiposEventoDefault();
         configurarAbas();
         configurarSubAbas();
         configurarModalAcordo();
@@ -67,16 +68,934 @@ function inicializar() {
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosRegistros();
         atualizarSelectAcordosEventos();
+        // Inicializar módulo de Atividades
+        ensureAtividadesDefault();
+        renderizarAtividades();
+        // fallback: garantir botão 'Nova Atividade' ligado mesmo que onclick inline falhe
+            try {
+                let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
+                if (!btnNew) {
+                    btnNew = document.querySelector('#atividades button.btn-primary');
+                }
+                if (!btnNew) {
+                    const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
+                    btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
+                }
+                if (btnNew && !btnNew._atividadeListenerAttached) {
+                    console.debug('Anexando listener fallback ao botão Nova Atividade', btnNew);
+                    // Se o botão estiver marcado para comportamento inline ou já chama abrirAbaNovaAtividade(),
+                    // anexar listener que abre o painel inline em vez do modal.
+                    const onclickAttr = (btnNew.getAttribute && btnNew.getAttribute('onclick')) || '';
+                    if (btnNew.hasAttribute && btnNew.hasAttribute('data-no-fallback')) {
+                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
+                    } else if (onclickAttr.includes('abrirAbaNovaAtividade')) {
+                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
+                    } else {
+                        btnNew.addEventListener('click', (e) => { try { abrirModalAtividade(); } catch(err){ console.error('Erro ao abrir modal atividade (fallback):', err); } });
+                    }
+                    btnNew._atividadeListenerAttached = true;
+                }
+            // adicional: listener global para diagnosticar cliques e forçar abertura caso o botão não responda
+            if (!document._atividadeGlobalClickAttached) {
+                    document.addEventListener('click', function(ev){
+                    try {
+                        const t = ev.target;
+                        const btn = t.closest && t.closest('button');
+                        // Se o botão estiver marcado para comportamento inline, pular o fallback global
+                        if (btn && btn.hasAttribute && btn.hasAttribute('data-no-fallback')) return;
+                        if (!btn) return;
+                        const insideAtividades = !!btn.closest('#atividades');
+                        const callsAbrir = (btn.getAttribute && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('abrirModalAtividade')) || ((btn.textContent||'').toLowerCase().includes('nova atividade')) || btn.classList.contains('btn-primary') && insideAtividades;
+                                if (callsAbrir) {
+                                    console.debug('Clique detectado no botão de nova atividade (global):', btn);
+                                    try {
+                                        // Inspecionar nós vizinhos e conteúdo relevante para diagnosticar o "número ao lado do hidden"
+                                        const prev = btn.previousSibling && btn.previousSibling.textContent ? btn.previousSibling.textContent.trim() : null;
+                                        const next = btn.nextSibling && btn.nextSibling.textContent ? btn.nextSibling.textContent.trim() : null;
+                                        const parentText = btn.parentElement ? (btn.parentElement.textContent || '').trim().slice(0,200) : null;
+                                        console.debug('Botão vizinhos -> previousSibling:', prev, ' nextSibling:', next);
+                                        console.debug('Botão parent (first 200 chars):', parentText);
+                                        console.debug('Registros antes abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
+                                        abrirModalAtividade();
+                                        console.debug('Registros depois abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
+                                        // também logar o estado resumido de atividades
+                                        console.debug('Atividades total:', (AppState.dados && AppState.dados.atividades) ? AppState.dados.atividades.length : 0);
+                                    } catch(err) { console.error('Erro ao abrir modal via listener global:', err); }
+                                }
+                    } catch(e){ /* ignore */ }
+                }, true);
+                document._atividadeGlobalClickAttached = true;
+            }
+        } catch (e) { console.error('Erro ao anexar listener Nova Atividade:', e); }
         atualizarSelectTiposEventos();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
         if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
         const filtroRegistros = document.getElementById('filtroAcordoRegistros');
         if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
+        // iniciar verificação de lembretes a cada 30 minutos
+        try {
+            checkAtividadesDeadlines();
+            setInterval(checkAtividadesDeadlines, 30 * 60 * 1000);
+        } catch (e) { /* ignore */ }
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
         mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error');
     }
+}
+
+/**
+ * Garante que `AppState.dados.tiposEvento` contenha os tipos padrão,
+ * incluindo `evento_registro` usado para eventos criados a partir de registros.
+ */
+function ensureTiposEventoDefault() {
+    if (!AppState.dados) AppState.dados = {};
+    if (!Array.isArray(AppState.dados.tiposEvento)) AppState.dados.tiposEvento = [];
+
+    const defaults = [
+        { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
+        { id: 'ferias', nome: 'Férias', cor: '#d97706' },
+        { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
+        { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+        { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+        { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+        { id: 'outro', nome: 'Outro', cor: '#64748b' },
+        { id: 'evento_registro', nome: 'Registro (ponto)', cor: '#06b6d4', corTexto: '#ffffff' }
+    ];
+
+    // Inserir qualquer tipo default que esteja faltando
+    defaults.forEach(d => {
+        if (!AppState.dados.tiposEvento.some(t => t.id === d.id)) {
+            AppState.dados.tiposEvento.push(d);
+        }
+    });
+
+    // Salvar se foi modificado
+    AppState.save();
+}
+
+function ensureAtividadesDefault() {
+    if (!AppState.dados) AppState.dados = {};
+    if (!Array.isArray(AppState.dados.atividades)) AppState.dados.atividades = [];
+    if (typeof AppState.dados.atividadesKanbanView === 'undefined') AppState.dados.atividadesKanbanView = false;
+    if (!Array.isArray(AppState.dados.atividadesReminders)) AppState.dados.atividadesReminders = [];
+    AppState.save();
+}
+
+// Calcula quantos dias faltam de hoje até a data do prazo (ex: prazo - hoje)
+function calcularDiasAtePrazo(prazoIso) {
+    if (!prazoIso) return 0;
+    try {
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const prazo = new Date(prazoIso);
+        prazo.setHours(0,0,0,0);
+        const diffMs = prazo.getTime() - hoje.getTime();
+        const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        // retornar valor assinado: negativo = vencido, 0 = vence hoje, positivo = dias restantes
+        return dias;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function gerarProximoOrdem() {
+    const list = AppState.dados && Array.isArray(AppState.dados.atividades) ? AppState.dados.atividades : [];
+    let max = 0;
+    list.forEach(a => {
+        const v = Number(a.ordem);
+        if (!isNaN(v) && v > max) max = v;
+    });
+    return String(max + 1);
+}
+
+// Atualiza o campo Dias ao alterar o Prazo (liga por onchange nos inputs)
+function atualizarDiasFromPrazo(prazoInputId, diasInputId) {
+    try {
+        const prazoEl = document.getElementById(prazoInputId);
+        const diasEl = document.getElementById(diasInputId);
+        if (!prazoEl || !diasEl) return;
+        const prazoVal = prazoEl.value || null;
+        const dias = calcularDiasAtePrazo(prazoVal);
+        diasEl.value = dias;
+    } catch (e) { /* ignore */ }
+}
+
+// expor para uso inline/onchange direto no HTML
+window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
+
+// ============= ATIVIDADES (CRUD mínimo) =============
+
+function renderizarAtividades() {
+    const container = document.getElementById('atividadesLista');
+    if (!container) return;
+
+    const statusFiltro = document.getElementById('filtroAtividadesStatus').value;
+    const busca = (document.getElementById('filtroAtividadesBusca').value || '').toLowerCase();
+
+    const prioridadeFiltro = (document.getElementById('filtroAtividadesPrioridade') && document.getElementById('filtroAtividadesPrioridade').value) || '';
+    const responsavelFiltro = (document.getElementById('filtroAtividadesResponsavel') && document.getElementById('filtroAtividadesResponsavel').value || '').toLowerCase();
+    const ordenarPor = (document.getElementById('filtroAtividadesOrdenar') && document.getElementById('filtroAtividadesOrdenar').value) || 'prioridade';
+    const kanbanVisible = !!AppState.atividadesKanbanView;
+
+    const items = (AppState.dados.atividades || []).filter(a => {
+        if (statusFiltro && a.status !== statusFiltro) return false;
+        if (busca && !(String(a.titulo || '').toLowerCase().includes(busca) || String(a.descricao || '').toLowerCase().includes(busca))) return false;
+        return true;
+    });
+
+    if (!items.length) {
+        container.innerHTML = '<div class="card">Nenhuma atividade encontrada.</div>';
+        document.getElementById('atividadesKanban').innerHTML = '';
+        return;
+    }
+
+    // ordenar
+    items.sort((x,y) => {
+        if (ordenarPor === 'prioridade') {
+            const order = { 'critica': 3, 'alta':2, 'media':1, 'baixa':0 };
+            return (order[y.prioridade]||0) - (order[x.prioridade]||0);
+        }
+        if (ordenarPor === 'prazo') {
+            const dx = x.prazo ? new Date(x.prazo).getTime() : Infinity;
+            const dy = y.prazo ? new Date(y.prazo).getTime() : Infinity;
+            return dx - dy;
+        }
+        if (ordenarPor === 'criadoEm') {
+            return new Date(y.criadoEm).getTime() - new Date(x.criadoEm).getTime();
+        }
+        return 0;
+    });
+
+    const rows = items.map((a, idx) => {
+        const prazo = a.prazo ? DateUtils.formatDate(a.prazo) : '';
+        const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
+        const diasNum = (rawDias === '' || rawDias === null) ? null : Number(rawDias);
+        let diasBadge = '';
+        if (diasNum !== null) {
+            if (diasNum < 0) {
+                diasBadge = `<span class="badge badge--overdue">Vencido ${Math.abs(diasNum)}</span>`;
+            } else if (diasNum === 0) {
+                diasBadge = `<span class="badge badge--due">Vence hoje</span>`;
+            } else if (diasNum <= 3) {
+                diasBadge = `<span class="badge badge--due">${diasNum}d</span>`;
+            } else {
+                diasBadge = `<span class="badge badge--ok">${diasNum}d</span>`;
+            }
+        }
+        const ordemBadge = a.ordem ? `<span class="badge badge--order">${escapeHtml(a.ordem)}</span>` : '';
+        const dueClass = (diasNum !== null && diasNum <= 3 && diasNum >= 0) ? 'due-soon' : '';
+        return `
+            <div class="atividade-item ${dueClass}" data-idx="${idx}">
+                <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        ${ordemBadge}
+                        <strong>${escapeHtml(a.titulo)}</strong>
+                    </div>
+                    <div class="small-text">${escapeHtml(a.descricao || '')}</div>
+                    <div class="meta small-text">Responsável: ${escapeHtml(a.responsavel || '')} • Prioridade: ${escapeHtml(a.prioridade || '')} • Prazo: ${prazo} ${diasBadge}</div>
+                </div>
+                <div class="actions" style="text-align:right; min-width:160px;">
+                    <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
+                    <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
+                    <div>
+                        <button class="btn-secondary" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">✏️</button>
+                        <button class="btn-secondary" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = rows;
+
+    // render kanban if view enabled
+    const kanban = document.getElementById('atividadesKanban');
+    if (!kanban) return;
+    if (kanbanVisible) {
+        document.getElementById('atividadesLista').style.display = 'none';
+        kanban.style.display = 'block';
+        renderizarKanban(items);
+    } else {
+        document.getElementById('atividadesLista').style.display = 'block';
+        kanban.style.display = 'none';
+        kanban.innerHTML = '';
+    }
+
+    // sempre atualizar tabela se visível
+    const tabelaContainer = document.getElementById('atividadesTableContainer');
+    if (tabelaContainer && tabelaContainer.style.display !== 'none') {
+        renderizarTabelaAtividades(items);
+    }
+}
+
+function renderizarTabelaAtividades(items) {
+    const tbody = document.querySelector('#tabelaAtividades tbody');
+    if (!tbody) return;
+    const rows = items.map(a => {
+        const prazo = a.prazo ? DateUtils.formatDate(a.prazo) : '';
+        const dataDoc = a.dataDoc ? DateUtils.formatDate(a.dataDoc) : '';
+        const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
+        const diasDisplay = (rawDias === '' || rawDias === null) ? '' : (Number(rawDias) < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(Number(rawDias))}</span>` : String(Number(rawDias)));
+        return `<tr>
+            <td>${escapeHtml(a.ordem || '')}</td>
+            <td>${escapeHtml(a.tedPtrab || '')}</td>
+            <td>${escapeHtml(a.objeto || '')}</td>
+            <td>${escapeHtml(a.processoPrincipal || '')}</td>
+            <td>${escapeHtml(a.assunto || '')}</td>
+            <td>${escapeHtml(a.processoSolicitacao || '')}</td>
+            <td>${dataDoc}</td>
+            <td>${escapeHtml(a.tipoDoc || '')}</td>
+            <td>${escapeHtml(a.numeroDoc || '')}</td>
+            <td>${escapeHtml(a.remetente || '')}</td>
+            <td>${escapeHtml(a.destinatario || '')}</td>
+            <td>${escapeHtml(a.acaoRealizar || '')}</td>
+            <td>${prazo}</td>
+            <td>${diasDisplay}</td>
+            <td>${escapeHtml(a.observacoes || '')}</td>
+            <td>${a.finalizado ? 'Sim' : 'Não'}</td>
+            <td>${escapeHtml(a.status || '')}</td>
+            <td>
+                <button class="btn-secondary" onclick="editarAtividade('${a.id}')">✏️</button>
+                <button class="btn-secondary" onclick="removerAtividade('${a.id}')">🗑️</button>
+            </td>
+        </tr>`;
+    }).join('');
+    tbody.innerHTML = rows;
+}
+
+function renderizarKanban(items) {
+    const kanban = document.getElementById('atividadesKanban');
+    if (!kanban) return;
+    const statuses = ['pendente','em andamento','bloqueada','concluida'];
+    const cols = statuses.map(s => ({ key:s, title: s === 'pendente' ? 'Pendente' : s === 'em andamento' ? 'Em andamento' : s === 'bloqueada' ? 'Bloqueada' : 'Concluída' }));
+    const html = cols.map(col => {
+        const cards = items.filter(i => i.status === col.key).map(a => `
+            <div class="kanban-card" draggable="true" data-id="${a.id}">
+                <strong>${escapeHtml(a.titulo)}</strong>
+                <div class="small-text">${escapeHtml(a.responsavel||'')} • ${escapeHtml(a.prioridade||'')}</div>
+            </div>
+        `).join('');
+        return `
+            <div class="kanban-column" data-status="${col.key}">
+                <h4>${col.title}</h4>
+                <div class="kanban-list">${cards}</div>
+            </div>
+        `;
+    }).join('');
+
+    kanban.innerHTML = `<div class="kanban-board">${html}</div>`;
+
+    // attach drag handlers
+    kanban.querySelectorAll('.kanban-card').forEach(card => {
+        card.addEventListener('dragstart', onAtividadeDragStart);
+        card.addEventListener('dragend', onAtividadeDragEnd);
+    });
+    kanban.querySelectorAll('.kanban-list').forEach(list => {
+        list.addEventListener('dragover', onAtividadeDragOver);
+        list.addEventListener('drop', onAtividadeDrop);
+    });
+}
+
+let _draggingAtividadeId = null;
+function onAtividadeDragStart(e) {
+    const id = e.currentTarget.dataset.id;
+    _draggingAtividadeId = id;
+    e.dataTransfer.setData('text/plain', id);
+    e.currentTarget.classList.add('dragging');
+}
+function onAtividadeDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    _draggingAtividadeId = null;
+}
+function onAtividadeDragOver(e) {
+    e.preventDefault();
+}
+function onAtividadeDrop(e) {
+    e.preventDefault();
+    const list = e.currentTarget;
+    const column = list.closest('.kanban-column');
+    const status = column && column.dataset.status;
+    const id = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || _draggingAtividadeId;
+    if (id && status) {
+        moveAtividadeToStatus(id, status);
+    }
+}
+
+function moveAtividadeToStatus(id, status) {
+    const list = AppState.dados.atividades || [];
+    const idx = list.findIndex(x => x.id === id);
+    if (idx >= 0) {
+        list[idx].status = status;
+        list[idx].atualizadoEm = new Date().toISOString();
+        AppState.dados.atividades = list;
+        AppState.save();
+        renderizarAtividades();
+    }
+}
+
+function abrirModalAtividade(editId) {
+    // Abrir o modal tradicional se existir (padrão)
+    const modal = document.getElementById('modalAtividade');
+    if (modal) {
+        const modalFields = ['atividadeOrdem','atividadeTedPtrab','atividadeObjeto','atividadeProcessoPrincipal','atividadeAssunto','atividadeProcessoSolicitacao','atividadeDataDoc','atividadeTipoDoc','atividadeNumeroDoc','atividadeRemetente','atividadeDestinatario','atividadeAcaoRealizar','atividadePrazo','atividadeDias','atividadeObservacoes','atividadeFinalizado','atividadeStatus','atividadeTitulo','atividadeDescricao','atividadeResponsavel','atividadePrioridade','atividadeProgresso','atividadeTags','atividadeEstimado','atividadeGasto','atividadeLembreteDias','atividadeLembreteHorario'];
+        modalFields.forEach(id => { const n = document.getElementById(id); if (n) n.value = ''; });
+        // preencher ordem automática se criando
+        if (!editId) {
+            const ordEl = document.getElementById('atividadeOrdem'); if (ordEl) ordEl.value = gerarProximoOrdem();
+        }
+        if (editId) {
+            const a = (AppState.dados.atividades || []).find(x => x.id === editId) || null;
+            if (!a) return;
+            modal.dataset.editId = editId;
+            if (document.getElementById('atividadeOrdem')) document.getElementById('atividadeOrdem').value = a.ordem || '';
+            if (document.getElementById('atividadeTedPtrab')) document.getElementById('atividadeTedPtrab').value = a.tedPtrab || '';
+            if (document.getElementById('atividadeObjeto')) document.getElementById('atividadeObjeto').value = a.objeto || '';
+            if (document.getElementById('atividadeProcessoPrincipal')) document.getElementById('atividadeProcessoPrincipal').value = a.processoPrincipal || '';
+            if (document.getElementById('atividadeAssunto')) document.getElementById('atividadeAssunto').value = a.assunto || '';
+            if (document.getElementById('atividadeProcessoSolicitacao')) document.getElementById('atividadeProcessoSolicitacao').value = a.processoSolicitacao || '';
+            if (document.getElementById('atividadeDataDoc')) document.getElementById('atividadeDataDoc').value = a.dataDoc || '';
+            if (document.getElementById('atividadeTipoDoc')) document.getElementById('atividadeTipoDoc').value = a.tipoDoc || '';
+            if (document.getElementById('atividadeNumeroDoc')) document.getElementById('atividadeNumeroDoc').value = a.numeroDoc || '';
+            if (document.getElementById('atividadeRemetente')) document.getElementById('atividadeRemetente').value = a.remetente || '';
+            if (document.getElementById('atividadeDestinatario')) document.getElementById('atividadeDestinatario').value = a.destinatario || '';
+            if (document.getElementById('atividadeAcaoRealizar')) document.getElementById('atividadeAcaoRealizar').value = a.acaoRealizar || '';
+            if (document.getElementById('atividadeDias')) document.getElementById('atividadeDias').value = typeof a.dias !== 'undefined' ? a.dias : '';
+            if (document.getElementById('atividadeFinalizado')) document.getElementById('atividadeFinalizado').value = a.finalizado ? 'true' : 'false';
+            if (document.getElementById('atividadeStatus')) document.getElementById('atividadeStatus').value = a.status || 'pendente';
+            if (document.getElementById('atividadeObservacoes')) document.getElementById('atividadeObservacoes').value = a.observacoes || a.observacoesDoc || '';
+            if (document.getElementById('atividadeTitulo')) document.getElementById('atividadeTitulo').value = a.titulo || '';
+            if (document.getElementById('atividadeDescricao')) document.getElementById('atividadeDescricao').value = a.descricao || '';
+            if (document.getElementById('atividadeResponsavel')) document.getElementById('atividadeResponsavel').value = a.responsavel || '';
+            if (document.getElementById('atividadePrioridade')) document.getElementById('atividadePrioridade').value = a.prioridade || 'media';
+            if (document.getElementById('atividadeProgresso')) document.getElementById('atividadeProgresso').value = a.progresso || 0;
+            if (document.getElementById('atividadeTags')) document.getElementById('atividadeTags').value = Array.isArray(a.tags) ? a.tags.join(', ') : (a.tags || '');
+            if (document.getElementById('atividadeEstimado')) document.getElementById('atividadeEstimado').value = a.tempoEstimadoMin || '';
+            if (document.getElementById('atividadeGasto')) document.getElementById('atividadeGasto').value = a.tempoGastoMin || '';
+            if (document.getElementById('atividadeLembreteDias')) document.getElementById('atividadeLembreteDias').value = a.lembreteDias || 0;
+            if (document.getElementById('atividadeLembreteHorario')) document.getElementById('atividadeLembreteHorario').value = a.lembreteHorario ? new Date(a.lembreteHorario).toISOString().slice(0,16) : '';
+        }
+        modal.classList.add('active');
+        return;
+    }
+
+    // Se modal não existe, fallback para painel inline (legacy)
+    console.debug('modalAtividade não encontrado — abrindo painel inline como fallback', editId);
+    abrirAbaNovaAtividade();
+    const container = document.getElementById('novaAtividadeInline');
+    if (!container) { console.error('Nenhum modal ou painel inline disponível para criar/editar atividade.'); return; }
+    // limpar qualquer editId anterior
+    delete container.dataset.editId;
+    // limpar campos inline
+    const inlineIds = ['atividadeOrdemInline','atividadeTedPtrabInline','atividadeObjetoInline','atividadeProcessoPrincipalInline','atividadeAssuntoInline','atividadeProcessoSolicitacaoInline','atividadeDataDocInline','atividadeTipoDocInline','atividadeNumeroDocInline','atividadeRemetenteInline','atividadeDestinatarioInline','atividadeAcaoRealizarInline','atividadePrazoInline','atividadeDiasInline','atividadeObservacoesInline','atividadeFinalizadoInline','atividadeStatusInline'];
+    inlineIds.forEach(id => { const n = document.getElementById(id); if (n) n.value = ''; });
+
+    // Se criando nova atividade (sem editId), pré-preencher a ordem automática
+    if (!editId) {
+        const ordEl = document.getElementById('atividadeOrdemInline');
+        if (ordEl) ordEl.value = gerarProximoOrdem();
+    }
+
+    if (editId) {
+        const a = (AppState.dados.atividades || []).find(x => x.id === editId) || null;
+        if (!a) return;
+        container.dataset.editId = editId;
+        if (document.getElementById('atividadeOrdemInline')) document.getElementById('atividadeOrdemInline').value = a.ordem || '';
+        if (document.getElementById('atividadeTedPtrabInline')) document.getElementById('atividadeTedPtrabInline').value = a.tedPtrab || '';
+        if (document.getElementById('atividadeObjetoInline')) document.getElementById('atividadeObjetoInline').value = a.objeto || '';
+        if (document.getElementById('atividadeProcessoPrincipalInline')) document.getElementById('atividadeProcessoPrincipalInline').value = a.processoPrincipal || '';
+        if (document.getElementById('atividadeAssuntoInline')) document.getElementById('atividadeAssuntoInline').value = a.assunto || '';
+        if (document.getElementById('atividadeProcessoSolicitacaoInline')) document.getElementById('atividadeProcessoSolicitacaoInline').value = a.processoSolicitacao || '';
+        if (document.getElementById('atividadeDataDocInline')) document.getElementById('atividadeDataDocInline').value = a.dataDoc || '';
+        if (document.getElementById('atividadeTipoDocInline')) document.getElementById('atividadeTipoDocInline').value = a.tipoDoc || '';
+        if (document.getElementById('atividadeNumeroDocInline')) document.getElementById('atividadeNumeroDocInline').value = a.numeroDoc || '';
+        if (document.getElementById('atividadeRemetenteInline')) document.getElementById('atividadeRemetenteInline').value = a.remetente || '';
+        if (document.getElementById('atividadeDestinatarioInline')) document.getElementById('atividadeDestinatarioInline').value = a.destinatario || '';
+        if (document.getElementById('atividadeAcaoRealizarInline')) document.getElementById('atividadeAcaoRealizarInline').value = a.acaoRealizar || '';
+        if (document.getElementById('atividadeDiasInline')) document.getElementById('atividadeDiasInline').value = typeof a.dias !== 'undefined' ? a.dias : '';
+        if (document.getElementById('atividadeFinalizadoInline')) document.getElementById('atividadeFinalizadoInline').value = a.finalizado ? 'true' : 'false';
+        if (document.getElementById('atividadeStatusInline')) document.getElementById('atividadeStatusInline').value = a.status || 'pendente';
+        if (document.getElementById('atividadeObservacoesInline')) document.getElementById('atividadeObservacoesInline').value = a.observacoes || a.observacoesDoc || '';
+    }
+}
+
+function fecharModalAtividade() {
+    const modal = document.getElementById('modalAtividade');
+    if (!modal) return;
+    modal.classList.remove('active');
+    delete modal.dataset.editId;
+    // limpar subtasks input/list
+    const ul = document.getElementById('subtasksList'); if (ul) ul.innerHTML = '';
+    const subInput = document.getElementById('subtaskInput'); if (subInput) subInput.value = '';
+}
+
+function salvarAtividade() {
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+    const titulo = document.getElementById('atividadeTitulo').value.trim();
+    if (!titulo) { Notifications.warning('Título é obrigatório'); return; }
+    const tagsArr = (document.getElementById('atividadeTags').value || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const tempoEstimado = Number(document.getElementById('atividadeEstimado').value || 0) || 0;
+    const tempoGasto = Number(document.getElementById('atividadeGasto').value || 0) || 0;
+    const lembreteDias = Number(document.getElementById('atividadeLembreteDias').value || 0) || 0;
+
+    const lembreteHorarioVal = document.getElementById('atividadeLembreteHorario').value || null;
+    const observacoes = document.getElementById('atividadeObservacoes').value || '';
+    const finalizadoVal = document.getElementById('atividadeFinalizado').value === 'true';
+    
+
+    const obj = {
+        id: editId || ('ativ-' + Date.now()),
+        titulo,
+        descricao: document.getElementById('atividadeDescricao').value.trim(),
+        responsavel: document.getElementById('atividadeResponsavel').value.trim(),
+        prioridade: document.getElementById('atividadePrioridade').value,
+        prazo: document.getElementById('atividadePrazo').value || null,
+        dataDoc: document.getElementById('atividadeDataDoc').value || null,
+        tipoDoc: document.getElementById('atividadeTipoDoc').value || '',
+        numeroDoc: document.getElementById('atividadeNumeroDoc').value || '',
+        remetente: document.getElementById('atividadeRemetente').value || '',
+        destinatario: document.getElementById('atividadeDestinatario').value || '',
+        acaoRealizar: document.getElementById('atividadeAcaoRealizar').value || '',
+        status: document.getElementById('atividadeStatus').value,
+        progresso: Number(document.getElementById('atividadeProgresso').value || 0),
+        tags: tagsArr,
+        tempoEstimadoMin: tempoEstimado,
+        tempoGastoMin: tempoGasto,
+        lembreteDias: Number(document.getElementById('atividadeLembreteDias').value || 0) || 0,
+        lembreteHorario: lembreteHorarioVal ? new Date(lembreteHorarioVal).toISOString() : null,
+        observacoes: observacoes,
+        finalizado: finalizadoVal,
+        // calcular dias automaticamente a partir do prazo
+        dias: calcularDiasAtePrazo(document.getElementById('atividadePrazo').value || null),
+        tedPtrab: document.getElementById('atividadeTedPtrab').value || '',
+        objeto: document.getElementById('atividadeObjeto').value || '',
+        processoPrincipal: document.getElementById('atividadeProcessoPrincipal').value || '',
+        assunto: document.getElementById('atividadeAssunto').value || '',
+        processoSolicitacao: document.getElementById('atividadeProcessoSolicitacao').value || '',
+        tipoDoc: document.getElementById('atividadeTipoDoc').value || '',
+        numeroDoc: document.getElementById('atividadeNumeroDoc').value || '',
+        // Ordem é automática quando criando; ao editar, preservar
+        ordem: (editId ? (document.getElementById('atividadeOrdem') && document.getElementById('atividadeOrdem').value) : gerarProximoOrdem()) || '',
+        acaoRealizar: document.getElementById('atividadeAcaoRealizar').value || '',
+        observacoesDoc: document.getElementById('atividadeObservacoes').value || '',
+        comentarios: [],
+        anexos: [],
+        subtarefas: [] ,
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString()
+    };
+
+    let list = AppState.dados.atividades || [];
+    const tempSub = (window.__modalSubtasks && window.__modalSubtasks['new']) || [];
+    const tempAnexos = (window.__modalAnexos && window.__modalAnexos['new']) || [];
+    const tempComentarios = (window.__modalComentarios && window.__modalComentarios['new']) || [];
+
+    if (editId) {
+        const idx = list.findIndex(x => x.id === editId);
+        if (idx >= 0) {
+            // merge arrays instead of overriding
+            const existing = list[idx];
+            const merged = Object.assign({}, existing, obj);
+            merged.subtarefas = (existing.subtarefas || []).concat(tempSub);
+            merged.anexos = (existing.anexos || []).concat(tempAnexos);
+            merged.comentarios = (existing.comentarios || []).concat(tempComentarios);
+            merged.atualizadoEm = new Date().toISOString();
+            list[idx] = merged;
+        }
+    } else {
+        if (tempSub.length) obj.subtarefas = tempSub.slice();
+        if (tempAnexos.length) obj.anexos = tempAnexos.slice();
+        if (tempComentarios.length) obj.comentarios = tempComentarios.slice();
+        list.push(obj);
+    }
+
+    AppState.dados.atividades = list;
+    AppState.save();
+    // limpar buffers temporários do modal
+    try { window.__modalAnexos = { 'new': [] }; } catch(e){}
+    try { window.__modalComentarios = { 'new': [] }; } catch(e){}
+    try { window.__modalSubtasks = { 'new': [] }; } catch(e){}
+    fecharModalAtividade();
+    renderizarAtividades();
+    Notifications.success('Atividade salva');
+}
+
+// ================= PAINEL INLINE NOVA ATIVIDADE ==================
+function abrirAbaNovaAtividade() {
+    console.debug('abrirAbaNovaAtividade called');
+    const el = document.getElementById('novaAtividadeInline');
+    if (!el) return;
+    // fechar modal caso esteja aberto
+    if (typeof fecharModalAtividade === 'function') {
+        try { fecharModalAtividade(); } catch (e) { console.debug('fecharModalAtividade falhou', e); }
+    }
+    // garantir que a aba de Atividades esteja visível
+    try { const tab = document.querySelector('.tab-btn[data-tab="atividades"]'); if (tab) tab.click(); } catch (e) { /* ignore */ }
+    // limpar campos
+    const ids = ['atividadeOrdemInline','atividadeTedPtrabInline','atividadeObjetoInline','atividadeProcessoPrincipalInline','atividadeAssuntoInline','atividadeProcessoSolicitacaoInline','atividadeDataDocInline','atividadeTipoDocInline','atividadeNumeroDocInline','atividadeRemetenteInline','atividadeDestinatarioInline','atividadeAcaoRealizarInline','atividadePrazoInline','atividadeDiasInline','atividadeObservacoesInline','atividadeFinalizadoInline','atividadeStatusInline'];
+    ids.forEach(id => { const n = document.getElementById(id); if (n) n.value = ''; });
+    if (document.getElementById('atividadeFinalizadoInline')) document.getElementById('atividadeFinalizadoInline').value = 'false';
+    if (document.getElementById('atividadeStatusInline')) document.getElementById('atividadeStatusInline').value = 'pendente';
+    // abrir com animação (toggle classe .open)
+    el.style.display = 'block';
+    // small timeout to allow transition
+    setTimeout(() => el.classList.add('open'), 10);
+    // foco no primeiro campo
+    const first = document.getElementById('atividadeObjetoInline') || document.getElementById('atividadeOrdemInline');
+    if (first) first.focus();
+    el.scrollIntoView({ behavior: 'smooth' });
+
+    // ativar navegação lateral (links)
+    try {
+        const anchors = Array.from(el.querySelectorAll('nav a'));
+        anchors.forEach(a => {
+            a.classList.remove('active');
+            a.addEventListener('click', (ev) => {
+                anchors.forEach(x=>x.classList.remove('active'));
+                a.classList.add('active');
+            });
+        });
+        if (anchors.length) anchors[0].classList.add('active');
+    } catch (e) { /* ignore */ }
+}
+
+function fecharAbaNovaAtividade() {
+    const el = document.getElementById('novaAtividadeInline');
+    if (!el) return;
+    // animação de fechamento
+    el.classList.remove('open');
+    // aguardar transição antes de esconder
+    setTimeout(() => { try { el.style.display = 'none'; } catch(e){} }, 260);
+}
+
+function salvarAtividadeInline() {
+    const container = document.getElementById('novaAtividadeInline');
+    const editId = container && container.dataset && container.dataset.editId ? container.dataset.editId : null;
+    const titulo = (document.getElementById('atividadeObjetoInline') && document.getElementById('atividadeObjetoInline').value.trim()) || 'Nova atividade';
+    const newData = {
+        titulo: titulo,
+        descricao: '',
+        responsavel: '',
+        prioridade: 'media',
+        dataDoc: document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value || null,
+        tipoDoc: document.getElementById('atividadeTipoDocInline') && document.getElementById('atividadeTipoDocInline').value || '',
+        numeroDoc: document.getElementById('atividadeNumeroDocInline') && document.getElementById('atividadeNumeroDocInline').value || '',
+        remetente: document.getElementById('atividadeRemetenteInline') && document.getElementById('atividadeRemetenteInline').value || '',
+        destinatario: document.getElementById('atividadeDestinatarioInline') && document.getElementById('atividadeDestinatarioInline').value || '',
+        acaoRealizar: document.getElementById('atividadeAcaoRealizarInline') && document.getElementById('atividadeAcaoRealizarInline').value || '',
+        status: document.getElementById('atividadeStatusInline') && document.getElementById('atividadeStatusInline').value || 'pendente',
+        progresso: 0,
+        tags: [],
+        tempoEstimadoMin: 0,
+        tempoGastoMin: 0,
+        lembreteDias: 0,
+        lembreteHorario: null,
+        observacoes: document.getElementById('atividadeObservacoesInline') && document.getElementById('atividadeObservacoesInline').value || '',
+        finalizado: (document.getElementById('atividadeFinalizadoInline') && document.getElementById('atividadeFinalizadoInline').value === 'true') || false,
+        prazo: document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value || null,
+        // calcular dias automaticamente a partir do prazo
+        dias: calcularDiasAtePrazo(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value || null),
+        tedPtrab: document.getElementById('atividadeTedPtrabInline') && document.getElementById('atividadeTedPtrabInline').value || '',
+        objeto: document.getElementById('atividadeObjetoInline') && document.getElementById('atividadeObjetoInline').value || '',
+        processoPrincipal: document.getElementById('atividadeProcessoPrincipalInline') && document.getElementById('atividadeProcessoPrincipalInline').value || '',
+        assunto: document.getElementById('atividadeAssuntoInline') && document.getElementById('atividadeAssuntoInline').value || '',
+        processoSolicitacao: document.getElementById('atividadeProcessoSolicitacaoInline') && document.getElementById('atividadeProcessoSolicitacaoInline').value || '',
+        // Ordem automática ao criar; ao editar, manter a existente
+        ordem: (editId ? (document.getElementById('atividadeOrdemInline') && document.getElementById('atividadeOrdemInline').value) : gerarProximoOrdem()) || '',
+        observacoesDoc: document.getElementById('atividadeObservacoesInline') && document.getElementById('atividadeObservacoesInline').value || ''
+    };
+
+    let list = AppState.dados.atividades || [];
+    if (editId) {
+        const idx = list.findIndex(x => x.id === editId);
+        if (idx >= 0) {
+            const existing = list[idx];
+            const merged = Object.assign({}, existing, newData);
+            merged.atualizadoEm = new Date().toISOString();
+            list[idx] = merged;
+        }
+    } else {
+        const obj = Object.assign({ id: 'ativ-' + Date.now(), criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString(), comentarios: [], anexos: [], subtarefas: [] }, newData);
+        list.push(obj);
+    }
+
+    AppState.dados.atividades = list;
+    AppState.save();
+    // limpar editId
+    if (container && container.dataset) delete container.dataset.editId;
+    fecharAbaNovaAtividade();
+    renderizarAtividades();
+    Notifications.success(editId ? 'Atividade atualizada (inline)' : 'Atividade criada (inline)');
+}
+
+function adicionarSubtaskModal() {
+    const txt = (document.getElementById('subtaskInput').value || '').trim();
+    if (!txt) return;
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+    // if editing existing, push into its subtarefas
+    if (editId) {
+        const list = AppState.dados.atividades || [];
+        const idx = list.findIndex(x => x.id === editId);
+        if (idx >= 0) {
+            if (!Array.isArray(list[idx].subtarefas)) list[idx].subtarefas = [];
+            list[idx].subtarefas.push({ titulo: txt, concluido: false });
+            AppState.dados.atividades = list;
+            AppState.save();
+            abrirModalAtividade(editId); // re-render subtasks
+            return;
+        }
+    }
+    // otherwise, add to modal-only list
+    const ul = document.getElementById('subtasksList');
+    const li = document.createElement('li');
+    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary" onclick="this.parentElement.remove()">🗑️</button>`;
+    ul.appendChild(li);
+    document.getElementById('subtaskInput').value = '';
+    // persist in temporary modal store so it will be saved on create
+    window.__modalSubtasks = window.__modalSubtasks || {};
+    window.__modalSubtasks['new'] = window.__modalSubtasks['new'] || [];
+    window.__modalSubtasks['new'].push({ titulo: txt, concluido: false });
+}
+
+function toggleSubtask(atividadeId, subIndex, checked) {
+    const list = AppState.dados.atividades || [];
+    const idx = list.findIndex(x => x.id === atividadeId);
+    if (idx < 0) return;
+    if (!Array.isArray(list[idx].subtarefas)) return;
+    list[idx].subtarefas[subIndex].concluido = !!checked;
+    // recalcula progresso automaticamente
+    const subt = list[idx].subtarefas;
+    const total = subt.length;
+    const done = subt.filter(s=>s.concluido).length;
+    list[idx].progresso = total ? Math.round((done/total)*100) : list[idx].progresso;
+    list[idx].atualizadoEm = new Date().toISOString();
+    AppState.dados.atividades = list;
+    AppState.save();
+    renderizarAtividades();
+}
+
+function removerSubtask(atividadeId, subIndex) {
+    const list = AppState.dados.atividades || [];
+    const idx = list.findIndex(x => x.id === atividadeId);
+    if (idx < 0) return;
+    list[idx].subtarefas.splice(subIndex,1);
+    // recalcula progresso
+    const subt = list[idx].subtarefas;
+    const total = subt.length;
+    const done = subt.filter(s=>s.concluido).length;
+    list[idx].progresso = total ? Math.round((done/total)*100) : 0;
+    AppState.dados.atividades = list;
+    AppState.save();
+    abrirModalAtividade(atividadeId);
+    renderizarAtividades();
+}
+
+// ============= ANEXOS E COMENTÁRIOS (Modal) =============
+function adicionarAnexoModal(event) {
+    const file = event && event.target && event.target.files && event.target.files[0];
+    if (!file) return;
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        const anexo = { id: 'anx-' + Date.now(), name: file.name, size: file.size, type: file.type, data: dataUrl, criadoEm: new Date().toISOString() };
+        if (editId) {
+            const list = AppState.dados.atividades || [];
+            const idx = list.findIndex(x => x.id === editId);
+            if (idx >= 0) {
+                if (!Array.isArray(list[idx].anexos)) list[idx].anexos = [];
+                list[idx].anexos.push(anexo);
+                list[idx].atualizadoEm = new Date().toISOString();
+                AppState.dados.atividades = list;
+                AppState.save();
+                abrirModalAtividade(editId);
+                Notifications.success('Anexo adicionado');
+            }
+        } else {
+            window.__modalAnexos = window.__modalAnexos || {};
+            window.__modalAnexos['new'] = window.__modalAnexos['new'] || [];
+            window.__modalAnexos['new'].push(anexo);
+            atualizarListaAnexosModal();
+            Notifications.success('Anexo pronto (será salvo ao criar a atividade)');
+        }
+        // clear input
+        if (event && event.target) event.target.value = '';
+    };
+    reader.readAsDataURL(file);
+}
+
+function atualizarListaAnexosModal() {
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+    const ul = document.getElementById('anexosList');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (editId) return; // editing handled by abrirModalAtividade
+    const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
+    items.forEach((ax, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">🗑️</button>`;
+        ul.appendChild(li);
+    });
+}
+
+function removerAnexo(atividadeId, index) {
+    if (atividadeId) {
+        const list = AppState.dados.atividades || [];
+        const idx = list.findIndex(x => x.id === atividadeId);
+        if (idx < 0) return;
+        if (!Array.isArray(list[idx].anexos)) return;
+        list[idx].anexos.splice(index,1);
+        AppState.dados.atividades = list;
+        AppState.save();
+        abrirModalAtividade(atividadeId);
+        renderizarAtividades();
+        Notifications.info('Anexo removido');
+    } else {
+        window.__modalAnexos = window.__modalAnexos || {};
+        const arr = window.__modalAnexos['new'] || [];
+        arr.splice(index,1);
+        window.__modalAnexos['new'] = arr;
+        atualizarListaAnexosModal();
+        Notifications.info('Anexo removido (modal)');
+    }
+}
+
+function adicionarComentarioModal() {
+    const txt = (document.getElementById('comentarioInput').value || '').trim();
+    if (!txt) return;
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+    const comment = { id: 'cmt-' + Date.now(), texto: txt, autor: '', criadoEm: new Date().toISOString() };
+    if (editId) {
+        const list = AppState.dados.atividades || [];
+        const idx = list.findIndex(x => x.id === editId);
+        if (idx >= 0) {
+            if (!Array.isArray(list[idx].comentarios)) list[idx].comentarios = [];
+            list[idx].comentarios.push(comment);
+            list[idx].atualizadoEm = new Date().toISOString();
+            AppState.dados.atividades = list;
+            AppState.save();
+            abrirModalAtividade(editId);
+            Notifications.success('Comentário adicionado');
+        }
+    } else {
+        window.__modalComentarios = window.__modalComentarios || {};
+        window.__modalComentarios['new'] = window.__modalComentarios['new'] || [];
+        window.__modalComentarios['new'].push(comment);
+        atualizarListaComentariosModal();
+        Notifications.success('Comentário pronto (será salvo ao criar a atividade)');
+    }
+    document.getElementById('comentarioInput').value = '';
+}
+
+function atualizarListaComentariosModal() {
+    const modal = document.getElementById('modalAtividade');
+    const editId = modal && modal.dataset.editId ? modal.dataset.editId : null;
+    const ul = document.getElementById('comentariosList');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (editId) return; // editing handled by abrirModalAtividade
+    const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
+    items.forEach((c, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">🗑️</button>`;
+        ul.appendChild(li);
+    });
+}
+
+function removerComentario(atividadeId, index) {
+    if (atividadeId) {
+        const list = AppState.dados.atividades || [];
+        const idx = list.findIndex(x => x.id === atividadeId);
+        if (idx < 0) return;
+        if (!Array.isArray(list[idx].comentarios)) return;
+        list[idx].comentarios.splice(index,1);
+        AppState.dados.atividades = list;
+        AppState.save();
+        abrirModalAtividade(atividadeId);
+        Notifications.info('Comentário removido');
+    } else {
+        window.__modalComentarios = window.__modalComentarios || {};
+        const arr = window.__modalComentarios['new'] || [];
+        arr.splice(index,1);
+        window.__modalComentarios['new'] = arr;
+        atualizarListaComentariosModal();
+        Notifications.info('Comentário removido (modal)');
+    }
+}
+
+function editarAtividade(idOrIdx) {
+    // accept id string or numeric index
+    const id = idOrIdx;
+    // if passed an index number, resolve to id
+    const list = AppState.dados.atividades || [];
+    if (typeof id === 'number') {
+        const a = list[id];
+        if (a) abrirModalAtividade(a.id);
+        return;
+    }
+    abrirModalAtividade(id);
+}
+
+function removerAtividade(idOrIdx) {
+    let list = AppState.dados.atividades || [];
+    if (!list.length) return;
+    const id = idOrIdx;
+    const idx = list.findIndex(x => x.id === id);
+    if (idx >= 0) {
+        Notifications.confirm('Deseja excluir esta atividade?', () => {
+            list.splice(idx, 1);
+            AppState.dados.atividades = list;
+            AppState.save();
+            renderizarAtividades();
+        });
+    }
+}
+
+function toggleAtividadesKanban() {
+    AppState.dados.atividadesKanbanView = !AppState.dados.atividadesKanbanView;
+    AppState.save();
+    AppState.atividadesKanbanView = AppState.dados.atividadesKanbanView;
+    renderizarAtividades();
+    Notifications.info('Visão Kanban ' + (AppState.dados.atividadesKanbanView ? 'ativada' : 'desativada'));
+}
+
+function toggleAtividadesTable() {
+    const cont = document.getElementById('atividadesTableContainer');
+    if (!cont) return;
+    cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
+    renderizarAtividades();
+}
+
+// ============= LEMBRETES / CHECK DEADLINES =============
+function checkAtividadesDeadlines() {
+    try {
+        const list = AppState.dados.atividades || [];
+        const now = new Date();
+        list.forEach(a => {
+            if (!a.prazo || !a.lembreteDias) return;
+            if (a.status === 'concluida') return;
+            const prazo = new Date(a.prazo);
+            const diffDays = Math.ceil((prazo - now) / (1000*60*60*24));
+            if (diffDays <= a.lembreteDias && diffDays >= 0) {
+                Notifications.warning(`Lembrete: atividade "${a.titulo}" vence em ${diffDays} dia(s)`);
+            }
+            if (diffDays < 0) {
+                Notifications.error(`Atenção: atividade "${a.titulo}" está vencida!`);
+            }
+        });
+    } catch (e) {
+        console.error('Erro ao checar lembretes:', e);
+    }
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
 }
 
 document.addEventListener('DOMContentLoaded', inicializar);
@@ -518,12 +1437,24 @@ function renderizarTabelaRegistros() {
 
             const tr = document.createElement('tr');
 
+            // Mostrar período marcado no registro (curto)
+            let periodoDisplay = '';
+            if (r.periodoEvento) {
+                switch (r.periodoEvento) {
+                    case 'matutino': periodoDisplay = '☀️ Mat.'; break;
+                    case 'vespertino': periodoDisplay = '🌙 Ves.'; break;
+                    case 'dia_todo': periodoDisplay = '⛶ Todo'; break;
+                    default: periodoDisplay = r.periodoEvento;
+                }
+            }
+
             const colunas = [
                 { content: DateUtils.formatBR(r.data), className: '' },
                 { content: r.entrada || '', className: '' },
                 { content: r.saidaAlmoco || '', className: '' },
                 { content: r.retornoAlmoco || '', className: '' },
                 { content: r.saida || '', className: '' },
+                { content: periodoDisplay, className: '' },
                 { content: DateUtils.minutesToTime(calc.trabalhadas), className: '' },
                 { content: calc.saldo ? DateUtils.minutesToTime(calc.saldo) : '', className: classSaldo },
                 { content: r.observacoes || '', className: '' }
@@ -570,6 +1501,14 @@ function abrirModalRegistro() {
     document.getElementById('retornoAlmocoRegistro').value = '';
     document.getElementById('saidaRegistro').value = '';
     document.getElementById('observacoesRegistro').value = '';
+    const per = document.getElementById('registroPeriodoEvento');
+    if (per) per.value = '';
+    const tipoReg = document.getElementById('registroTipoEvento');
+    if (tipoReg && AppState.dados.tiposEvento && AppState.dados.tiposEvento.length > 0) {
+        tipoReg.value = AppState.dados.tiposEvento[0].id;
+    }
+    const criarChk = document.getElementById('registroCriarEvento');
+    if (criarChk) criarChk.checked = true;
     document.getElementById('modalRegistro').classList.add('active');
 }
 
@@ -594,6 +1533,12 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         document.getElementById('retornoAlmocoRegistro').value = (r && r.retornoAlmoco) || '';
         document.getElementById('saidaRegistro').value = (r && r.saida) || '';
         document.getElementById('observacoesRegistro').value = (r && r.observacoes) || '';
+        const perSel = document.getElementById('registroPeriodoEvento');
+        if (perSel) perSel.value = (r && r.periodoEvento) || '';
+        const tipoRegSel = document.getElementById('registroTipoEvento');
+        if (tipoRegSel) tipoRegSel.value = (r && r.tipoEventoRegistro) || (AppState.dados.tiposEvento && AppState.dados.tiposEvento[0] && AppState.dados.tiposEvento[0].id) || '';
+        const criarChk = document.getElementById('registroCriarEvento');
+        if (criarChk) criarChk.checked = (r && typeof r.createLinkedEvent !== 'undefined') ? Boolean(r.createLinkedEvent) : true;
 
         document.getElementById('modalRegistro').classList.add('active');
 
@@ -622,8 +1567,11 @@ function salvarRegistro() {
         const retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
         const saida = document.getElementById('saidaRegistro').value;
         const observacoes = document.getElementById('observacoesRegistro').value;
+        const periodoEvento = document.getElementById('registroPeriodoEvento') ? document.getElementById('registroPeriodoEvento').value : '';
+        const tipoEventoRegistro = document.getElementById('registroTipoEvento') ? document.getElementById('registroTipoEvento').value : '';
+        const createLinkedEvent = document.getElementById('registroCriarEvento') ? Boolean(document.getElementById('registroCriarEvento').checked) : true;
 
-        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes };
+        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent };
 
         // Validar
         const erros = Validators.validateRegistro(registro);
@@ -632,7 +1580,7 @@ function salvarRegistro() {
             return;
         }
 
-        // Salvar ou atualizar
+        // Salvar ou atualizar registro
         const idxExistente = AppState.dados.registros.findIndex(r => r.data === data);
         if (idxExistente >= 0) {
             AppState.dados.registros[idxExistente] = registro;
@@ -640,6 +1588,51 @@ function salvarRegistro() {
             AppState.dados.registros.push(registro);
         }
 
+        // Gerenciar evento persistente vinculado ao registro (opção A)
+        // Identifica evento por propriedade `linkedRegistroDate`
+        const findLinkedIndex = () => AppState.dados.eventos.findIndex(ev => ev.linkedRegistroDate === data);
+        const linkedIdx = findLinkedIndex();
+
+        // Determinar índice de acordo aplicável para o dia
+        let acordoIndexForDay = null;
+        try {
+            const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, data);
+            if (acordoObj) acordoIndexForDay = AppState.dados.acordos.indexOf(acordoObj);
+        } catch (e) {
+            acordoIndexForDay = null;
+        }
+
+        if (periodoEvento && createLinkedEvent) {
+            const descricao = observacoes || `Registro: ${periodoEvento}`;
+            const tipoValido = (AppState.dados.tiposEvento || []).some(t => t.id === tipoEventoRegistro) ? tipoEventoRegistro : 'outro';
+            const novoEvento = {
+                tipoEvento: tipoValido,
+                descricaoEvento: descricao,
+                dataInicioEvento: data,
+                dataFimEvento: data,
+                impactoEvento: 'trabalho',
+                acordoIndex: acordoIndexForDay,
+                corFundo: '#f3f4f6',
+                corTexto: '#374151',
+                nomeCSS: 'evento-registro',
+                periodo: periodoEvento,
+                linkedRegistroDate: data
+            };
+
+            if (linkedIdx >= 0) {
+                AppState.dados.eventos[linkedIdx] = { ...AppState.dados.eventos[linkedIdx], ...novoEvento };
+            } else {
+                AppState.dados.eventos.push(novoEvento);
+            }
+            console.debug('salvarRegistro - criado/atualizado evento vinculado:', novoEvento, 'linkedIdx:', linkedIdx);
+        } else {
+            // Se opção de criar evento está desmarcada ou periodo removido, remover evento vinculado (se existir)
+            if (linkedIdx >= 0) {
+                AppState.dados.eventos.splice(linkedIdx, 1);
+            }
+        }
+
+        console.debug('salvarRegistro - registro salvo:', registro);
         AppState.save();
         atualizarDashboard();
         renderizarTabelaRegistros();
@@ -663,6 +1656,8 @@ function editarRegistro(index) {
         document.getElementById('retornoAlmocoRegistro').value = r.retornoAlmoco || '';
         document.getElementById('saidaRegistro').value = r.saida || '';
         document.getElementById('observacoesRegistro').value = r.observacoes || '';
+        const perSel = document.getElementById('registroPeriodoEvento');
+        if (perSel) perSel.value = r.periodoEvento || '';
 
         document.getElementById('modalRegistro').classList.add('active');
     } catch (error) {
@@ -676,6 +1671,13 @@ function excluirRegistro(index) {
         Notifications.confirm(
             'Deseja realmente excluir este registro?',
             () => {
+                // Antes de remover registro, também remover evento persistente vinculado (se existir)
+                const reg = AppState.dados.registros[index];
+                if (reg && reg.data) {
+                    const evIdx = AppState.dados.eventos.findIndex(ev => ev.linkedRegistroDate === reg.data);
+                    if (evIdx >= 0) AppState.dados.eventos.splice(evIdx, 1);
+                }
+
                 AppState.dados.registros.splice(index, 1);
                 Storage.saveDebounced(AppState.dados);
                 atualizarDashboard();
@@ -712,6 +1714,51 @@ function atualizarSelectAcordosTimesheet() {
         opt.textContent = a.nome || `Acordo ${idx + 1}`;
         select.appendChild(opt);
     });
+
+    // Seleciona automaticamente o acordo mais recente (por maior data de fim nos períodos
+    // ou por ano final no nome) e gera o timesheet
+    try {
+        if (AppState.dados.acordos.length) {
+            function _parseDateLocal(s) {
+                if (!s) return null;
+                const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+                const d = new Date(s);
+                return isNaN(d.getTime()) ? null : d;
+            }
+
+            let bestIdx = 0;
+            let bestScore = -Infinity;
+            AppState.dados.acordos.forEach((ac, i) => {
+                let score = -Infinity;
+                if (ac.periodos && ac.periodos.length) {
+                    let maxEnd = null;
+                    ac.periodos.forEach(p => {
+                        const d = _parseDateLocal(p.fim || p.inicio);
+                        if (d && (!maxEnd || d > maxEnd)) maxEnd = d;
+                    });
+                    if (maxEnd) score = Math.max(score, maxEnd.getTime());
+                }
+                if (!isFinite(score) && ac.nome) {
+                    const m = String(ac.nome).match(/(\d{4})\s*[-\/]\s*(\d{4})/);
+                    if (m) {
+                        const endYear = Number(m[2]) || Number(m[1]);
+                        if (!isNaN(endYear)) score = Math.max(score, endYear * 365 * 24 * 3600 * 1000);
+                    }
+                }
+                if (!isFinite(score)) score = i;
+                if (score > bestScore) {
+                    bestScore = score; bestIdx = i;
+                }
+            });
+
+            select.value = String(bestIdx);
+            if (typeof gerarTimesheetAcordo === 'function') gerarTimesheetAcordo();
+        }
+    } catch (err) {
+        console.warn('Erro ao selecionar acordo mais recente automaticamente:', err);
+    }
+    
 }
 
 function atualizarSelectAcordosRegistros() {
@@ -1001,7 +2048,35 @@ function gerarTimesheetAcordo() {
                 'Saldo do Dia'
             ];
 
-            const eventos = dias.map(d => Calculations.getEventoByData(AppState.dados.eventos, d.dataStr));
+            const eventos = dias.map(d => {
+                const reg = mapaReg[d.dataStr];
+                const evFromData = Calculations.getEventoByData(AppState.dados.eventos, d.dataStr);
+
+                // Se existe um registro com periodo marcado e o usuário permitiu a marcação (ou não definiu a preferência),
+                // criamos/mesclamos um evento sintético que prioriza o periodo do evento persistente quando disponível,
+                // caso contrário usa o periodo vindo do registro.
+                if (reg && reg.periodoEvento && (typeof reg.createLinkedEvent === 'undefined' || reg.createLinkedEvent)) {
+                    const periodoFinal = (evFromData && evFromData.periodo) ? evFromData.periodo : reg.periodoEvento;
+
+                    const tipoEscolhido = (reg.tipoEventoRegistro && (AppState.dados.tiposEvento || []).some(t => t.id === reg.tipoEventoRegistro))
+                        ? reg.tipoEventoRegistro
+                        : (evFromData && evFromData.tipoEvento) ? evFromData.tipoEvento : 'outro';
+
+                    const tipoInfo = (AppState.dados.tiposEvento || []).find(t => t.id === tipoEscolhido) || null;
+
+                        return {
+                            tipoEvento: tipoEscolhido,
+                            descricaoEvento: reg.observacoes || (evFromData && evFromData.descricaoEvento) || 'Evento (registro)',
+                            periodo: periodoFinal,
+                            impactoEvento: (evFromData && evFromData.impactoEvento) ? evFromData.impactoEvento : 'trabalho',
+                            corFundo: (evFromData && evFromData.corFundo) ? evFromData.corFundo : (tipoInfo ? tipoInfo.cor : undefined),
+                            corTexto: (evFromData && evFromData.corTexto) ? evFromData.corTexto : (tipoInfo ? (tipoInfo.corTexto || '#ffffff') : undefined)
+                        };
+                }
+
+                // Se não houver registro com marcação, retorna o evento persistente (se houver)
+                return evFromData;
+            });
             const eventoSpanCriado = new Array(dias.length).fill(false);
             const fimSemanaSpanCriado = new Array(dias.length).fill(false);
 
@@ -1046,39 +2121,49 @@ function gerarTimesheetAcordo() {
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
+                    // Eventos do tipo "compensar_acordo" devem permitir preenchimento normal.
+                    // Não tratar `impactoEvento === 'trabalho'` como bloqueador — eventos de trabalho
+                    // (criados a partir de registro) ainda devem renderizar blocos parciais quando tiverem `periodo`.
                     const isCompensar = ev && (
                         ev.tipoEvento === 'compensar_acordo' ||
                         ev.tipoEvento === 'compensacao_acordo' ||
-                        ev.tipoEvento === 'compensação_acordo' ||
-                        ev.impactoEvento === 'trabalho'
+                        ev.tipoEvento === 'compensação_acordo'
                     );
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
                     if (ev && !isCompensar) {
-                        if (!eventoSpanCriado[colIdx] && rowIndex === 0) {
+                        // Suporta marcação de período parcial do evento (matutino/vespertino/dia todo)
+                        const periodoEv = (ev.periodo || 'dia_todo');
+                        let startRow = 0;
+                        let span = numRows;
+                        // Mapear períodos para as linhas específicas do timesheet
+                        // original behavior: matutino cobre Entrada..Retorno (linhas 0..3), vespertino Retorno..separador (3..5)
+                        if (periodoEv === 'matutino') {
+                            startRow = 0; // Entrada .. Retorno (0..3)
+                            span = 4;
+                        } else if (periodoEv === 'vespertino') {
+                            startRow = 3; // Retorno .. separador (3..5)
+                            span = 3;
+                        } else {
+                            startRow = 0;
+                            span = numRows;
+                        }
+
+                        // Criar célula vertical apenas na primeira linha do período
+                        if (!eventoSpanCriado[colIdx] && rowIndex === startRow) {
                             const td = document.createElement('td');
-                            td.rowSpan = numRows;
+                            td.rowSpan = span;
 
                             let classeEvento = 'evento-outro';
                             switch (ev.tipoEvento) {
-                                case 'feriado':
-                                    classeEvento = 'evento-feriado';
-                                    break;
-                                case 'ferias':
-                                    classeEvento = 'evento-ferias';
-                                    break;
-                                case 'afastamento':
-                                    classeEvento = 'evento-afastamento';
-                                    break;
-                                case 'viagem':
-                                    classeEvento = 'evento-viagem';
-                                    break;
-                                case 'abono_acordo':
-                                    classeEvento = 'evento-abono-acordo';
-                                    break;
+                                case 'feriado': classeEvento = 'evento-feriado'; break;
+                                case 'ferias': classeEvento = 'evento-ferias'; break;
+                                case 'afastamento': classeEvento = 'evento-afastamento'; break;
+                                case 'viagem': classeEvento = 'evento-viagem'; break;
+                                case 'abono_acordo': classeEvento = 'evento-abono-acordo'; break;
                             }
 
-                            td.className = `${classeEvento} evento-vertical`;
+                            td.className = `${classeEvento} evento-vertical evento-periodo-${periodoEv}`;
                             td.textContent = ev.descricaoEvento || ev.tipoEvento;
 
                             tr.appendChild(td);
@@ -1088,7 +2173,11 @@ function gerarTimesheetAcordo() {
                                 totalFeriados++;
                             }
                         }
-                        return;
+
+                        // Se a linha atual pertence ao intervalo coberto pelo evento, pular renderização normal
+                        if (rowIndex >= startRow && rowIndex < (startRow + span)) {
+                            return;
+                        }
                     }
 
                     // Fim de semana mesclado
@@ -1435,6 +2524,7 @@ function salvarEvento() {
         const dataInicioEvento = document.getElementById('dataInicioEvento').value;
         const dataFimEvento = document.getElementById('dataFimEvento').value;
         const impactoEvento = document.getElementById('impactoEvento').value;
+        const periodoEvento = document.getElementById('eventoPeriodo') ? document.getElementById('eventoPeriodo').value : 'dia_todo';
         const corFundo = document.getElementById('eventoCorFundo').value;
         const corTexto = document.getElementById('eventoCorTexto').value;
         const nomeCSS = document.getElementById('eventoNomeCSS').value;
@@ -1451,6 +2541,7 @@ function salvarEvento() {
             dataInicioEvento,
             dataFimEvento: dataFimEvento || dataInicioEvento,
             impactoEvento,
+            periodo: periodoEvento,
             acordoIndex: Number(acordoIdxRaw),
             corFundo,
             corTexto,
@@ -1493,6 +2584,8 @@ function limparEvento() {
     document.getElementById('eventoCorFundo').value = '#ffe4e6';
     document.getElementById('eventoCorTexto').value = '#9f1239';
     document.getElementById('eventoNomeCSS').value = '';
+    const periodoEl = document.getElementById('eventoPeriodo');
+    if (periodoEl) periodoEl.value = 'dia_todo';
     const acordoSel = document.getElementById('acordoEventoSelect');
     if (acordoSel) {
         if (AppState.eventoAcordoPreselected != null) {
@@ -1518,6 +2611,9 @@ function abrirEditarEvento(index) {
         document.getElementById('eventoCorFundo').value = e.corFundo || '#ffe4e6';
         document.getElementById('eventoCorTexto').value = e.corTexto || '#9f1239';
         document.getElementById('eventoNomeCSS').value = e.nomeCSS || '';
+        
+            const periodoEl = document.getElementById('eventoPeriodo');
+            if (periodoEl) periodoEl.value = e.periodo || 'dia_todo';
         
         const acordoSel = document.getElementById('acordoEventoSelect');
         if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
@@ -2771,6 +3867,21 @@ function atualizarSelectTiposEventos() {
         select.value = valorAtual;
     } else if (tipos.length > 0) {
         select.value = tipos[0].id;
+    }
+
+    // Também popular select no modal de registro, se existir
+    const selectReg = document.getElementById('registroTipoEvento');
+    if (selectReg) {
+        const valReg = selectReg.value;
+        selectReg.innerHTML = '';
+        tipos.forEach(tipo => {
+            const opt = document.createElement('option');
+            opt.value = tipo.id;
+            opt.textContent = tipo.nome;
+            selectReg.appendChild(opt);
+        });
+        if (tipos.some(t => t.id === valReg)) selectReg.value = valReg;
+        else if (tipos.length > 0) selectReg.value = tipos[0].id;
     }
 }
 

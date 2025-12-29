@@ -21,6 +21,12 @@ const PWA = {
      * Registra Service Worker
      */
     async registerServiceWorker() {
+        // Skip service worker registration on unsupported protocols (file:// or null origin)
+        if (location.protocol === 'file:' || location.origin === 'null') {
+            console.log('[PWA] Ambiente local (file://) detectado — registro de Service Worker ignorado');
+            return;
+        }
+
         if (!('serviceWorker' in navigator)) {
             console.log('[PWA] Service Worker não suportado');
             return;
@@ -127,7 +133,7 @@ const PWA = {
         
         // iOS Safari
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isIOSStandalone = isIOS && (window.navigator as any).standalone;
+        const isIOSStandalone = isIOS && window.navigator && !!window.navigator.standalone;
 
         this.isInstalled = isStandalone || isIOSStandalone;
 

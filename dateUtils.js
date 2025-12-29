@@ -141,4 +141,19 @@ const DateUtils = {
             .replace('MM', month)
             .replace('DD', day);
     }
+    ,
+    /**
+     * Formata data/hora ISO para 'DD/MM/YYYY HH:MM'
+     */
+    formatDateTime(isoDateTime) {
+        if (!isoDateTime) return '';
+        const d = new Date(isoDateTime);
+        if (isNaN(d.getTime())) return isoDateTime;
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const ano = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${ano} ${hh}:${mm}`;
+    }
 };

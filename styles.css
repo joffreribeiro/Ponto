@@ -52,7 +52,7 @@
 html, body {
     margin: 0;
     padding: 0;
-    font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: var(--text-main);
     background: var(--bg-page);
 }
@@ -244,6 +244,119 @@ header h1 {
     transition: all 0.2s;
     box-shadow: var(--shadow-soft);
 }
+
+/* Form controls spacing and touch targets */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    font-size: 14px;
+    line-height: 1.2;
+    background: #fff;
+}
+
+.form-group textarea { min-height: 80px; }
+
+/* Uniformizar alturas de botões (botão primário um pouco maior) */
+.btn-primary { padding: 12px 22px; border-radius: 10px; }
+.btn-secondary, .btn-outline, .btn-error { padding: 10px 16px; border-radius: 10px; }
+
+/* Badges e indicadores */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.badge--order { background: var(--primary-soft); color: var(--primary); border: 1px solid rgba(30,58,138,0.08); }
+.badge--due { background: var(--warning-soft); color: var(--warning); }
+.badge--overdue { background: var(--negative-soft); color: var(--negative); }
+.badge--ok { background: var(--positive-soft); color: var(--positive); }
+
+/* Painel inline: animação de abertura */
+#novaAtividadeInline {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+    transition: opacity 220ms ease, transform 220ms ease;
+    will-change: opacity, transform;
+}
+#novaAtividadeInline.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Modal-like card for inline new-activity panel */
+.modal-inline-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(20,30,60,0.12);
+    border: 1px solid rgba(15,23,42,0.06);
+    overflow: hidden;
+}
+.modal-inline-card .modal-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    border-bottom:1px solid rgba(0,0,0,0.04);
+    background: linear-gradient(180deg, rgba(250,250,255,0.9), transparent);
+}
+.modal-inline-card .modal-header h2 { margin:0; font-size:18px; color:var(--primary); }
+.modal-inline-card .modal-header .modal-close {
+    background:transparent; border:none; font-size:20px; line-height:1; cursor:pointer; padding:6px 8px; border-radius:8px;
+}
+.modal-inline-card .modal-body { padding:12px 18px; }
+.modal-inline-card .modal-footer { background: #fff; }
+
+/* Make inputs a bit taller and consistent inside the panel */
+#novaAtividadeInline input, #novaAtividadeInline select, #novaAtividadeInline textarea {
+    padding:10px 12px; border-radius:8px; border:1px solid var(--border-soft);
+}
+
+@media(max-width:700px) {
+    .modal-inline-card { border-radius:10px; }
+    #novaAtividadeInline .modal-body { display:block; }
+    .nova-sidebar { display:none; }
+}
+
+/* Lista de atividades: cards responsivos 2 colunas em desktop */
+#atividadesLista {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+.atividade-item {
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    box-shadow: var(--shadow-soft);
+}
+.atividade-item .small-text { color: var(--text-muted); font-size: 13px; }
+.atividade-item strong { font-size: 15px; font-weight: 700; }
+.atividade-item .meta { font-size: 13px; color: var(--text-muted); }
+.atividade-item .actions { display:flex; gap:8px; }
+
+@media(min-width:900px) {
+    #atividadesLista { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* destaque leve quando prazo próximo */
+.due-soon { background: linear-gradient(90deg, rgba(255,250,240,0.6), transparent); }
+
+/* Sidebar links active */
+.nova-sidebar a.active { font-weight:700; color: var(--primary); }
+
+/* Melhor contraste para small-text */
+.small-text { color: var(--text-muted); opacity: 0.95; }
 
 .filter-group select:hover,
 .filter-group input[type="date"]:hover {
@@ -876,6 +989,32 @@ td.evento-vertical {
     color: #92400e;
 }
 
+/* Eventos parciais: matutino (alinhado ao topo) e vespertino (alinhado ao rodapé) */
+td.evento-periodo-matutino {
+    background: linear-gradient(180deg, rgba(37,99,235,0.08) 0%, rgba(37,99,235,0.03) 100%);
+    color: var(--primary-dark);
+    padding-top: 6px !important;
+    padding-bottom: 2px !important;
+    vertical-align: top !important;
+}
+
+td.evento-periodo-vespertino {
+    background: linear-gradient(180deg, rgba(14,165,233,0.03) 0%, rgba(14,165,233,0.08) 100%);
+    color: var(--primary-dark);
+    padding-bottom: 6px !important;
+    padding-top: 2px !important;
+    vertical-align: bottom !important;
+}
+
+/* Pequeno ajuste visual para células verticais de período parcial */
+td.evento-periodo-matutino.evento-vertical,
+td.evento-periodo-vespertino.evento-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    white-space: normal;
+    letter-spacing: 0.04em;
+}
+
 /* destaque extra / falta */
 .dia-extra {
     background: #ecfdf3;
@@ -891,6 +1030,28 @@ td.evento-vertical {
     font-size: 13px;
     color: var(--text-muted);
 }
+
+/* Atividades */
+.atividade-item { padding: 10px; margin-bottom: 8px; border-radius:6px; border:1px solid #e5e7eb; background:#ffffff; }
+.atividade-item strong { display:block; margin-bottom:4px; }
+.atividade-item .small-text { color: #6b7280; }
+
+/* Kanban */
+.kanban-board { display:flex; gap:12px; align-items:flex-start; }
+.kanban-column { flex:1; background: #f8fafc; padding:8px; border-radius:6px; min-width:200px; max-width:33%; }
+.kanban-column h4 { margin:4px 0 8px 0; font-size:14px; }
+.kanban-list { min-height:40px; display:flex; flex-direction:column; gap:8px; }
+.kanban-card { background:#fff; padding:8px; border-radius:6px; border:1px solid #e5e7eb; cursor:grab; }
+.kanban-card.dragging { opacity:0.6; }
+
+/* Modal Atividade tweaks */
+#modalAtividade .modal-content { max-width:720px; }
+
+/* Atividades tabela */
+#tabelaAtividades th, #tabelaAtividades td { padding:8px 10px; border-bottom:1px solid #eef2f7; }
+#tabelaAtividades tbody tr:hover { background:#fbfdff; }
+#subtasksList { max-height:140px; overflow:auto; }
+#subtasksList li { padding:6px 8px; border:1px solid #eee; margin-bottom:6px; border-radius:6px; display:flex;justify-content:space-between;align-items:center; }
 
 .card-header-inline {
     display: flex;
