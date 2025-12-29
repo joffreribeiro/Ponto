@@ -434,55 +434,10 @@ function moveAtividadeToStatus(id, status) {
 }
 
 function abrirModalAtividade(editId) {
-    // Abrir o modal tradicional se existir (padrão)
-    const modal = document.getElementById('modalAtividade');
-    if (modal) {
-        const modalFields = ['atividadeOrdem','atividadeTedPtrab','atividadeObjeto','atividadeProcessoPrincipal','atividadeAssunto','atividadeProcessoSolicitacao','atividadeDataDoc','atividadeTipoDoc','atividadeNumeroDoc','atividadeRemetente','atividadeDestinatario','atividadeAcaoRealizar','atividadePrazo','atividadeDias','atividadeObservacoes','atividadeFinalizado','atividadeStatus','atividadeTitulo','atividadeDescricao','atividadeResponsavel','atividadePrioridade','atividadeProgresso','atividadeTags','atividadeEstimado','atividadeGasto','atividadeLembreteDias','atividadeLembreteHorario'];
-        modalFields.forEach(id => { const n = document.getElementById(id); if (n) n.value = ''; });
-        // preencher ordem automática se criando
-        if (!editId) {
-            const ordEl = document.getElementById('atividadeOrdem'); if (ordEl) ordEl.value = gerarProximoOrdem();
-        }
-        if (editId) {
-            const a = (AppState.dados.atividades || []).find(x => x.id === editId) || null;
-            if (!a) return;
-            modal.dataset.editId = editId;
-            if (document.getElementById('atividadeOrdem')) document.getElementById('atividadeOrdem').value = a.ordem || '';
-            if (document.getElementById('atividadeTedPtrab')) document.getElementById('atividadeTedPtrab').value = a.tedPtrab || '';
-            if (document.getElementById('atividadeObjeto')) document.getElementById('atividadeObjeto').value = a.objeto || '';
-            if (document.getElementById('atividadeProcessoPrincipal')) document.getElementById('atividadeProcessoPrincipal').value = a.processoPrincipal || '';
-            if (document.getElementById('atividadeAssunto')) document.getElementById('atividadeAssunto').value = a.assunto || '';
-            if (document.getElementById('atividadeProcessoSolicitacao')) document.getElementById('atividadeProcessoSolicitacao').value = a.processoSolicitacao || '';
-            if (document.getElementById('atividadeDataDoc')) document.getElementById('atividadeDataDoc').value = a.dataDoc || '';
-            if (document.getElementById('atividadeTipoDoc')) document.getElementById('atividadeTipoDoc').value = a.tipoDoc || '';
-            if (document.getElementById('atividadeNumeroDoc')) document.getElementById('atividadeNumeroDoc').value = a.numeroDoc || '';
-            if (document.getElementById('atividadeRemetente')) document.getElementById('atividadeRemetente').value = a.remetente || '';
-            if (document.getElementById('atividadeDestinatario')) document.getElementById('atividadeDestinatario').value = a.destinatario || '';
-            if (document.getElementById('atividadeAcaoRealizar')) document.getElementById('atividadeAcaoRealizar').value = a.acaoRealizar || '';
-            if (document.getElementById('atividadeDias')) document.getElementById('atividadeDias').value = typeof a.dias !== 'undefined' ? a.dias : '';
-            if (document.getElementById('atividadeFinalizado')) document.getElementById('atividadeFinalizado').value = a.finalizado ? 'true' : 'false';
-            if (document.getElementById('atividadeStatus')) document.getElementById('atividadeStatus').value = a.status || 'pendente';
-            if (document.getElementById('atividadeObservacoes')) document.getElementById('atividadeObservacoes').value = a.observacoes || a.observacoesDoc || '';
-            if (document.getElementById('atividadeTitulo')) document.getElementById('atividadeTitulo').value = a.titulo || '';
-            if (document.getElementById('atividadeDescricao')) document.getElementById('atividadeDescricao').value = a.descricao || '';
-            if (document.getElementById('atividadeResponsavel')) document.getElementById('atividadeResponsavel').value = a.responsavel || '';
-            if (document.getElementById('atividadePrioridade')) document.getElementById('atividadePrioridade').value = a.prioridade || 'media';
-            if (document.getElementById('atividadeProgresso')) document.getElementById('atividadeProgresso').value = a.progresso || 0;
-            if (document.getElementById('atividadeTags')) document.getElementById('atividadeTags').value = Array.isArray(a.tags) ? a.tags.join(', ') : (a.tags || '');
-            if (document.getElementById('atividadeEstimado')) document.getElementById('atividadeEstimado').value = a.tempoEstimadoMin || '';
-            if (document.getElementById('atividadeGasto')) document.getElementById('atividadeGasto').value = a.tempoGastoMin || '';
-            if (document.getElementById('atividadeLembreteDias')) document.getElementById('atividadeLembreteDias').value = a.lembreteDias || 0;
-            if (document.getElementById('atividadeLembreteHorario')) document.getElementById('atividadeLembreteHorario').value = a.lembreteHorario ? new Date(a.lembreteHorario).toISOString().slice(0,16) : '';
-        }
-        modal.classList.add('active');
-        return;
-    }
-
-    // Se modal não existe, fallback para painel inline (legacy)
-    console.debug('modalAtividade não encontrado — abrindo painel inline como fallback', editId);
+    // Sempre usar o painel inline para criar/editar atividade
     abrirAbaNovaAtividade();
     const container = document.getElementById('novaAtividadeInline');
-    if (!container) { console.error('Nenhum modal ou painel inline disponível para criar/editar atividade.'); return; }
+    if (!container) { console.error('Nenhum painel inline disponível para criar/editar atividade.'); return; }
     // limpar qualquer editId anterior
     delete container.dataset.editId;
     // limpar campos inline
