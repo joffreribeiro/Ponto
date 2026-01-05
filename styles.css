@@ -1187,7 +1187,6 @@ td.evento-periodo-vespertino.evento-vertical {
 }
 
 /* Atividades */
-.atividade-item { padding: 10px; margin-bottom: 8px; border-radius:6px; border:1px solid #e5e7eb; background:#ffffff; }
 .atividade-item strong { display:block; margin-bottom:4px; }
 .atividade-item .small-text { color: #6b7280; }
 
@@ -1196,8 +1195,18 @@ td.evento-periodo-vespertino.evento-vertical {
 .kanban-column { flex:1; background: #f8fafc; padding:8px; border-radius:6px; min-width:200px; max-width:33%; }
 .kanban-column h4 { margin:4px 0 8px 0; font-size:14px; }
 .kanban-list { min-height:40px; display:flex; flex-direction:column; gap:8px; }
-.kanban-card { background:#fff; padding:8px; border-radius:6px; border:1px solid #e5e7eb; cursor:grab; }
+.kanban-card { cursor:grab; }
 .kanban-card.dragging { opacity:0.6; }
+
+/* Consolidated card styles shared between Kanban, Atividades (table items) and subtasks */
+.activity-card,
+.kanban-card,
+#subtasksList li {
+    background: #ffffff;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
 
 /* Modal Atividade tweaks */
 #modalAtividade .modal-content { max-width:720px; }
