@@ -1059,46 +1059,62 @@ document.addEventListener('DOMContentLoaded', inicializar);
 // ============= ABAS =============
 
 function configurarAbas() {
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    const nav = document.querySelector('.tabs');
+    if (!nav) return;
+    // evitar múltiplas inicializações
+    if (nav._tabsInit) return;
 
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const alvo = btn.dataset.tab;
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
+    const activate = (btn) => {
+        const alvo = btn && btn.dataset && btn.dataset.tab;
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const sec = document.getElementById(alvo);
+        if (sec) sec.classList.add('active');
+    };
 
-            btn.classList.add('active');
-            const sec = document.getElementById(alvo);
-            if (sec) sec.classList.add('active');
+    if (window.Utils && Utils.delegate) {
+        Utils.delegate(nav, '.tab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar aba (delegate):',err);} });
+    } else {
+        nav.addEventListener('click', function(e){
+            const btn = e.target.closest && e.target.closest('.tab-btn');
+            if (!btn) return;
+            try { activate(btn); } catch(err){ console.error('Erro ao ativar aba:', err); }
         });
-    });
+    }
+    nav._tabsInit = true;
 }
 
 function configurarSubAbas() {
-    const subBtns = document.querySelectorAll('.subtab-btn');
-    const subContents = document.querySelectorAll('.subtab-content');
+    const container = document.querySelector('.subtabs');
+    if (!container) return;
+    if (container._subtabsInit) return;
 
-    subBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const alvo = btn.dataset.subtab;
-            subBtns.forEach(b => b.classList.remove('active'));
-            subContents.forEach(c => c.classList.remove('active'));
+    const activate = (btn) => {
+        const alvo = btn && btn.dataset && btn.dataset.subtab;
+        const subBtns = container.querySelectorAll('.subtab-btn');
+        const subContents = document.querySelectorAll('.subtab-content');
+        subBtns.forEach(b => b.classList.remove('active'));
+        subContents.forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const sec = document.getElementById(alvo);
+        if (sec) sec.classList.add('active');
+        if (alvo === 'ponto-config') renderizarAcordos();
+        if (alvo === 'ponto-eventos') renderizarEventos();
+    };
 
-            btn.classList.add('active');
-            const sec = document.getElementById(alvo);
-            if (sec) sec.classList.add('active');
-
-            // Re-renderiza listas quando abre a aba de acordos
-            if (alvo === 'ponto-config') {
-                renderizarAcordos();
-            }
-            // Re-renderiza eventos quando abre a aba de eventos
-            if (alvo === 'ponto-eventos') {
-                renderizarEventos();
-            }
+    if (window.Utils && Utils.delegate) {
+        Utils.delegate(container, '.subtab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar sub-aba (delegate):',err);} });
+    } else {
+        container.addEventListener('click', function(e){
+            const btn = e.target.closest && e.target.closest('.subtab-btn');
+            if (!btn) return;
+            try { activate(btn); } catch(err){ console.error('Erro ao ativar sub-aba:', err); }
         });
-    });
+    }
+    container._subtabsInit = true;
 }
 
 function configurarModalAcordo() {
