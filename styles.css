@@ -162,6 +162,7 @@
     --bg-card: #ffffff;
     --bg-soft: #f8f9fa;
 
+    /* Core colors */
     --primary: #1e3a8a;
     --primary-soft: #dbeafe;
     --primary-dark: #1e40af;
@@ -193,6 +194,18 @@
     --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+    /* Layout / density variables */
+    --font-size-base: 14px;
+    --h1-size: 32px;
+    --h2-size: 20px;
+    --line-height-base: 1.5;
+
+    --card-padding: 12px 14px;
+    --card-gap: 12px;
+
+    /* Accessible focus color */
+    --focus-ring: rgba(30,64,175,0.18);
 }
 
 /* ================================================
@@ -210,11 +223,67 @@ html, body {
     font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: var(--text-main);
     background: var(--bg-page);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
 }
 
 body {
-    line-height: 1.4;
+    line-height: var(--line-height-base);
 }
+
+/* Utility: compact mode for dense lists */
+body.compact {
+    --card-padding: 8px 10px;
+    --card-gap: 8px;
+    --font-size-base: 13px;
+}
+
+/* Card and interaction polish */
+.activity-card, .card {
+    transition: box-shadow .18s ease, transform .12s ease, background .12s ease;
+}
+.activity-card:hover, .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Buttons: consistent styles */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary {
+    background: var(--secondary-soft);
+    color: var(--secondary-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Focus visible for accessibility */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    border-radius: 8px;
+}
+
+/* Small helpers */
+.icon { display:inline-flex; align-items:center; justify-content:center; }
 
 /* ================================================
    Header / título
