@@ -1061,11 +1061,13 @@ document.addEventListener('DOMContentLoaded', inicializar);
 function configurarAbas() {
     const nav = document.querySelector('.tabs');
     if (!nav) return;
+    console.debug && console.debug('configurarAbas: nav found', !!nav);
     // evitar múltiplas inicializações
     if (nav._tabsInit) return;
 
     const activate = (btn) => {
         const alvo = btn && btn.dataset && btn.dataset.tab;
+        console.debug && console.debug('configurarAbas.activate ->', alvo);
         const tabBtns = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -1076,8 +1078,10 @@ function configurarAbas() {
     };
 
     if (window.Utils && Utils.delegate) {
+        console.debug && console.debug('configurarAbas: using Utils.delegate');
         Utils.delegate(nav, '.tab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar aba (delegate):',err);} });
     } else {
+        console.debug && console.debug('configurarAbas: using fallback listener');
         nav.addEventListener('click', function(e){
             const btn = e.target.closest && e.target.closest('.tab-btn');
             if (!btn) return;
@@ -1090,10 +1094,12 @@ function configurarAbas() {
 function configurarSubAbas() {
     const container = document.querySelector('.subtabs');
     if (!container) return;
+    console.debug && console.debug('configurarSubAbas: container found', !!container);
     if (container._subtabsInit) return;
 
     const activate = (btn) => {
         const alvo = btn && btn.dataset && btn.dataset.subtab;
+        console.debug && console.debug('configurarSubAbas.activate ->', alvo);
         const subBtns = container.querySelectorAll('.subtab-btn');
         const subContents = document.querySelectorAll('.subtab-content');
         subBtns.forEach(b => b.classList.remove('active'));
@@ -1106,8 +1112,10 @@ function configurarSubAbas() {
     };
 
     if (window.Utils && Utils.delegate) {
+        console.debug && console.debug('configurarSubAbas: using Utils.delegate');
         Utils.delegate(container, '.subtab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar sub-aba (delegate):',err);} });
     } else {
+        console.debug && console.debug('configurarSubAbas: using fallback listener');
         container.addEventListener('click', function(e){
             const btn = e.target.closest && e.target.closest('.subtab-btn');
             if (!btn) return;
