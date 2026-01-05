@@ -261,6 +261,22 @@ body.compact {
     cursor: pointer;
 }
 
+/* Icon / badge standardization */
+.btn-icon { padding: 6px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+.btn-icon .icon, .btn-icon > svg { width: 18px; height: 18px; display: inline-block; }
+.icon { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+
+/* Badges (status/days) */
+.badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.badge--overdue { background: var(--negative-soft); color: var(--negative); }
+.badge--due { background: var(--warning-soft); color: var(--warning); }
+.badge--ok { background: var(--positive-soft); color: var(--positive); }
+.badge--order { background: var(--info-soft); color: var(--info); }
+
+/* Small adjustments to global corner radius for a tighter look */
+:root { --border-radius-base: 8px; }
+.card, .activity-card { border-radius: var(--border-radius-base); }
+
 /* Focus visible for accessibility */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: none;
