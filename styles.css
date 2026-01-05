@@ -29,23 +29,7 @@
     max-height: 65vh !important;
     padding-bottom: 8px;
 }
-.nova-sidebar {
-    flex-shrink: 0 !important;
-    min-width: 180px !important;
-    max-width: 220px !important;
-    border-right: 2px solid #1e40af !important;
-    padding-right: 12px !important;
-    background: #f0f6ff !important;
-    border-radius: 10px !important;
-    box-shadow: 0 2px 12px rgba(30,64,175,0.08) !important;
-    margin-right: 0 !important;
-    height: 100% !important;
-    color: #1e40af !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 10 !important;
-    align-self: flex-start !important;
-}
+.nova-sidebar { /* legacy removed — canonical .nova-sidebar appears later */ }
 .modal-content.modal-medium .modal-body > div[style*="flex:1"] {
     flex: 1 1 0%;
     min-width: 0;
@@ -191,9 +175,10 @@
     --info: #0284c7;
     --info-soft: #e0f2fe;
 
-    --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    /* Shadows reduced for a cleaner, modern look */
+    --shadow-soft: 0 1px 1px rgba(0, 0, 0, 0.04);
+    --shadow-medium: 0 2px 6px rgba(0, 0, 0, 0.06);
+    --shadow-large: 0 6px 16px rgba(0, 0, 0, 0.08);
 
     /* Layout / density variables */
     --font-size-base: 14px;
@@ -201,8 +186,9 @@
     --h2-size: 20px;
     --line-height-base: 1.5;
 
-    --card-padding: 12px 14px;
-    --card-gap: 12px;
+    /* Slightly more compact default card padding; can be toggled with body.compact */
+    --card-padding: 9px 10px;
+    --card-gap: 10px;
 
     /* Accessible focus color */
     --focus-ring: rgba(30,64,175,0.18);
@@ -240,10 +226,10 @@ body.compact {
 
 /* Card and interaction polish */
 .activity-card, .card {
-    transition: box-shadow .18s ease, transform .12s ease, background .12s ease;
+    transition: box-shadow .14s ease, transform .1s ease, background .12s ease;
 }
 .activity-card:hover, .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
 }
 
@@ -1263,12 +1249,12 @@ td.evento-periodo-vespertino.evento-vertical {
 .kanban-card,
 #subtasksList li {
     background: #ffffff;
-    padding: 12px 14px;
+    padding: var(--card-padding);
     border-radius: 12px;
     border: 1px solid var(--border-soft);
     box-shadow: var(--shadow-soft);
     display: flex;
-    gap: 12px;
+    gap: var(--card-gap);
     align-items: center;
 }
 
