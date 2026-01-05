@@ -377,6 +377,81 @@ function moveAtividadeToStatus(id, status) {
     }
 }
 
+// ===== Quick edit inline helpers for Kanban cards =====
+function getAtividadeById(id) {
+    return (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.find(a => a.id === id) : null;
+}
+
+function abrirQuickEditCard(id) {
+    const activity = getAtividadeById(id);
+    if (!activity) return;
+    const container = document.getElementById('atividadesKanban');
+    if (!container) return;
+    const card = container.querySelector(`.kanban-item[data-id="${id}"]`);
+    if (!card) return;
+    if (card.classList.contains('editing')) return;
+    card.classList.add('editing');
+    const currentTitle = activity.titulo || activity.objeto || '';
+    const currentResp = activity.responsavel || '';
+    const currentPrio = activity.prioridade || 'media';
+    const currentProg = Number(activity.progresso || 0) || 0;
+    const editor = document.createElement('div');
+    editor.className = 'kanban-quickedit';
+    editor.innerHTML = `
+        <div class="ke-row"><input class="ke-title" value="${escapeHtml(currentTitle)}" placeholder="Título"></div>
+        <div class="ke-row"><input class="ke-resp" value="${escapeHtml(currentResp)}" placeholder="Responsável"></div>
+        <div class="ke-row"><select class="ke-prio">
+            <option value="critica">Crítica</option>
+            <option value="alta">Alta</option>
+            <option value="media">Média</option>
+            <option value="baixa">Baixa</option>
+        </select>
+        <input type="number" class="ke-prog" value="${currentProg}" min="0" max="100" style="width:80px;margin-left:8px;">%</div>
+        <div class="ke-actions">
+            <button class="btn-secondary" data-action="cancel-quick" data-id="${id}">Cancelar</button>
+            <button class="btn-primary" data-action="save-quick" data-id="${id}">Salvar</button>
+        </div>
+    `;
+    // set select value
+    setTimeout(() => { const sel = editor.querySelector('.ke-prio'); if (sel) sel.value = currentPrio; }, 0);
+    // hide main desc and append editor
+    const desc = card.querySelector('.kanban-desc'); if (desc) desc.style.display = 'none';
+    card.appendChild(editor);
+    // focus title
+    const t = editor.querySelector('.ke-title'); if (t) t.focus();
+}
+
+function cancelarQuickEditCard(id, cardEl) {
+    const container = document.getElementById('atividadesKanban');
+    const card = cardEl || (container && container.querySelector(`.kanban-item[data-id="${id}"]`));
+    if (!card) return;
+    const editor = card.querySelector('.kanban-quickedit');
+    if (editor) editor.remove();
+    const desc = card.querySelector('.kanban-desc'); if (desc) desc.style.display = '';
+    card.classList.remove('editing');
+}
+
+function salvarQuickEditCard(id, cardEl) {
+    const container = document.getElementById('atividadesKanban');
+    const card = cardEl || (container && container.querySelector(`.kanban-item[data-id="${id}"]`));
+    if (!card) return;
+    const editor = card.querySelector('.kanban-quickedit');
+    if (!editor) return;
+    const title = editor.querySelector('.ke-title')?.value?.trim() || '';
+    const resp = editor.querySelector('.ke-resp')?.value?.trim() || '';
+    const prio = editor.querySelector('.ke-prio')?.value || 'media';
+    const prog = Number(editor.querySelector('.ke-prog')?.value || 0) || 0;
+    const list = AppState.dados && AppState.dados.atividades ? AppState.dados.atividades : [];
+    const idx = list.findIndex(a => a.id === id);
+    if (idx >= 0) {
+        list[idx] = Object.assign({}, list[idx], { titulo: title, responsavel: resp, prioridade: prio, progresso: prog, atualizadoEm: new Date().toISOString() });
+        AppState.dados.atividades = list;
+        AppState.save();
+        // refresh kanban and activities view
+        renderizarAtividades();
+    }
+}
+
 // Abre o novo modal de atividade completa (com barra lateral)
 function abrirModalAtividade(editId) {
         // Adiciona auto-preenchimento TED/PTrab -> Objeto/Processo Principal
@@ -388,25 +463,31 @@ function abrirModalAtividade(editId) {
                 if (!valor) return;
                 const match = (AppState.dados.atividades || []).find(x => x.tedPtrab && x.tedPtrab.trim() === valor);
                 if (match) {
-                    if (window.Utils && Utils.setValue) {
-                        Utils.setValue('atividadeObjetoCompleta', match.objeto || '');
-                        Utils.setValue('atividadeProcessoPrincipalCompleta', match.processoPrincipal || '');
+                    if (window.Utils && Utils.delegate) {
+                        Utils.delegate(container, 'button[data-action]', 'click', (e, btn) => {
+                            const action = btn.dataset.action;
+                            const id = btn.dataset.id;
+                            if (action === 'editar') return editarAtividade(id);
+                            if (action === 'remover') return removerAtividade(id);
+                            if (action === 'quickedit') return abrirQuickEditCard(id);
+                            if (action === 'save-quick') return salvarQuickEditCard(id, btn.closest('.kanban-item'));
+                            if (action === 'cancel-quick') return cancelarQuickEditCard(id, btn.closest('.kanban-item'));
+                        });
                     } else {
-                        if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = match.objeto || '';
-                        if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = match.processoPrincipal || '';
+                        container.querySelectorAll('button[data-action]').forEach(b => {
+                            b.removeEventListener('click', b._kbHandler);
+                            b._kbHandler = (ev) => {
+                                const action = b.dataset.action;
+                                const id = b.dataset.id;
+                                if (action === 'editar') return editarAtividade(id);
+                                if (action === 'remover') return removerAtividade(id);
+                                if (action === 'quickedit') return abrirQuickEditCard(id);
+                                if (action === 'save-quick') return salvarQuickEditCard(id, b.closest('.kanban-item'));
+                                if (action === 'cancel-quick') return cancelarQuickEditCard(id, b.closest('.kanban-item'));
+                            };
+                            b.addEventListener('click', b._kbHandler);
+                        });
                     }
-                }
-            };
-            tedInput.addEventListener('blur', handler);
-            AppState._listeners.tedBlurAttached = true;
-            AppState._listeners.tedBlurHandler = handler;
-        }
-    const modal = document.getElementById('modalNovaAtividadeCompleta');
-    if (!modal) { alert('Modal de atividade não encontrado!'); return; }
-    // Limpa todos os campos
-    const ids = [
-        'atividadeOrdemCompleta','atividadeTedPtrabCompleta','atividadeObjetoCompleta','atividadeProcessoPrincipalCompleta','atividadeAssuntoCompleta','atividadeProcessoSolicitacaoCompleta','atividadeDataDocCompleta','atividadeTipoDocCompleta','atividadeNumeroDocCompleta','atividadeRemetenteCompleta','atividadeDestinatarioCompleta','atividadeAcaoRealizarCompleta','atividadePrioridadeCompleta','atividadePrazoCompleta','atividadeDiasCompleta','atividadeStatusCompleta','atividadeProgressoCompleta','atividadeTagsCompleta','atividadeLembreteDiasCompleta','atividadeLembreteHorarioCompleta','atividadeObservacoesCompleta','atividadeFinalizadoCompleta','atividadeArquivoCompleta','comentarioInputCompleta'];
-    ids.forEach(id => { const n = document.getElementById(id); if (n) { if(n.type==='checkbox') n.checked=false; else n.value=''; }});
     // Limpa listas
     ['anexosListCompleta','comentariosListCompleta'].forEach(id => { const ul = document.getElementById(id); if (ul) ul.innerHTML = ''; });
     // Preenche ordem automática se for novo

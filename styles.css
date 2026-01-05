@@ -439,6 +439,19 @@ header h1 {
 .kanban-progress .progress-label { position:absolute; right:8px; top:-18px; font-size:11px; color:var(--text-muted); }
 .kanban-footer { margin-top:8px; display:flex; gap:8px; align-items:center; }
 
+/* Quick edit UI */
+.kanban-quickedit { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+.kanban-quickedit .ke-row { display:flex; gap:8px; align-items:center; }
+.kanban-quickedit input[type="text"], .kanban-quickedit input[type="number"], .kanban-quickedit select { padding:8px 10px; border:1px solid var(--border-soft); border-radius:8px; font-size:13px; }
+.kanban-quickedit .ke-actions { display:flex; justify-content:flex-end; gap:8px; }
+.kanban-item.card { transition: transform 180ms ease, box-shadow 180ms ease; }
+.kanban-item.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-medium); }
+.kanban-item.editing { outline: 2px dashed var(--primary-soft); }
+
+/* Smooth column appearance */
+.kanban-column { transition: all 240ms ease; }
+.kanban-list { transition: all 220ms ease; }
+
 /* Form controls spacing and touch targets */
 .form-group input,
 .form-group select,
