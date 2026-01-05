@@ -407,8 +407,7 @@ function renderizarTabelaAtividades(items) {
     }
     // Fallback: nada a fazer se módulo não estiver carregado
 }
-    _draggingAtividadeId = null;
-}
+let _draggingAtividadeId = null;
 function onAtividadeDragOver(e) {
     e.preventDefault();
 }
