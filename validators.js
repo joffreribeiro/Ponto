@@ -265,6 +265,50 @@ const Validators = {
     },
 
     /**
+     * Valida uma atividade (usada pelo modal Nova Atividade)
+     */
+    validateAtividade(atividade) {
+        const errors = [];
+        if (!atividade || typeof atividade !== 'object') {
+            errors.push('Atividade deve ser um objeto válido');
+            return errors;
+        }
+
+        // ordem (string/numero) obrigatória
+        if (!atividade.ordem || String(atividade.ordem).trim() === '') {
+            errors.push('Ordem da atividade é obrigatória');
+        }
+
+        // prazo (opcional) deve ser data válida se preenchido
+        if (atividade.prazo && !this.isValidDate(String(atividade.prazo))) {
+            errors.push('Prazo inválido (use YYYY-MM-DD)');
+        }
+
+        // status (se fornecido) deve ser um dos permitidos
+        if (atividade.status) {
+            const allowed = ['pendente','em andamento','bloqueada','concluida'];
+            if (typeof atividade.status !== 'string' || !allowed.includes(atividade.status)) {
+                errors.push('Status da atividade inválido');
+            }
+        }
+
+        // prioridade (se fornecida)
+        if (atividade.prioridade) {
+            const allowedP = ['baixa','media','alta','critica'];
+            if (typeof atividade.prioridade !== 'string' || !allowedP.includes(atividade.prioridade)) {
+                errors.push('Prioridade inválida');
+            }
+        }
+
+        // finalizado deve ser booleano quando fornecido
+        if (atividade.finalizado !== undefined && typeof atividade.finalizado !== 'boolean') {
+            errors.push('Campo finalizado deve ser booleano');
+        }
+
+        return errors;
+    },
+
+    /**
      * Valida as configurações globais
      */
     validateConfiguracoes(config) {

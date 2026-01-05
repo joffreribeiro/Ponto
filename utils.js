@@ -160,6 +160,49 @@ const Utils = {
     },
 
     /**
+     * DOM helper: retorna elemento por id
+     * @param {string} id
+     */
+    $id(id) {
+        return document.getElementById(id);
+    },
+
+    /**
+     * Retorna valor de input (string) ou '' se não existir
+     */
+    getValue(id) {
+        const el = this.$id(id);
+        if (!el) return '';
+        if (el.type === 'checkbox') return el.checked;
+        return el.value ?? '';
+    },
+
+    /**
+     * Define valor de input se existir
+     */
+    setValue(id, value) {
+        const el = this.$id(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!value;
+        else el.value = value ?? '';
+    },
+
+    /**
+     * Delegation helper: adiciona listener delegado
+     * @param {Element} root
+     * @param {string} selector
+     * @param {string} eventName
+     * @param {Function} handler
+     */
+    delegate(root, selector, eventName, handler) {
+        if (!root) return;
+        root.addEventListener(eventName, function(e) {
+            const target = e.target.closest(selector);
+            if (target && root.contains(target)) handler.call(target, e, target);
+        });
+    },
+
+    /**
      * Retry com backoff exponencial
      * @param {Function} fn - Função a executar
      * @param {number} maxRetries - Máximo de tentativas

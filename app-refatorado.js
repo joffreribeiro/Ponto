@@ -28,6 +28,10 @@ const AppState = {
      */
     init() {
         this.dados = Storage.load();
+        // Buffers temporários usados pelos modais (evita poluir window)
+        this.modalTemp = this.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+        // Listener references para possível cleanup
+        this._listeners = this._listeners || {};
     },
 
     /**
@@ -141,6 +145,27 @@ function inicializar() {
             checkAtividadesDeadlines();
             setInterval(checkAtividadesDeadlines, 30 * 60 * 1000);
         } catch (e) { /* ignore */ }
+        // Delegação de eventos para ações de atividade (editar/remover)
+        try {
+            const atividadesLista = document.getElementById('atividadesLista');
+            if (atividadesLista && window.Utils && Utils.delegate) {
+                Utils.delegate(atividadesLista, 'button[data-action]', 'click', (e, target) => {
+                    const action = target.dataset.action;
+                    const id = target.dataset.id;
+                    if (action === 'editar') editarAtividade(id);
+                    if (action === 'remover') removerAtividade(id);
+                });
+            }
+            const tabelaTbody = document.querySelector('#tabelaAtividades tbody');
+            if (tabelaTbody && window.Utils && Utils.delegate) {
+                Utils.delegate(tabelaTbody, 'button[data-action]', 'click', (e, target) => {
+                    const action = target.dataset.action;
+                    const id = target.dataset.id;
+                    if (action === 'editar') editarAtividade(id);
+                    if (action === 'remover') removerAtividade(id);
+                });
+            }
+        } catch (e) { /* ignore delegation errors */ }
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -302,8 +327,8 @@ function renderizarAtividades() {
                     <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
-                        <button class="btn-secondary" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">✏️</button>
-                        <button class="btn-secondary" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">🗑️</button>
+                        <button class="btn-secondary" data-action="editar" data-id="${a.id || idx}">✏️</button>
+                        <button class="btn-secondary" data-action="remover" data-id="${a.id || idx}">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -367,8 +392,8 @@ function renderizarTabelaAtividades(items) {
             <td>${a.finalizado ? 'Sim' : 'Não'}</td>
             <td>${escapeHtml(a.status || '')}</td>
             <td>
-                <button class="btn-secondary" onclick="editarAtividade('${a.id}')">✏️</button>
-                <button class="btn-secondary" onclick="removerAtividade('${a.id}')">🗑️</button>
+                <button class="btn-secondary" data-action="editar" data-id="${a.id}">✏️</button>
+                <button class="btn-secondary" data-action="remover" data-id="${a.id}">🗑️</button>
             </td>
         </tr>`;
     }).join('');
@@ -458,17 +483,25 @@ function moveAtividadeToStatus(id, status) {
 function abrirModalAtividade(editId) {
         // Adiciona auto-preenchimento TED/PTrab -> Objeto/Processo Principal
         const tedInput = document.getElementById('atividadeTedPtrabCompleta');
-        if (tedInput && !tedInput._autoFillListener) {
-            tedInput.addEventListener('blur', function() {
+        AppState._listeners = AppState._listeners || {};
+        if (tedInput && !AppState._listeners.tedBlurAttached) {
+            const handler = function() {
                 const valor = tedInput.value.trim();
                 if (!valor) return;
                 const match = (AppState.dados.atividades || []).find(x => x.tedPtrab && x.tedPtrab.trim() === valor);
                 if (match) {
-                    if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = match.objeto || '';
-                    if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = match.processoPrincipal || '';
+                    if (window.Utils && Utils.setValue) {
+                        Utils.setValue('atividadeObjetoCompleta', match.objeto || '');
+                        Utils.setValue('atividadeProcessoPrincipalCompleta', match.processoPrincipal || '');
+                    } else {
+                        if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = match.objeto || '';
+                        if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = match.processoPrincipal || '';
+                    }
                 }
-            });
-            tedInput._autoFillListener = true;
+            };
+            tedInput.addEventListener('blur', handler);
+            AppState._listeners.tedBlurAttached = true;
+            AppState._listeners.tedBlurHandler = handler;
         }
     const modal = document.getElementById('modalNovaAtividadeCompleta');
     if (!modal) { alert('Modal de atividade não encontrado!'); return; }
@@ -551,6 +584,16 @@ function salvarNovaAtividadeCompleta() {
         finalizado: get('atividadeFinalizadoCompleta') === 'true',
         // anexos, comentários: implementar se necessário
     };
+    // validar atividade antes de salvar
+    try {
+        const errs = Validators.validateAtividade(atividade);
+        if (Array.isArray(errs) && errs.length) {
+            Notifications.error('Erro ao salvar atividade: ' + errs.join('; '));
+            return;
+        }
+    } catch (e) {
+        console.error('Erro na validação da atividade:', e);
+    }
     // Se for edição, atualiza; senão, adiciona
     const modal = document.getElementById('modalNovaAtividadeCompleta');
     const editId = modal?.dataset.editId;
@@ -636,9 +679,9 @@ function salvarAtividade() {
     };
 
     let list = AppState.dados.atividades || [];
-    const tempSub = (window.__modalSubtasks && window.__modalSubtasks['new']) || [];
-    const tempAnexos = (window.__modalAnexos && window.__modalAnexos['new']) || [];
-    const tempComentarios = (window.__modalComentarios && window.__modalComentarios['new']) || [];
+    const tempSub = (AppState.modalTemp && Array.isArray(AppState.modalTemp.subtasks)) ? AppState.modalTemp.subtasks.slice() : [];
+    const tempAnexos = (AppState.modalTemp && Array.isArray(AppState.modalTemp.anexos)) ? AppState.modalTemp.anexos.slice() : [];
+    const tempComentarios = (AppState.modalTemp && Array.isArray(AppState.modalTemp.comentarios)) ? AppState.modalTemp.comentarios.slice() : [];
 
     if (editId) {
         const idx = list.findIndex(x => x.id === editId);
@@ -662,9 +705,7 @@ function salvarAtividade() {
     AppState.dados.atividades = list;
     AppState.save();
     // limpar buffers temporários do modal
-    try { window.__modalAnexos = { 'new': [] }; } catch(e){}
-    try { window.__modalComentarios = { 'new': [] }; } catch(e){}
-    try { window.__modalSubtasks = { 'new': [] }; } catch(e){}
+    try { AppState.modalTemp.anexos = []; AppState.modalTemp.comentarios = []; AppState.modalTemp.subtasks = []; } catch(e){}
     fecharModalAtividade();
     renderizarAtividades();
     Notifications.success('Atividade salva');
@@ -803,9 +844,9 @@ function adicionarSubtaskModal() {
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
-    window.__modalSubtasks = window.__modalSubtasks || {};
-    window.__modalSubtasks['new'] = window.__modalSubtasks['new'] || [];
-    window.__modalSubtasks['new'].push({ titulo: txt, concluido: false });
+    AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+    AppState.modalTemp.subtasks = AppState.modalTemp.subtasks || [];
+    AppState.modalTemp.subtasks.push({ titulo: txt, concluido: false });
 }
 
 function toggleSubtask(atividadeId, subIndex, checked) {
@@ -865,9 +906,9 @@ function adicionarAnexoModal(event) {
                 Notifications.success('Anexo adicionado');
             }
         } else {
-            window.__modalAnexos = window.__modalAnexos || {};
-            window.__modalAnexos['new'] = window.__modalAnexos['new'] || [];
-            window.__modalAnexos['new'].push(anexo);
+            AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+            AppState.modalTemp.anexos = AppState.modalTemp.anexos || [];
+            AppState.modalTemp.anexos.push(anexo);
             atualizarListaAnexosModal();
             Notifications.success('Anexo pronto (será salvo ao criar a atividade)');
         }
@@ -884,7 +925,7 @@ function atualizarListaAnexosModal() {
     if (!ul) return;
     ul.innerHTML = '';
     if (editId) return; // editing handled by abrirModalAtividade
-    const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
+    const items = (AppState.modalTemp && AppState.modalTemp.anexos) ? AppState.modalTemp.anexos : [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
         li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">🗑️</button>`;
@@ -905,10 +946,10 @@ function removerAnexo(atividadeId, index) {
         renderizarAtividades();
         Notifications.info('Anexo removido');
     } else {
-        window.__modalAnexos = window.__modalAnexos || {};
-        const arr = window.__modalAnexos['new'] || [];
+        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+        const arr = AppState.modalTemp.anexos || [];
         arr.splice(index,1);
-        window.__modalAnexos['new'] = arr;
+        AppState.modalTemp.anexos = arr;
         atualizarListaAnexosModal();
         Notifications.info('Anexo removido (modal)');
     }
@@ -933,9 +974,9 @@ function adicionarComentarioModal() {
             Notifications.success('Comentário adicionado');
         }
     } else {
-        window.__modalComentarios = window.__modalComentarios || {};
-        window.__modalComentarios['new'] = window.__modalComentarios['new'] || [];
-        window.__modalComentarios['new'].push(comment);
+        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+        AppState.modalTemp.comentarios = AppState.modalTemp.comentarios || [];
+        AppState.modalTemp.comentarios.push(comment);
         atualizarListaComentariosModal();
         Notifications.success('Comentário pronto (será salvo ao criar a atividade)');
     }
@@ -949,7 +990,7 @@ function atualizarListaComentariosModal() {
     if (!ul) return;
     ul.innerHTML = '';
     if (editId) return; // editing handled by abrirModalAtividade
-    const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
+    const items = (AppState.modalTemp && AppState.modalTemp.comentarios) ? AppState.modalTemp.comentarios : [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
         li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">🗑️</button>`;
@@ -969,10 +1010,10 @@ function removerComentario(atividadeId, index) {
         abrirModalAtividade(atividadeId);
         Notifications.info('Comentário removido');
     } else {
-        window.__modalComentarios = window.__modalComentarios || {};
-        const arr = window.__modalComentarios['new'] || [];
+        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+        const arr = AppState.modalTemp.comentarios || [];
         arr.splice(index,1);
-        window.__modalComentarios['new'] = arr;
+        AppState.modalTemp.comentarios = arr;
         atualizarListaComentariosModal();
         Notifications.info('Comentário removido (modal)');
     }
