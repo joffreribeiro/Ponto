@@ -330,7 +330,7 @@ function renderizarAtividades() {
         const ordemBadge = a.ordem ? `<span class="badge badge--order">${escapeHtml(a.ordem)}</span>` : '';
         const dueClass = (diasNum !== null && diasNum <= 3 && diasNum >= 0) ? 'due-soon' : '';
         return `
-            <div class="atividade-item ${dueClass}" data-idx="${idx}">
+            <div class="atividade-item activity-card ${dueClass}" data-idx="${idx}">
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         ${ordemBadge}
@@ -759,6 +759,7 @@ function adicionarSubtaskModal() {
     // otherwise, add to modal-only list
     const ul = document.getElementById('subtasksList');
     const li = document.createElement('li');
+    li.classList.add('activity-card');
     li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary" onclick="this.parentElement.remove()">🗑️</button>`;
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
