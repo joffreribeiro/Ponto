@@ -93,7 +93,7 @@
                     </div>
 
                     <div class="filter-group">
-                        <button type="button" class="btn-outline" onclick="limparFiltrosDashboard()" title="Limpar filtros">
+                        <button type="button" class="btn-outline" data-action="limparFiltrosDashboard" title="Limpar filtros">
                             🔄 Resetar
                         </button>
                     </div>
@@ -135,7 +135,7 @@
             <div class="card" style="margin-top: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h2 style="margin: 0;">📊 Analytics</h2>
-                    <button type="button" class="btn-secondary" onclick="toggleAnalytics()">
+                    <button type="button" class="btn-secondary" data-action="toggleAnalytics">
                         <span id="analyticsToggleText">Mostrar Gráficos</span>
                     </button>
                 </div>
@@ -390,13 +390,13 @@
                         <select id="acordoTimesheet"></select>
                     </div>
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="gerarTimesheetAcordo()">
+                        <button type="button" class="btn-primary" data-action="gerarTimesheetAcordo">
                             Gerar Timesheet
                         </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetCSV()">
+                        <button type="button" class="btn-secondary" data-action="exportarTimesheetCSV">
                             Exportar CSV
                         </button>
-                        <button type="button" class="btn-secondary" onclick="exportarTimesheetPDF()">
+                        <button type="button" class="btn-secondary" data-action="exportarTimesheetPDF">
                             Exportar PDF
                         </button>
                     </div>
@@ -408,23 +408,23 @@
             <div id="ponto-registros" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary" onclick="abrirModalRegistro()">
+                        <button type="button" class="btn-primary" data-action="abrirModalRegistro">
                             ➕ Novo Registro
                         </button>
-                        <button type="button" class="btn-secondary" onclick="exportarRegistrosCSV()">
+                        <button type="button" class="btn-secondary" data-action="exportarRegistrosCSV">
                             📊 Exportar Excel
                         </button>
-                        <button type="button" class="btn-secondary" onclick="exportarRegistrosPDF()">
+                        <button type="button" class="btn-secondary" data-action="exportarRegistrosPDF">
                             📄 Exportar PDF
                         </button>
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('inputImportRegistros').click()">
+                        <button type="button" class="btn-secondary" data-action="triggerClick" data-id="inputImportRegistros">
                             📥 Importar Excel
                         </button>
                         <input id="inputImportRegistros" type="file" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="importarRegistrosCSV(event)">
-                        <button type="button" class="btn-secondary" onclick="salvarBackupLocal()" title="Salvar todos os dados em arquivo">
+                        <button type="button" class="btn-secondary" data-action="salvarBackupLocal" title="Salvar todos os dados em arquivo">
                             💾 Backup
                         </button>
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('inputRestaurarBackup').click()" title="Restaurar dados de arquivo">
+                        <button type="button" class="btn-secondary" data-action="triggerClick" data-id="inputRestaurarBackup" title="Restaurar dados de arquivo">
                             📂 Restaurar
                         </button>
                         <input id="inputRestaurarBackup" type="file" accept=".json" style="display:none" onchange="restaurarBackupLocal(event)">
@@ -464,7 +464,7 @@
             <div id="ponto-config" class="subtab-content">
                 <div class="toolbar">
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary btn-icon" onclick="novoAcordo()">
+                        <button type="button" class="btn-primary btn-icon" data-action="novoAcordo">
                             <span class="icon">🧾</span>
                             <span>+ Novo Acordo</span>
                         </button>
@@ -481,15 +481,15 @@
                         <select id="filtroAcordoEventos"></select>
                     </div>
                     <div class="toolbar-actions">
-                        <button type="button" class="btn-primary btn-icon" onclick="abrirModalEvento()">
+                        <button type="button" class="btn-primary btn-icon" data-action="abrirModalEvento">
                             <span class="icon">📅</span>
                             <span>+ Novo Evento / Feriado</span>
                         </button>
-                        <button type="button" class="btn-secondary btn-icon" onclick="abrirModalNovoTipoEvento()">
+                        <button type="button" class="btn-secondary btn-icon" data-action="abrirModalNovoTipoEvento">
                             <span class="icon">⚙️</span>
                             <span>Gerenciar Tipos</span>
                         </button>
-                        <button type="button" class="btn-secondary btn-icon" onclick="exportarEventosExcel()">
+                        <button type="button" class="btn-secondary btn-icon" data-action="exportarEventosExcel">
                             <span class="icon">⬇️</span>
                             <span>Exportar Excel</span>
                         </button>
@@ -529,7 +529,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2>Registro de Ponto</h2>
-            <button type="button" class="modal-close" onclick="fecharModalRegistro()">×</button>
+            <button type="button" class="modal-close" data-action="fecharModalRegistro">×</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -584,8 +584,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="fecharModalRegistro()">✖️ Cancelar</button>
-            <button type="button" class="btn-primary" onclick="salvarRegistro()">💾 Salvar</button>
+            <button type="button" class="btn-secondary" data-action="fecharModalRegistro">✖️ Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarRegistro">💾 Salvar</button>
         </div>
     </div>
 </div>
@@ -595,7 +595,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2>Gerenciar Acordo</h2>
-            <button type="button" class="modal-close" onclick="fecharModalAcordo()">×</button>
+            <button type="button" class="modal-close" data-action="fecharModalAcordo">×</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -650,7 +650,7 @@
                     <div id="acordo-regras" class="acordo-panel">
                         <h3>Regras de Horário</h3>
                         <div class="table-scroll-nav">
-                            <button class="scroll-btn scroll-btn-left" onclick="scrollTableLeft(event)">‹</button>
+                            <button class="scroll-btn scroll-btn-left" data-action="scrollTableLeftNoEvent">‹</button>
                             <div class="table-container" id="tableScrollContainer">
                                 <table>
                                 <thead>
@@ -670,7 +670,7 @@
                                 <tbody id="tabelaRegrasAcordo"></tbody>
                             </table>
                             </div>
-                            <button class="scroll-btn scroll-btn-right" onclick="scrollTableRight(event)">›</button>
+                            <button class="scroll-btn scroll-btn-right" data-action="scrollTableRightNoEvent">›</button>
                         </div>
                         <div class="form-group">
                             <span class="group-label">Nova Regra:</span>
@@ -692,8 +692,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="fecharModalAcordo()">Cancelar</button>
-            <button type="button" class="btn-primary" onclick="salvarAcordo()">Salvar Acordo</button>
+            <button type="button" class="btn-secondary" data-action="fecharModalAcordo">Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarAcordo">Salvar Acordo</button>
         </div>
     </div>
 </div>
@@ -710,17 +710,17 @@
                     <!-- Barra lateral de navegação -->
                     <nav class="nova-sidebar" style="min-width:180px; border-right:1px solid #eee; padding-right:12px;">
                         <ul style="list-style:none; padding:0; margin:8px 0;">
-                            <li><a href="#" onclick="document.getElementById('atividadeOrdem').scrollIntoView(); return false;">Documento/Processo</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeTitulo').scrollIntoView(); return false;">Título/Descrição</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeResponsavel').scrollIntoView(); return false;">Responsável/Prazo</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeStatus').scrollIntoView(); return false;">Status/Progresso</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeTags').scrollIntoView(); return false;">Tags/Tempo</a></li>
-                            <li><a href="#" onclick="document.getElementById('subtaskInput').scrollIntoView(); return false;">Subtarefas</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeLembreteDias').scrollIntoView(); return false;">Lembretes</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeObservacoes').scrollIntoView(); return false;">Observações</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeFinalizado').scrollIntoView(); return false;">Finalizado</a></li>
-                            <li><a href="#" onclick="document.getElementById('atividadeArquivo').scrollIntoView(); return false;">Anexos</a></li>
-                            <li><a href="#" onclick="document.getElementById('comentarioInput').scrollIntoView(); return false;">Comentários</a></li>
+                            <li><a href="#" data-scroll-to="atividadeOrdem">Documento/Processo</a></li>
+                            <li><a href="#" data-scroll-to="atividadeTitulo">Título/Descrição</a></li>
+                            <li><a href="#" data-scroll-to="atividadeResponsavel">Responsável/Prazo</a></li>
+                            <li><a href="#" data-scroll-to="atividadeStatus">Status/Progresso</a></li>
+                            <li><a href="#" data-scroll-to="atividadeTags">Tags/Tempo</a></li>
+                            <li><a href="#" data-scroll-to="subtaskInput">Subtarefas</a></li>
+                            <li><a href="#" data-scroll-to="atividadeLembreteDias">Lembretes</a></li>
+                            <li><a href="#" data-scroll-to="atividadeObservacoes">Observações</a></li>
+                            <li><a href="#" data-scroll-to="atividadeFinalizado">Finalizado</a></li>
+                            <li><a href="#" data-scroll-to="atividadeArquivo">Anexos</a></li>
+                            <li><a href="#" data-scroll-to="comentarioInput">Comentários</a></li>
                         </ul>
                     </nav>
                     <!-- Formulário principal -->
@@ -985,7 +985,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary btn-cancelar-evento">Cancelar</button>
-                <button type="button" class="btn-primary" onclick="salvarEvento()">Salvar Evento</button>
+                <button type="button" class="btn-primary" data-action="salvarEvento">Salvar Evento</button>
             </div>
         </div>
     </div>
@@ -995,7 +995,7 @@
         <div class="modal-content modal-medium">
             <div class="modal-header">
                 <h2>Gerenciar Tipos de Eventos</h2>
-                <button type="button" class="modal-close" onclick="fecharModalTiposEvento()">×</button>
+                <button type="button" class="modal-close" data-action="fecharModalTiposEvento">×</button>
             </div>
 
             <div class="modal-body">
@@ -1011,7 +1011,7 @@
                 </div>
 
                 <div class="modal-buttons">
-                    <button type="button" class="btn-primary" onclick="adicionarNovoTipoEvento()">+ Adicionar Tipo</button>
+                    <button type="button" class="btn-primary" data-action="adicionarNovoTipoEvento">+ Adicionar Tipo</button>
                 </div>
 
                 <h3 class="section-title">Tipos existentes</h3>
@@ -1019,7 +1019,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="fecharModalTiposEvento()">Fechar</button>
+                <button type="button" class="btn-secondary" data-action="fecharModalTiposEvento">Fechar</button>
             </div>
         </div>
     </div>
@@ -1037,17 +1037,17 @@
             <!-- Barra lateral de navegação -->
             <nav class="nova-sidebar" style="min-width:180px; border-right:1px solid #eee; padding-right:12px;">
                 <ul style="list-style:none; padding:0; margin:8px 0;">
-                    <li><a href="#" onclick="document.getElementById('atividadeOrdemCompleta').scrollIntoView(); return false;">Documento/Processo</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeTituloCompleta').scrollIntoView(); return false;">Título/Descrição</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeResponsavelCompleta').scrollIntoView(); return false;">Responsável/Prazo</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeStatusCompleta').scrollIntoView(); return false;">Status/Progresso</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeTagsCompleta').scrollIntoView(); return false;">Tags/Tempo</a></li>
-                    <li><a href="#" onclick="document.getElementById('subtaskInputCompleta').scrollIntoView(); return false;">Subtarefas</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeLembreteDiasCompleta').scrollIntoView(); return false;">Lembretes</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeObservacoesCompleta').scrollIntoView(); return false;">Observações</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeFinalizadoCompleta').scrollIntoView(); return false;">Finalizado</a></li>
-                    <li><a href="#" onclick="document.getElementById('atividadeArquivoCompleta').scrollIntoView(); return false;">Anexos</a></li>
-                    <li><a href="#" onclick="document.getElementById('comentarioInputCompleta').scrollIntoView(); return false;">Comentários</a></li>
+                    <li><a href="#" data-scroll-to="atividadeOrdemCompleta">Documento/Processo</a></li>
+                    <li><a href="#" data-scroll-to="atividadeTituloCompleta">Título/Descrição</a></li>
+                    <li><a href="#" data-scroll-to="atividadeResponsavelCompleta">Responsável/Prazo</a></li>
+                    <li><a href="#" data-scroll-to="atividadeStatusCompleta">Status/Progresso</a></li>
+                    <li><a href="#" data-scroll-to="atividadeTagsCompleta">Tags/Tempo</a></li>
+                    <li><a href="#" data-scroll-to="subtaskInputCompleta">Subtarefas</a></li>
+                    <li><a href="#" data-scroll-to="atividadeLembreteDiasCompleta">Lembretes</a></li>
+                    <li><a href="#" data-scroll-to="atividadeObservacoesCompleta">Observações</a></li>
+                    <li><a href="#" data-scroll-to="atividadeFinalizadoCompleta">Finalizado</a></li>
+                    <li><a href="#" data-scroll-to="atividadeArquivoCompleta">Anexos</a></li>
+                    <li><a href="#" data-scroll-to="comentarioInputCompleta">Comentários</a></li>
                 </ul>
             </nav>
             <!-- Formulário principal -->

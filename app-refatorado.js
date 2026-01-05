@@ -3548,6 +3548,26 @@ function scrollTableRight(event) {
     }
 }
 
+// Wrapper versions that can be called via delegated `data-action` without an Event
+function scrollTableLeftNoEvent() {
+    const container = document.getElementById('tableScrollContainer');
+    if (container) container.scrollLeft -= 200;
+}
+
+function scrollTableRightNoEvent() {
+    const container = document.getElementById('tableScrollContainer');
+    if (container) container.scrollLeft += 200;
+}
+
+// Trigger a click on a target element by id (used by data-action="triggerClick")
+function triggerClick(targetId) {
+    try {
+        const t = document.getElementById(targetId || (this && this.dataset && this.dataset.target));
+        if (t) t.click();
+        else console.warn('triggerClick: alvo não encontrado', targetId);
+    } catch (e) { console.error('Erro em triggerClick', e); }
+}
+
 // ============= EXPORT/IMPORT EVENTOS EXCEL =============
 
 function exportarEventosExcel() {
@@ -4011,4 +4031,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
+
+// --- API grouping: expose a single namespace `App` with common action handlers.
+// This groups previously-global functions under `App.actions` while keeping
+// backward-compatible references on `window` for now. Later we can remove
+// the legacy globals and call only `App.actions.*` from the UI.
+(function(){
+    try {
+        window.App = window.App || {};
+        App.actions = App.actions || {};
+        const keys = [
+            'limparFiltrosDashboard', 'toggleAnalytics', 'gerarTimesheetAcordo',
+            'exportarTimesheetCSV','exportarTimesheetPDF','abrirModalRegistro',
+            'exportarRegistrosCSV','exportarRegistrosPDF','salvarBackupLocal',
+            'novoAcordo','abrirModalEvento','abrirModalNovoTipoEvento','exportarEventosExcel',
+            'fecharModalRegistro','salvarRegistro','fecharModalAcordo','salvarAcordo',
+            'scrollTableLeft','scrollTableRight','scrollTableLeftNoEvent','scrollTableRightNoEvent',
+            'salvarEvento','fecharModalTiposEvento','adicionarNovoTipoEvento','triggerClick'
+        ];
+
+        keys.forEach(k => { if (typeof window[k] === 'function') App.actions[k] = window[k]; });
+
+        // Also expose a convenience entry point for delegated actions
+        App.handleAction = function(actionName, id){
+            try {
+                if (App.actions && typeof App.actions[actionName] === 'function') {
+                    if (typeof id !== 'undefined' && id !== null && id !== '') return App.actions[actionName](id);
+                    return App.actions[actionName]();
+                }
+                // fallback: try window
+                if (typeof window[actionName] === 'function') {
+                    if (typeof id !== 'undefined' && id !== null && id !== '') return window[actionName](id);
+                    return window[actionName]();
+                }
+                console.warn('App.handleAction: ação não encontrada', actionName);
+            } catch (e) { console.error('Erro em App.handleAction', e); }
+        };
+
+        // For compatibility in templates we still keep functions on window,
+        // but future pass will remove them and update event delegation to call App.actions directly.
+    } catch (e) { console.error('Erro ao configurar namespace App:', e); }
+})();
 
