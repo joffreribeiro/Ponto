@@ -400,48 +400,13 @@ function renderizarTabelaAtividades(items) {
     tbody.innerHTML = rows;
 }
 
-function renderizarKanban(items) {
-    const kanban = document.getElementById('atividadesKanban');
-    if (!kanban) return;
-    const statuses = ['pendente','em andamento','bloqueada','concluida'];
-    const cols = statuses.map(s => ({ key:s, title: s === 'pendente' ? 'Pendente' : s === 'em andamento' ? 'Em andamento' : s === 'bloqueada' ? 'Bloqueada' : 'Concluída' }));
-    const html = cols.map(col => {
-        const cards = items.filter(i => i.status === col.key).map(a => `
-            <div class="kanban-card" draggable="true" data-id="${a.id}">
-                <strong>${escapeHtml(a.titulo)}</strong>
-                <div class="small-text">${escapeHtml(a.responsavel||'')} • ${escapeHtml(a.prioridade||'')}</div>
-            </div>
-        `).join('');
-        return `
-            <div class="kanban-column" data-status="${col.key}">
-                <h4>${col.title}</h4>
-                <div class="kanban-list">${cards}</div>
-            </div>
-        `;
-    }).join('');
-
-    kanban.innerHTML = `<div class="kanban-board">${html}</div>`;
-
-    // attach drag handlers
-    kanban.querySelectorAll('.kanban-card').forEach(card => {
-        card.addEventListener('dragstart', onAtividadeDragStart);
-        card.addEventListener('dragend', onAtividadeDragEnd);
-    });
-    kanban.querySelectorAll('.kanban-list').forEach(list => {
-        list.addEventListener('dragover', onAtividadeDragOver);
-        list.addEventListener('drop', onAtividadeDrop);
-    });
+// Forwarder to module `AtividadesTabela` (defined in atividades-tabela.js)
+function renderizarTabelaAtividades(items) {
+    if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
+        return window.AtividadesTabela.renderizarTabelaAtividades(items);
+    }
+    // Fallback: nada a fazer se módulo não estiver carregado
 }
-
-let _draggingAtividadeId = null;
-function onAtividadeDragStart(e) {
-    const id = e.currentTarget.dataset.id;
-    _draggingAtividadeId = id;
-    e.dataTransfer.setData('text/plain', id);
-    e.currentTarget.classList.add('dragging');
-}
-function onAtividadeDragEnd(e) {
-    e.currentTarget.classList.remove('dragging');
     _draggingAtividadeId = null;
 }
 function onAtividadeDragOver(e) {
