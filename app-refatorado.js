@@ -333,104 +333,23 @@ function renderizarAtividades() {
 }
 
 function renderizarTabelaAtividades(items) {
+    if (window.AtividadesTabela && typeof AtividadesTabela.renderizarTabelaAtividades === 'function') {
+        return AtividadesTabela.renderizarTabelaAtividades(items);
+    }
+    // fallback mínimo: limpa o tbody
     const tbody = document.querySelector('#tabelaAtividades tbody');
     if (!tbody) return;
-    const rows = items.map(a => {
-        const prazo = a.prazo ? DateUtils.formatBR(a.prazo) : '';
-        const dataDoc = a.dataDoc ? DateUtils.formatBR(a.dataDoc) : '';
-        const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
-        const diasNum = Number(rawDias);
-        let corClasse = '';
-        if (a.finalizado) corClasse = 'linha-cinza';
-        else if (!isNaN(diasNum)) {
-            if (diasNum > 10) corClasse = 'linha-verde';
-            else if (diasNum <= 10 && diasNum >= 5) corClasse = 'linha-amarelo';
-            else if (diasNum < 5) corClasse = 'linha-vermelho';
-        }
-        const diasDisplay = (rawDias === '' || rawDias === null) ? '' : (diasNum < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(diasNum)}</span>` : String(diasNum));
-        return `<tr${corClasse ? ` class="${corClasse}"` : ''}>
-            <td>${escapeHtml(a.ordem || '')}</td>
-            <td>${escapeHtml(a.tedPtrab || '')}</td>
-            <td>${escapeHtml(a.objeto || '')}</td>
-            <td>${escapeHtml(a.processoPrincipal || '')}</td>
-            <td>${escapeHtml(a.assunto || '')}</td>
-            <td>${escapeHtml(a.processoSolicitacao || '')}</td>
-            <td>${dataDoc}</td>
-            <td>${escapeHtml(a.tipoDoc || '')}</td>
-            <td>${escapeHtml(a.numeroDoc || '')}</td>
-            <td>${escapeHtml(a.remetente || '')}</td>
-            <td>${escapeHtml(a.destinatario || '')}</td>
-            <td>${escapeHtml(a.acaoRealizar || '')}</td>
-            <td>${prazo}</td>
-            <td>${diasDisplay}</td>
-            <td>${escapeHtml(a.observacoes || '')}</td>
-            <td>${a.finalizado ? 'Sim' : 'Não'}</td>
-            <td>${escapeHtml(a.status || '')}</td>
-            <td>
-                <button class="btn-secondary" onclick="editarAtividade('${a.id}')">✏️</button>
-                <button class="btn-secondary" onclick="removerAtividade('${a.id}')">🗑️</button>
-            </td>
-        </tr>`;
-    }).join('');
-    tbody.innerHTML = rows;
+    tbody.innerHTML = '';
 }
 
 function renderizarKanban(items) {
+    if (window.AtividadesKanban && typeof AtividadesKanban.renderizarKanban === 'function') {
+        return AtividadesKanban.renderizarKanban(items);
+    }
+    // fallback mínimo: limpa container
     const kanban = document.getElementById('atividadesKanban');
     if (!kanban) return;
-    const statuses = ['pendente','em andamento','bloqueada','concluida'];
-    const cols = statuses.map(s => ({ key:s, title: s === 'pendente' ? 'Pendente' : s === 'em andamento' ? 'Em andamento' : s === 'bloqueada' ? 'Bloqueada' : 'Concluída' }));
-    const html = cols.map(col => {
-        const cards = items.filter(i => i.status === col.key).map(a => `
-            <div class="kanban-card" draggable="true" data-id="${a.id}">
-                <strong>${escapeHtml(a.titulo)}</strong>
-                <div class="small-text">${escapeHtml(a.responsavel||'')} • ${escapeHtml(a.prioridade||'')}</div>
-            </div>
-        `).join('');
-        return `
-            <div class="kanban-column" data-status="${col.key}">
-                <h4>${col.title}</h4>
-                <div class="kanban-list">${cards}</div>
-            </div>
-        `;
-    }).join('');
-
-    kanban.innerHTML = `<div class="kanban-board">${html}</div>`;
-
-    // attach drag handlers
-    kanban.querySelectorAll('.kanban-card').forEach(card => {
-        card.addEventListener('dragstart', onAtividadeDragStart);
-        card.addEventListener('dragend', onAtividadeDragEnd);
-    });
-    kanban.querySelectorAll('.kanban-list').forEach(list => {
-        list.addEventListener('dragover', onAtividadeDragOver);
-        list.addEventListener('drop', onAtividadeDrop);
-    });
-}
-
-let _draggingAtividadeId = null;
-function onAtividadeDragStart(e) {
-    const id = e.currentTarget.dataset.id;
-    _draggingAtividadeId = id;
-    e.dataTransfer.setData('text/plain', id);
-    e.currentTarget.classList.add('dragging');
-}
-function onAtividadeDragEnd(e) {
-    e.currentTarget.classList.remove('dragging');
-    _draggingAtividadeId = null;
-}
-function onAtividadeDragOver(e) {
-    e.preventDefault();
-}
-function onAtividadeDrop(e) {
-    e.preventDefault();
-    const list = e.currentTarget;
-    const column = list.closest('.kanban-column');
-    const status = column && column.dataset.status;
-    const id = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || _draggingAtividadeId;
-    if (id && status) {
-        moveAtividadeToStatus(id, status);
-    }
+    kanban.innerHTML = '';
 }
 
 function moveAtividadeToStatus(id, status) {
