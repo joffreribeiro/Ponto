@@ -14,87 +14,87 @@ const AppState = {
     eventoEmEdicao: null,
     eventoAcordoPreselected: null,
     acordoEmEdicao: null,
-    acordoEmEdicaoIndex: null,
-    // Filtros do dashboard
-    dashboardFilters: {
-        acordoIndex: null,
-        periodo: 'todos',
-        dataInicio: null,
-        dataFim: null
-    },
+        // statuses to display
+        const statuses = ['pendente','em andamento','bloqueada','concluida'];
+        const groups = {};
+        statuses.forEach(s => groups[s] = []);
+        items.forEach(it => { const s = it.status || 'pendente'; if (!groups[s]) groups[s]=[]; groups[s].push(it); });
 
-    /**
-     * Inicializa o estado
-     */
-    init() {
-        this.dados = Storage.load();
-        // Buffers temporários usados pelos modais (evita poluir window)
-        this.modalTemp = this.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-        // Listener references para possível cleanup
-        this._listeners = this._listeners || {};
-    },
-
-    /**
-     * Salva dados com validação
-     */
-    save() {
-        if (!Validators.validateConfiguracoes(this.dados.configuracoes).length) {
-            return Storage.save(this.dados);
-        }
-        return false;
-    },
-
-    /**
-     * Reset do estado
-     */
-    reset() {
-        this.dados = Storage.getDefaultData();
-        this.eventoSelecionado = null;
-        this.eventoEmEdicao = null;
-        this.eventoAcordoPreselected = null;
-        this.acordoEmEdicao = null;
-        this.acordoEmEdicaoIndex = null;
-    }
-};
-
-// ============= INICIALIZAÇÃO =============
-
-function inicializar() {
-    try {
-        AppState.init();
-        ensureTiposEventoDefault();
-        configurarAbas();
-        configurarSubAbas();
-        configurarModalAcordo();
-        configurarModalEvento();
-        popularFiltroAcordosDashboard();
-        configurarFiltrosDashboard();
-        atualizarDashboard();
-        renderizarTabelaRegistros();
-        renderizarEventos();
-        renderizarAcordos();
-        atualizarSelectAcordosTimesheet();
-        atualizarSelectAcordosRegistros();
-        atualizarSelectAcordosEventos();
-        // Inicializar módulo de Atividades
-        ensureAtividadesDefault();
-        renderizarAtividades();
-        // fallback: garantir botão 'Nova Atividade' ligado mesmo que onclick inline falhe
-            try {
-                let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
-                if (!btnNew) {
-                    btnNew = document.querySelector('#atividades button.btn-primary');
+        const html = statuses.map(s => {
+            const cards = (groups[s] || []).map(it => {
+                const titulo = escapeHtml(it.titulo || it.objeto || '');
+                const responsavel = escapeHtml(it.responsavel || '');
+                const prioridade = (it.prioridade || 'media').toString();
+                const progresso = Number(it.progresso || 0) || 0;
+                const rawDias = (typeof it.dias !== 'undefined') ? it.dias : calcularDiasAtePrazo(it.prazo || null);
+                const diasNum = (rawDias === '' || rawDias === null) ? null : Number(rawDias);
+                let dueBadge = '';
+                if (diasNum !== null) {
+                    if (diasNum < 0) dueBadge = `<span class="badge badge--overdue">Vencido ${Math.abs(diasNum)}</span>`;
+                    else if (diasNum === 0) dueBadge = `<span class="badge badge--due">Vence hoje</span>`;
+                    else dueBadge = `<span class="badge badge--ok">${diasNum}d</span>`;
                 }
-                if (!btnNew) {
-                    const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
-                    btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
-                }
-                if (btnNew && !btnNew._atividadeListenerAttached) {
-                    console.debug('Anexando listener fallback ao botão Nova Atividade', btnNew);
-                    // Se o botão estiver marcado para comportamento inline ou já chama abrirAbaNovaAtividade(),
-                    // anexar listener que abre o painel inline em vez do modal.
-                    const onclickAttr = (btnNew.getAttribute && btnNew.getAttribute('onclick')) || '';
-                    if (btnNew.hasAttribute && btnNew.hasAttribute('data-no-fallback')) {
+                const prioClass = `prio-${prioridade.replace(/\s+/g,'-')}`;
+                const descricao = escapeHtml((it.descricao || it.observacoes || '').substring(0,120));
+                return `
+                    <div class="kanban-item card" draggable="true" data-id="${it.id}">
+                        <div class="kanban-card-header">
+                            <strong class="kanban-title">${titulo}</strong>
+                            <div class="kanban-actions">
+                                <button class="btn-icon" data-action="editar" data-id="${it.id}" title="Editar">✏️</button>
+                                <button class="btn-icon" data-action="remover" data-id="${it.id}" title="Remover">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="kanban-meta small-text">${responsavel} • <span class="kanban-priority ${prioClass}">${escapeHtml(prioridade)}</span></div>
+                        <div class="kanban-desc">${descricao}</div>
+                        <div class="kanban-progress"><div class="bar" style="width:${progresso}%"></div><span class="progress-label">${progresso}%</span></div>
+                        <div class="kanban-footer">${dueBadge}</div>
+                    </div>`;
+            }).join('');
+
+            return `
+                <div class="kanban-column" data-status="${s}">
+                    <div class="kanban-column-header"><h3>${s.replace(/\b\w/g, c => c.toUpperCase())}</h3><div class="kanban-count">${(groups[s]||[]).length}</div></div>
+                    <div class="kanban-list">${cards}</div>
+                </div>`;
+        }).join('');
+
+        container.innerHTML = `<div class="kanban-board">${html}</div>`;
+        // Attach drag handlers via JS for environments where inline handlers are blocked
+        try {
+            const lists = container.querySelectorAll('.kanban-list');
+            lists.forEach(list => {
+                list.removeEventListener('dragover', onAtividadeDragOver);
+                list.removeEventListener('drop', onAtividadeDrop);
+                list.addEventListener('dragover', onAtividadeDragOver);
+                list.addEventListener('drop', onAtividadeDrop);
+            });
+            const itemsEls = container.querySelectorAll('.kanban-item');
+            itemsEls.forEach(it => {
+                it.removeEventListener('dragstart', onAtividadeDragStart);
+                it.addEventListener('dragstart', onAtividadeDragStart);
+            });
+            // Delegated handlers for action buttons
+            if (window.Utils && Utils.delegate) {
+                Utils.delegate(container, 'button[data-action]', 'click', (e, btn) => {
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    if (action === 'editar') editarAtividade(id);
+                    if (action === 'remover') removerAtividade(id);
+                });
+            } else {
+                container.querySelectorAll('button[data-action]').forEach(b => {
+                    b.removeEventListener('click', b._kbHandler);
+                    b._kbHandler = (ev) => {
+                        const action = b.dataset.action;
+                        const id = b.dataset.id;
+                        if (action === 'editar') editarAtividade(id);
+                        if (action === 'remover') removerAtividade(id);
+                    };
+                    b.addEventListener('click', b._kbHandler);
+                });
+            }
+        } catch (e) { /* ignore */ }
                         btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
                     } else if (onclickAttr.includes('abrirAbaNovaAtividade')) {
                         btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
