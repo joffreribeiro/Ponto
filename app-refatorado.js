@@ -422,6 +422,56 @@ function onAtividadeDrop(e) {
     }
 }
 
+function onAtividadeDragStart(e) {
+    try {
+        const el = e.currentTarget || e.target;
+        const id = el && el.dataset && el.dataset.id;
+        if (e.dataTransfer && id) e.dataTransfer.setData('text/plain', id);
+        _draggingAtividadeId = id;
+    } catch (err) { /* ignore */ }
+}
+
+function renderizarKanban(items) {
+    const container = document.getElementById('atividadesKanban');
+    if (!container) return;
+    // statuses to display
+    const statuses = ['pendente','em andamento','bloqueada','concluida'];
+    const groups = {};
+    statuses.forEach(s => groups[s] = []);
+    items.forEach(it => { const s = it.status || 'pendente'; if (!groups[s]) groups[s]=[]; groups[s].push(it); });
+
+    const html = statuses.map(s => `
+        <div class="kanban-column" data-status="${s}">
+            <h3>${s.replace(/\b\w/g, c => c.toUpperCase())} (${groups[s].length})</h3>
+            <div class="kanban-list" ondragover="onAtividadeDragOver(event)" ondrop="onAtividadeDrop(event)">
+                ${groups[s].map(it => `
+                    <div class="kanban-item" draggable="true" data-id="${it.id}" ondragstart="onAtividadeDragStart(event)">
+                        <strong>${escapeHtml(it.titulo || it.objeto || '')}</strong>
+                        <div class="small-text">${escapeHtml(it.responsavel || '')} • ${escapeHtml(it.prioridade || '')}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = `<div class="kanban-board">${html}</div>`;
+    // Attach drag handlers via JS for environments where inline handlers are blocked
+    try {
+        const lists = container.querySelectorAll('.kanban-list');
+        lists.forEach(list => {
+            list.removeEventListener('dragover', onAtividadeDragOver);
+            list.removeEventListener('drop', onAtividadeDrop);
+            list.addEventListener('dragover', onAtividadeDragOver);
+            list.addEventListener('drop', onAtividadeDrop);
+        });
+        const itemsEls = container.querySelectorAll('.kanban-item');
+        itemsEls.forEach(it => {
+            it.removeEventListener('dragstart', onAtividadeDragStart);
+            it.addEventListener('dragstart', onAtividadeDragStart);
+        });
+    } catch (e) { /* ignore */ }
+}
+
 function moveAtividadeToStatus(id, status) {
     const list = AppState.dados.atividades || [];
     const idx = list.findIndex(x => x.id === id);
