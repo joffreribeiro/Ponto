@@ -1157,8 +1157,9 @@ function configurarAbas() {
     const nav = document.querySelector('.tabs');
     if (!nav) return;
     console.debug && console.debug('configurarAbas: nav found', !!nav);
-    // evitar múltiplas inicializações
+    // evitar múltiplas inicializações locais e globais
     if (nav._tabsInit) return;
+    if (document._tabsInit) return;
 
     const activate = (btn) => {
         const alvo = btn && btn.dataset && btn.dataset.tab;
@@ -1173,17 +1174,19 @@ function configurarAbas() {
     };
 
     if (window.Utils && Utils.delegate) {
-        console.debug && console.debug('configurarAbas: using Utils.delegate');
-        Utils.delegate(nav, '.tab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar aba (delegate):',err);} });
+        console.debug && console.debug('configurarAbas: using Utils.delegate on document');
+        Utils.delegate(document, '.tab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar aba (delegate):',err);} });
     } else {
-        console.debug && console.debug('configurarAbas: using fallback listener');
-        nav.addEventListener('click', function(e){
+        console.debug && console.debug('configurarAbas: using fallback listener on document');
+        document.addEventListener('click', function(e){
             const btn = e.target.closest && e.target.closest('.tab-btn');
             if (!btn) return;
             try { activate(btn); } catch(err){ console.error('Erro ao ativar aba:', err); }
         });
     }
+    // marca como inicializado tanto no container quanto no documento
     nav._tabsInit = true;
+    document._tabsInit = true;
 }
 
 function configurarSubAbas() {
@@ -1191,6 +1194,7 @@ function configurarSubAbas() {
     if (!container) return;
     console.debug && console.debug('configurarSubAbas: container found', !!container);
     if (container._subtabsInit) return;
+    if (document._subtabsInit) return;
 
     const activate = (btn) => {
         const alvo = btn && btn.dataset && btn.dataset.subtab;
@@ -1207,17 +1211,18 @@ function configurarSubAbas() {
     };
 
     if (window.Utils && Utils.delegate) {
-        console.debug && console.debug('configurarSubAbas: using Utils.delegate');
-        Utils.delegate(container, '.subtab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar sub-aba (delegate):',err);} });
+        console.debug && console.debug('configurarSubAbas: using Utils.delegate on document');
+        Utils.delegate(document, '.subtab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar sub-aba (delegate):',err);} });
     } else {
-        console.debug && console.debug('configurarSubAbas: using fallback listener');
-        container.addEventListener('click', function(e){
+        console.debug && console.debug('configurarSubAbas: using fallback listener on document');
+        document.addEventListener('click', function(e){
             const btn = e.target.closest && e.target.closest('.subtab-btn');
             if (!btn) return;
             try { activate(btn); } catch(err){ console.error('Erro ao ativar sub-aba:', err); }
         });
     }
     container._subtabsInit = true;
+    document._subtabsInit = true;
 }
 
 function configurarModalAcordo() {
@@ -4181,4 +4186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
+
+// EOF marker: ensure file ends cleanly. No-op to avoid parser "Unexpected end of input" in some environments.
+void 0;
 
