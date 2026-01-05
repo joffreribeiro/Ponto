@@ -1054,7 +1054,13 @@ function escapeHtml(s) {
     return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
 }
 
-document.addEventListener('DOMContentLoaded', inicializar);
+// Garantir inicialização mesmo que o script seja carregado após o evento DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializar);
+} else {
+    // DOM já pronto
+    setTimeout(inicializar, 0);
+}
 
 // ============= ABAS =============
 
