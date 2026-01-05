@@ -1255,6 +1255,30 @@
         }
     })();
 </script>
+        <script>
+            // Shim mínimo para botões inline caso `app-refatorado.js` não tenha sido executado
+            if (typeof window.toggleAtividadesKanban === 'undefined') {
+                window.toggleAtividadesKanban = function(){
+                    try {
+                        const kanban = document.getElementById('atividadesKanban');
+                        const tabela = document.getElementById('atividadesTableContainer');
+                        if (kanban) kanban.style.display = (kanban.style.display === 'none' || kanban.style.display === '') ? 'block' : 'none';
+                        if (tabela) tabela.style.display = (tabela.style.display === 'none' || tabela.style.display === '') ? 'block' : 'none';
+                        if (typeof renderizarAtividades === 'function') renderizarAtividades();
+                    } catch (e) { console.error('toggleAtividadesKanban shim error', e); }
+                };
+            }
+            if (typeof window.toggleAtividadesTable === 'undefined') {
+                window.toggleAtividadesTable = function(){
+                    try {
+                        const cont = document.getElementById('atividadesTableContainer');
+                        if (!cont) return;
+                        cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
+                        if (typeof renderizarAtividades === 'function') renderizarAtividades();
+                    } catch (e) { console.error('toggleAtividadesTable shim error', e); }
+                };
+            }
+        </script>
 
 <!-- Removidos marcadores de conflito de merge e chamadas órfãs de funções inexistentes -->
 
