@@ -243,6 +243,38 @@ body.compact {
     cursor: pointer;
     font-weight: 600;
 }
+
+/* Inline SVG sizing for icon consistency */
+.icon-svg {
+    width: 1.05em;
+    height: 1.05em;
+    vertical-align: -0.125em;
+    display: inline-block;
+}
+
+/* Theme: dark variant tokens */
+html[data-theme="dark"] {
+    --bg-page: #071026;
+    --bg-header: #071428;
+    --bg-card: #071428;
+    --bg-soft: #061225;
+    --primary: #60a5fa;
+    --primary-soft: #1e293b;
+    --primary-dark: #93c5fd;
+    --primary-hover: #3b82f6;
+    --secondary: #94a3b8;
+    --secondary-soft: #0b1220;
+    --text-main: #e6eef8;
+    --text-muted: #94a3b8;
+    --border-soft: #0f1724;
+    --border-table: #0b1220;
+    --positive: #34d399;
+    --negative: #f87171;
+    --warning: #f59e0b;
+    --info: #60a5fa;
+    --shadow-soft: 0 1px 2px rgba(0,0,0,0.6);
+    --shadow-medium: 0 4px 14px rgba(0,0,0,0.55);
+}
 .btn-primary:hover { background: var(--primary-hover); }
 .btn-secondary {
     background: var(--secondary-soft);

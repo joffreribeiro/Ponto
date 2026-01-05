@@ -32,16 +32,16 @@ const Notifications = {
 
         // Ícone baseado no tipo
         const icons = {
-            success: '✅',
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
+            success: (typeof svgIcon === 'function') ? svgIcon('check') : '✓',
+            error: (typeof svgIcon === 'function') ? svgIcon('close') : '✖',
+            warning: (typeof svgIcon === 'function') ? svgIcon('help') : '⚠',
+            info: (typeof svgIcon === 'function') ? svgIcon('help') : 'i'
         };
 
         toast.innerHTML = `
             <span class="toast-icon">${icons[type] || icons.info}</span>
             <span class="toast-message">${this.escapeHtml(message)}</span>
-            <button class="toast-close" onclick="Notifications.close(this.parentElement)">×</button>
+            <button class="toast-close" onclick="Notifications.close(this.parentElement)">${(typeof svgIcon === 'function') ? svgIcon('close') : '×'}</button>
         `;
 
         this.container.appendChild(toast);

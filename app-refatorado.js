@@ -83,7 +83,7 @@ function inicializar() {
                 }
                 if (!btnNew) {
                     const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
-                    btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
+                    btnNew = candidates.find(b => (b.dataset && b.dataset.action === 'abrirModalAtividade') || (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
                 }
                 if (btnNew && !btnNew._atividadeListenerAttached) {
                     console.debug('Anexando listener fallback ao botão Nova Atividade', btnNew);
@@ -373,28 +373,7 @@ function renderizarAtividades() {
     }
 }
 
-// Helper: return a small SVG string for common icons
-function svgIcon(name) {
-    const icons = {
-        edit: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>`,
-        trash: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`
-    };
-    return icons[name] || '';
-}
-
-// Helper: render priority as a badge
-function getPriorityBadge(priority) {
-    if (!priority) return '';
-    const p = String(priority).toLowerCase();
-    const map = {
-        'critica': 'badge badge--overdue',
-        'alta': 'badge badge--due',
-        'media': 'badge badge--ok',
-        'baixa': 'badge badge--ok'
-    };
-    const cls = map[p] || 'badge badge--order';
-    return `<span class="${cls}">${escapeHtml(String(priority))}</span>`;
-}
+// Icons and badges moved to `icons.js` (exposed as `Icons.svgIcon` / `svgIcon` and `Icons.getPriorityBadge` / `getPriorityBadge`)
 
 function renderizarTabelaAtividades(items) {
     if (window.AtividadesTabela && typeof AtividadesTabela.renderizarTabelaAtividades === 'function') {
@@ -783,7 +762,7 @@ function adicionarSubtaskModal() {
     const ul = document.getElementById('subtasksList');
     const li = document.createElement('li');
     li.classList.add('activity-card');
-    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()"><span class="icon">🗑️</span></button>`;
+    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
@@ -871,7 +850,7 @@ function atualizarListaAnexosModal() {
     const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">🗑️</button>`;
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -936,7 +915,7 @@ function atualizarListaComentariosModal() {
     const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">🗑️</button>`;
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -1136,7 +1115,7 @@ function popularFiltroAcordosDashboard() {
     const select = document.getElementById('dashboardFilterAcordo');
     if (!select) return;
 
-    select.innerHTML = '<option value="">📋 Todos os Acordos</option>';
+    select.innerHTML = '<option value="">Todos os Acordos</option>';
     
     AppState.dados.acordos.forEach((acordo, index) => {
         const option = document.createElement('option');
@@ -1516,7 +1495,7 @@ function renderizarTabelaRegistros() {
             btnDel.type = 'button';
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar registro');
-            btnDel.innerHTML = '🗑️';
+                    btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash') : '🗑️';
             btnDel.addEventListener('click', () => excluirRegistro(r._idx));
             tdActions.appendChild(btnDel);
 
@@ -2539,7 +2518,7 @@ function renderizarEventos() {
             btnDel.type = 'button';
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar evento');
-            btnDel.innerHTML = '🗑️';
+            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash') : '🗑️';
             btnDel.addEventListener('click', () => abrirModalExcluirEvento(idxOriginal));
             tdActions.appendChild(btnDel);
 
@@ -2866,10 +2845,10 @@ function renderizarListasAcordo() {
                 <td>${p.inicio}</td>
                 <td>${p.fim}</td>
                 <td>${p.minutosExtras} min</td>
-                <td>
-                    <button type="button" class="btn-secondary" onclick="editarPeriodoAcordo(${idx})" title="Editar">✏️</button>
-                    <button type="button" class="btn-error" onclick="removerPeriodoAcordo(${idx})" title="Deletar">🗑️</button>
-                </td>
+                    <td>
+                        <button type="button" class="btn-secondary" onclick="editarPeriodoAcordo(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit') : '✏️'}</button>
+                        <button type="button" class="btn-error" onclick="removerPeriodoAcordo(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>
+                    </td>
             `;
             tbodyPeriodos.appendChild(tr);
         });
@@ -2888,8 +2867,8 @@ function renderizarListasAcordo() {
                 <td>${r.tipo || ''}</td>
                 <td>R$ ${Number(r.vale || 0).toFixed(2)}</td>
                 <td>
-                    <button type="button" class="btn-secondary" onclick="editarRegraHorario(${idx})" title="Editar">✏️</button>
-                    <button type="button" class="btn-error" onclick="removerRegraHorario(${idx})" title="Deletar">🗑️</button>
+                    <button type="button" class="btn-secondary" onclick="editarRegraHorario(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit') : '✏️'}</button>
+                    <button type="button" class="btn-error" onclick="removerRegraHorario(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>
                 </td>
             `;
             tbodyRegras.appendChild(tr);
@@ -3807,7 +3786,7 @@ function renderizarListaTiposEventos() {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn-error btn-sm';
-        deleteBtn.textContent = '🗑️ Deletar';
+        deleteBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('trash') + ' Deletar' : '🗑️ Deletar';
         deleteBtn.onclick = () => deletarTipoEvento(index);
         
         // Desabilitar delete se for tipo padrão (primeiros 7)
@@ -4107,6 +4086,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('App.handleAction: ação não encontrada', actionName);
             } catch (e) { console.error('Erro em App.handleAction', e); }
         };
+
+        // Theme toggle action: toggles data-theme on the root element and persists choice
+        App.actions.toggleTheme = function() {
+            try {
+                const cur = document.documentElement.getAttribute('data-theme');
+                const next = cur === 'dark' ? 'light' : 'dark';
+                if (next === 'dark') {
+                    document.documentElement.setAttribute('data-theme','dark');
+                    localStorage.setItem('theme','dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme','light');
+                }
+                // update toggle button text (if present)
+                const btn = document.getElementById('themeToggle');
+                if (btn) btn.textContent = next === 'dark' ? 'Tema: Escuro' : 'Tema: Claro';
+            } catch (e) { console.error('Erro ao alternar tema', e); }
+        };
+
+        // Apply saved theme on load
+        try {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
+        } catch(e){/* ignore */}
 
         // We removed the direct globals above and kept originals under `App.legacy`.
         // The delegated handler added earlier now calls `App.handleAction`, so UI
