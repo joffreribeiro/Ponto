@@ -14,164 +14,48 @@ const AppState = {
     eventoEmEdicao: null,
     eventoAcordoPreselected: null,
     acordoEmEdicao: null,
-        // statuses to display
-        const statuses = ['pendente','em andamento','bloqueada','concluida'];
-        const groups = {};
-        statuses.forEach(s => groups[s] = []);
-        items.forEach(it => { const s = it.status || 'pendente'; if (!groups[s]) groups[s]=[]; groups[s].push(it); });
+    acordoEmEdicaoIndex: null,
+    // Filtros do dashboard
+    dashboardFilters: {
+        acordoIndex: null,
+        periodo: 'todos',
+        dataInicio: null,
+        dataFim: null
+    },
 
-        const html = statuses.map(s => {
-            const cards = (groups[s] || []).map(it => {
-                const titulo = escapeHtml(it.titulo || it.objeto || '');
-                const responsavel = escapeHtml(it.responsavel || '');
-                const prioridade = (it.prioridade || 'media').toString();
-                const progresso = Number(it.progresso || 0) || 0;
-                const rawDias = (typeof it.dias !== 'undefined') ? it.dias : calcularDiasAtePrazo(it.prazo || null);
-                const diasNum = (rawDias === '' || rawDias === null) ? null : Number(rawDias);
-                let dueBadge = '';
-                if (diasNum !== null) {
-                    if (diasNum < 0) dueBadge = `<span class="badge badge--overdue">Vencido ${Math.abs(diasNum)}</span>`;
-                    else if (diasNum === 0) dueBadge = `<span class="badge badge--due">Vence hoje</span>`;
-                    else dueBadge = `<span class="badge badge--ok">${diasNum}d</span>`;
-                }
-                const prioClass = `prio-${prioridade.replace(/\s+/g,'-')}`;
-                const descricao = escapeHtml((it.descricao || it.observacoes || '').substring(0,120));
-                return `
-                    <div class="kanban-item card" draggable="true" data-id="${it.id}">
-                        <div class="kanban-card-header">
-                            <strong class="kanban-title">${titulo}</strong>
-                            <div class="kanban-actions">
-                                <button class="btn-icon" data-action="editar" data-id="${it.id}" title="Editar">✏️</button>
-                                <button class="btn-icon" data-action="remover" data-id="${it.id}" title="Remover">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="kanban-meta small-text">${responsavel} • <span class="kanban-priority ${prioClass}">${escapeHtml(prioridade)}</span></div>
-                        <div class="kanban-desc">${descricao}</div>
-                        <div class="kanban-progress"><div class="bar" style="width:${progresso}%"></div><span class="progress-label">${progresso}%</span></div>
-                        <div class="kanban-footer">${dueBadge}</div>
-                    </div>`;
-            }).join('');
+    /**
+     * Inicializa o estado
+     */
+    init() {
+        this.dados = Storage.load();
+        // Buffers temporários usados pelos modais (evita poluir window)
+        this.modalTemp = this.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
+        // Listener references para possível cleanup
+        this._listeners = this._listeners || {};
+    },
 
-            return `
-                <div class="kanban-column" data-status="${s}">
-                    <div class="kanban-column-header"><h3>${s.replace(/\b\w/g, c => c.toUpperCase())}</h3><div class="kanban-count">${(groups[s]||[]).length}</div></div>
-                    <div class="kanban-list">${cards}</div>
-                </div>`;
-        }).join('');
+    /**
+     * Salva dados com validação
+     */
+    save() {
+        if (!Validators.validateConfiguracoes(this.dados.configuracoes).length) {
+            return Storage.save(this.dados);
+        }
+        return false;
+    },
 
-        container.innerHTML = `<div class="kanban-board">${html}</div>`;
-        // Attach drag handlers via JS for environments where inline handlers are blocked
-        try {
-            const lists = container.querySelectorAll('.kanban-list');
-            lists.forEach(list => {
-                list.removeEventListener('dragover', onAtividadeDragOver);
-                list.removeEventListener('drop', onAtividadeDrop);
-                list.addEventListener('dragover', onAtividadeDragOver);
-                list.addEventListener('drop', onAtividadeDrop);
-            });
-            const itemsEls = container.querySelectorAll('.kanban-item');
-            itemsEls.forEach(it => {
-                it.removeEventListener('dragstart', onAtividadeDragStart);
-                it.addEventListener('dragstart', onAtividadeDragStart);
-            });
-            // Delegated handlers for action buttons
-            if (window.Utils && Utils.delegate) {
-                Utils.delegate(container, 'button[data-action]', 'click', (e, btn) => {
-                    const action = btn.dataset.action;
-                    const id = btn.dataset.id;
-                    if (action === 'editar') editarAtividade(id);
-                    if (action === 'remover') removerAtividade(id);
-                });
-            } else {
-                container.querySelectorAll('button[data-action]').forEach(b => {
-                    b.removeEventListener('click', b._kbHandler);
-                    b._kbHandler = (ev) => {
-                        const action = b.dataset.action;
-                        const id = b.dataset.id;
-                        if (action === 'editar') editarAtividade(id);
-                        if (action === 'remover') removerAtividade(id);
-                    };
-                    b.addEventListener('click', b._kbHandler);
-                });
-            }
-        } catch (e) { /* ignore */ }
-                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
-                    } else if (onclickAttr.includes('abrirAbaNovaAtividade')) {
-                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
-                    } else {
-                        btnNew.addEventListener('click', (e) => { try { abrirModalAtividade(); } catch(err){ console.error('Erro ao abrir modal atividade (fallback):', err); } });
-                    }
-                    btnNew._atividadeListenerAttached = true;
-                }
-            // adicional: listener global para diagnosticar cliques e forçar abertura caso o botão não responda
-            if (!document._atividadeGlobalClickAttached) {
-                    document.addEventListener('click', function(ev){
-                    try {
-                        const t = ev.target;
-                        const btn = t.closest && t.closest('button');
-                        // Se o botão estiver marcado para comportamento inline, pular o fallback global
-                        if (btn && btn.hasAttribute && btn.hasAttribute('data-no-fallback')) return;
-                        if (!btn) return;
-                        const insideAtividades = !!btn.closest('#atividades');
-                        const callsAbrir = (btn.getAttribute && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('abrirModalAtividade')) || ((btn.textContent||'').toLowerCase().includes('nova atividade')) || btn.classList.contains('btn-primary') && insideAtividades;
-                                if (callsAbrir) {
-                                    console.debug('Clique detectado no botão de nova atividade (global):', btn);
-                                    try {
-                                        // Inspecionar nós vizinhos e conteúdo relevante para diagnosticar o "número ao lado do hidden"
-                                        const prev = btn.previousSibling && btn.previousSibling.textContent ? btn.previousSibling.textContent.trim() : null;
-                                        const next = btn.nextSibling && btn.nextSibling.textContent ? btn.nextSibling.textContent.trim() : null;
-                                        const parentText = btn.parentElement ? (btn.parentElement.textContent || '').trim().slice(0,200) : null;
-                                        console.debug('Botão vizinhos -> previousSibling:', prev, ' nextSibling:', next);
-                                        console.debug('Botão parent (first 200 chars):', parentText);
-                                        console.debug('Registros antes abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
-                                        abrirModalAtividade();
-                                        console.debug('Registros depois abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
-                                        // também logar o estado resumido de atividades
-                                        console.debug('Atividades total:', (AppState.dados && AppState.dados.atividades) ? AppState.dados.atividades.length : 0);
-                                    } catch(err) { console.error('Erro ao abrir modal via listener global:', err); }
-                                }
-                    } catch(e){ /* ignore */ }
-                }, true);
-                document._atividadeGlobalClickAttached = true;
-            }
-        } catch (e) { console.error('Erro ao anexar listener Nova Atividade:', e); }
-        atualizarSelectTiposEventos();
-        const filtroEventos = document.getElementById('filtroAcordoEventos');
-        if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
-        const filtroRegistros = document.getElementById('filtroAcordoRegistros');
-        if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
-        // iniciar verificação de lembretes a cada 30 minutos
-        try {
-            checkAtividadesDeadlines();
-            setInterval(checkAtividadesDeadlines, 30 * 60 * 1000);
-        } catch (e) { /* ignore */ }
-        // Delegação de eventos para ações de atividade (editar/remover)
-        try {
-            const atividadesLista = document.getElementById('atividadesLista');
-            if (atividadesLista && window.Utils && Utils.delegate) {
-                Utils.delegate(atividadesLista, 'button[data-action]', 'click', (e, target) => {
-                    const action = target.dataset.action;
-                    const id = target.dataset.id;
-                    if (action === 'editar') editarAtividade(id);
-                    if (action === 'remover') removerAtividade(id);
-                });
-            }
-            const tabelaTbody = document.querySelector('#tabelaAtividades tbody');
-            if (tabelaTbody && window.Utils && Utils.delegate) {
-                Utils.delegate(tabelaTbody, 'button[data-action]', 'click', (e, target) => {
-                    const action = target.dataset.action;
-                    const id = target.dataset.id;
-                    if (action === 'editar') editarAtividade(id);
-                    if (action === 'remover') removerAtividade(id);
-                });
-            }
-        } catch (e) { /* ignore delegation errors */ }
-        console.log('Aplicação inicializada com sucesso');
-    } catch (error) {
-        console.error('Erro na inicialização:', error);
-        mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error');
+    /**
+     * Reset do estado
+     */
+    reset() {
+        this.dados = Storage.getDefaultData();
+        this.eventoSelecionado = null;
+        this.eventoEmEdicao = null;
+        this.eventoAcordoPreselected = null;
+        this.acordoEmEdicao = null;
+        this.acordoEmEdicaoIndex = null;
     }
-}
+};
 
 /**
  * Garante que `AppState.dados.tiposEvento` contenha os tipos padrão,
@@ -1101,6 +985,81 @@ function checkAtividadesDeadlines() {
 function escapeHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
+}
+
+function inicializar() {
+    try {
+        AppState.init();
+        ensureTiposEventoDefault();
+        configurarAbas();
+        configurarSubAbas();
+        if (typeof configurarModalAcordo === 'function') configurarModalAcordo();
+        if (typeof configurarModalEvento === 'function') configurarModalEvento();
+        if (typeof popularFiltroAcordosDashboard === 'function') popularFiltroAcordosDashboard();
+        if (typeof configurarFiltrosDashboard === 'function') configurarFiltrosDashboard();
+        if (typeof atualizarDashboard === 'function') atualizarDashboard();
+        if (typeof renderizarTabelaRegistros === 'function') renderizarTabelaRegistros();
+        if (typeof renderizarEventos === 'function') renderizarEventos();
+        if (typeof renderizarAcordos === 'function') renderizarAcordos();
+        if (typeof atualizarSelectAcordosTimesheet === 'function') atualizarSelectAcordosTimesheet();
+        if (typeof atualizarSelectAcordosRegistros === 'function') atualizarSelectAcordosRegistros();
+        if (typeof atualizarSelectAcordosEventos === 'function') atualizarSelectAcordosEventos();
+
+        // Inicializar módulo de Atividades
+        ensureAtividadesDefault();
+        if (typeof renderizarAtividades === 'function') renderizarAtividades();
+
+        // fallback: garantir botão 'Nova Atividade' ligado
+        try {
+            let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
+            if (!btnNew) btnNew = document.querySelector('#atividades button.btn-primary');
+            if (!btnNew) {
+                const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
+                btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
+            }
+            if (btnNew && !btnNew._atividadeListenerAttached) {
+                btnNew.addEventListener('click', (e) => { try { abrirModalAtividade(); } catch(err){ console.error('Erro ao abrir modal atividade (fallback):', err); } });
+                btnNew._atividadeListenerAttached = true;
+            }
+        } catch (e) { /* ignore */ }
+
+        // filtros e listeners
+        try {
+            const filtroEventos = document.getElementById('filtroAcordoEventos');
+            if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
+            const filtroRegistros = document.getElementById('filtroAcordoRegistros');
+            if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
+        } catch (e) { /* ignore */ }
+
+        try { checkAtividadesDeadlines(); setInterval(checkAtividadesDeadlines, 30 * 60 * 1000); } catch(e){}
+
+        // Delegação de eventos para ações de atividade (editar/remover)
+        try {
+            const atividadesLista = document.getElementById('atividadesLista');
+            if (atividadesLista && window.Utils && Utils.delegate) {
+                Utils.delegate(atividadesLista, 'button[data-action]', 'click', (e, target) => {
+                    const action = target.dataset.action;
+                    const id = target.dataset.id;
+                    if (action === 'editar') editarAtividade(id);
+                    if (action === 'remover') removerAtividade(id);
+                });
+            }
+            const tabelaTbody = document.querySelector('#tabelaAtividades tbody');
+            if (tabelaTbody && window.Utils && Utils.delegate) {
+                Utils.delegate(tabelaTbody, 'button[data-action]', 'click', (e, target) => {
+                    const action = target.dataset.action;
+                    const id = target.dataset.id;
+                    if (action === 'editar') editarAtividade(id);
+                    if (action === 'remover') removerAtividade(id);
+                });
+            }
+        } catch (e) { /* ignore delegation errors */ }
+
+        console.log('Aplicação inicializada com sucesso');
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
+        try { mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error'); } catch(e){}
+    }
 }
 
 // Garantir inicialização mesmo que o script seja carregado após o evento DOMContentLoaded
