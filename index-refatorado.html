@@ -1202,6 +1202,60 @@
 <script src="atividades-tabela.js?v=1.2.0"></script>
 <script src="app-refatorado.js?v=1.2.0"></script>
 
+<!-- Fallback resiliente: garante ativação das abas/sub-abas mesmo se app-refatorado.js falhar -->
+<script>
+    (function(){
+        try {
+            // evita dupla inicialização
+            if (document._tabsInit) return;
+
+            function activateTabButton(btn){
+                if (!btn) return;
+                const alvo = btn.dataset && btn.dataset.tab;
+                const tabBtns = document.querySelectorAll('.tab-btn');
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const sec = document.getElementById(alvo);
+                if (sec) sec.classList.add('active');
+            }
+
+            document.addEventListener('click', function(e){
+                const btn = e.target.closest && e.target.closest('.tab-btn');
+                if (!btn) return;
+                try { activateTabButton(btn); } catch(err){ /* ignore */ }
+            });
+
+            // subtabs
+            if (!document._subtabsInit) {
+                function activateSubtabButton(btn){
+                    if (!btn) return;
+                    const alvo = btn.dataset && btn.dataset.subtab;
+                    const subBtns = document.querySelectorAll('.subtab-btn');
+                    const subContents = document.querySelectorAll('.subtab-content');
+                    subBtns.forEach(b => b.classList.remove('active'));
+                    subContents.forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    const sec = document.getElementById(alvo);
+                    if (sec) sec.classList.add('active');
+                }
+
+                document.addEventListener('click', function(e){
+                    const btn = e.target.closest && e.target.closest('.subtab-btn');
+                    if (!btn) return;
+                    try { activateSubtabButton(btn); } catch(err){ /* ignore */ }
+                });
+                document._subtabsInit = true;
+            }
+
+            document._tabsInit = true;
+        } catch (e) {
+            console.error('Fallback de abas falhou:', e);
+        }
+    })();
+</script>
+
 <!-- Removidos marcadores de conflito de merge e chamadas órfãs de funções inexistentes -->
 
 </body>
