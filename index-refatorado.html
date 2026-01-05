@@ -176,8 +176,8 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <h2>Atividades</h2>
                     <div>
-                        <button type="button" class="btn-primary" onclick="abrirModalAtividade()">➕ Nova Atividade</button>
-                        <button class="btn-secondary" onclick="toggleAtividadesKanban()">🔀 Kanban</button>
+                        <button type="button" class="btn-primary" data-action="abrirModalAtividade">➕ Nova Atividade</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban">🔀 Kanban</button>
                     </div>
                 </div>
 
@@ -211,24 +211,24 @@
 
                 <div id="atividadesContainer" style="margin-top:12px;">
                     <div id="atividadesControls" style="margin-bottom:8px;">
-                        <button class="btn-secondary" onclick="toggleAtividadesTable()">📋 Tabela</button>
-                        <button class="btn-secondary" onclick="toggleAtividadesKanban()">🔀 Kanban</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesTable">📋 Tabela</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban">🔀 Kanban</button>
                     </div>
                     <!-- Painel inline Nova Atividade (oculto por padrão) -->
                     <div id="novaAtividadeInline" style="display:none; margin-bottom:12px;">
                         <div class="modal-content modal-inline-card" role="dialog" aria-labelledby="novaAtividadeTitle">
                             <div class="modal-header">
                                 <h2 id="novaAtividadeTitle">Nova Atividade</h2>
-                                <button type="button" class="modal-close" onclick="fecharAbaNovaAtividade()">×</button>
+                                <button type="button" class="modal-close" data-action="fecharAbaNovaAtividade">×</button>
                             </div>
 
                             <div class="modal-body" style="display:flex; gap:12px;">
                                 <!-- Barra lateral -->
                                 <nav class="nova-sidebar" style="min-width:180px; border-right:1px solid #eee; padding-right:12px;">
                                     <ul style="list-style:none; padding:0; margin:8px 0;">
-                                        <li><a href="#" onclick="document.getElementById('novaAtividadeForm').scrollIntoView(); return false;">Campos Principais</a></li>
-                                        <li><a href="#" onclick="document.getElementById('novaAtividadeMeta').scrollIntoView(); return false;">Documentos / Prazo</a></li>
-                                        <li><a href="#" onclick="document.getElementById('novaAtividadeNotas').scrollIntoView(); return false;">Observações</a></li>
+                                        <li><a href="#" data-scroll-to="novaAtividadeForm">Campos Principais</a></li>
+                                        <li><a href="#" data-scroll-to="novaAtividadeMeta">Documentos / Prazo</a></li>
+                                        <li><a href="#" data-scroll-to="novaAtividadeNotas">Observações</a></li>
                                     </ul>
                                 </nav>
 
@@ -321,8 +321,8 @@
                             </div>
 
                             <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid #eee;">
-                                <button class="btn-secondary" onclick="fecharAbaNovaAtividade()">✖️ Cancelar</button>
-                                <button class="btn-primary" onclick="salvarAtividadeInline()">💾 Salvar</button>
+                                <button class="btn-secondary" data-action="fecharAbaNovaAtividade">✖️ Cancelar</button>
+                                <button class="btn-primary" data-action="salvarAtividadeInline">💾 Salvar</button>
                             </div>
                         </div>
                     </div>
@@ -704,7 +704,7 @@
             <div class="modal-content modal-medium">
                 <div class="modal-header">
                     <h2>Atividade</h2>
-                    <button type="button" class="modal-close" onclick="fecharModalAtividade()">×</button>
+                    <button type="button" class="modal-close" data-action="fecharModalAtividade">×</button>
                 </div>
                 <div class="modal-body" style="display:flex; gap:16px;">
                     <!-- Barra lateral de navegação -->
@@ -853,7 +853,7 @@
                             <span class="group-label">Subtarefas</span>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <input id="subtaskInput" placeholder="Nova subtarefa" style="flex:1;" />
-                                <button class="btn-secondary" onclick="adicionarSubtaskModal()">Adicionar</button>
+                                <button class="btn-secondary" data-action="adicionarSubtaskModal">Adicionar</button>
                             </div>
                             <ul id="subtasksList" style="margin-top:8px;list-style:none;padding-left:0;"></ul>
                         </div>
@@ -890,15 +890,15 @@
                             <span class="group-label">Comentários</span>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <input id="comentarioInput" placeholder="Adicionar comentário" style="flex:1;" />
-                                <button class="btn-secondary" onclick="adicionarComentarioModal()">Adicionar</button>
+                                <button class="btn-secondary" data-action="adicionarComentarioModal">Adicionar</button>
                             </div>
                             <ul id="comentariosList" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="fecharModalAtividade()">Cancelar</button>
-                    <button class="btn-primary" onclick="salvarAtividade()">Salvar</button>
+                    <button class="btn-secondary" data-action="fecharModalAtividade">Cancelar</button>
+                    <button class="btn-primary" data-action="salvarAtividade">Salvar</button>
                 </div>
             </div>
         </div>
@@ -1031,7 +1031,7 @@
     <div class="modal-content modal-medium">
         <div class="modal-header">
             <h2>Nova Atividade</h2>
-            <button type="button" class="modal-close" onclick="fecharModalNovaAtividadeCompleta()">×</button>
+            <button type="button" class="modal-close" data-action="fecharModalNovaAtividadeCompleta">×</button>
         </div>
         <div class="modal-body" style="display:flex; gap:16px;">
             <!-- Barra lateral de navegação -->
@@ -1174,15 +1174,15 @@
                     <span class="group-label">Comentários</span>
                     <div style="display:flex;gap:8px;align-items:center;">
                         <input id="comentarioInputCompleta" placeholder="Adicionar comentário" style="flex:1;" />
-                        <button class="btn-secondary" onclick="adicionarComentarioCompleta()">Adicionar</button>
+                        <button class="btn-secondary" data-action="adicionarComentarioCompleta">Adicionar</button>
                     </div>
                     <ul id="comentariosListCompleta" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="fecharModalNovaAtividadeCompleta()">✖️ Cancelar</button>
-            <button type="button" class="btn-primary" onclick="salvarNovaAtividadeCompleta()">💾 Salvar</button>
+            <button type="button" class="btn-secondary" data-action="fecharModalNovaAtividadeCompleta">✖️ Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarNovaAtividadeCompleta">💾 Salvar</button>
         </div>
     </div>
 </div>

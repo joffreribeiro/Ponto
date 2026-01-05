@@ -141,6 +141,42 @@ function inicializar() {
             checkAtividadesDeadlines();
             setInterval(checkAtividadesDeadlines, 30 * 60 * 1000);
         } catch (e) { /* ignore */ }
+
+        // Delegação central para ações declaradas via data-action e scroll-to
+        try {
+            const handleAction = (el) => {
+                const action = el.dataset && el.dataset.action;
+                if (!action) return;
+                const id = el.dataset.id;
+                try {
+                    if (typeof window[action] === 'function') {
+                        if (typeof id !== 'undefined' && id !== null && id !== '') window[action](id);
+                        else window[action]();
+                    } else {
+                        console.warn('Ação não encontrada:', action);
+                    }
+                } catch (err) { console.error('Erro ao executar ação delegada', action, err); }
+            };
+
+            const handleScrollTo = (el) => {
+                const targetId = el.dataset && el.dataset.scrollTo;
+                if (!targetId) return;
+                const target = document.getElementById(targetId);
+                if (target) target.scrollIntoView();
+            };
+
+            if (window.Utils && Utils.delegate) {
+                Utils.delegate(document, '[data-action]', 'click', (e, el) => { try { handleAction(el); } catch(err){console.error(err);} });
+                Utils.delegate(document, '[data-scroll-to]', 'click', (e, el) => { e.preventDefault(); try { handleScrollTo(el); } catch(err){console.error(err);} });
+            } else {
+                document.addEventListener('click', function(e){
+                    const el = e.target.closest && e.target.closest('[data-action]');
+                    if (el) { e.preventDefault(); handleAction(el); return; }
+                    const el2 = e.target.closest && e.target.closest('[data-scroll-to]');
+                    if (el2) { e.preventDefault(); handleScrollTo(el2); }
+                });
+            }
+        } catch (e) { console.error('Erro ao configurar delegação de ações:', e); }
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);

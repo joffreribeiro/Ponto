@@ -37,8 +37,8 @@
                 <td>${a.finalizado ? 'Sim' : 'Não'}</td>
                 <td>${escapeHtml(a.status || '')}</td>
                 <td>
-                    <button class="btn-secondary" data-action="editar" data-id="${a.id}">✏️</button>
-                    <button class="btn-secondary" data-action="remover" data-id="${a.id}">🗑️</button>
+                    <button class="btn-secondary" data-action="editarAtividade" data-id="${a.id}">✏️</button>
+                    <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">🗑️</button>
                 </td>
             </tr>`;
         }).join('');
