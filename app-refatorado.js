@@ -149,6 +149,11 @@ function inicializar() {
                 if (!action) return;
                 const id = el.dataset.id;
                 try {
+                    if (window.App && typeof window.App.handleAction === 'function') {
+                        window.App.handleAction(action, id);
+                        return;
+                    }
+                    // fallback to legacy behavior
                     if (typeof window[action] === 'function') {
                         if (typeof id !== 'undefined' && id !== null && id !== '') window[action](id);
                         else window[action]();
@@ -4050,7 +4055,18 @@ document.addEventListener('DOMContentLoaded', () => {
             'salvarEvento','fecharModalTiposEvento','adicionarNovoTipoEvento','triggerClick'
         ];
 
-        keys.forEach(k => { if (typeof window[k] === 'function') App.actions[k] = window[k]; });
+        // Copy originals to App.actions and keep legacy references under App.legacy
+        App.legacy = App.legacy || {};
+        keys.forEach(k => {
+            if (typeof window[k] === 'function') {
+                App.actions[k] = window[k];
+                App.legacy[k] = window[k];
+                try {
+                    // remove from global scope to reduce surface area
+                    try { delete window[k]; } catch(e) { window[k] = undefined; }
+                } catch(e) { /* ignore */ }
+            }
+        });
 
         // Also expose a convenience entry point for delegated actions
         App.handleAction = function(actionName, id){
@@ -4068,8 +4084,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error('Erro em App.handleAction', e); }
         };
 
-        // For compatibility in templates we still keep functions on window,
-        // but future pass will remove them and update event delegation to call App.actions directly.
+        // We removed the direct globals above and kept originals under `App.legacy`.
+        // The delegated handler added earlier now calls `App.handleAction`, so UI
+        // attributes `data-action` will resolve against the names stored in `App.actions`.
     } catch (e) { console.error('Erro ao configurar namespace App:', e); }
 })();
 
