@@ -337,14 +337,14 @@ function renderizarAtividades() {
                         <strong>${escapeHtml(a.titulo)}</strong>
                     </div>
                     <div class="small-text">${escapeHtml(a.descricao || '')}</div>
-                    <div class="meta small-text">Responsável: ${escapeHtml(a.responsavel || '')} • Prioridade: ${escapeHtml(a.prioridade || '')} • Prazo: ${prazo} ${diasBadge}</div>
+                    <div class="meta small-text">Responsável: ${escapeHtml(a.responsavel || '')} • Prioridade: ${getPriorityBadge(a.prioridade)} • Prazo: ${prazo} ${diasBadge}</div>
                 </div>
                 <div class="actions" style="text-align:right; min-width:160px;">
                     <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
-                        <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})"><span class="icon">✏️</span></button>
-                        <button class="btn-secondary btn-icon" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})"><span class="icon">🗑️</span></button>
+                        <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('edit')}</button>
+                        <button class="btn-secondary btn-icon" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('trash')}</button>
                     </div>
                 </div>
             </div>
@@ -371,6 +371,29 @@ function renderizarAtividades() {
     if (tabelaContainer && tabelaContainer.style.display !== 'none') {
         renderizarTabelaAtividades(AppState.dados.atividades || []);
     }
+}
+
+// Helper: return a small SVG string for common icons
+function svgIcon(name) {
+    const icons = {
+        edit: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>`,
+        trash: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`
+    };
+    return icons[name] || '';
+}
+
+// Helper: render priority as a badge
+function getPriorityBadge(priority) {
+    if (!priority) return '';
+    const p = String(priority).toLowerCase();
+    const map = {
+        'critica': 'badge badge--overdue',
+        'alta': 'badge badge--due',
+        'media': 'badge badge--ok',
+        'baixa': 'badge badge--ok'
+    };
+    const cls = map[p] || 'badge badge--order';
+    return `<span class="${cls}">${escapeHtml(String(priority))}</span>`;
 }
 
 function renderizarTabelaAtividades(items) {
