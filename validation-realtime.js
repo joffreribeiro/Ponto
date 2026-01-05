@@ -108,13 +108,21 @@ const RealtimeValidation = {
 
         this.activeFields.set(fieldId, config);
 
-        // Criar container de feedback
+        // Criar container de feedback (aria-friendly)
         let feedback = field.parentElement.querySelector('.validation-feedback');
         if (!feedback) {
             feedback = document.createElement('div');
             feedback.className = 'validation-feedback';
+            // ARIA: make it a polite live region for assistive tech
+            feedback.setAttribute('role', 'status');
+            feedback.setAttribute('aria-live', 'polite');
+            feedback.id = `validation-feedback-${fieldId}`;
             field.parentElement.appendChild(feedback);
+        } else if (!feedback.id) {
+            feedback.id = `validation-feedback-${fieldId}`;
         }
+        // Link field and feedback for accessibility
+        field.setAttribute('aria-describedby', feedback.id);
 
         // Event listeners
         const debouncedValidate = Utils.debounce(() => {
@@ -152,25 +160,29 @@ const RealtimeValidation = {
             const result = validator.validate(value, config.options.min, config.options.max);
             if (!result.valid) {
                 allValid = false;
-                messages.push(`${validator.icon} ${result.message}`);
+                messages.push({ icon: validator.icon, text: result.message });
             }
         }
 
         // Atualizar UI
         field.classList.remove('field-valid', 'field-invalid');
+        field.removeAttribute('aria-invalid');
         
         if (value) { // Só mostrar validação se houver valor
             if (allValid) {
                 field.classList.add('field-valid');
+                field.setAttribute('aria-invalid', 'false');
                 if (feedback) {
                     feedback.innerHTML = '<span class="validation-success">✓ Válido</span>';
                     feedback.className = 'validation-feedback success';
                 }
             } else {
                 field.classList.add('field-invalid');
+                field.setAttribute('aria-invalid', 'true');
                 if (feedback) {
+                    // Wrap icons/markers in aria-hidden so screen readers read only the message
                     feedback.innerHTML = messages.map(m => 
-                        `<span class="validation-error">${m}</span>`
+                        `<span class="validation-error"><span class="vicon" aria-hidden="true">${m.icon}</span> ${m.text}</span>`
                     ).join('');
                     feedback.className = 'validation-feedback error';
                 }
@@ -178,6 +190,7 @@ const RealtimeValidation = {
         } else if (feedback) {
             feedback.innerHTML = '';
             feedback.className = 'validation-feedback';
+            field.removeAttribute('aria-describedby');
         }
 
         return allValid;
@@ -206,6 +219,8 @@ const RealtimeValidation = {
 
         this.activeFields.delete(fieldId);
         field.classList.remove('field-valid', 'field-invalid');
+        field.removeAttribute('aria-invalid');
+        field.removeAttribute('aria-describedby');
         
         const feedback = field.parentElement.querySelector('.validation-feedback');
         if (feedback) {
@@ -258,10 +273,12 @@ const RealtimeValidation = {
         if (!valid) {
             const feedback = field2.parentElement.querySelector('.validation-feedback');
             if (feedback) {
-                feedback.innerHTML = `<span class="validation-error">⚠️ ${message}</span>`;
+                feedback.innerHTML = `<span class="validation-error"><span class="vicon" aria-hidden="true">⚠️</span> ${message}</span>`;
                 feedback.className = 'validation-feedback error';
+                field2.setAttribute('aria-describedby', feedback.id || `validation-feedback-${field2.id}`);
             }
             field2.classList.add('field-invalid');
+            field2.setAttribute('aria-invalid', 'true');
         }
 
         return valid;

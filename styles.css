@@ -191,7 +191,10 @@
     --card-gap: 10px;
 
     /* Accessible focus color */
-    --focus-ring: rgba(30,64,175,0.18);
+    --focus-ring: rgba(30,64,175,0.28);
+    /* Additional accessibility tokens for contrast tuning */
+    --focus-ring-strong: rgba(99,102,241,0.36);
+    --btn-radius: 10px;
 }
 
 /* ================================================
@@ -521,8 +524,14 @@ header h1 {
 .form-group textarea { min-height: 80px; }
 
 /* Uniformizar alturas de botões (botão primário um pouco maior) */
-.btn-primary { padding: 12px 22px; border-radius: 10px; }
-.btn-secondary, .btn-outline, .btn-error { padding: 10px 16px; border-radius: 10px; }
+.btn-primary { padding: 12px 22px; border-radius: var(--btn-radius); background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 6px rgba(16,24,40,0.06); transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+.btn-primary:hover { transform: translateY(-1px); background: var(--primary-hover); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary, .btn-outline, .btn-error { padding: 10px 16px; border-radius: var(--btn-radius); transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
+.btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: var(--primary-soft); }
+.btn-error { background: var(--negative); color: #fff; border: 1px solid rgba(0,0,0,0.06); }
 
 /* Badges e indicadores */
 .badge {
@@ -534,10 +543,10 @@ header h1 {
     font-size: 12px;
     font-weight: 700;
 }
-.badge--order { background: var(--primary-soft); color: var(--primary); border: 1px solid rgba(30,58,138,0.08); }
-.badge--due { background: var(--warning-soft); color: var(--warning); }
-.badge--overdue { background: var(--negative-soft); color: var(--negative); }
-.badge--ok { background: var(--positive-soft); color: var(--positive); }
+.badge--order { background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); }
+.badge--due { background: #b45309; color: #ffffff; }
+.badge--overdue { background: var(--negative); color: #ffffff; }
+.badge--ok { background: var(--positive); color: #ffffff; }
 
 /* Painel inline: animação de abertura */
 #novaAtividadeInline {
@@ -558,6 +567,65 @@ header h1 {
     box-shadow: 0 10px 30px rgba(20,30,60,0.12);
     border: 1px solid rgba(15,23,42,0.06);
     overflow: hidden;
+}
+
+/* Validation / form states */
+.field-valid { box-shadow: 0 0 0 3px rgba(16,185,129,0.12); border-color: var(--positive); }
+.field-invalid { box-shadow: 0 0 0 3px rgba(220,38,38,0.10); border-color: var(--negative); background: rgba(220,38,38,0.03); }
+
+.validation-feedback { margin-top: 6px; font-size: 12px; line-height: 1.2; }
+.validation-feedback.success { color: var(--positive); }
+.validation-feedback.error { color: var(--negative); }
+.validation-feedback .validation-error { display: block; }
+.validation-feedback .validation-success { display: inline-block; }
+
+.vicon { display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; }
+
+/* Focus styles that are visible and high contrast */
+:where(a,button,input,select,textarea):focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); border-radius: 8px; }
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* Small micro-interactions for cards and controls */
+.card, .activity-card { transition: transform 200ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms ease; }
+.card:hover { transform: translateY(-4px); }
+
+/* Dark theme tokens */
+html[data-theme="dark"] {
+    --bg-page: #071327;
+    --bg-header: #061226;
+    --bg-card: #071428;
+    --bg-soft: #081825;
+
+    --primary: #60a5fa;
+    --primary-soft: rgba(96,165,250,0.12);
+    --primary-dark: #2563eb;
+    --primary-hover: #3b82f6;
+
+    --secondary: #9fb0c8;
+    --secondary-soft: rgba(159,176,200,0.06);
+
+    --accent: #38bdf8;
+    --accent-soft: rgba(56,189,248,0.06);
+
+    --text-main: #e6eef8;
+    --text-muted: #9fb0c8;
+    --text-light: #7f95a8;
+
+    --border-soft: rgba(255,255,255,0.06);
+    --border-table: rgba(255,255,255,0.04);
+
+    --positive: #34d399;
+    --positive-soft: rgba(52,211,153,0.06);
+    --negative: #f87171;
+    --negative-soft: rgba(248,113,113,0.06);
+    --warning: #f59e0b;
+    --warning-soft: rgba(245,158,11,0.06);
+    --info: #60a5fa;
+    --info-soft: rgba(96,165,250,0.06);
 }
 .modal-inline-card .modal-header {
     display:flex;
