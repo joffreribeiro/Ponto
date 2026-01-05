@@ -1189,7 +1189,8 @@
 
 <script src="utils.js?v=1.2.0"></script>
 <script src="notifications.js?v=1.2.0"></script>
-<!-- antigo/loading.js and antigo/keyboard.js removed (not present in workspace) -->
+<script src="antigo/loading.js?v=1.2.0"></script>
+<script src="antigo/keyboard.js?v=1.2.0"></script>
 <script src="pagination.js?v=1.2.0"></script>
 <script src="cache.js?v=1.2.0"></script>
 <script src="validation-realtime.js?v=1.2.0"></script>
@@ -1199,86 +1200,7 @@
 <script src="validators.js?v=1.2.0"></script>
 <script src="storage.js?v=1.2.0"></script>
 <script src="calculations.js?v=1.2.0"></script>
-<script src="atividades-tabela.js?v=1.2.1"></script>
-<script src="app-refatorado.js?v=1.2.1"></script>
-
-<!-- Fallback resiliente: garante ativação das abas/sub-abas mesmo se app-refatorado.js falhar -->
-<script>
-    (function(){
-        try {
-            // evita dupla inicialização
-            if (document._tabsInit) return;
-
-            function activateTabButton(btn){
-                if (!btn) return;
-                const alvo = btn.dataset && btn.dataset.tab;
-                const tabBtns = document.querySelectorAll('.tab-btn');
-                const tabContents = document.querySelectorAll('.tab-content');
-                tabBtns.forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                const sec = document.getElementById(alvo);
-                if (sec) sec.classList.add('active');
-            }
-
-            document.addEventListener('click', function(e){
-                const btn = e.target.closest && e.target.closest('.tab-btn');
-                if (!btn) return;
-                try { activateTabButton(btn); } catch(err){ /* ignore */ }
-            });
-
-            // subtabs
-            if (!document._subtabsInit) {
-                function activateSubtabButton(btn){
-                    if (!btn) return;
-                    const alvo = btn.dataset && btn.dataset.subtab;
-                    const subBtns = document.querySelectorAll('.subtab-btn');
-                    const subContents = document.querySelectorAll('.subtab-content');
-                    subBtns.forEach(b => b.classList.remove('active'));
-                    subContents.forEach(c => c.classList.remove('active'));
-                    btn.classList.add('active');
-                    const sec = document.getElementById(alvo);
-                    if (sec) sec.classList.add('active');
-                }
-
-                document.addEventListener('click', function(e){
-                    const btn = e.target.closest && e.target.closest('.subtab-btn');
-                    if (!btn) return;
-                    try { activateSubtabButton(btn); } catch(err){ /* ignore */ }
-                });
-                document._subtabsInit = true;
-            }
-
-            document._tabsInit = true;
-        } catch (e) {
-            console.error('Fallback de abas falhou:', e);
-        }
-    })();
-</script>
-        <script>
-            // Shim mínimo para botões inline caso `app-refatorado.js` não tenha sido executado
-            if (typeof window.toggleAtividadesKanban === 'undefined') {
-                window.toggleAtividadesKanban = function(){
-                    try {
-                        const kanban = document.getElementById('atividadesKanban');
-                        const tabela = document.getElementById('atividadesTableContainer');
-                        if (kanban) kanban.style.display = (kanban.style.display === 'none' || kanban.style.display === '') ? 'block' : 'none';
-                        if (tabela) tabela.style.display = (tabela.style.display === 'none' || tabela.style.display === '') ? 'block' : 'none';
-                        if (typeof renderizarAtividades === 'function') renderizarAtividades();
-                    } catch (e) { console.error('toggleAtividadesKanban shim error', e); }
-                };
-            }
-            if (typeof window.toggleAtividadesTable === 'undefined') {
-                window.toggleAtividadesTable = function(){
-                    try {
-                        const cont = document.getElementById('atividadesTableContainer');
-                        if (!cont) return;
-                        cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
-                        if (typeof renderizarAtividades === 'function') renderizarAtividades();
-                    } catch (e) { console.error('toggleAtividadesTable shim error', e); }
-                };
-            }
-        </script>
+<script src="app-refatorado.js?v=1.2.0"></script>
 
 <!-- Removidos marcadores de conflito de merge e chamadas órfãs de funções inexistentes -->
 

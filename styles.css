@@ -400,58 +400,6 @@ header h1 {
     box-shadow: var(--shadow-soft);
 }
 
-/* Kanban styles */
-.kanban-board {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    overflow-x: auto;
-    padding: 8px 4px;
-}
-.kanban-column {
-    min-width: 260px;
-    max-width: 320px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,255,0.95));
-    border: 1px solid var(--border-soft);
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: var(--shadow-soft);
-}
-.kanban-column-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
-.kanban-column-header h3 { margin:0; font-size:16px; font-weight:700; }
-.kanban-count { background:var(--primary-soft); color:var(--primary); padding:4px 8px; border-radius:999px; font-weight:700; }
-.kanban-list { min-height:60px; display:flex; flex-direction:column; gap:8px; }
-.kanban-item.card { padding:10px; border-radius:10px; background: #fff; border:1px solid var(--border-soft); cursor: grab; }
-.kanban-card-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.kanban-title { font-size:14px; }
-.kanban-actions { display:flex; gap:6px; }
-.btn-icon { background:transparent; border:none; cursor:pointer; padding:6px; border-radius:6px; }
-.btn-icon:hover { background:var(--primary-soft); }
-.kanban-meta { margin-top:6px; font-size:12px; color:var(--text-muted); display:flex; gap:8px; align-items:center; }
-.kanban-priority { padding:3px 8px; border-radius:999px; font-weight:700; font-size:12px; }
-.prio-critica { background:#fee2e2; color:#b91c1c; }
-.prio-alta { background:#fff7ed; color:#b45309; }
-.prio-media { background:#f0f9ff; color:#0369a1; }
-.prio-baixa { background:#ecfdf5; color:#065f46; }
-.kanban-desc { margin-top:8px; font-size:13px; color:var(--text-muted); min-height:36px; }
-.kanban-progress { margin-top:8px; height:10px; background:var(--border-soft); border-radius:8px; position:relative; overflow:hidden; }
-.kanban-progress .bar { height:100%; background:linear-gradient(90deg,var(--accent),var(--primary)); width:0; transition:width 300ms ease; }
-.kanban-progress .progress-label { position:absolute; right:8px; top:-18px; font-size:11px; color:var(--text-muted); }
-.kanban-footer { margin-top:8px; display:flex; gap:8px; align-items:center; }
-
-/* Quick edit UI */
-.kanban-quickedit { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
-.kanban-quickedit .ke-row { display:flex; gap:8px; align-items:center; }
-.kanban-quickedit input[type="text"], .kanban-quickedit input[type="number"], .kanban-quickedit select { padding:8px 10px; border:1px solid var(--border-soft); border-radius:8px; font-size:13px; }
-.kanban-quickedit .ke-actions { display:flex; justify-content:flex-end; gap:8px; }
-.kanban-item.card { transition: transform 180ms ease, box-shadow 180ms ease; }
-.kanban-item.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-medium); }
-.kanban-item.editing { outline: 2px dashed var(--primary-soft); }
-
-/* Smooth column appearance */
-.kanban-column { transition: all 240ms ease; }
-.kanban-list { transition: all 220ms ease; }
-
 /* Form controls spacing and touch targets */
 .form-group input,
 .form-group select,

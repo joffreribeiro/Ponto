@@ -28,10 +28,6 @@ const AppState = {
      */
     init() {
         this.dados = Storage.load();
-        // Buffers temporários usados pelos modais (evita poluir window)
-        this.modalTemp = this.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-        // Listener references para possível cleanup
-        this._listeners = this._listeners || {};
     },
 
     /**
@@ -56,6 +52,101 @@ const AppState = {
         this.acordoEmEdicaoIndex = null;
     }
 };
+
+// ============= INICIALIZAÇÃO =============
+
+function inicializar() {
+    try {
+        AppState.init();
+        ensureTiposEventoDefault();
+        configurarAbas();
+        configurarSubAbas();
+        configurarModalAcordo();
+        configurarModalEvento();
+        popularFiltroAcordosDashboard();
+        configurarFiltrosDashboard();
+        atualizarDashboard();
+        renderizarTabelaRegistros();
+        renderizarEventos();
+        renderizarAcordos();
+        atualizarSelectAcordosTimesheet();
+        atualizarSelectAcordosRegistros();
+        atualizarSelectAcordosEventos();
+        // Inicializar módulo de Atividades
+        ensureAtividadesDefault();
+        renderizarAtividades();
+        // fallback: garantir botão 'Nova Atividade' ligado mesmo que onclick inline falhe
+            try {
+                let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
+                if (!btnNew) {
+                    btnNew = document.querySelector('#atividades button.btn-primary');
+                }
+                if (!btnNew) {
+                    const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
+                    btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
+                }
+                if (btnNew && !btnNew._atividadeListenerAttached) {
+                    console.debug('Anexando listener fallback ao botão Nova Atividade', btnNew);
+                    // Se o botão estiver marcado para comportamento inline ou já chama abrirAbaNovaAtividade(),
+                    // anexar listener que abre o painel inline em vez do modal.
+                    const onclickAttr = (btnNew.getAttribute && btnNew.getAttribute('onclick')) || '';
+                    if (btnNew.hasAttribute && btnNew.hasAttribute('data-no-fallback')) {
+                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
+                    } else if (onclickAttr.includes('abrirAbaNovaAtividade')) {
+                        btnNew.addEventListener('click', (e) => { try { abrirAbaNovaAtividade(); } catch(err){ console.error('Erro ao abrir painel inline (fallback):', err); } });
+                    } else {
+                        btnNew.addEventListener('click', (e) => { try { abrirModalAtividade(); } catch(err){ console.error('Erro ao abrir modal atividade (fallback):', err); } });
+                    }
+                    btnNew._atividadeListenerAttached = true;
+                }
+            // adicional: listener global para diagnosticar cliques e forçar abertura caso o botão não responda
+            if (!document._atividadeGlobalClickAttached) {
+                    document.addEventListener('click', function(ev){
+                    try {
+                        const t = ev.target;
+                        const btn = t.closest && t.closest('button');
+                        // Se o botão estiver marcado para comportamento inline, pular o fallback global
+                        if (btn && btn.hasAttribute && btn.hasAttribute('data-no-fallback')) return;
+                        if (!btn) return;
+                        const insideAtividades = !!btn.closest('#atividades');
+                        const callsAbrir = (btn.getAttribute && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('abrirModalAtividade')) || ((btn.textContent||'').toLowerCase().includes('nova atividade')) || btn.classList.contains('btn-primary') && insideAtividades;
+                                if (callsAbrir) {
+                                    console.debug('Clique detectado no botão de nova atividade (global):', btn);
+                                    try {
+                                        // Inspecionar nós vizinhos e conteúdo relevante para diagnosticar o "número ao lado do hidden"
+                                        const prev = btn.previousSibling && btn.previousSibling.textContent ? btn.previousSibling.textContent.trim() : null;
+                                        const next = btn.nextSibling && btn.nextSibling.textContent ? btn.nextSibling.textContent.trim() : null;
+                                        const parentText = btn.parentElement ? (btn.parentElement.textContent || '').trim().slice(0,200) : null;
+                                        console.debug('Botão vizinhos -> previousSibling:', prev, ' nextSibling:', next);
+                                        console.debug('Botão parent (first 200 chars):', parentText);
+                                        console.debug('Registros antes abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
+                                        abrirModalAtividade();
+                                        console.debug('Registros depois abrirModalAtividade:', (AppState.dados && AppState.dados.registros) ? AppState.dados.registros.length : 0);
+                                        // também logar o estado resumido de atividades
+                                        console.debug('Atividades total:', (AppState.dados && AppState.dados.atividades) ? AppState.dados.atividades.length : 0);
+                                    } catch(err) { console.error('Erro ao abrir modal via listener global:', err); }
+                                }
+                    } catch(e){ /* ignore */ }
+                }, true);
+                document._atividadeGlobalClickAttached = true;
+            }
+        } catch (e) { console.error('Erro ao anexar listener Nova Atividade:', e); }
+        atualizarSelectTiposEventos();
+        const filtroEventos = document.getElementById('filtroAcordoEventos');
+        if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
+        const filtroRegistros = document.getElementById('filtroAcordoRegistros');
+        if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
+        // iniciar verificação de lembretes a cada 30 minutos
+        try {
+            checkAtividadesDeadlines();
+            setInterval(checkAtividadesDeadlines, 30 * 60 * 1000);
+        } catch (e) { /* ignore */ }
+        console.log('Aplicação inicializada com sucesso');
+    } catch (error) {
+        console.error('Erro na inicialização:', error);
+        mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error');
+    }
+}
 
 /**
  * Garante que `AppState.dados.tiposEvento` contenha os tipos padrão,
@@ -211,8 +302,8 @@ function renderizarAtividades() {
                     <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
-                        <button class="btn-secondary" data-action="editar" data-id="${a.id || idx}">✏️</button>
-                        <button class="btn-secondary" data-action="remover" data-id="${a.id || idx}">🗑️</button>
+                        <button class="btn-secondary" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">✏️</button>
+                        <button class="btn-secondary" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -276,22 +367,58 @@ function renderizarTabelaAtividades(items) {
             <td>${a.finalizado ? 'Sim' : 'Não'}</td>
             <td>${escapeHtml(a.status || '')}</td>
             <td>
-                <button class="btn-secondary" data-action="editar" data-id="${a.id}">✏️</button>
-                <button class="btn-secondary" data-action="remover" data-id="${a.id}">🗑️</button>
+                <button class="btn-secondary" onclick="editarAtividade('${a.id}')">✏️</button>
+                <button class="btn-secondary" onclick="removerAtividade('${a.id}')">🗑️</button>
             </td>
         </tr>`;
     }).join('');
     tbody.innerHTML = rows;
 }
 
-// Forwarder to module `AtividadesTabela` (defined in atividades-tabela.js)
-function renderizarTabelaAtividades(items) {
-    if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
-        return window.AtividadesTabela.renderizarTabelaAtividades(items);
-    }
-    // Fallback: nada a fazer se módulo não estiver carregado
+function renderizarKanban(items) {
+    const kanban = document.getElementById('atividadesKanban');
+    if (!kanban) return;
+    const statuses = ['pendente','em andamento','bloqueada','concluida'];
+    const cols = statuses.map(s => ({ key:s, title: s === 'pendente' ? 'Pendente' : s === 'em andamento' ? 'Em andamento' : s === 'bloqueada' ? 'Bloqueada' : 'Concluída' }));
+    const html = cols.map(col => {
+        const cards = items.filter(i => i.status === col.key).map(a => `
+            <div class="kanban-card" draggable="true" data-id="${a.id}">
+                <strong>${escapeHtml(a.titulo)}</strong>
+                <div class="small-text">${escapeHtml(a.responsavel||'')} • ${escapeHtml(a.prioridade||'')}</div>
+            </div>
+        `).join('');
+        return `
+            <div class="kanban-column" data-status="${col.key}">
+                <h4>${col.title}</h4>
+                <div class="kanban-list">${cards}</div>
+            </div>
+        `;
+    }).join('');
+
+    kanban.innerHTML = `<div class="kanban-board">${html}</div>`;
+
+    // attach drag handlers
+    kanban.querySelectorAll('.kanban-card').forEach(card => {
+        card.addEventListener('dragstart', onAtividadeDragStart);
+        card.addEventListener('dragend', onAtividadeDragEnd);
+    });
+    kanban.querySelectorAll('.kanban-list').forEach(list => {
+        list.addEventListener('dragover', onAtividadeDragOver);
+        list.addEventListener('drop', onAtividadeDrop);
+    });
 }
+
 let _draggingAtividadeId = null;
+function onAtividadeDragStart(e) {
+    const id = e.currentTarget.dataset.id;
+    _draggingAtividadeId = id;
+    e.dataTransfer.setData('text/plain', id);
+    e.currentTarget.classList.add('dragging');
+}
+function onAtividadeDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    _draggingAtividadeId = null;
+}
 function onAtividadeDragOver(e) {
     e.preventDefault();
 }
@@ -304,56 +431,6 @@ function onAtividadeDrop(e) {
     if (id && status) {
         moveAtividadeToStatus(id, status);
     }
-}
-
-function onAtividadeDragStart(e) {
-    try {
-        const el = e.currentTarget || e.target;
-        const id = el && el.dataset && el.dataset.id;
-        if (e.dataTransfer && id) e.dataTransfer.setData('text/plain', id);
-        _draggingAtividadeId = id;
-    } catch (err) { /* ignore */ }
-}
-
-function renderizarKanban(items) {
-    const container = document.getElementById('atividadesKanban');
-    if (!container) return;
-    // statuses to display
-    const statuses = ['pendente','em andamento','bloqueada','concluida'];
-    const groups = {};
-    statuses.forEach(s => groups[s] = []);
-    items.forEach(it => { const s = it.status || 'pendente'; if (!groups[s]) groups[s]=[]; groups[s].push(it); });
-
-    const html = statuses.map(s => `
-        <div class="kanban-column" data-status="${s}">
-            <h3>${s.replace(/\b\w/g, c => c.toUpperCase())} (${groups[s].length})</h3>
-            <div class="kanban-list" ondragover="onAtividadeDragOver(event)" ondrop="onAtividadeDrop(event)">
-                ${groups[s].map(it => `
-                    <div class="kanban-item" draggable="true" data-id="${it.id}" ondragstart="onAtividadeDragStart(event)">
-                        <strong>${escapeHtml(it.titulo || it.objeto || '')}</strong>
-                        <div class="small-text">${escapeHtml(it.responsavel || '')} • ${escapeHtml(it.prioridade || '')}</div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
-
-    container.innerHTML = `<div class="kanban-board">${html}</div>`;
-    // Attach drag handlers via JS for environments where inline handlers are blocked
-    try {
-        const lists = container.querySelectorAll('.kanban-list');
-        lists.forEach(list => {
-            list.removeEventListener('dragover', onAtividadeDragOver);
-            list.removeEventListener('drop', onAtividadeDrop);
-            list.addEventListener('dragover', onAtividadeDragOver);
-            list.addEventListener('drop', onAtividadeDrop);
-        });
-        const itemsEls = container.querySelectorAll('.kanban-item');
-        itemsEls.forEach(it => {
-            it.removeEventListener('dragstart', onAtividadeDragStart);
-            it.addEventListener('dragstart', onAtividadeDragStart);
-        });
-    } catch (e) { /* ignore */ }
 }
 
 function moveAtividadeToStatus(id, status) {
@@ -377,117 +454,28 @@ function moveAtividadeToStatus(id, status) {
     }
 }
 
-// ===== Quick edit inline helpers for Kanban cards =====
-function getAtividadeById(id) {
-    return (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.find(a => a.id === id) : null;
-}
-
-function abrirQuickEditCard(id) {
-    const activity = getAtividadeById(id);
-    if (!activity) return;
-    const container = document.getElementById('atividadesKanban');
-    if (!container) return;
-    const card = container.querySelector(`.kanban-item[data-id="${id}"]`);
-    if (!card) return;
-    if (card.classList.contains('editing')) return;
-    card.classList.add('editing');
-    const currentTitle = activity.titulo || activity.objeto || '';
-    const currentResp = activity.responsavel || '';
-    const currentPrio = activity.prioridade || 'media';
-    const currentProg = Number(activity.progresso || 0) || 0;
-    const editor = document.createElement('div');
-    editor.className = 'kanban-quickedit';
-    editor.innerHTML = `
-        <div class="ke-row"><input class="ke-title" value="${escapeHtml(currentTitle)}" placeholder="Título"></div>
-        <div class="ke-row"><input class="ke-resp" value="${escapeHtml(currentResp)}" placeholder="Responsável"></div>
-        <div class="ke-row"><select class="ke-prio">
-            <option value="critica">Crítica</option>
-            <option value="alta">Alta</option>
-            <option value="media">Média</option>
-            <option value="baixa">Baixa</option>
-        </select>
-        <input type="number" class="ke-prog" value="${currentProg}" min="0" max="100" style="width:80px;margin-left:8px;">%</div>
-        <div class="ke-actions">
-            <button class="btn-secondary" data-action="cancel-quick" data-id="${id}">Cancelar</button>
-            <button class="btn-primary" data-action="save-quick" data-id="${id}">Salvar</button>
-        </div>
-    `;
-    // set select value
-    setTimeout(() => { const sel = editor.querySelector('.ke-prio'); if (sel) sel.value = currentPrio; }, 0);
-    // hide main desc and append editor
-    const desc = card.querySelector('.kanban-desc'); if (desc) desc.style.display = 'none';
-    card.appendChild(editor);
-    // focus title
-    const t = editor.querySelector('.ke-title'); if (t) t.focus();
-}
-
-function cancelarQuickEditCard(id, cardEl) {
-    const container = document.getElementById('atividadesKanban');
-    const card = cardEl || (container && container.querySelector(`.kanban-item[data-id="${id}"]`));
-    if (!card) return;
-    const editor = card.querySelector('.kanban-quickedit');
-    if (editor) editor.remove();
-    const desc = card.querySelector('.kanban-desc'); if (desc) desc.style.display = '';
-    card.classList.remove('editing');
-}
-
-function salvarQuickEditCard(id, cardEl) {
-    const container = document.getElementById('atividadesKanban');
-    const card = cardEl || (container && container.querySelector(`.kanban-item[data-id="${id}"]`));
-    if (!card) return;
-    const editor = card.querySelector('.kanban-quickedit');
-    if (!editor) return;
-    const title = editor.querySelector('.ke-title')?.value?.trim() || '';
-    const resp = editor.querySelector('.ke-resp')?.value?.trim() || '';
-    const prio = editor.querySelector('.ke-prio')?.value || 'media';
-    const prog = Number(editor.querySelector('.ke-prog')?.value || 0) || 0;
-    const list = AppState.dados && AppState.dados.atividades ? AppState.dados.atividades : [];
-    const idx = list.findIndex(a => a.id === id);
-    if (idx >= 0) {
-        list[idx] = Object.assign({}, list[idx], { titulo: title, responsavel: resp, prioridade: prio, progresso: prog, atualizadoEm: new Date().toISOString() });
-        AppState.dados.atividades = list;
-        AppState.save();
-        // refresh kanban and activities view
-        renderizarAtividades();
-    }
-}
-
 // Abre o novo modal de atividade completa (com barra lateral)
 function abrirModalAtividade(editId) {
         // Adiciona auto-preenchimento TED/PTrab -> Objeto/Processo Principal
         const tedInput = document.getElementById('atividadeTedPtrabCompleta');
-        AppState._listeners = AppState._listeners || {};
-        if (tedInput && !AppState._listeners.tedBlurAttached) {
-            const handler = function() {
+        if (tedInput && !tedInput._autoFillListener) {
+            tedInput.addEventListener('blur', function() {
                 const valor = tedInput.value.trim();
                 if (!valor) return;
                 const match = (AppState.dados.atividades || []).find(x => x.tedPtrab && x.tedPtrab.trim() === valor);
                 if (match) {
-                    if (window.Utils && Utils.delegate) {
-                        Utils.delegate(container, 'button[data-action]', 'click', (e, btn) => {
-                            const action = btn.dataset.action;
-                            const id = btn.dataset.id;
-                            if (action === 'editar') return editarAtividade(id);
-                            if (action === 'remover') return removerAtividade(id);
-                            if (action === 'quickedit') return abrirQuickEditCard(id);
-                            if (action === 'save-quick') return salvarQuickEditCard(id, btn.closest('.kanban-item'));
-                            if (action === 'cancel-quick') return cancelarQuickEditCard(id, btn.closest('.kanban-item'));
-                        });
-                    } else {
-                        container.querySelectorAll('button[data-action]').forEach(b => {
-                            b.removeEventListener('click', b._kbHandler);
-                            b._kbHandler = (ev) => {
-                                const action = b.dataset.action;
-                                const id = b.dataset.id;
-                                if (action === 'editar') return editarAtividade(id);
-                                if (action === 'remover') return removerAtividade(id);
-                                if (action === 'quickedit') return abrirQuickEditCard(id);
-                                if (action === 'save-quick') return salvarQuickEditCard(id, b.closest('.kanban-item'));
-                                if (action === 'cancel-quick') return cancelarQuickEditCard(id, b.closest('.kanban-item'));
-                            };
-                            b.addEventListener('click', b._kbHandler);
-                        });
-                    }
+                    if (document.getElementById('atividadeObjetoCompleta')) document.getElementById('atividadeObjetoCompleta').value = match.objeto || '';
+                    if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = match.processoPrincipal || '';
+                }
+            });
+            tedInput._autoFillListener = true;
+        }
+    const modal = document.getElementById('modalNovaAtividadeCompleta');
+    if (!modal) { alert('Modal de atividade não encontrado!'); return; }
+    // Limpa todos os campos
+    const ids = [
+        'atividadeOrdemCompleta','atividadeTedPtrabCompleta','atividadeObjetoCompleta','atividadeProcessoPrincipalCompleta','atividadeAssuntoCompleta','atividadeProcessoSolicitacaoCompleta','atividadeDataDocCompleta','atividadeTipoDocCompleta','atividadeNumeroDocCompleta','atividadeRemetenteCompleta','atividadeDestinatarioCompleta','atividadeAcaoRealizarCompleta','atividadePrioridadeCompleta','atividadePrazoCompleta','atividadeDiasCompleta','atividadeStatusCompleta','atividadeProgressoCompleta','atividadeTagsCompleta','atividadeLembreteDiasCompleta','atividadeLembreteHorarioCompleta','atividadeObservacoesCompleta','atividadeFinalizadoCompleta','atividadeArquivoCompleta','comentarioInputCompleta'];
+    ids.forEach(id => { const n = document.getElementById(id); if (n) { if(n.type==='checkbox') n.checked=false; else n.value=''; }});
     // Limpa listas
     ['anexosListCompleta','comentariosListCompleta'].forEach(id => { const ul = document.getElementById(id); if (ul) ul.innerHTML = ''; });
     // Preenche ordem automática se for novo
@@ -563,16 +551,6 @@ function salvarNovaAtividadeCompleta() {
         finalizado: get('atividadeFinalizadoCompleta') === 'true',
         // anexos, comentários: implementar se necessário
     };
-    // validar atividade antes de salvar
-    try {
-        const errs = Validators.validateAtividade(atividade);
-        if (Array.isArray(errs) && errs.length) {
-            Notifications.error('Erro ao salvar atividade: ' + errs.join('; '));
-            return;
-        }
-    } catch (e) {
-        console.error('Erro na validação da atividade:', e);
-    }
     // Se for edição, atualiza; senão, adiciona
     const modal = document.getElementById('modalNovaAtividadeCompleta');
     const editId = modal?.dataset.editId;
@@ -658,9 +636,9 @@ function salvarAtividade() {
     };
 
     let list = AppState.dados.atividades || [];
-    const tempSub = (AppState.modalTemp && Array.isArray(AppState.modalTemp.subtasks)) ? AppState.modalTemp.subtasks.slice() : [];
-    const tempAnexos = (AppState.modalTemp && Array.isArray(AppState.modalTemp.anexos)) ? AppState.modalTemp.anexos.slice() : [];
-    const tempComentarios = (AppState.modalTemp && Array.isArray(AppState.modalTemp.comentarios)) ? AppState.modalTemp.comentarios.slice() : [];
+    const tempSub = (window.__modalSubtasks && window.__modalSubtasks['new']) || [];
+    const tempAnexos = (window.__modalAnexos && window.__modalAnexos['new']) || [];
+    const tempComentarios = (window.__modalComentarios && window.__modalComentarios['new']) || [];
 
     if (editId) {
         const idx = list.findIndex(x => x.id === editId);
@@ -684,7 +662,9 @@ function salvarAtividade() {
     AppState.dados.atividades = list;
     AppState.save();
     // limpar buffers temporários do modal
-    try { AppState.modalTemp.anexos = []; AppState.modalTemp.comentarios = []; AppState.modalTemp.subtasks = []; } catch(e){}
+    try { window.__modalAnexos = { 'new': [] }; } catch(e){}
+    try { window.__modalComentarios = { 'new': [] }; } catch(e){}
+    try { window.__modalSubtasks = { 'new': [] }; } catch(e){}
     fecharModalAtividade();
     renderizarAtividades();
     Notifications.success('Atividade salva');
@@ -823,9 +803,9 @@ function adicionarSubtaskModal() {
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
-    AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-    AppState.modalTemp.subtasks = AppState.modalTemp.subtasks || [];
-    AppState.modalTemp.subtasks.push({ titulo: txt, concluido: false });
+    window.__modalSubtasks = window.__modalSubtasks || {};
+    window.__modalSubtasks['new'] = window.__modalSubtasks['new'] || [];
+    window.__modalSubtasks['new'].push({ titulo: txt, concluido: false });
 }
 
 function toggleSubtask(atividadeId, subIndex, checked) {
@@ -885,9 +865,9 @@ function adicionarAnexoModal(event) {
                 Notifications.success('Anexo adicionado');
             }
         } else {
-            AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-            AppState.modalTemp.anexos = AppState.modalTemp.anexos || [];
-            AppState.modalTemp.anexos.push(anexo);
+            window.__modalAnexos = window.__modalAnexos || {};
+            window.__modalAnexos['new'] = window.__modalAnexos['new'] || [];
+            window.__modalAnexos['new'].push(anexo);
             atualizarListaAnexosModal();
             Notifications.success('Anexo pronto (será salvo ao criar a atividade)');
         }
@@ -904,7 +884,7 @@ function atualizarListaAnexosModal() {
     if (!ul) return;
     ul.innerHTML = '';
     if (editId) return; // editing handled by abrirModalAtividade
-    const items = (AppState.modalTemp && AppState.modalTemp.anexos) ? AppState.modalTemp.anexos : [];
+    const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
         li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">🗑️</button>`;
@@ -925,10 +905,10 @@ function removerAnexo(atividadeId, index) {
         renderizarAtividades();
         Notifications.info('Anexo removido');
     } else {
-        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-        const arr = AppState.modalTemp.anexos || [];
+        window.__modalAnexos = window.__modalAnexos || {};
+        const arr = window.__modalAnexos['new'] || [];
         arr.splice(index,1);
-        AppState.modalTemp.anexos = arr;
+        window.__modalAnexos['new'] = arr;
         atualizarListaAnexosModal();
         Notifications.info('Anexo removido (modal)');
     }
@@ -953,9 +933,9 @@ function adicionarComentarioModal() {
             Notifications.success('Comentário adicionado');
         }
     } else {
-        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-        AppState.modalTemp.comentarios = AppState.modalTemp.comentarios || [];
-        AppState.modalTemp.comentarios.push(comment);
+        window.__modalComentarios = window.__modalComentarios || {};
+        window.__modalComentarios['new'] = window.__modalComentarios['new'] || [];
+        window.__modalComentarios['new'].push(comment);
         atualizarListaComentariosModal();
         Notifications.success('Comentário pronto (será salvo ao criar a atividade)');
     }
@@ -969,7 +949,7 @@ function atualizarListaComentariosModal() {
     if (!ul) return;
     ul.innerHTML = '';
     if (editId) return; // editing handled by abrirModalAtividade
-    const items = (AppState.modalTemp && AppState.modalTemp.comentarios) ? AppState.modalTemp.comentarios : [];
+    const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
         li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">🗑️</button>`;
@@ -989,10 +969,10 @@ function removerComentario(atividadeId, index) {
         abrirModalAtividade(atividadeId);
         Notifications.info('Comentário removido');
     } else {
-        AppState.modalTemp = AppState.modalTemp || { anexos: [], comentarios: [], subtasks: [] };
-        const arr = AppState.modalTemp.comentarios || [];
+        window.__modalComentarios = window.__modalComentarios || {};
+        const arr = window.__modalComentarios['new'] || [];
         arr.splice(index,1);
-        AppState.modalTemp.comentarios = arr;
+        window.__modalComentarios['new'] = arr;
         atualizarListaComentariosModal();
         Notifications.info('Comentário removido (modal)');
     }
@@ -1068,161 +1048,51 @@ function escapeHtml(s) {
     return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
 }
 
-function inicializar() {
-    try {
-        AppState.init();
-        ensureTiposEventoDefault();
-        configurarAbas();
-        configurarSubAbas();
-        if (typeof configurarModalAcordo === 'function') configurarModalAcordo();
-        if (typeof configurarModalEvento === 'function') configurarModalEvento();
-        if (typeof popularFiltroAcordosDashboard === 'function') popularFiltroAcordosDashboard();
-        if (typeof configurarFiltrosDashboard === 'function') configurarFiltrosDashboard();
-        if (typeof atualizarDashboard === 'function') atualizarDashboard();
-        if (typeof renderizarTabelaRegistros === 'function') renderizarTabelaRegistros();
-        if (typeof renderizarEventos === 'function') renderizarEventos();
-        if (typeof renderizarAcordos === 'function') renderizarAcordos();
-        if (typeof atualizarSelectAcordosTimesheet === 'function') atualizarSelectAcordosTimesheet();
-        if (typeof atualizarSelectAcordosRegistros === 'function') atualizarSelectAcordosRegistros();
-        if (typeof atualizarSelectAcordosEventos === 'function') atualizarSelectAcordosEventos();
-
-        // Inicializar módulo de Atividades
-        ensureAtividadesDefault();
-        if (typeof renderizarAtividades === 'function') renderizarAtividades();
-
-        // fallback: garantir botão 'Nova Atividade' ligado
-        try {
-            let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
-            if (!btnNew) btnNew = document.querySelector('#atividades button.btn-primary');
-            if (!btnNew) {
-                const candidates = Array.from(document.querySelectorAll('button.btn-primary'));
-                btnNew = candidates.find(b => (b.textContent || '').toLowerCase().includes('nova atividade') || (b.textContent || '').includes('➕'));
-            }
-            if (btnNew && !btnNew._atividadeListenerAttached) {
-                btnNew.addEventListener('click', (e) => { try { abrirModalAtividade(); } catch(err){ console.error('Erro ao abrir modal atividade (fallback):', err); } });
-                btnNew._atividadeListenerAttached = true;
-            }
-        } catch (e) { /* ignore */ }
-
-        // filtros e listeners
-        try {
-            const filtroEventos = document.getElementById('filtroAcordoEventos');
-            if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
-            const filtroRegistros = document.getElementById('filtroAcordoRegistros');
-            if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
-        } catch (e) { /* ignore */ }
-
-        try { checkAtividadesDeadlines(); setInterval(checkAtividadesDeadlines, 30 * 60 * 1000); } catch(e){}
-
-        // Delegação de eventos para ações de atividade (editar/remover)
-        try {
-            const atividadesLista = document.getElementById('atividadesLista');
-            if (atividadesLista && window.Utils && Utils.delegate) {
-                Utils.delegate(atividadesLista, 'button[data-action]', 'click', (e, target) => {
-                    const action = target.dataset.action;
-                    const id = target.dataset.id;
-                    if (action === 'editar') editarAtividade(id);
-                    if (action === 'remover') removerAtividade(id);
-                });
-            }
-            const tabelaTbody = document.querySelector('#tabelaAtividades tbody');
-            if (tabelaTbody && window.Utils && Utils.delegate) {
-                Utils.delegate(tabelaTbody, 'button[data-action]', 'click', (e, target) => {
-                    const action = target.dataset.action;
-                    const id = target.dataset.id;
-                    if (action === 'editar') editarAtividade(id);
-                    if (action === 'remover') removerAtividade(id);
-                });
-            }
-        } catch (e) { /* ignore delegation errors */ }
-
-        console.log('Aplicação inicializada com sucesso');
-    } catch (error) {
-        console.error('Erro na inicialização:', error);
-        try { mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error'); } catch(e){}
-    }
-}
-
-// Garantir inicialização mesmo que o script seja carregado após o evento DOMContentLoaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializar);
-} else {
-    // DOM já pronto
-    setTimeout(inicializar, 0);
-}
+document.addEventListener('DOMContentLoaded', inicializar);
 
 // ============= ABAS =============
 
 function configurarAbas() {
-    const nav = document.querySelector('.tabs');
-    if (!nav) return;
-    console.debug && console.debug('configurarAbas: nav found', !!nav);
-    // evitar múltiplas inicializações locais e globais
-    if (nav._tabsInit) return;
-    if (document._tabsInit) return;
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-    const activate = (btn) => {
-        const alvo = btn && btn.dataset && btn.dataset.tab;
-        console.debug && console.debug('configurarAbas.activate ->', alvo);
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        const sec = document.getElementById(alvo);
-        if (sec) sec.classList.add('active');
-    };
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const alvo = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
 
-    if (window.Utils && Utils.delegate) {
-        console.debug && console.debug('configurarAbas: using Utils.delegate on document');
-        Utils.delegate(document, '.tab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar aba (delegate):',err);} });
-    } else {
-        console.debug && console.debug('configurarAbas: using fallback listener on document');
-        document.addEventListener('click', function(e){
-            const btn = e.target.closest && e.target.closest('.tab-btn');
-            if (!btn) return;
-            try { activate(btn); } catch(err){ console.error('Erro ao ativar aba:', err); }
+            btn.classList.add('active');
+            const sec = document.getElementById(alvo);
+            if (sec) sec.classList.add('active');
         });
-    }
-    // marca como inicializado tanto no container quanto no documento
-    nav._tabsInit = true;
-    document._tabsInit = true;
+    });
 }
 
 function configurarSubAbas() {
-    const container = document.querySelector('.subtabs');
-    if (!container) return;
-    console.debug && console.debug('configurarSubAbas: container found', !!container);
-    if (container._subtabsInit) return;
-    if (document._subtabsInit) return;
+    const subBtns = document.querySelectorAll('.subtab-btn');
+    const subContents = document.querySelectorAll('.subtab-content');
 
-    const activate = (btn) => {
-        const alvo = btn && btn.dataset && btn.dataset.subtab;
-        console.debug && console.debug('configurarSubAbas.activate ->', alvo);
-        const subBtns = container.querySelectorAll('.subtab-btn');
-        const subContents = document.querySelectorAll('.subtab-content');
-        subBtns.forEach(b => b.classList.remove('active'));
-        subContents.forEach(c => c.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-        const sec = document.getElementById(alvo);
-        if (sec) sec.classList.add('active');
-        if (alvo === 'ponto-config') renderizarAcordos();
-        if (alvo === 'ponto-eventos') renderizarEventos();
-    };
+    subBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const alvo = btn.dataset.subtab;
+            subBtns.forEach(b => b.classList.remove('active'));
+            subContents.forEach(c => c.classList.remove('active'));
 
-    if (window.Utils && Utils.delegate) {
-        console.debug && console.debug('configurarSubAbas: using Utils.delegate on document');
-        Utils.delegate(document, '.subtab-btn', 'click', (e, btn) => { try { activate(btn); } catch(err){console.error('Erro ao ativar sub-aba (delegate):',err);} });
-    } else {
-        console.debug && console.debug('configurarSubAbas: using fallback listener on document');
-        document.addEventListener('click', function(e){
-            const btn = e.target.closest && e.target.closest('.subtab-btn');
-            if (!btn) return;
-            try { activate(btn); } catch(err){ console.error('Erro ao ativar sub-aba:', err); }
+            btn.classList.add('active');
+            const sec = document.getElementById(alvo);
+            if (sec) sec.classList.add('active');
+
+            // Re-renderiza listas quando abre a aba de acordos
+            if (alvo === 'ponto-config') {
+                renderizarAcordos();
+            }
+            // Re-renderiza eventos quando abre a aba de eventos
+            if (alvo === 'ponto-eventos') {
+                renderizarEventos();
+            }
         });
-    }
-    container._subtabsInit = true;
-    document._subtabsInit = true;
+    });
 }
 
 function configurarModalAcordo() {
@@ -4186,7 +4056,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
-
-// EOF marker: ensure file ends cleanly. No-op to avoid parser "Unexpected end of input" in some environments.
-void 0;
 

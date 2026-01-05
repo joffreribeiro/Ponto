@@ -69,28 +69,6 @@ const Validators = {
             }
         }
 
-        // Periodo do evento (opcional) — aceitar valores específicos
-        if (registro.periodoEvento !== undefined && registro.periodoEvento !== null && registro.periodoEvento !== '') {
-            const allowed = ['dia_todo', 'matutino', 'vespertino'];
-            if (typeof registro.periodoEvento !== 'string' || !allowed.includes(registro.periodoEvento)) {
-                errors.push('Período do registro inválido');
-            }
-        }
-
-        // createLinkedEvent (opcional) deve ser booleano quando presente
-        if (registro.createLinkedEvent !== undefined && registro.createLinkedEvent !== null) {
-            if (typeof registro.createLinkedEvent !== 'boolean') {
-                errors.push('Flag createLinkedEvent inválida');
-            }
-        }
-
-        // Tipo de evento vinculado ao registro (opcional)
-        if (registro.tipoEventoRegistro !== undefined && registro.tipoEventoRegistro !== null && registro.tipoEventoRegistro !== '') {
-            if (typeof registro.tipoEventoRegistro !== 'string') {
-                errors.push('Tipo de evento do registro inválido');
-            }
-        }
-
         return errors;
     },
 
@@ -215,14 +193,6 @@ const Validators = {
             }
         }
 
-        // Periodo (opcional) - validar valores permitidos
-        if (evento.periodo !== undefined && evento.periodo !== null) {
-            const allowed = ['dia_todo', 'matutino', 'vespertino'];
-            if (typeof evento.periodo !== 'string' || !allowed.includes(evento.periodo)) {
-                errors.push('Período do evento inválido');
-            }
-        }
-
         return errors;
     },
 
@@ -260,50 +230,6 @@ const Validators = {
                 errors.push(`Regra ${idx + 1}: ${erro}`);
             });
         });
-
-        return errors;
-    },
-
-    /**
-     * Valida uma atividade (usada pelo modal Nova Atividade)
-     */
-    validateAtividade(atividade) {
-        const errors = [];
-        if (!atividade || typeof atividade !== 'object') {
-            errors.push('Atividade deve ser um objeto válido');
-            return errors;
-        }
-
-        // ordem (string/numero) obrigatória
-        if (!atividade.ordem || String(atividade.ordem).trim() === '') {
-            errors.push('Ordem da atividade é obrigatória');
-        }
-
-        // prazo (opcional) deve ser data válida se preenchido
-        if (atividade.prazo && !this.isValidDate(String(atividade.prazo))) {
-            errors.push('Prazo inválido (use YYYY-MM-DD)');
-        }
-
-        // status (se fornecido) deve ser um dos permitidos
-        if (atividade.status) {
-            const allowed = ['pendente','em andamento','bloqueada','concluida'];
-            if (typeof atividade.status !== 'string' || !allowed.includes(atividade.status)) {
-                errors.push('Status da atividade inválido');
-            }
-        }
-
-        // prioridade (se fornecida)
-        if (atividade.prioridade) {
-            const allowedP = ['baixa','media','alta','critica'];
-            if (typeof atividade.prioridade !== 'string' || !allowedP.includes(atividade.prioridade)) {
-                errors.push('Prioridade inválida');
-            }
-        }
-
-        // finalizado deve ser booleano quando fornecido
-        if (atividade.finalizado !== undefined && typeof atividade.finalizado !== 'boolean') {
-            errors.push('Campo finalizado deve ser booleano');
-        }
 
         return errors;
     },
