@@ -7,8 +7,21 @@
     <meta name="theme-color" content="#0b6ea4">
     <title>Controle de Atividades</title>
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- PWA Manifest: inject only when served over http(s) to avoid CORS/file:// errors -->
+    <script>
+        (function(){
+            try {
+                if (location.protocol === 'http:' || location.protocol === 'https:') {
+                    var l = document.createElement('link');
+                    l.rel = 'manifest';
+                    l.href = './manifest.json';
+                    document.head.appendChild(l);
+                } else {
+                    console.log('Skipping manifest injection (not http/https)');
+                }
+            } catch(e){ console.warn('Manifest injection error', e); }
+        })();
+    </script>
     
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css?v=1.2.0">
@@ -1198,8 +1211,7 @@
 <script src="utils.js?v=1.2.0"></script>
 <script src="icons.js?v=1.0.0"></script>
 <script src="notifications.js?v=1.2.0"></script>
-<script src="loading.js?v=1.2.0"></script>
-<script src="keyboard.js?v=1.2.0"></script>
+<!-- loading.js and keyboard.js removed: files not present in workspace; avoid 404 in file:// mode -->
 <script src="pagination.js?v=1.2.0"></script>
 <script src="cache.js?v=1.2.0"></script>
 <script src="validation-realtime.js?v=1.2.0"></script>
