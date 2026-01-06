@@ -1327,7 +1327,7 @@ td {
     font-weight: 600;
 }
 .timesheet-table td.ts-clickable { cursor: pointer; }
-.timesheet-table .th-dia-semana, .timesheet-table .th-dia-num { color: var(--text-main); }
+.timesheet-table .th-dia-semana, .timesheet-table .th-dia-num { color: #ffffff !important; }
 .timesheet-table .evento-vertical { color: var(--text-main); }
 
 /* Reduce overly-light gradients that make text hard to read */
