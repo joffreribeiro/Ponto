@@ -705,6 +705,48 @@ html[data-theme="dark"] .badge--ok {
     color: #ffffff !important;
     border: 1px solid rgba(255,255,255,0.04);
 }
+/* Dark-mode overrides for components that were too bright */
+html[data-theme="dark"] .modal-inline-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-medium);
+}
+html[data-theme="dark"] .modal-inline-card .modal-header {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+html[data-theme="dark"] .modal-inline-card .modal-footer {
+    background: transparent;
+    border-top: 1px solid rgba(255,255,255,0.04);
+}
+html[data-theme="dark"] .modal-inline-card .modal-header .modal-close {
+    color: var(--text-main);
+    background: transparent;
+}
+html[data-theme="dark"] .modal-inline-card .modal-header h2 { color: var(--text-main); }
+
+/* Dashboard filters and inline filter controls should not use bright white */
+html[data-theme="dark"] .dashboard-filters {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-soft);
+}
+html[data-theme="dark"] .filter-group label { color: var(--text-muted); }
+
+/* Ensure filter inputs/selects match dark inputs (some were using explicit white) */
+html[data-theme="dark"] .filter-group select,
+html[data-theme="dark"] .filter-group input[type="date"],
+html[data-theme="dark"] .filter-group input,
+html[data-theme="dark"] .filter-group textarea {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+    box-shadow: none;
+}
+
+/* Make modal inline footer elements readable in dark mode */
+html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent; }
+
 .modal-inline-card .modal-header {
     display:flex;
     align-items:center;
