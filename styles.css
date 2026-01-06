@@ -1506,6 +1506,36 @@ td.evento-periodo-vespertino.evento-vertical {
 #subtasksList { max-height:140px; overflow:auto; }
 #subtasksList li { margin-bottom:6px; justify-content:space-between; align-items:center; }
 
+/* Dark-mode: improve readability in activities / kanban / table */
+html[data-theme="dark"] .activity-card,
+html[data-theme="dark"] .kanban-column,
+html[data-theme="dark"] .kanban-card,
+html[data-theme="dark"] #subtasksList li,
+html[data-theme="dark"] .atividade-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-table);
+    box-shadow: var(--shadow-soft);
+    color: var(--text-main);
+}
+
+html[data-theme="dark"] .kanban-column { background: var(--bg-soft); }
+
+html[data-theme="dark"] .atividade-item .small-text { color: var(--text-muted); }
+html[data-theme="dark"] .atividade-item strong { color: var(--text-main); }
+html[data-theme="dark"] .atividade-item .meta { color: var(--text-muted); }
+
+html[data-theme="dark"] #tabelaAtividades th,
+html[data-theme="dark"] #tabelaAtividades td {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-table);
+}
+html[data-theme="dark"] #tabelaAtividades tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+/* Adjust day highlight variants for dark mode */
+html[data-theme="dark"] .dia-extra { background: rgba(16,185,129,0.06); }
+html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
+
+
 .card-header-inline {
     display: flex;
     justify-content: space-between;
