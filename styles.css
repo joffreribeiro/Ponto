@@ -1144,6 +1144,14 @@ table {
     font-size: 12px;
 }
 
+/* Ensure table cells are readable: use main text color by default */
+.table-container th,
+.table-container td,
+.table-container table th,
+.table-container table td {
+    color: var(--text-main);
+}
+
 th,
 td {
     padding: 1px 2px;
@@ -1298,6 +1306,18 @@ td {
 .timesheet-table td.evento-vertical {
     padding: 1px 2px !important;
     line-height: 0.9 !important;
+}
+
+/* Timesheet: make regular cells clearly readable */
+.timesheet-table td,
+.timesheet-table th {
+    color: var(--text-main);
+}
+
+/* Weekend column: use subtle pale gray but keep text readable */
+.timesheet-table td.col-fimsemana {
+    background: #e9ecef; /* subtle, not too bright */
+    color: var(--text-main);
 }
 
 /* Fins de semana no timesheet (coluna em azul bem claro) */
