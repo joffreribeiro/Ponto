@@ -1320,6 +1320,21 @@ td {
     color: var(--text-main);
 }
 
+/* Aggressive overrides to ensure times are readable in the timesheet */
+.timesheet-table td {
+    color: var(--text-main) !important;
+    opacity: 1 !important;
+    font-weight: 600;
+}
+.timesheet-table td.ts-clickable { cursor: pointer; }
+.timesheet-table .th-dia-semana, .timesheet-table .th-dia-num { color: var(--text-main); }
+.timesheet-table .evento-vertical { color: var(--text-main); }
+
+/* Reduce overly-light gradients that make text hard to read */
+.timesheet-table td[style*="linear-gradient"] {
+    background: transparent !important;
+}
+
 /* Fins de semana no timesheet (coluna em azul bem claro) */
 .timesheet-table td.col-fimsemana {
     background: #BFBFBF;     /* azul clarinho, diferente do cinza padrão */
