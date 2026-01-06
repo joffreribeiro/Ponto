@@ -171,6 +171,7 @@
     --positive-dark: #064e37;
     --negative: #dc2626;
     --negative-soft: #fee2e2;
+    --negative-dark: #991b1b;
     --warning: #d97706;
     --warning-soft: #fed7aa;
     --info: #0284c7;
@@ -545,8 +546,8 @@ header h1 {
     font-weight: 700;
 }
 .badge--order { background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); }
-.badge--due { background: #b45309; color: #ffffff; }
-.badge--overdue { background: var(--negative); color: #ffffff; }
+.badge--due { background: #92400e; color: #ffffff; }
+.badge--overdue { background: var(--negative-dark); color: #ffffff; }
 .badge--ok { background: var(--positive-soft); color: var(--positive-dark); border: 1px solid rgba(6,78,55,0.06); }
 
 /* Painel inline: animação de abertura */
@@ -594,6 +595,21 @@ header h1 {
 .card, .activity-card { transition: transform 200ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms ease; }
 .card:hover { transform: translateY(-4px); }
 
+/* Make cards keyboard-focusable visual state (for cases where they are interactive) */
+.card[tabindex], .activity-card[tabindex] { cursor: pointer; }
+.card:focus-visible, .activity-card:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--focus-ring-strong); transform: translateY(-2px); }
+
+/* Icon button focus */
+.btn-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); }
+
+/* Small hover/active states for actionable elements */
+.btn-primary:hover, .btn-outline:hover, .btn-secondary:hover { transform: translateY(-1px); }
+.btn-primary:active, .btn-outline:active, .btn-secondary:active { transform: translateY(0); }
+
+/* Provide clear keyboard affordance for elements with data-action */
+[data-action] { touch-action: manipulation; }
+[data-action]:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); border-radius: 8px; }
+
 /* Dark theme tokens */
 html[data-theme="dark"] {
     --bg-page: #071327;
@@ -621,12 +637,34 @@ html[data-theme="dark"] {
 
     --positive: #34d399;
     --positive-soft: rgba(52,211,153,0.06);
+    /* Dark-theme adjustments for better contrast */
+    --positive: #047857; /* darker green for solid badges/text on dark bg */
+    --positive-soft: rgba(4,120,87,0.12);
+    --positive-dark: #064e37;
     --negative: #f87171;
     --negative-soft: rgba(248,113,113,0.06);
     --warning: #f59e0b;
     --warning-soft: rgba(245,158,11,0.06);
     --info: #60a5fa;
     --info-soft: rgba(96,165,250,0.06);
+}
+
+/* Dark-theme specific tweaks for badges and validation */
+html[data-theme="dark"] .badge--ok {
+    background: var(--positive);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+html[data-theme="dark"] .validation-feedback.success {
+    color: #bbf7d0; /* light green for readable success messages on dark backgrounds */
+}
+
+/* Force a darker badge background for success in dark mode to meet contrast */
+html[data-theme="dark"] .badge--ok {
+    background: #047857 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.04);
 }
 .modal-inline-card .modal-header {
     display:flex;

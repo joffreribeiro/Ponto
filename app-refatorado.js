@@ -4111,6 +4111,44 @@ document.addEventListener('DOMContentLoaded', () => {
             if (saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
         } catch(e){/* ignore */}
 
+        // Accessibility: make non-interactive elements with `data-action` keyboard-focusable
+        try {
+            const actionEls = Array.from(document.querySelectorAll('[data-action]'));
+            actionEls.forEach(el => {
+                const tag = (el.tagName || '').toLowerCase();
+                const isNativeFocusable = ['a','button','input','textarea','select'].includes(tag) || el.hasAttribute('tabindex') && el.getAttribute('tabindex') !== '-1';
+                if (!isNativeFocusable) {
+                    el.setAttribute('tabindex', '0');
+                    if (!el.hasAttribute('role')) el.setAttribute('role','button');
+                }
+            });
+        } catch (e) { /* ignore */ }
+
+        // Accessibility: activate elements with `data-action` via Enter or Space keys
+        document.addEventListener('keydown', function(ev){
+            try {
+                const key = ev.key || ev.code;
+                if (!(key === 'Enter' || key === ' ' || key === 'Spacebar' || key === 'Space')) return;
+                const active = document.activeElement;
+                if (!active) return;
+                // skip if focus is in an input-like control
+                const tag = (active.tagName || '').toLowerCase();
+                if (['input','textarea','select'].includes(tag) || active.isContentEditable) return;
+                const actionEl = active.closest ? active.closest('[data-action]') : (active.hasAttribute && active.hasAttribute('data-action') ? active : null);
+                if (!actionEl) return;
+                ev.preventDefault();
+                const act = actionEl.dataset && actionEl.dataset.action;
+                const id = actionEl.dataset && actionEl.dataset.id;
+                if (!act) return;
+                if (window.App && typeof window.App.handleAction === 'function') {
+                    window.App.handleAction(act, id);
+                } else if (typeof window[act] === 'function') {
+                    if (typeof id !== 'undefined' && id !== null && id !== '') window[act](id);
+                    else window[act]();
+                }
+            } catch (e) { /* ignore */ }
+        });
+
         // We removed the direct globals above and kept originals under `App.legacy`.
         // The delegated handler added earlier now calls `App.handleAction`, so UI
         // attributes `data-action` will resolve against the names stored in `App.actions`.
