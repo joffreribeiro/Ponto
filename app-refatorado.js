@@ -343,8 +343,8 @@ function renderizarAtividades() {
                     <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
-                        <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('edit')}</button>
-                        <button class="btn-secondary btn-icon" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('trash')}</button>
+                        <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('edit', 'Editar atividade')}</button>
+                        <button class="btn-secondary btn-icon" onclick="removerAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('trash', 'Remover atividade')}</button>
                     </div>
                 </div>
             </div>
@@ -762,7 +762,7 @@ function adicionarSubtaskModal() {
     const ul = document.getElementById('subtasksList');
     const li = document.createElement('li');
     li.classList.add('activity-card');
-    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
+    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover item') : '🗑️'}</button>`;
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
@@ -850,7 +850,7 @@ function atualizarListaAnexosModal() {
     const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover anexo') : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -915,7 +915,7 @@ function atualizarListaComentariosModal() {
     const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>`;
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover comentário') : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -1495,7 +1495,7 @@ function renderizarTabelaRegistros() {
             btnDel.type = 'button';
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar registro');
-                    btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash') : '🗑️';
+                    btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', 'Remover') : '🗑️';
             btnDel.addEventListener('click', () => excluirRegistro(r._idx));
             tdActions.appendChild(btnDel);
 
@@ -2518,7 +2518,7 @@ function renderizarEventos() {
             btnDel.type = 'button';
             btnDel.className = 'btn-error';
             btnDel.setAttribute('title', 'Deletar evento');
-            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash') : '🗑️';
+            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', 'Remover') : '🗑️';
             btnDel.addEventListener('click', () => abrirModalExcluirEvento(idxOriginal));
             tdActions.appendChild(btnDel);
 
@@ -2846,8 +2846,8 @@ function renderizarListasAcordo() {
                 <td>${p.fim}</td>
                 <td>${p.minutosExtras} min</td>
                     <td>
-                        <button type="button" class="btn-secondary" onclick="editarPeriodoAcordo(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit') : '✏️'}</button>
-                        <button type="button" class="btn-error" onclick="removerPeriodoAcordo(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>
+                        <button type="button" class="btn-secondary" onclick="editarPeriodoAcordo(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', 'Editar período') : '✏️'}</button>
+                        <button type="button" class="btn-error" onclick="removerPeriodoAcordo(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover período') : '🗑️'}</button>
                     </td>
             `;
             tbodyPeriodos.appendChild(tr);
@@ -2867,8 +2867,8 @@ function renderizarListasAcordo() {
                 <td>${r.tipo || ''}</td>
                 <td>R$ ${Number(r.vale || 0).toFixed(2)}</td>
                 <td>
-                    <button type="button" class="btn-secondary" onclick="editarRegraHorario(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit') : '✏️'}</button>
-                    <button type="button" class="btn-error" onclick="removerRegraHorario(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash') : '🗑️'}</button>
+                    <button type="button" class="btn-secondary" onclick="editarRegraHorario(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', 'Editar regra') : '✏️'}</button>
+                    <button type="button" class="btn-error" onclick="removerRegraHorario(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover regra') : '🗑️'}</button>
                 </td>
             `;
             tbodyRegras.appendChild(tr);
@@ -3786,7 +3786,7 @@ function renderizarListaTiposEventos() {
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn-error btn-sm';
-        deleteBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('trash') + ' Deletar' : '🗑️ Deletar';
+        deleteBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('trash', 'Remover') + ' Deletar' : '🗑️ Deletar';
         deleteBtn.onclick = () => deletarTipoEvento(index);
         
         // Desabilitar delete se for tipo padrão (primeiros 7)

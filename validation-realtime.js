@@ -28,7 +28,7 @@ const RealtimeValidation = {
                     message: valid ? '' : 'Data inválida (use formato YYYY-MM-DD)'
                 };
             },
-            icon: (typeof svgIcon === 'function') ? svgIcon('calendar') : '📅'
+            icon: (typeof svgIcon === 'function') ? svgIcon('calendar', 'Calendário') : '📅'
         };
 
         // Validador de hora
@@ -45,7 +45,7 @@ const RealtimeValidation = {
                     message: valid ? '' : 'Hora deve estar entre 00:00 e 23:59'
                 };
             },
-            icon: (typeof svgIcon === 'function') ? svgIcon('timer') : '⏰'
+            icon: (typeof svgIcon === 'function') ? svgIcon('timer', 'Horário') : '⏰'
         };
 
         // Validador de required
@@ -57,7 +57,7 @@ const RealtimeValidation = {
                     message: valid ? '' : 'Campo obrigatório'
                 };
             },
-            icon: (typeof svgIcon === 'function') ? svgIcon('help') : '⚠️'
+            icon: (typeof svgIcon === 'function') ? svgIcon('help', 'Aviso') : '⚠️'
         };
 
         // Validador de email
@@ -70,7 +70,7 @@ const RealtimeValidation = {
                     message: valid ? '' : 'E-mail inválido'
                 };
             },
-            icon: (typeof svgIcon === 'function') ? svgIcon('help') : '📧'
+            icon: (typeof svgIcon === 'function') ? svgIcon('help', 'E-mail') : '📧'
         };
 
         // Validador numérico
@@ -89,7 +89,7 @@ const RealtimeValidation = {
                 
                 return { valid: true };
             },
-            icon: (typeof svgIcon === 'function') ? svgIcon('help') : '🔢'
+            icon: (typeof svgIcon === 'function') ? svgIcon('help', 'Número') : '🔢'
         };
     },
 
