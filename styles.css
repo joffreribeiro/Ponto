@@ -1378,6 +1378,34 @@ td {
     font-weight: 600;
 }
 
+/* Saldo (dia/mês) — destacar positivo/negativo com cor e fundo suave */
+td.saldo-positivo,
+.saldo-positivo {
+    color: var(--positive-dark);
+    background: var(--positive-soft);
+    font-weight: 700;
+    border-left: 3px solid var(--positive);
+}
+
+td.saldo-negativo,
+.saldo-negativo {
+    color: var(--negative-dark);
+    background: var(--negative-soft);
+    font-weight: 700;
+    border-left: 3px solid var(--negative);
+}
+
+/* Forçar override quando o saldo estiver dentro da linha especial .row-saldo-mes */
+.row-saldo-mes td.saldo-positivo {
+    background: var(--positive-soft);
+    color: var(--positive-dark);
+}
+
+.row-saldo-mes td.saldo-negativo {
+    background: var(--negative-soft);
+    color: var(--negative-dark);
+}
+
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul {
     height: auto !important;
