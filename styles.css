@@ -160,11 +160,11 @@
     --accent-soft: #e0f2fe;
 
     --text-main: #1e293b;
-    --text-muted: #64748b;
+    --text-muted: #475569; /* darker muted text for better contrast */
     --text-light: #94a3b8;
 
-    --border-soft: #e2e8f0;
-    --border-table: #cbd5e1;
+    --border-soft: #cfd6df; /* slightly stronger borders for tables/cards */
+    --border-table: #bfc8d2;
 
     --positive: #16a34a;
     --positive-soft: #dcfce7;
@@ -1339,7 +1339,7 @@ td {
     border-top: 2px solid #BFBFBF;
 }
 .row-saldo-mes td {
-    background: #f9fafb; /* quase branco, neutro */
+    background: #f3f4f6; /* slightly darker for separation */
     font-weight: 600;
 }
 
@@ -1473,7 +1473,7 @@ td.evento-periodo-vespertino.evento-vertical {
 
 /* Atividades */
 .atividade-item strong { display:block; margin-bottom:4px; }
-.atividade-item .small-text { color: #6b7280; }
+.atividade-item .small-text { color: var(--text-muted); }
 
 /* Kanban */
 .kanban-board { display:flex; gap:12px; align-items:flex-start; }
@@ -1502,7 +1502,7 @@ td.evento-periodo-vespertino.evento-vertical {
 
 /* Atividades tabela */
 #tabelaAtividades th, #tabelaAtividades td { padding:8px 10px; border-bottom:1px solid #eef2f7; }
-#tabelaAtividades tbody tr:hover { background:#fbfdff; }
+#tabelaAtividades tbody tr:hover { background:#f1f5f9; }
 #subtasksList { max-height:140px; overflow:auto; }
 #subtasksList li { margin-bottom:6px; justify-content:space-between; align-items:center; }
 
