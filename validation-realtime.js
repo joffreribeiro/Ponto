@@ -123,6 +123,9 @@ const RealtimeValidation = {
         }
         // Link field and feedback for accessibility
         field.setAttribute('aria-describedby', feedback.id);
+        // Ensure form-group exists and has proper class container
+        const fg = field.closest && field.closest('.form-group');
+        if (fg && !fg.classList.contains('has-validation')) fg.classList.add('has-validation');
 
         // Event listeners
         const debouncedValidate = Utils.debounce(() => {
@@ -167,11 +170,14 @@ const RealtimeValidation = {
         // Atualizar UI
         field.classList.remove('field-valid', 'field-invalid');
         field.removeAttribute('aria-invalid');
+        const formGroup = field.closest && field.closest('.form-group');
+        if (formGroup) { formGroup.classList.remove('invalid','valid'); }
         
         if (value) { // Só mostrar validação se houver valor
             if (allValid) {
                 field.classList.add('field-valid');
                 field.setAttribute('aria-invalid', 'false');
+                if (formGroup) formGroup.classList.add('valid');
                 if (feedback) {
                     feedback.innerHTML = '<span class="validation-success">✓ Válido</span>';
                     feedback.className = 'validation-feedback success';
@@ -179,6 +185,7 @@ const RealtimeValidation = {
             } else {
                 field.classList.add('field-invalid');
                 field.setAttribute('aria-invalid', 'true');
+                if (formGroup) formGroup.classList.add('invalid');
                 if (feedback) {
                     // Wrap icons/markers in aria-hidden so screen readers read only the message
                     feedback.innerHTML = messages.map(m => 
@@ -191,6 +198,7 @@ const RealtimeValidation = {
             feedback.innerHTML = '';
             feedback.className = 'validation-feedback';
             field.removeAttribute('aria-describedby');
+            if (formGroup) { formGroup.classList.remove('invalid','valid'); }
         }
 
         return allValid;
@@ -221,6 +229,8 @@ const RealtimeValidation = {
         field.classList.remove('field-valid', 'field-invalid');
         field.removeAttribute('aria-invalid');
         field.removeAttribute('aria-describedby');
+        const formGroup = field.closest && field.closest('.form-group');
+        if (formGroup) { formGroup.classList.remove('has-validation','invalid','valid'); }
         
         const feedback = field.parentElement.querySelector('.validation-feedback');
         if (feedback) {

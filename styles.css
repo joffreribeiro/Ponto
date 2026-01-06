@@ -525,6 +525,45 @@ header h1 {
 
 .form-group textarea { min-height: 80px; }
 
+/* Standardize invalid/valid states for form controls */
+input:invalid, textarea:invalid, select:invalid, input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] {
+    border-color: var(--negative);
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.08);
+    background: rgba(220,38,38,0.02);
+}
+
+/* Valid state */
+input[aria-invalid="false"], textarea[aria-invalid="false"] {
+    border-color: var(--positive);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08);
+}
+
+/* When validation script marks the form-group, style the container */
+.form-group.invalid { position: relative; }
+.form-group.invalid input, .form-group.invalid textarea, .form-group.invalid select { border-color: var(--negative); }
+.form-group.invalid .validation-feedback { color: var(--negative); }
+
+.form-group.valid input, .form-group.valid textarea, .form-group.valid select { border-color: var(--positive); }
+.form-group.valid .validation-feedback { color: var(--positive-dark); }
+
+/* Positioning of inline validation feedback */
+.validation-feedback { margin-top: 6px; font-size: 12px; line-height: 1.2; }
+.form-group { display: flex; flex-direction: column; }
+.form-row { display:flex; gap:8px; align-items:flex-start; }
+
+/* Small icon for invalid inputs inside the input (right) */
+.form-group .input-with-icon { position: relative; }
+.form-group .input-with-icon .input-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--negative); }
+
+/* Ensure selects use consistent background in dark theme */
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea {
+    background: #071428;
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+}
+
 /* Uniformizar alturas de botões (botão primário um pouco maior) */
 .btn-primary { padding: 12px 22px; border-radius: var(--btn-radius); background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 6px rgba(16,24,40,0.06); transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease; }
 .btn-primary:hover { transform: translateY(-1px); background: var(--primary-hover); }
