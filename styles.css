@@ -168,6 +168,7 @@
 
     --positive: #16a34a;
     --positive-soft: #dcfce7;
+    --positive-dark: #064e37;
     --negative: #dc2626;
     --negative-soft: #fee2e2;
     --warning: #d97706;
@@ -546,7 +547,7 @@ header h1 {
 .badge--order { background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); }
 .badge--due { background: #b45309; color: #ffffff; }
 .badge--overdue { background: var(--negative); color: #ffffff; }
-.badge--ok { background: var(--positive); color: #ffffff; }
+.badge--ok { background: var(--positive-soft); color: var(--positive-dark); border: 1px solid rgba(6,78,55,0.06); }
 
 /* Painel inline: animação de abertura */
 #novaAtividadeInline {
@@ -574,7 +575,7 @@ header h1 {
 .field-invalid { box-shadow: 0 0 0 3px rgba(220,38,38,0.10); border-color: var(--negative); background: rgba(220,38,38,0.03); }
 
 .validation-feedback { margin-top: 6px; font-size: 12px; line-height: 1.2; }
-.validation-feedback.success { color: var(--positive); }
+.validation-feedback.success { color: var(--positive-dark); }
 .validation-feedback.error { color: var(--negative); }
 .validation-feedback .validation-error { display: block; }
 .validation-feedback .validation-success { display: inline-block; }
