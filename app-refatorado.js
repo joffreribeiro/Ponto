@@ -907,6 +907,49 @@ function atualizarListaAnexosModal() {
     });
 }
 
+// Edita todos os subperiodos de um mesmo periodoIndex (linha 'Único')
+function editarPeriodoGroup(periodoIndex) {
+    const rows = (AppState.dados.periodosAquisitivos || []).filter(p => p.periodoIndex === periodoIndex);
+    if (!rows || rows.length === 0) {
+        mostrarAlertaGlobal('Nenhum período encontrado para edição.');
+        return;
+    }
+
+    const sample = rows[0];
+    const newFeriasInicio = prompt('Férias Início (AAAA-MM-DD):', sample.feriasInicio || '');
+    if (newFeriasInicio === null) return;
+    const newFeriasFim = prompt('Férias Término (AAAA-MM-DD):', sample.feriasFim || '');
+    if (newFeriasFim === null) return;
+    const newAdto13 = prompt('Adto 13º (sim/não):', sample.adto13 || '');
+    if (newAdto13 === null) return;
+    const newDias = prompt('Dias:', sample.dias != null ? String(sample.dias) : '');
+    if (newDias === null) return;
+    const newDoc = prompt('Documento:', sample.documento || '');
+    if (newDoc === null) return;
+
+    rows.forEach(r => {
+        r.feriasInicio = newFeriasInicio || null;
+        r.feriasFim = newFeriasFim || null;
+        r.adto13 = newAdto13 || null;
+        r.dias = newDias ? Number(newDias) : null;
+        r.documento = newDoc || null;
+    });
+
+    AppState.save();
+    renderizarPeriodosAquisitivosTable();
+    mostrarAlertaGlobal('Período atualizado com sucesso.');
+}
+
+// Remove todos os subperiodos de um mesmo periodoIndex (linha 'Único')
+function removerPeriodoGroup(periodoIndex) {
+    if (!confirm('Confirma a exclusão de todo o período aquisitivo (todos os subperíodos)?')) return;
+    const arr = AppState.dados.periodosAquisitivos || [];
+    AppState.dados.periodosAquisitivos = arr.filter(p => p.periodoIndex !== periodoIndex);
+    AppState.save();
+    renderizarPeriodosAquisitivosTable();
+    mostrarAlertaGlobal('Período removido com sucesso.');
+}
+
 function removerAnexo(atividadeId, index) {
     if (atividadeId) {
         const list = AppState.dados.atividades || [];
@@ -3097,9 +3140,26 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 // documento
                 const tdDoc = document.createElement('td'); tdDoc.textContent = r.documento || ''; tr.appendChild(tdDoc);
 
-                // ações (editar / remover) - não apresentar para linha sintética 'Único'
+                // ações (editar / remover)
                 const tdActions = document.createElement('td');
-                if (!r.synthetic) {
+                // Para linha sintética 'Único' as ações operam sobre todo o período (periodoIndex)
+                if (r.synthetic) {
+                    const btnEditG = document.createElement('button');
+                    btnEditG.type = 'button';
+                    btnEditG.className = 'btn-secondary';
+                    btnEditG.style.padding = '4px 8px';
+                    btnEditG.textContent = 'Editar';
+                    btnEditG.addEventListener('click', () => editarPeriodoGroup(r.periodoIndex));
+                    tdActions.appendChild(btnEditG);
+                    const btnDelG = document.createElement('button');
+                    btnDelG.type = 'button';
+                    btnDelG.className = 'btn-secondary';
+                    btnDelG.style.marginLeft = '6px';
+                    btnDelG.style.padding = '4px 8px';
+                    btnDelG.textContent = 'Excluir';
+                    btnDelG.addEventListener('click', () => removerPeriodoGroup(r.periodoIndex));
+                    tdActions.appendChild(btnDelG);
+                } else {
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
                     btnEdit.className = 'btn-secondary';
