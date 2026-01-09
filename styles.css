@@ -1127,6 +1127,15 @@ button {
     cursor: pointer;
 }
 
+/* Ensure file-label styled as secondary button shows readable white text */
+.file-label.btn-secondary {
+    color: #ffffff;
+}
+.file-label.btn-secondary .icon,
+.file-label.btn-secondary > span {
+    color: inherit;
+}
+
 /* ================================================
    Tabelas (Registros / Eventos)
    ================================================ */
