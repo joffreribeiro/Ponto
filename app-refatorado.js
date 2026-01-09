@@ -1995,6 +1995,9 @@ function gerarTimesheetAcordo() {
 
             const wrapper = document.createElement('div');
             wrapper.className = 'timesheet-mes';
+            // marcar com ano/mês para facilitar navegação ao mês atual
+            wrapper.dataset.year = ano;
+            wrapper.dataset.month = mes;
 
             const titulo = document.createElement('div');
             titulo.className = 'timesheet-header';
@@ -2383,6 +2386,21 @@ function gerarTimesheetAcordo() {
             content.appendChild(wrapper);
 
             dataAux.setMonth(dataAux.getMonth() + 1);
+        }
+        
+        // Após gerar todos os meses, rolar automaticamente para o mês atual
+        try {
+            const now = new Date();
+            const cur = content.querySelector(`.timesheet-mes[data-year="${now.getFullYear()}"][data-month="${now.getMonth()}"]`);
+            if (cur) {
+                // adicionar classe para possível destaque visual
+                cur.classList.add('timesheet-current');
+                // rolar ao elemento (suave quando suportado)
+                cur.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch (e) {
+            // não crítico — evitar quebrar renderização
+            console.warn('Não foi possível rolar para o mês atual no timesheet:', e);
         }
 
         const resumo = document.createElement('div');
