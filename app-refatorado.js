@@ -3022,7 +3022,6 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 const tdFerFim = document.createElement('td'); tdFerFim.innerHTML = '&nbsp;'; tr.appendChild(tdFerFim);
                 const tdAdto = document.createElement('td'); tdAdto.innerHTML = '&nbsp;'; tr.appendChild(tdAdto);
                 const tdDias = document.createElement('td'); tdDias.innerHTML = '&nbsp;'; tr.appendChild(tdDias);
-                const tdDoc = document.createElement('td'); tdDoc.innerHTML = '&nbsp;'; tr.appendChild(tdDoc);
 
                 fragment.appendChild(tr);
             });
