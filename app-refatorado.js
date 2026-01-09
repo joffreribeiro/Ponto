@@ -166,6 +166,12 @@ function inicializar() {
                     const tb = document.getElementById('tablePeriodosAquisitivos');
                     if (tb && tb.tBodies && tb.tBodies[0]) tb.tBodies[0].innerHTML = '';
                     if (inputAdmissao) inputAdmissao.value = '';
+                    try {
+                        if (AppState.dados && Array.isArray(AppState.dados.periodosAquisitivos)) {
+                            AppState.dados.periodosAquisitivos = [];
+                            AppState.save();
+                        }
+                    } catch(e) { console.warn('Erro ao limpar períodos salvos:', e); }
                 });
                 btnLimpar._listenerAttached = true;
             }
@@ -2951,17 +2957,43 @@ function gerarPeriodosAquisitivosFromAdmissao() {
             // dividir em subperíodos
             for (let s = 1; s <= divis; s++) {
                 periods.push({
+                    id: gerarIdUnico(),
                     periodoIndex: i + 1,
                     inicio: new Date(inicio),
                     termino: new Date(termino),
                     limite: new Date(limite),
                     subIndex: s,
-                    subTotal: divis
+                    subTotal: divis,
+                    feriasInicio: null,
+                    feriasFim: null,
+                    adto13: '',
+                    dias: null,
+                    documento: ''
                 });
             }
         }
 
-        renderizarPeriodosAquisitivosTable(periods);
+        // persistir períodos gerados em AppState.dados.periodosAquisitivos
+        try {
+            if (!AppState.dados) AppState.dados = {};
+            AppState.dados.periodosAquisitivos = periods.map(p => ({
+                id: p.id,
+                periodoIndex: p.periodoIndex,
+                inicio: DateUtils.getIsoDate(p.inicio),
+                termino: DateUtils.getIsoDate(p.termino),
+                limite: DateUtils.getIsoDate(p.limite),
+                subIndex: p.subIndex,
+                subTotal: p.subTotal,
+                feriasInicio: p.feriasInicio,
+                feriasFim: p.feriasFim,
+                adto13: p.adto13,
+                dias: p.dias,
+                documento: p.documento
+            }));
+            AppState.save();
+        } catch(e) { console.warn('Não foi possível persistir períodos aquisitivos:', e); }
+
+        renderizarPeriodosAquisitivosTable();
     } catch (e) {
         console.error('Erro ao gerar períodos aquisitivos:', e);
         mostrarAlertaGlobal('Erro ao gerar períodos aquisitivos. Veja console.', 'error');
@@ -2973,6 +3005,27 @@ function renderizarPeriodosAquisitivosTable(rows) {
         const tb = document.querySelector('#tablePeriodosAquisitivos tbody');
         if (!tb) return;
         tb.innerHTML = '';
+        // Se não foram passadas linhas, carregar do estado persistido
+        if (!rows) {
+            try {
+                rows = (AppState.dados && Array.isArray(AppState.dados.periodosAquisitivos)) ? AppState.dados.periodosAquisitivos.map(p => ({
+                    id: p.id,
+                    periodoIndex: p.periodoIndex,
+                    inicio: DateUtils.parse(p.inicio),
+                    termino: DateUtils.parse(p.termino),
+                    limite: DateUtils.parse(p.limite),
+                    subIndex: p.subIndex,
+                    subTotal: p.subTotal,
+                    feriasInicio: p.feriasInicio ? DateUtils.parse(p.feriasInicio) : null,
+                    feriasFim: p.feriasFim ? DateUtils.parse(p.feriasFim) : null,
+                    adto13: p.adto13 || '',
+                    dias: typeof p.dias !== 'undefined' ? p.dias : null,
+                    documento: p.documento || '',
+                    idRaw: p.id
+                })) : [];
+            } catch (e) { rows = []; }
+        }
+
         // Agrupar por período aquisitivo (periodoIndex)
         const grupos = {};
         rows.forEach(r => {
@@ -3017,11 +3070,33 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 }
                 tr.appendChild(tdPeriodo);
 
-                // colunas de férias - vazias para usuário preencher manualmente se desejar
-                const tdFerInicio = document.createElement('td'); tdFerInicio.innerHTML = '&nbsp;'; tr.appendChild(tdFerInicio);
-                const tdFerFim = document.createElement('td'); tdFerFim.innerHTML = '&nbsp;'; tr.appendChild(tdFerFim);
-                const tdAdto = document.createElement('td'); tdAdto.innerHTML = '&nbsp;'; tr.appendChild(tdAdto);
-                const tdDias = document.createElement('td'); tdDias.innerHTML = '&nbsp;'; tr.appendChild(tdDias);
+                // colunas de férias
+                const tdFerInicio = document.createElement('td'); tdFerInicio.textContent = r.feriasInicio ? DateUtils.formatBR(DateUtils.getIsoDate(r.feriasInicio)) : ''; tr.appendChild(tdFerInicio);
+                const tdFerFim = document.createElement('td'); tdFerFim.textContent = r.feriasFim ? DateUtils.formatBR(DateUtils.getIsoDate(r.feriasFim)) : ''; tr.appendChild(tdFerFim);
+                const tdAdto = document.createElement('td'); tdAdto.textContent = r.adto13 || ''; tr.appendChild(tdAdto);
+                const tdDias = document.createElement('td'); tdDias.textContent = (r.dias !== null && typeof r.dias !== 'undefined') ? String(r.dias) : ''; tr.appendChild(tdDias);
+
+                // documento
+                const tdDoc = document.createElement('td'); tdDoc.textContent = r.documento || ''; tr.appendChild(tdDoc);
+
+                // ações (editar / remover)
+                const tdActions = document.createElement('td');
+                const btnEdit = document.createElement('button');
+                btnEdit.type = 'button';
+                btnEdit.className = 'btn-secondary';
+                btnEdit.style.padding = '4px 8px';
+                btnEdit.textContent = 'Editar';
+                btnEdit.addEventListener('click', () => editarPeriodo(r.id || r.idRaw));
+                tdActions.appendChild(btnEdit);
+                const btnDel = document.createElement('button');
+                btnDel.type = 'button';
+                btnDel.className = 'btn-secondary';
+                btnDel.style.marginLeft = '6px';
+                btnDel.style.padding = '4px 8px';
+                btnDel.textContent = 'Excluir';
+                btnDel.addEventListener('click', () => removerPeriodo(r.id || r.idRaw));
+                tdActions.appendChild(btnDel);
+                tr.appendChild(tdActions);
 
                 fragment.appendChild(tr);
             });
@@ -3051,6 +3126,62 @@ function abrirAbaFeriasFromDashboard() {
         }, 60);
     } catch (error) {
         console.error('Erro ao abrir aba Férias a partir do dashboard:', error);
+    }
+}
+
+// Editar um período salvo (edição simples via prompts)
+function editarPeriodo(id) {
+    try {
+        if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) {
+            mostrarAlertaGlobal('Nenhum período salvo para editar.', 'warning');
+            return;
+        }
+        const idx = AppState.dados.periodosAquisitivos.findIndex(p => p.id === id);
+        if (idx === -1) {
+            mostrarAlertaGlobal('Período não encontrado.', 'error');
+            return;
+        }
+        const p = AppState.dados.periodosAquisitivos[idx];
+        // editar campos principais: feriasInicio, feriasFim, adto13, dias, documento
+        const novoFerInicio = prompt('Férias - Início (YYYY-MM-DD). Deixe vazio para limpar.', p.feriasInicio || '');
+        if (novoFerInicio === null) return; // cancel
+        const novoFerFim = prompt('Férias - Término (YYYY-MM-DD). Deixe vazio para limpar.', p.feriasFim || '');
+        if (novoFerFim === null) return;
+        const novoAdto = prompt('Adto 13º (texto livre)', p.adto13 || '');
+        if (novoAdto === null) return;
+        const novoDias = prompt('Dias (número)', p.dias !== null && typeof p.dias !== 'undefined' ? String(p.dias) : '');
+        if (novoDias === null) return;
+        const novoDoc = prompt('Documento (referência)', p.documento || '');
+        if (novoDoc === null) return;
+
+        p.feriasInicio = novoFerInicio ? DateUtils.normalize(novoFerInicio) : '';
+        p.feriasFim = novoFerFim ? DateUtils.normalize(novoFerFim) : '';
+        p.adto13 = novoAdto || '';
+        p.dias = novoDias ? Number(novoDias) : null;
+        p.documento = novoDoc || '';
+
+        AppState.save();
+        renderizarPeriodosAquisitivosTable();
+        mostrarAlertaGlobal('Período atualizado.', 'success');
+    } catch (e) {
+        console.error('Erro ao editar período:', e);
+        mostrarAlertaGlobal('Erro ao editar período.', 'error');
+    }
+}
+
+function removerPeriodo(id) {
+    try {
+        if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) return;
+        const idx = AppState.dados.periodosAquisitivos.findIndex(p => p.id === id);
+        if (idx === -1) return;
+        if (!confirm('Deseja realmente excluir este período?')) return;
+        AppState.dados.periodosAquisitivos.splice(idx, 1);
+        AppState.save();
+        renderizarPeriodosAquisitivosTable();
+        mostrarAlertaGlobal('Período removido.', 'success');
+    } catch (e) {
+        console.error('Erro ao remover período:', e);
+        mostrarAlertaGlobal('Erro ao remover período.', 'error');
     }
 }
 
