@@ -1939,6 +1939,8 @@ function atualizarSelectAcordosRegistros() {
     });
 }
 
+
+
 function gerarTimesheetAcordo() {
     try {
         const select = document.getElementById('acordoTimesheet');
@@ -2820,6 +2822,59 @@ function limparEvento() {
     }
     AppState.eventoEmEdicao = null;
     AppState.eventoAcordoPreselected = null;
+}
+
+// Salva um pedido de férias a partir da aba de Férias
+function salvarFeriasFromTab() {
+    try {
+        const acordoSelect = document.getElementById('feriasAcordoSelect');
+        const inicioEl = document.getElementById('feriasInicio');
+        const fimEl = document.getElementById('feriasFim');
+        const motivoEl = document.getElementById('feriasMotivo');
+
+        if (!acordoSelect) throw new Error('Selecione um acordo antes de solicitar férias.');
+        const acordoIdxRaw = acordoSelect.value;
+        if (acordoIdxRaw === '' || acordoIdxRaw == null) throw new Error('Selecione um acordo válido.');
+
+        const dataInicio = inicioEl ? inicioEl.value : '';
+        if (!dataInicio) throw new Error('Informe a data de início das férias.');
+        const dataFim = fimEl ? (fimEl.value || dataInicio) : dataInicio;
+        const descricao = (motivoEl && motivoEl.value) ? `Férias: ${motivoEl.value}` : 'Férias solicitadas';
+
+        const evento = {
+            tipoEvento: 'ferias',
+            descricaoEvento: descricao,
+            dataInicioEvento: dataInicio,
+            dataFimEvento: dataFim || dataInicio,
+            impactoEvento: 'folga',
+            periodo: 'dia_todo',
+            acordoIndex: Number(acordoIdxRaw),
+            corFundo: '',
+            corTexto: '',
+            nomeCSS: ''
+        };
+
+        // Validar usando validators existentes
+        const erros = Validators.validateEvento(evento);
+        if (erros && erros.length) throw new Error(erros.join('; '));
+
+        AppState.dados.eventos.push(evento);
+        AppState.save();
+
+        // Atualiza UI
+        renderizarEventos();
+        try { if (typeof gerarTimesheetAcordo === 'function') gerarTimesheetAcordo(); } catch(e){ console.warn('Erro ao gerar timesheet após criar férias:', e); }
+        try { if (typeof atualizarDashboard === 'function') atualizarDashboard(); } catch(e){ console.warn('Erro ao atualizar dashboard após criar férias:', e); }
+
+        // limpar formulário
+        const form = document.getElementById('formFerias');
+        if (form) form.reset();
+
+        mostrarAlertaGlobal('Pedido de férias salvo com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao salvar férias:', error);
+        mostrarAlertaGlobal(error.message || 'Erro ao salvar férias.', 'error');
+    }
 }
 
 function abrirEditarEvento(index) {
