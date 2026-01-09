@@ -2367,9 +2367,38 @@ function gerarTimesheetAcordo() {
             // Coluna Saldo Anterior na linha SALDO MÊS
             const tdSaldoAnteriorMes = document.createElement('td');
             tdSaldoAnteriorMes.className = 'col-saldo-anterior';
-            tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
-            if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
-            if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+            // Exibir saldo anterior somente se TODO o mês anterior estiver preenchido
+            (function(){
+                try {
+                    const prevDate = new Date(ano, mes, 0); // último dia do mês anterior
+                    const prevYear = prevDate.getFullYear();
+                    const prevMonth = prevDate.getMonth();
+                    const lastDayPrev = prevDate.getDate();
+                    let prevComplete = true;
+                    for (let d = 1; d <= lastDayPrev; d++) {
+                        const iso = `${prevYear}-${String(prevMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const reg = mapaReg[iso];
+                        // Considera o dia preenchido se existir registro com algum horário preenchido
+                        if (!reg || !(reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) {
+                            prevComplete = false;
+                            break;
+                        }
+                    }
+                    if (prevComplete) {
+                        tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+                        if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
+                        if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+                    } else {
+                        // deixar em branco até o mês anterior estar completo
+                        tdSaldoAnteriorMes.textContent = '';
+                    }
+                } catch (e) {
+                    // Em caso de erro, mostrar o valor como fallback
+                    tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+                    if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
+                    if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+                }
+            })();
             trSaldoMes.appendChild(tdSaldoAnteriorMes);
 
             // Coluna Saldo do Mês (spanning all days)
