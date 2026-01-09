@@ -70,6 +70,16 @@ function inicializar() {
         renderizarEventos();
         renderizarAcordos();
         atualizarSelectAcordosTimesheet();
+        // Gerar timesheet automaticamente quando o select for alterado
+        try {
+            const sel = document.getElementById('acordoTimesheet');
+            if (sel && !sel._autoTimesheetAttached) {
+                sel.addEventListener('change', () => {
+                    try { gerarTimesheetAcordo(); } catch(e){ console.error('Erro ao gerar timesheet on change:', e); }
+                });
+                sel._autoTimesheetAttached = true;
+            }
+        } catch(e){ console.warn('Não foi possível anexar listener ao select acordoTimesheet:', e); }
         atualizarSelectAcordosRegistros();
         atualizarSelectAcordosEventos();
         // Inicializar módulo de Atividades
@@ -1045,7 +1055,10 @@ function configurarSubAbas() {
             btn.classList.add('active');
             const sec = document.getElementById(alvo);
             if (sec) sec.classList.add('active');
-
+            // Se abrirmos o timesheet, gerar automaticamente
+            if (alvo === 'ponto-timesheet') {
+                try { if (typeof gerarTimesheetAcordo === 'function') gerarTimesheetAcordo(); } catch(e){ console.error('Erro ao gerar timesheet ao abrir subaba:', e); }
+            }
             // Re-renderiza listas quando abre a aba de acordos
             if (alvo === 'ponto-config') {
                 renderizarAcordos();
