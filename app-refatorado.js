@@ -82,6 +82,7 @@ function inicializar() {
         } catch(e){ console.warn('Não foi possível anexar listener ao select acordoTimesheet:', e); }
         atualizarSelectAcordosRegistros();
         atualizarSelectAcordosEventos();
+        atualizarSelectAcordosFerias();
         // Inicializar módulo de Atividades
         ensureAtividadesDefault();
         renderizarAtividades();
@@ -2929,6 +2930,79 @@ function atualizarSelectAcordosEventos() {
     }
 }
 
+function atualizarSelectAcordosFerias() {
+    const select = document.getElementById('feriasAcordoSelect');
+    if (!select) return;
+
+    select.innerHTML = '';
+
+    if (!AppState.dados.acordos || !AppState.dados.acordos.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Nenhum acordo cadastrado';
+        select.appendChild(opt);
+        return;
+    }
+
+    AppState.dados.acordos.forEach((a, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = a.nome || `Acordo ${idx + 1}`;
+        select.appendChild(opt);
+    });
+
+    // default to first acordo
+    try { select.value = '0'; } catch(e){}
+}
+
+function salvarFeriasFromTab() {
+    try {
+        const acordoSel = document.getElementById('feriasAcordoSelect');
+        const inicioEl = document.getElementById('feriasInicio');
+        const fimEl = document.getElementById('feriasFim');
+        const motivoEl = document.getElementById('feriasMotivo');
+
+        if (!acordoSel) throw new Error('Selecione um acordo válido.');
+        const acordoIdx = acordoSel.value;
+        if (acordoIdx === '' || isNaN(Number(acordoIdx))) throw new Error('Selecione um acordo antes de enviar.');
+        if (!inicioEl || !inicioEl.value) throw new Error('Informe a data de início.');
+
+        const dataInicio = inicioEl.value;
+        const dataFim = (fimEl && fimEl.value) ? fimEl.value : dataInicio;
+        const motivo = motivoEl ? motivoEl.value.trim() : '';
+
+        const evento = {
+            tipoEvento: 'ferias',
+            descricaoEvento: motivo || 'Férias',
+            dataInicioEvento: dataInicio,
+            dataFimEvento: dataFim,
+            impactoEvento: 'folga',
+            periodo: 'dia_todo',
+            acordoIndex: Number(acordoIdx),
+            corFundo: '#f0f8ff',
+            corTexto: '#000000',
+            nomeCSS: ''
+        };
+
+        const erros = Validators.validateEvento(evento);
+        if (erros && erros.length) throw new Error(erros.join('; '));
+
+        AppState.dados.eventos.push(evento);
+        AppState.save();
+        renderizarEventos();
+        try { gerarTimesheetAcordo(); } catch(e){}
+        try { atualizarDashboard(); } catch(e){}
+
+        const form = document.getElementById('formFerias');
+        if (form) form.reset();
+
+        mostrarAlertaGlobal('Férias solicitadas e salvas.', 'success');
+    } catch (error) {
+        console.error('Erro ao salvar férias:', error);
+        mostrarAlertaGlobal(error.message || 'Erro ao salvar férias', 'error');
+    }
+}
+
 function abrirModalEventoParaAcordo(acordoIndex) {
     try {
         if (acordoIndex == null || !AppState.dados.acordos[acordoIndex]) {
@@ -3249,6 +3323,7 @@ function salvarAcordo() {
         renderizarAcordos();
         atualizarSelectAcordosTimesheet();
         atualizarSelectAcordosEventos();
+        atualizarSelectAcordosFerias();
         atualizarSelectAcordosRegistros();
         gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         fecharModalAcordo();
@@ -3364,6 +3439,7 @@ function renderizarAcordos() {
 
         // Atualiza selects dependentes (timesheet/eventos já atualizados em salvar, aqui garantimos registros)
         atualizarSelectAcordosRegistros();
+        atualizarSelectAcordosFerias();
     } catch (error) {
         console.error('Erro ao renderizar acordos:', error);
     }
@@ -3707,6 +3783,7 @@ function restaurarBackupLocal(event) {
                         renderizarAcordos();
                         atualizarSelectAcordosTimesheet();
                         atualizarSelectAcordosRegistros();
+                        atualizarSelectAcordosFerias();
                         atualizarSelectAcordosEventos();
                         atualizarSelectTiposEventos();
 
