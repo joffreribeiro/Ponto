@@ -2973,35 +2973,59 @@ function renderizarPeriodosAquisitivosTable(rows) {
         const tb = document.querySelector('#tablePeriodosAquisitivos tbody');
         if (!tb) return;
         tb.innerHTML = '';
+        // Agrupar por período aquisitivo (periodoIndex)
+        const grupos = {};
+        rows.forEach(r => {
+            if (!grupos[r.periodoIndex]) grupos[r.periodoIndex] = [];
+            grupos[r.periodoIndex].push(r);
+        });
 
         const fragment = document.createDocumentFragment();
-        rows.forEach(r => {
-            const tr = document.createElement('tr');
+        Object.keys(grupos).sort((a,b) => Number(a) - Number(b)).forEach(key => {
+            const grupo = grupos[key];
+            // ordenar por subIndex
+            grupo.sort((x,y) => (x.subIndex||0) - (y.subIndex||0));
+            const rowspan = grupo.length;
 
-            const tdInicio = document.createElement('td');
-            tdInicio.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.inicio));
-            tr.appendChild(tdInicio);
+            grupo.forEach((r, idx) => {
+                const tr = document.createElement('tr');
 
-            const tdTermino = document.createElement('td');
-            tdTermino.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.termino));
-            tr.appendChild(tdTermino);
+                // Para a primeira linha do grupo, inserir as colunas que abrangem todas as sublinhas
+                if (idx === 0) {
+                    const tdInicio = document.createElement('td');
+                    tdInicio.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.inicio));
+                    tdInicio.rowSpan = rowspan;
+                    tr.appendChild(tdInicio);
 
-            const tdLimite = document.createElement('td');
-            tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
-            tr.appendChild(tdLimite);
+                    const tdTermino = document.createElement('td');
+                    tdTermino.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.termino));
+                    tdTermino.rowSpan = rowspan;
+                    tr.appendChild(tdTermino);
 
-            const tdPeriodo = document.createElement('td');
-            tdPeriodo.textContent = `${r.periodoIndex} (${r.subIndex}/${r.subTotal})`;
-            tr.appendChild(tdPeriodo);
+                    const tdLimite = document.createElement('td');
+                    tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
+                    tdLimite.rowSpan = rowspan;
+                    tr.appendChild(tdLimite);
+                }
 
-            // colunas de férias - vazias para usuário preencher manualmente se desejar
-            const tdFerInicio = document.createElement('td'); tdFerInicio.innerHTML = '&nbsp;'; tr.appendChild(tdFerInicio);
-            const tdFerFim = document.createElement('td'); tdFerFim.innerHTML = '&nbsp;'; tr.appendChild(tdFerFim);
-            const tdAdto = document.createElement('td'); tdAdto.innerHTML = '&nbsp;'; tr.appendChild(tdAdto);
-            const tdDias = document.createElement('td'); tdDias.innerHTML = '&nbsp;'; tr.appendChild(tdDias);
-            const tdDoc = document.createElement('td'); tdDoc.innerHTML = '&nbsp;'; tr.appendChild(tdDoc);
+                const tdPeriodo = document.createElement('td');
+                if (r.subTotal && r.subTotal > 1) {
+                    const labels = ['1º Período','2º Período','3º Período'];
+                    tdPeriodo.textContent = labels[(r.subIndex||1)-1] || `${r.subIndex}º Período`;
+                } else {
+                    tdPeriodo.textContent = 'Único';
+                }
+                tr.appendChild(tdPeriodo);
 
-            fragment.appendChild(tr);
+                // colunas de férias - vazias para usuário preencher manualmente se desejar
+                const tdFerInicio = document.createElement('td'); tdFerInicio.innerHTML = '&nbsp;'; tr.appendChild(tdFerInicio);
+                const tdFerFim = document.createElement('td'); tdFerFim.innerHTML = '&nbsp;'; tr.appendChild(tdFerFim);
+                const tdAdto = document.createElement('td'); tdAdto.innerHTML = '&nbsp;'; tr.appendChild(tdAdto);
+                const tdDias = document.createElement('td'); tdDias.innerHTML = '&nbsp;'; tr.appendChild(tdDias);
+                const tdDoc = document.createElement('td'); tdDoc.innerHTML = '&nbsp;'; tr.appendChild(tdDoc);
+
+                fragment.appendChild(tr);
+            });
         });
 
         tb.appendChild(fragment);
