@@ -983,6 +983,116 @@ function removerPeriodoGroup(periodoIndex) {
     mostrarAlertaGlobal('Período removido com sucesso.');
 }
 
+// Solicitar férias a partir de um subperiodo (linha específica)
+function solicitarFeriasFromRow(id) {
+    try {
+        if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) {
+            mostrarAlertaGlobal('Nenhum período salvo para solicitar férias.', 'warning');
+            return;
+        }
+        const p = AppState.dados.periodosAquisitivos.find(x => x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === idRaw);
+        // fallback: find by raw id
+        let periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id || p2.id === id);
+        if (!periodo) periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id || p2.id === id);
+        // simpler: locate by provided id
+        periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id) || AppState.dados.periodosAquisitivos.find(p2 => p2.idRaw === id) || periodo;
+        if (!periodo) {
+            mostrarAlertaGlobal('Período não encontrado para solicitação.', 'error');
+            return;
+        }
+
+        // usar feriasInicio/feriasFim se preenchidos, senão perguntar
+        let inicio = periodo.feriasInicio || '';
+        let fim = periodo.feriasFim || '';
+        if (!inicio) {
+            inicio = prompt('Data de início das férias (YYYY-MM-DD):', inicio || '');
+            if (inicio === null) return;
+        }
+        if (!fim) {
+            fim = prompt('Data de término das férias (YYYY-MM-DD):', fim || inicio || '');
+            if (fim === null) return;
+        }
+
+        const evento = {
+            tipoEvento: 'ferias',
+            descricaoEvento: `Férias (Período ${periodo.periodoIndex}${periodo.subIndex ? ' - ' + periodo.subIndex + 'º' : ''})`,
+            dataInicioEvento: DateUtils.getIsoDate(DateUtils.parse(inicio)),
+            dataFimEvento: DateUtils.getIsoDate(DateUtils.parse(fim)),
+            impactoEvento: 'folga',
+            periodo: 'dia_todo',
+            acordoIndex: null,
+            corFundo: '#f0f8ff',
+            corTexto: '#000000',
+            nomeCSS: ''
+        };
+
+        const erros = Validators.validateEvento(evento);
+        if (erros && erros.length) throw new Error(erros.join('; '));
+
+        if (!AppState.dados.eventos) AppState.dados.eventos = [];
+        AppState.dados.eventos.push(evento);
+        AppState.save();
+        renderizarEventos();
+        try { gerarTimesheetAcordo(); } catch (e) {}
+        try { atualizarDashboard(); } catch (e) {}
+        mostrarAlertaGlobal('Solicitação de férias criada a partir do período.', 'success');
+    } catch (e) {
+        console.error('Erro ao solicitar férias do período:', e);
+        mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias.', 'error');
+    }
+}
+
+// Solicitar férias para todo o período aquisitivo (linha 'Único')
+function solicitarFeriasGroup(periodoIndex) {
+    try {
+        if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) {
+            mostrarAlertaGlobal('Nenhum período salvo para solicitar férias.', 'warning');
+            return;
+        }
+        const rows = AppState.dados.periodosAquisitivos.filter(p => p.periodoIndex === periodoIndex);
+        if (!rows || rows.length === 0) {
+            mostrarAlertaGlobal('Período não encontrado.', 'error');
+            return;
+        }
+        // usar início/término do período (primeiro registro)
+        const first = rows[0];
+        const defaultInicio = first.inicio || '';
+        const defaultFim = first.termino || '';
+
+        const inicio = prompt('Data de início das férias (YYYY-MM-DD):', defaultInicio || '');
+        if (inicio === null) return;
+        const fim = prompt('Data de término das férias (YYYY-MM-DD):', defaultFim || inicio || '');
+        if (fim === null) return;
+
+        const evento = {
+            tipoEvento: 'ferias',
+            descricaoEvento: `Férias (Período ${periodoIndex})`,
+            dataInicioEvento: DateUtils.getIsoDate(DateUtils.parse(inicio)),
+            dataFimEvento: DateUtils.getIsoDate(DateUtils.parse(fim)),
+            impactoEvento: 'folga',
+            periodo: 'dia_todo',
+            acordoIndex: null,
+            corFundo: '#f0f8ff',
+            corTexto: '#000000',
+            nomeCSS: ''
+        };
+
+        const erros = Validators.validateEvento(evento);
+        if (erros && erros.length) throw new Error(erros.join('; '));
+
+        if (!AppState.dados.eventos) AppState.dados.eventos = [];
+        AppState.dados.eventos.push(evento);
+        AppState.save();
+        renderizarEventos();
+        try { gerarTimesheetAcordo(); } catch (e) {}
+        try { atualizarDashboard(); } catch (e) {}
+        mostrarAlertaGlobal('Solicitação de férias criada para o período aquisitivo.', 'success');
+    } catch (e) {
+        console.error('Erro ao solicitar férias em grupo:', e);
+        mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias em grupo.', 'error');
+    }
+}
+
 function removerAnexo(atividadeId, index) {
     if (atividadeId) {
         const list = AppState.dados.atividades || [];
@@ -3188,6 +3298,14 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnEditG.textContent = 'Editar';
                     btnEditG.addEventListener('click', () => editarPeriodoGroup(r.periodoIndex));
                     tdActions.appendChild(btnEditG);
+                    const btnSolicG = document.createElement('button');
+                    btnSolicG.type = 'button';
+                    btnSolicG.className = 'btn-primary';
+                    btnSolicG.style.marginLeft = '6px';
+                    btnSolicG.style.padding = '4px 8px';
+                    btnSolicG.textContent = 'Solicitar';
+                    btnSolicG.addEventListener('click', () => solicitarFeriasGroup(r.periodoIndex));
+                    tdActions.appendChild(btnSolicG);
                     const btnDelG = document.createElement('button');
                     btnDelG.type = 'button';
                     btnDelG.className = 'btn-secondary';
@@ -3197,6 +3315,13 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnDelG.addEventListener('click', () => removerPeriodoGroup(r.periodoIndex));
                     tdActions.appendChild(btnDelG);
                 } else {
+                    const btnSolic = document.createElement('button');
+                    btnSolic.type = 'button';
+                    btnSolic.className = 'btn-primary';
+                    btnSolic.style.padding = '4px 8px';
+                    btnSolic.textContent = 'Solicitar';
+                    btnSolic.addEventListener('click', () => solicitarFeriasFromRow(r.id || r.idRaw));
+                    tdActions.appendChild(btnSolic);
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
                     btnEdit.className = 'btn-secondary';
