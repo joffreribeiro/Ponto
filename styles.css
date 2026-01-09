@@ -398,6 +398,11 @@ header h1 {
     margin: 12px 0 12px;
 }
 
+/* Forçar orientação horizontal das abas principais e sub-abas
+   (garante que em qualquer mudança acidental fiquem no topo, horizontal) */
+.tabs { flex-direction: row !important; }
+.subtabs { display: flex; flex-direction: row; gap: 8px; margin: 8px 0; }
+
 .tab-btn {
     border: none;
     border-radius: 8px;
