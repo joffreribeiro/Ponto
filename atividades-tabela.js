@@ -37,8 +37,8 @@
                 <td>${a.finalizado ? 'Sim' : 'Não'}</td>
                 <td>${escapeHtml(a.status || '')}</td>
                 <td>
-                    <button class="btn-secondary" data-action="editarAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('edit', 'Editar atividade') : '✏️'}</button>
-                    <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('trash', 'Remover atividade') : '🗑️'}</button>
+                    <button class="btn-secondary" data-action="editarAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('edit', { title: 'Editar atividade', color: 'currentColor' }) : '✏️'}</button>
+                    <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('trash', { title: 'Remover atividade', color: 'currentColor' }) : '🗑️'}</button>
                 </td>
             </tr>`;
         }).join('');
