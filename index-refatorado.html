@@ -161,6 +161,9 @@
                         <div class="ferias-item">
                             <span class="ferias-label">Férias já marcadas</span>
                             <div id="scheduledVacationsList" class="ferias-value">-</div>
+                            <div style="margin-top:12px;">
+                                <button id="btnSolicitarFeriasDashboard" class="btn-primary" type="button">Solicitar Férias</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -469,6 +472,49 @@
                             <button type="submit" class="btn-primary">Solicitar Férias</button>
                         </div>
                     </form>
+                </div>
+
+                <div class="card" style="margin-top:12px;">
+                    <h2>Períodos Aquisitivos</h2>
+                    <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
+                        <div style="min-width:200px;">
+                            <label for="dataAdmissao">Data de Admissão</label>
+                            <input type="date" id="dataAdmissao" />
+                        </div>
+                        <div style="min-width:160px;">
+                            <label for="divisoesPeriodo">Dividir cada período em</label>
+                            <select id="divisoesPeriodo">
+                                <option value="1">1 período</option>
+                                <option value="2">2 períodos</option>
+                                <option value="3" selected>3 períodos</option>
+                            </select>
+                        </div>
+                        <div style="margin-left:auto; display:flex; gap:8px;">
+                            <button id="btnGerarPeriodosAdmissao" type="button" class="btn-primary">Gerar Períodos</button>
+                            <button id="btnLimparPeriodosAdmissao" type="button" class="btn-secondary">Limpar</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;" class="table-container">
+                        <table id="tablePeriodosAquisitivos">
+                            <thead>
+                                <tr>
+                                    <th>Período Aquisitivo - Início</th>
+                                    <th>Período Aquisitivo - Término</th>
+                                    <th>Limite de Concessão</th>
+                                    <th>Período</th>
+                                    <th>Férias - Início</th>
+                                    <th>Férias - Término</th>
+                                    <th>Adto 13º</th>
+                                    <th>Dias</th>
+                                    <th>Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Linhas geradas dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

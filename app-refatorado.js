@@ -142,6 +142,41 @@ function inicializar() {
                 document._atividadeGlobalClickAttached = true;
             }
         } catch (e) { console.error('Erro ao anexar listener Nova Atividade:', e); }
+        // Botão rápido no dashboard para abrir aba Férias
+        try {
+            const btnFerias = document.getElementById('btnSolicitarFeriasDashboard');
+            if (btnFerias && !btnFerias._listenerAttached) {
+                btnFerias.addEventListener('click', abrirAbaFeriasFromDashboard);
+                btnFerias._listenerAttached = true;
+            }
+        } catch(e){ console.warn('Não foi possível anexar listener ao botão Solicitar Férias (dashboard):', e); }
+        // Botões relacionados à geração de períodos aquisitivos na subaba Férias
+        try {
+            const btnGerar = document.getElementById('btnGerarPeriodosAdmissao');
+            const btnLimpar = document.getElementById('btnLimparPeriodosAdmissao');
+            const inputAdmissao = document.getElementById('dataAdmissao');
+            if (btnGerar && !btnGerar._listenerAttached) {
+                btnGerar.addEventListener('click', () => {
+                    try { gerarPeriodosAquisitivosFromAdmissao(); } catch(e){ console.error('Erro gerar períodos:', e); }
+                });
+                btnGerar._listenerAttached = true;
+            }
+            if (btnLimpar && !btnLimpar._listenerAttached) {
+                btnLimpar.addEventListener('click', () => {
+                    const tb = document.getElementById('tablePeriodosAquisitivos');
+                    if (tb && tb.tBodies && tb.tBodies[0]) tb.tBodies[0].innerHTML = '';
+                    if (inputAdmissao) inputAdmissao.value = '';
+                });
+                btnLimpar._listenerAttached = true;
+            }
+            if (inputAdmissao && !inputAdmissao._listenerAttached) {
+                // opcional: regenerar ao alterar a data
+                inputAdmissao.addEventListener('change', () => {
+                    try { /* do not auto-generate by default; user clicks Gerar */ } catch(e){}
+                });
+                inputAdmissao._listenerAttached = true;
+            }
+        } catch(e){ console.warn('Não foi possível anexar listeners aos controles de períodos aquisitivos:', e); }
         atualizarSelectTiposEventos();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
         if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
@@ -2874,6 +2909,125 @@ function salvarFeriasFromTab() {
     } catch (error) {
         console.error('Erro ao salvar férias:', error);
         mostrarAlertaGlobal(error.message || 'Erro ao salvar férias.', 'error');
+    }
+}
+
+/**
+ * Gera uma lista de períodos aquisitivos a partir da data de admissão.
+ * Cada período tem 12 meses, e pode ser dividido em N subperíodos (1..3).
+ * A função renderiza a tabela `#tablePeriodosAquisitivos` com os resultados.
+ */
+function gerarPeriodosAquisitivosFromAdmissao() {
+    try {
+        const dataAd = document.getElementById('dataAdmissao');
+        const divSel = document.getElementById('divisoesPeriodo');
+        if (!dataAd || !dataAd.value) {
+            mostrarAlertaGlobal('Informe a data de admissão para gerar os períodos.', 'warning');
+            return;
+        }
+
+        const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
+        const iso = dataAd.value;
+        const dt = DateUtils.parse(iso);
+        if (!dt) {
+            mostrarAlertaGlobal('Data de admissão inválida.', 'error');
+            return;
+        }
+
+        // Quantos períodos gerar: por padrão gerar os próximos 10 períodos
+        const totalPeriods = 10;
+        const periods = [];
+
+        for (let i = 0; i < totalPeriods; i++) {
+            // início do período aquisitivo: dataAd + i anos
+            const inicio = new Date(dt.getFullYear() + i, dt.getMonth(), dt.getDate());
+            // término: 12 meses depois, menos 1 dia
+            const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
+            termino.setDate(termino.getDate() - 1);
+
+            // limite de concessão: um ano após o término
+            const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
+
+            // dividir em subperíodos
+            for (let s = 1; s <= divis; s++) {
+                periods.push({
+                    periodoIndex: i + 1,
+                    inicio: new Date(inicio),
+                    termino: new Date(termino),
+                    limite: new Date(limite),
+                    subIndex: s,
+                    subTotal: divis
+                });
+            }
+        }
+
+        renderizarPeriodosAquisitivosTable(periods);
+    } catch (e) {
+        console.error('Erro ao gerar períodos aquisitivos:', e);
+        mostrarAlertaGlobal('Erro ao gerar períodos aquisitivos. Veja console.', 'error');
+    }
+}
+
+function renderizarPeriodosAquisitivosTable(rows) {
+    try {
+        const tb = document.querySelector('#tablePeriodosAquisitivos tbody');
+        if (!tb) return;
+        tb.innerHTML = '';
+
+        const fragment = document.createDocumentFragment();
+        rows.forEach(r => {
+            const tr = document.createElement('tr');
+
+            const tdInicio = document.createElement('td');
+            tdInicio.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.inicio));
+            tr.appendChild(tdInicio);
+
+            const tdTermino = document.createElement('td');
+            tdTermino.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.termino));
+            tr.appendChild(tdTermino);
+
+            const tdLimite = document.createElement('td');
+            tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
+            tr.appendChild(tdLimite);
+
+            const tdPeriodo = document.createElement('td');
+            tdPeriodo.textContent = `${r.periodoIndex} (${r.subIndex}/${r.subTotal})`;
+            tr.appendChild(tdPeriodo);
+
+            // colunas de férias - vazias para usuário preencher manualmente se desejar
+            const tdFerInicio = document.createElement('td'); tdFerInicio.innerHTML = '&nbsp;'; tr.appendChild(tdFerInicio);
+            const tdFerFim = document.createElement('td'); tdFerFim.innerHTML = '&nbsp;'; tr.appendChild(tdFerFim);
+            const tdAdto = document.createElement('td'); tdAdto.innerHTML = '&nbsp;'; tr.appendChild(tdAdto);
+            const tdDias = document.createElement('td'); tdDias.innerHTML = '&nbsp;'; tr.appendChild(tdDias);
+            const tdDoc = document.createElement('td'); tdDoc.innerHTML = '&nbsp;'; tr.appendChild(tdDoc);
+
+            fragment.appendChild(tr);
+        });
+
+        tb.appendChild(fragment);
+    } catch (e) {
+        console.error('Erro ao renderizar tabela de períodos aquisitivos:', e);
+    }
+}
+
+function abrirAbaFeriasFromDashboard() {
+    try {
+        // Abrir aba principal Ponto
+        const tab = document.querySelector('.tab-btn[data-tab="ponto"]');
+        if (tab) tab.click();
+
+        // abrir subaba Férias após pequeno delay para garantir DOM atualizado
+        setTimeout(() => {
+            try {
+                atualizarSelectAcordosFerias();
+                const sub = document.querySelector('.subtab-btn[data-subtab="ponto-ferias"]');
+                if (sub) sub.click();
+                const inicio = document.getElementById('feriasInicio');
+                if (inicio) inicio.focus();
+            } catch (e) { console.warn('Erro ao abrir subaba Férias:', e); }
+        }, 60);
+    } catch (error) {
+        console.error('Erro ao abrir aba Férias a partir do dashboard:', error);
     }
 }
 
