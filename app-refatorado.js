@@ -3265,6 +3265,42 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
                     tdLimite.rowSpan = rowspan;
                     tr.appendChild(tdLimite);
+                    // calcular Total Dias já Concedidos e Quantidade de Dias Disponíveis para o período
+                    try {
+                        const msDay = 24 * 60 * 60 * 1000;
+                        const eventos = (AppState.dados && Array.isArray(AppState.dados.eventos)) ? AppState.dados.eventos : [];
+                        let totalConcedidos = 0;
+                        const periodStart = r.inicio instanceof Date ? r.inicio : DateUtils.parse(r.inicio);
+                        const periodEnd = r.termino instanceof Date ? r.termino : DateUtils.parse(r.termino);
+                        eventos.forEach(ev => {
+                            try {
+                                if (!ev || String(ev.tipoEvento).toLowerCase() !== 'ferias') return;
+                                const evStart = DateUtils.parse(ev.dataInicioEvento || ev.inicio || ev.dataInicio || '');
+                                const evEnd = DateUtils.parse(ev.dataFimEvento || ev.fim || ev.dataFim || '');
+                                if (!evStart || !evEnd || !periodStart || !periodEnd) return;
+                                const s = evStart > periodStart ? evStart : periodStart;
+                                const e = evEnd < periodEnd ? evEnd : periodEnd;
+                                if (e >= s) {
+                                    totalConcedidos += Math.floor((e - s) / msDay) + 1;
+                                }
+                            } catch (ex2) { /* ignore per-event errors */ }
+                        });
+                        const entitlement = (AppState.dados && AppState.dados.configuracoes && Number(AppState.dados.configuracoes.feriasDias) > 0) ? Number(AppState.dados.configuracoes.feriasDias) : 30;
+                        const disponiveis = Math.max(0, entitlement - totalConcedidos);
+
+                        const tdTotal = document.createElement('td');
+                        tdTotal.textContent = String(totalConcedidos);
+                        tdTotal.rowSpan = rowspan;
+                        tr.appendChild(tdTotal);
+
+                        const tdDispon = document.createElement('td');
+                        tdDispon.textContent = String(disponiveis);
+                        tdDispon.rowSpan = rowspan;
+                        tr.appendChild(tdDispon);
+                    } catch (err) {
+                        const tdTotal = document.createElement('td'); tdTotal.textContent = ''; tdTotal.rowSpan = rowspan; tr.appendChild(tdTotal);
+                        const tdDispon = document.createElement('td'); tdDispon.textContent = ''; tdDispon.rowSpan = rowspan; tr.appendChild(tdDispon);
+                    }
                 }
 
                 const tdPeriodo = document.createElement('td');
