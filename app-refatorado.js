@@ -155,6 +155,13 @@ function inicializar() {
             const btnGerar = document.getElementById('btnGerarPeriodosAdmissao');
             const btnLimpar = document.getElementById('btnLimparPeriodosAdmissao');
             const inputAdmissao = document.getElementById('dataAdmissao');
+            // popular valor salvo da data de admissão
+            try {
+                if (inputAdmissao && AppState.dados && AppState.dados.admissao) {
+                    // armazenamos como ISO (YYYY-MM-DD)
+                    inputAdmissao.value = AppState.dados.admissao || '';
+                }
+            } catch(e) { /* ignore */ }
             if (btnGerar && !btnGerar._listenerAttached) {
                 btnGerar.addEventListener('click', () => {
                     try { gerarPeriodosAquisitivosFromAdmissao(); } catch(e){ console.error('Erro gerar períodos:', e); }
@@ -167,8 +174,12 @@ function inicializar() {
                     if (tb && tb.tBodies && tb.tBodies[0]) tb.tBodies[0].innerHTML = '';
                     if (inputAdmissao) inputAdmissao.value = '';
                     try {
-                        if (AppState.dados && Array.isArray(AppState.dados.periodosAquisitivos)) {
-                            AppState.dados.periodosAquisitivos = [];
+                        if (AppState.dados) {
+                            if (Array.isArray(AppState.dados.periodosAquisitivos)) {
+                                AppState.dados.periodosAquisitivos = [];
+                            }
+                            // também remover data de admissão salva
+                            if (typeof AppState.dados.admissao !== 'undefined') AppState.dados.admissao = '';
                             AppState.save();
                         }
                     } catch(e) { console.warn('Erro ao limpar períodos salvos:', e); }
@@ -176,12 +187,34 @@ function inicializar() {
                 btnLimpar._listenerAttached = true;
             }
             if (inputAdmissao && !inputAdmissao._listenerAttached) {
-                // opcional: regenerar ao alterar a data
-                inputAdmissao.addEventListener('change', () => {
-                    try { /* do not auto-generate by default; user clicks Gerar */ } catch(e){}
-                });
+                // Não salvar automaticamente ao alterar; usar botão 'Salvar'
                 inputAdmissao._listenerAttached = true;
             }
+
+            // botão Salvar ao lado do input de admissão
+            try {
+                const btnSalvarAdmissao = document.getElementById('btnSalvarAdmissao');
+                if (btnSalvarAdmissao && !btnSalvarAdmissao._listenerAttached) {
+                    btnSalvarAdmissao.addEventListener('click', () => {
+                        try {
+                            const val = inputAdmissao ? (inputAdmissao.value || '') : '';
+                            if (!AppState.dados) AppState.dados = {};
+                            if (val) {
+                                const parsed = DateUtils.parse(val);
+                                AppState.dados.admissao = parsed ? DateUtils.getIsoDate(parsed) : val;
+                            } else {
+                                AppState.dados.admissao = '';
+                            }
+                            AppState.save();
+                            mostrarAlertaGlobal('Data de admissão salva.', 'success');
+                        } catch (e) {
+                            console.warn('Erro ao salvar data de admissão via botão:', e);
+                            mostrarAlertaGlobal('Erro ao salvar data de admissão.', 'error');
+                        }
+                    });
+                    btnSalvarAdmissao._listenerAttached = true;
+                }
+            } catch(e) { console.warn('Não foi possível anexar listener ao botão Salvar Admissão:', e); }
         } catch(e){ console.warn('Não foi possível anexar listeners aos controles de períodos aquisitivos:', e); }
         atualizarSelectTiposEventos();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
@@ -3018,6 +3051,10 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 
         // persistir períodos gerados em AppState.dados.periodosAquisitivos
         try {
+            // salvar também a data de admissão usada (ISO YYYY-MM-DD)
+            if (!AppState.dados) AppState.dados = {};
+            AppState.dados.admissao = DateUtils.getIsoDate(dt);
+            // continuar para persistir períodos
             if (!AppState.dados) AppState.dados = {};
             AppState.dados.periodosAquisitivos = periods.map(p => ({
                 id: p.id,
