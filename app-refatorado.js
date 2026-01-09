@@ -3038,12 +3038,28 @@ function renderizarPeriodosAquisitivosTable(rows) {
             const grupo = grupos[key];
             // ordenar por subIndex
             grupo.sort((x,y) => (x.subIndex||0) - (y.subIndex||0));
-            const rowspan = grupo.length;
+            // se houver mais de um subperiodo, adicionamos uma linha sintética 'Único' antes
+            let renderList = grupo.slice();
+            if (grupo.length > 1) {
+                const first = grupo[0];
+                const unico = {
+                    synthetic: true,
+                    periodoIndex: first.periodoIndex,
+                    inicio: first.inicio,
+                    termino: first.termino,
+                    limite: first.limite,
+                    subIndex: 0,
+                    subTotal: first.subTotal
+                };
+                renderList = [unico].concat(renderList);
+            }
 
-            grupo.forEach((r, idx) => {
+            const rowspan = renderList.length;
+
+            renderList.forEach((r, idx) => {
                 const tr = document.createElement('tr');
 
-                // Para a primeira linha do grupo, inserir as colunas que abrangem todas as sublinhas
+                // Para a primeira linha do grupo (pode ser a linha sintética 'Único'), inserir as colunas que abrangem todas as sublinhas
                 if (idx === 0) {
                     const tdInicio = document.createElement('td');
                     tdInicio.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.inicio));
@@ -3062,7 +3078,9 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 }
 
                 const tdPeriodo = document.createElement('td');
-                if (r.subTotal && r.subTotal > 1) {
+                if (r.synthetic) {
+                    tdPeriodo.textContent = 'Único';
+                } else if (r.subTotal && r.subTotal > 1) {
                     const labels = ['1º Período','2º Período','3º Período'];
                     tdPeriodo.textContent = labels[(r.subIndex||1)-1] || `${r.subIndex}º Período`;
                 } else {
@@ -3079,23 +3097,25 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 // documento
                 const tdDoc = document.createElement('td'); tdDoc.textContent = r.documento || ''; tr.appendChild(tdDoc);
 
-                // ações (editar / remover)
+                // ações (editar / remover) - não apresentar para linha sintética 'Único'
                 const tdActions = document.createElement('td');
-                const btnEdit = document.createElement('button');
-                btnEdit.type = 'button';
-                btnEdit.className = 'btn-secondary';
-                btnEdit.style.padding = '4px 8px';
-                btnEdit.textContent = 'Editar';
-                btnEdit.addEventListener('click', () => editarPeriodo(r.id || r.idRaw));
-                tdActions.appendChild(btnEdit);
-                const btnDel = document.createElement('button');
-                btnDel.type = 'button';
-                btnDel.className = 'btn-secondary';
-                btnDel.style.marginLeft = '6px';
-                btnDel.style.padding = '4px 8px';
-                btnDel.textContent = 'Excluir';
-                btnDel.addEventListener('click', () => removerPeriodo(r.id || r.idRaw));
-                tdActions.appendChild(btnDel);
+                if (!r.synthetic) {
+                    const btnEdit = document.createElement('button');
+                    btnEdit.type = 'button';
+                    btnEdit.className = 'btn-secondary';
+                    btnEdit.style.padding = '4px 8px';
+                    btnEdit.textContent = 'Editar';
+                    btnEdit.addEventListener('click', () => editarPeriodo(r.id || r.idRaw));
+                    tdActions.appendChild(btnEdit);
+                    const btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.className = 'btn-secondary';
+                    btnDel.style.marginLeft = '6px';
+                    btnDel.style.padding = '4px 8px';
+                    btnDel.textContent = 'Excluir';
+                    btnDel.addEventListener('click', () => removerPeriodo(r.id || r.idRaw));
+                    tdActions.appendChild(btnDel);
+                }
                 tr.appendChild(tdActions);
 
                 fragment.appendChild(tr);
