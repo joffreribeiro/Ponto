@@ -2378,11 +2378,28 @@ function gerarTimesheetAcordo() {
                     for (let d = 1; d <= lastDayPrev; d++) {
                         const iso = `${prevYear}-${String(prevMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const reg = mapaReg[iso];
-                        // Considera o dia preenchido se existir registro com algum horário preenchido
-                        if (!reg || !(reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) {
-                            prevComplete = false;
-                            break;
-                        }
+                        const dateObj = new Date(prevYear, prevMonth, d);
+                        const dow = dateObj.getDay();
+                        // Considera fins de semana como preenchidos automaticamente
+                        if (dow === 0 || dow === 6) continue;
+
+                        // Se existir registro com algum horário preenchido, ok
+                        if (reg && (reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) continue;
+
+                        // Caso exista evento que torne o dia não-trabalho (feriado/abono/afastamento/ferias), considerar preenchido
+                        try {
+                            const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
+                            const nonWorkingTypes = ['feriado','ferias','afastamento','abono_acordo','abono','folga'];
+                            if (ev) {
+                                if ((ev.impactoEvento && ev.impactoEvento !== 'trabalho') || (ev.tipoEvento && nonWorkingTypes.includes(ev.tipoEvento))) {
+                                    continue; // dia aceito como preenchido
+                                }
+                            }
+                        } catch (ee) { /* ignore and treat as not filled */ }
+
+                        // Se chegou aqui, não está preenchido
+                        prevComplete = false;
+                        break;
                     }
                     if (prevComplete) {
                         tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
