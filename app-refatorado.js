@@ -3251,15 +3251,13 @@ function renderizarPeriodosAquisitivosTable(rows) {
 
                 // Para a primeira linha do grupo (pode ser a linha sintética 'Único'), inserir as colunas que abrangem todas as sublinhas
                 if (idx === 0) {
-                    const tdInicio = document.createElement('td');
-                    tdInicio.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.inicio));
-                    tdInicio.rowSpan = rowspan;
-                    tr.appendChild(tdInicio);
-
-                    const tdTermino = document.createElement('td');
-                    tdTermino.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.termino));
-                    tdTermino.rowSpan = rowspan;
-                    tr.appendChild(tdTermino);
+                    // column Período Aquisitivo (single cell with range)
+                    const tdPeriodoAq = document.createElement('td');
+                    const inicioText = r.inicio ? DateUtils.formatBR(DateUtils.getIsoDate(r.inicio)) : '';
+                    const terminoText = r.termino ? DateUtils.formatBR(DateUtils.getIsoDate(r.termino)) : '';
+                    tdPeriodoAq.textContent = inicioText && terminoText ? `${inicioText} → ${terminoText}` : (inicioText || terminoText || '');
+                    tdPeriodoAq.rowSpan = rowspan;
+                    tr.appendChild(tdPeriodoAq);
 
                     const tdLimite = document.createElement('td');
                     tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
