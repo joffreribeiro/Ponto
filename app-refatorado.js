@@ -2230,9 +2230,10 @@ function gerarTimesheetAcordo() {
                         td.textContent = '';
                     }
                     if (rowIndex === 6) {
-                        // Observações: editável
+                        // Observações: editável — permitir quebras de linha
                         td.textContent = r && r.observacoes || '';
                         td.classList.add('ts-clickable');
+                        td.classList.add('timesheet-observacao');
                         td.title = 'Clique para editar observações';
                         td.addEventListener('click', () => abrirEdicaoDiaTimesheet(dia.dataStr, 'observacoes'));
                     }

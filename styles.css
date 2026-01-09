@@ -1404,6 +1404,17 @@ td.saldo-negativo,
     color: var(--negative-dark);
 }
 
+/* Observações no timesheet: permitir quebra de linhas e manter layout controlado */
+.timesheet-observacao {
+    white-space: pre-wrap;    /* respeitar quebras de linha do texto */
+    word-break: break-word;   /* quebrar palavras longas quando necessário */
+    overflow-wrap: anywhere;
+    max-width: 16rem;         /* evita células demasiadamente largas */
+    max-height: 6.5rem;      /* evita linhas muito altas; ajustável */
+    overflow: auto;           /* scroll se exceder o espaço */
+    padding-right: 0.4rem;    /* pequeno espaçamento para scrollbar */
+}
+
 /* Linha entre Saída e Horas Trabalhadas */
 .row-separador-azul {
     height: auto !important;
