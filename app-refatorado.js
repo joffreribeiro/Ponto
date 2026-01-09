@@ -1372,6 +1372,138 @@ function atualizarDashboard() {
         if (typeof renderAnalytics === 'function') {
             renderAnalytics();
         }
+
+        // --- FÉRIAS: resumo e avisos ---
+        try {
+            function computeVacationOverview(eventos, acordos) {
+                const today = DateUtils.parse(DateUtils.today());
+                const msDay = 24 * 60 * 60 * 1000;
+
+                const ferias = (Array.isArray(eventos) ? eventos : []).filter(e => String(e.tipoEvento).toLowerCase() === 'ferias')
+                    .map(e => {
+                        const start = DateUtils.parse(e.dataInicioEvento || e.inicio || e.dataInicio || '');
+                        const end = DateUtils.parse(e.dataFimEvento || e.fim || e.dataFim || '');
+                        const days = (start && end) ? (Math.floor((end - start) / msDay) + 1) : 0;
+                        return { raw: e, start, end, days };
+                    }).filter(f => f.start && f.end)
+                    .sort((a,b) => a.start - b.start);
+
+                const upcoming = ferias.filter(f => f.end >= today);
+                const next = upcoming.find(f => f.start >= today) || upcoming[0] || null;
+                const daysUntilNext = next ? Math.max(0, Math.ceil((next.start - today) / msDay)) : null;
+
+                // Determine acquisition period: try to find acordo.periodo that contains today
+                let acquisitionStart = null, acquisitionEnd = null, acquisitionAcordo = null;
+                try {
+                    acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
+                    if (acquisitionAcordo && Array.isArray(acquisitionAcordo.periodos)) {
+                        const p = acquisitionAcordo.periodos.find(p => {
+                            const ps = DateUtils.parse(p.inicio);
+                            const pe = DateUtils.parse(p.fim || p.inicio);
+                            return ps && pe && ps <= today && pe >= today;
+                        });
+                        if (p) {
+                            acquisitionStart = DateUtils.parse(p.inicio);
+                            acquisitionEnd = DateUtils.parse(p.fim || p.inicio);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Erro ao determinar acordo para período aquisitivo', err);
+                }
+
+                // Fallback: last 12 months ending today
+                if (!acquisitionStart) {
+                    acquisitionEnd = today;
+                    acquisitionStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+                }
+
+                function overlapDays(aStart,aEnd,bStart,bEnd){
+                    const s = aStart > bStart ? aStart : bStart;
+                    const e = aEnd < bEnd ? aEnd : bEnd;
+                    if (!s || !e || e < s) return 0;
+                    return Math.floor((e - s) / msDay) + 1;
+                }
+
+                // Sum scheduled vacation days inside acquisition period
+                let scheduledDaysInPeriod = 0;
+                const scheduledList = [];
+                ferias.forEach(f => {
+                    const overlap = overlapDays(f.start, f.end, acquisitionStart, acquisitionEnd);
+                    if (overlap > 0) {
+                        scheduledDaysInPeriod += overlap;
+                    }
+                    scheduledList.push({start: f.start, end: f.end, days: f.days});
+                });
+
+                // Default entitlement (configurable later): 30 days
+                const entitlement = 30;
+                const remaining = Math.max(0, entitlement - scheduledDaysInPeriod);
+
+                return {
+                    next,
+                    daysUntilNext,
+                    acquisitionStart,
+                    acquisitionEnd,
+                    scheduledDaysInPeriod,
+                    remaining,
+                    scheduledList,
+                    entitlement,
+                    acquisitionAcordo
+                };
+            }
+
+            const overview = computeVacationOverview(AppState.dados.eventos, AppState.dados.acordos);
+
+            // Update DOM (guarded)
+            const nextInfo = document.getElementById('nextVacationInfo');
+            const warningEl = document.getElementById('vacationWarning');
+            const acqInfo = document.getElementById('acquisitionInfo');
+            const remInfo = document.getElementById('remainingVacationDays');
+            const schedListEl = document.getElementById('scheduledVacationsList');
+
+            if (nextInfo) {
+                if (overview.next) {
+                    const startStr = DateUtils.formatBR(overview.next.start);
+                    const endStr = DateUtils.formatBR(overview.next.end);
+                    const days = overview.next.days;
+                    const untilText = overview.daysUntilNext === 0 ? 'começa hoje' : `${overview.daysUntilNext} dia(s)`;
+                    nextInfo.textContent = `${startStr} → ${endStr} (${days} dia(s)) — em ${untilText}`;
+                } else {
+                    nextInfo.textContent = 'Nenhuma férias agendada';
+                }
+            }
+
+            if (warningEl) {
+                if (overview.daysUntilNext !== null && overview.daysUntilNext <= 14) {
+                    warningEl.style.display = 'block';
+                    warningEl.textContent = `Atenção: próxima férias em ${overview.daysUntilNext} dia(s)`;
+                } else {
+                    warningEl.style.display = 'none';
+                    warningEl.textContent = '';
+                }
+            }
+
+            if (acqInfo) {
+                const start = overview.acquisitionStart ? DateUtils.formatBR(overview.acquisitionStart) : '-';
+                const end = overview.acquisitionEnd ? DateUtils.formatBR(overview.acquisitionEnd) : '-';
+                const acordName = overview.acquisitionAcordo ? ` (Acordo: ${overview.acquisitionAcordo.nome || '—'})` : '';
+                acqInfo.textContent = `${start} → ${end}${acordName}`;
+            }
+
+            if (remInfo) {
+                remInfo.textContent = `${overview.remaining} / ${overview.entitlement} dia(s)`;
+            }
+
+            if (schedListEl) {
+                if (overview.scheduledList.length) {
+                    schedListEl.innerHTML = overview.scheduledList.map(s => `${DateUtils.formatBR(s.start)} → ${DateUtils.formatBR(s.end)} (${s.days}d)`).join('<br>');
+                } else {
+                    schedListEl.textContent = '-';
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao calcular/atualizar resumo de férias:', err);
+        }
         
         // Debug: log detalhado dos cálculos de novembro
         console.log('=== CÁLCULO DE HORAS TRABALHADAS ===');
