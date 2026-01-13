@@ -450,34 +450,7 @@
 
             <!-- Férias (subtab) -->
             <div id="ponto-ferias" class="subtab-content">
-                <div class="card">
-                    <h2>Solicitar Férias</h2>
-                    <form id="formFerias" onsubmit="event.preventDefault(); salvarFeriasFromTab();">
-                        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
-                            <div style="flex:1;min-width:200px;">
-                                <label for="feriasAcordoSelect">Acordo</label>
-                                <select id="feriasAcordoSelect"></select>
-                            </div>
-                            <div style="min-width:160px;">
-                                <label for="feriasInicio">Início</label>
-                                <input type="date" id="feriasInicio" required />
-                            </div>
-                            <div style="min-width:160px;">
-                                <label for="feriasFim">Término</label>
-                                <input type="date" id="feriasFim" required />
-                            </div>
-                            <div style="flex:1 1 100%;">
-                                <label for="feriasMotivo">Motivo / Observações</label>
-                                <textarea id="feriasMotivo" rows="3" placeholder="(opcional)"></textarea>
-                            </div>
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
-                            <button type="button" class="btn-secondary" onclick="document.getElementById('formFerias').reset();">Limpar</button>
-                            <button type="submit" class="btn-primary">Solicitar Férias</button>
-                        </div>
-                    </form>
-                </div>
-
+                <!-- Solicitação direta via card removida; utilize o link do Período Aquisitivo ou o modal para solicitar férias -->
                 <div class="card" style="margin-top:12px;">
                     <h2>Períodos Aquisitivos</h2>
                     <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
