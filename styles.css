@@ -2731,6 +2731,26 @@ select.field-invalid:focus {
         flex-direction: column;
     }
 
+/* ====== Column font normalization: Períodos Programados ====== */
+/* Make sure the 'Períodos Programados' column (col 5) uses the same font-size/weight as other cells */
+#tablePeriodosAquisitivos td:nth-child(5),
+#tablePeriodosAquisitivos th:nth-child(5) {
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    color: var(--text-main) !important;
+    font-family: inherit !important;
+    white-space: normal !important;
+    text-align: left !important;
+}
+
+/* If inner content uses small tags or badges, ensure they inherit */
+#tablePeriodosAquisitivos td:nth-child(5) * {
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    font-family: inherit !important;
+}
+
     .pagination-select {
         width: 100%;
     }
