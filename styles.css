@@ -299,9 +299,24 @@ html[data-theme="dark"] {
 }
 
 /* Icon / badge standardization */
-.btn-icon { padding: 10px; width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; }
-.btn-icon .icon, .btn-icon > svg { width: 24px; height: 24px; display: inline-block; }
-.icon { font-size: 24px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    margin: 0 6px;
+    border-radius: 50%;
+    border: 1px solid var(--border-soft);
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(243,246,255,0.9));
+    color: var(--primary-dark);
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+}
+.btn-icon .icon, .btn-icon > svg { width: 18px; height: 18px; display: inline-block; fill: currentColor; }
+.icon { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 
 /* Ensure SVG icons inherit color and size */
 .btn-icon > svg { width: 24px; height: 24px; display: inline-block; fill: currentColor; }
@@ -367,24 +382,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
 
-/* Botões de ícone para ações */
-.btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    margin: 0 2px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg-card);
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
+/* Botões de ícone para ações (comportamentos e variantes) */
 .btn-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
     background: var(--primary-soft);
-    border-color: var(--primary);
+    color: var(--primary);
+    border-color: transparent;
 }
 .btn-icon.btn-primary {
     background: var(--primary);
@@ -393,11 +397,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .btn-icon.btn-primary:hover {
     background: var(--primary-dark);
-    border-color: var(--primary-dark);
 }
 .btn-icon.btn-secondary {
     background: var(--bg-card);
-    color: var(--text-secondary);
+    color: var(--secondary-dark);
 }
 .btn-icon.btn-secondary:hover {
     background: var(--bg-hover);
@@ -1107,11 +1110,22 @@ button {
 .btn-icon {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    margin: 0 6px;
+    border-radius: 50%;
+    border: 1px solid var(--border-soft);
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(243,246,255,0.9));
+    color: var(--primary-dark);
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
 }
 
 .btn-icon .icon {
-    font-size: 14px;
+    font-size: 18px;
     line-height: 1;
 }
 
