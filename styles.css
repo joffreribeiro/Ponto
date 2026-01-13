@@ -331,36 +331,38 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .icon { display:inline-flex; align-items:center; justify-content:center; }
 
 /* Periodos aquisitivos table adjustments */
-#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: auto; }
+#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
     border: 1px solid var(--border-table); 
-    padding: 6px 8px; 
+    padding: 4px 6px; 
     text-align: center; 
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    font-size: 12px;
 }
 #tablePeriodosAquisitivos thead th { 
     background: var(--primary-soft); 
     color: var(--primary-dark); 
     font-weight: 700; 
-    font-size: 0.85em;
-    line-height: 1.3;
-    min-width: 50px;
+    font-size: 11px;
+    line-height: 1.2;
 }
-/* Colunas menores: Total Dias, Dias Disponíveis, Limite */
-#tablePeriodosAquisitivos th:nth-child(2),
-#tablePeriodosAquisitivos td:nth-child(2),
-#tablePeriodosAquisitivos th:nth-child(3),
-#tablePeriodosAquisitivos td:nth-child(3),
-#tablePeriodosAquisitivos th:nth-child(4),
-#tablePeriodosAquisitivos td:nth-child(4) {
-    width: 70px;
-    max-width: 80px;
-    min-width: 50px;
-}
+/* Larguras fixas das colunas */
+#tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
+#tablePeriodosAquisitivos colgroup col:nth-child(2) { width: 70px; }   /* Limite */
+#tablePeriodosAquisitivos colgroup col:nth-child(3) { width: 45px; }   /* Total Dias */
+#tablePeriodosAquisitivos colgroup col:nth-child(4) { width: 45px; }   /* Dias Disponíveis */
+#tablePeriodosAquisitivos colgroup col:nth-child(5) { width: 100px; }  /* Períodos Programados */
+#tablePeriodosAquisitivos colgroup col:nth-child(6) { width: 65px; }   /* Período */
+#tablePeriodosAquisitivos colgroup col:nth-child(7) { width: 75px; }   /* Férias Início */
+#tablePeriodosAquisitivos colgroup col:nth-child(8) { width: 75px; }   /* Férias Fim */
+#tablePeriodosAquisitivos colgroup col:nth-child(9) { width: 45px; }   /* Adto 13º */
+#tablePeriodosAquisitivos colgroup col:nth-child(10) { width: 35px; }  /* Dias */
+#tablePeriodosAquisitivos colgroup col:nth-child(11) { width: 70px; }  /* Documento */
+#tablePeriodosAquisitivos colgroup col:nth-child(12) { width: 120px; } /* Ações */
 #tablePeriodosAquisitivos thead .header-blank th { background: transparent; border: none; height: 10px; }
-#tablePeriodosAquisitivos tbody td { font-size: 13px; line-height: 1.3; }
+#tablePeriodosAquisitivos tbody td { line-height: 1.2; }
 #tablePeriodosAquisitivos tbody tr td { vertical-align: middle; }
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
