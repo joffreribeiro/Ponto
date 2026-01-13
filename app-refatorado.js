@@ -3413,6 +3413,12 @@ function renderizarEventos() {
 function salvarEvento() {
     try {
         const tipoEvento = document.getElementById('tipoEvento').value;
+
+        // Bloquear criação de eventos do tipo 'ferias' pela aba Eventos
+        if (String(tipoEvento).toLowerCase() === 'ferias') {
+            throw new Error('Férias devem ser marcadas na aba Férias, não na aba Eventos.');
+        }
+
         const descricaoEvento = document.getElementById('descricaoEvento').value;
         const dataInicioEvento = document.getElementById('dataInicioEvento').value;
         const dataFimEvento = document.getElementById('dataFimEvento').value;
@@ -5529,7 +5535,8 @@ function atualizarSelectTiposEventos() {
     // Guardar valor selecionado se existir
     select.innerHTML = '';
     
-    tipos.forEach(tipo => {
+    // Excluir o tipo 'ferias' do select de eventos (férias devem ser marcadas na aba Férias)
+    tipos.filter(tipo => tipo.id !== 'ferias').forEach(tipo => {
         const option = document.createElement('option');
         option.value = tipo.id;
         option.textContent = tipo.nome;
@@ -5543,19 +5550,20 @@ function atualizarSelectTiposEventos() {
         select.value = tipos[0].id;
     }
 
-    // Também popular select no modal de registro, se existir
+    // Também popular select no modal de registro, se existir (sem 'ferias')
     const selectReg = document.getElementById('registroTipoEvento');
     if (selectReg) {
         const valReg = selectReg.value;
         selectReg.innerHTML = '';
-        tipos.forEach(tipo => {
+        tipos.filter(tipo => tipo.id !== 'ferias').forEach(tipo => {
             const opt = document.createElement('option');
             opt.value = tipo.id;
             opt.textContent = tipo.nome;
             selectReg.appendChild(opt);
         });
-        if (tipos.some(t => t.id === valReg)) selectReg.value = valReg;
-        else if (tipos.length > 0) selectReg.value = tipos[0].id;
+        const tiposFiltrados = tipos.filter(t => t.id !== 'ferias');
+        if (tiposFiltrados.some(t => t.id === valReg)) selectReg.value = valReg;
+        else if (tiposFiltrados.length > 0) selectReg.value = tiposFiltrados[0].id;
     }
 }
 
