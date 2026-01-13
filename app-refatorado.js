@@ -2,6 +2,16 @@
 function gerarIdUnico() {
     return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
 }
+
+// Converte data de DD/MM/AAAA para YYYY-MM-DD
+function parseDateBR(dataBR) {
+    if (!dataBR) return null;
+    const partes = dataBR.split('/');
+    if (partes.length !== 3) return null;
+    const [dia, mes, ano] = partes;
+    return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+}
+
 /**
  * app.js - Versão refatorada com validação robusta
  * Utiliza módulos: storage.js, calculations.js, dateUtils.js, validators.js
@@ -1007,34 +1017,43 @@ function solicitarFeriasFromRow(id) {
             mostrarAlertaGlobal('Nenhum período salvo para solicitar férias.', 'warning');
             return;
         }
-        const p = AppState.dados.periodosAquisitivos.find(x => x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === id || x.id === idRaw);
-        // fallback: find by raw id
-        let periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id || p2.id === id);
-        if (!periodo) periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id || p2.id === id);
-        // simpler: locate by provided id
-        periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id) || AppState.dados.periodosAquisitivos.find(p2 => p2.idRaw === id) || periodo;
+        // Localizar o período pelo id
+        let periodo = AppState.dados.periodosAquisitivos.find(p2 => p2.id === id);
         if (!periodo) {
             mostrarAlertaGlobal('Período não encontrado para solicitação.', 'error');
             return;
         }
 
-        // usar feriasInicio/feriasFim se preenchidos, senão perguntar
-        let inicio = periodo.feriasInicio || '';
-        let fim = periodo.feriasFim || '';
-        if (!inicio) {
-            inicio = prompt('Data de início das férias (YYYY-MM-DD):', inicio || '');
-            if (inicio === null) return;
+        // usar feriasInicio/feriasFim se preenchidos, senão perguntar (formato DD/MM/AAAA)
+        let inicioISO = periodo.feriasInicio || '';
+        let fimISO = periodo.feriasFim || '';
+        
+        // Converter para exibição DD/MM/AAAA
+        let inicioDisplay = inicioISO ? DateUtils.formatBR(inicioISO) : '';
+        let fimDisplay = fimISO ? DateUtils.formatBR(fimISO) : '';
+        
+        if (!inicioISO) {
+            inicioDisplay = prompt('Data de início das férias (DD/MM/AAAA):', inicioDisplay || '');
+            if (inicioDisplay === null) return;
+            // Converter de DD/MM/AAAA para ISO
+            inicioISO = parseDateBR(inicioDisplay);
         }
-        if (!fim) {
-            fim = prompt('Data de término das férias (YYYY-MM-DD):', fim || inicio || '');
-            if (fim === null) return;
+        if (!fimISO) {
+            fimDisplay = prompt('Data de término das férias (DD/MM/AAAA):', fimDisplay || inicioDisplay || '');
+            if (fimDisplay === null) return;
+            fimISO = parseDateBR(fimDisplay);
+        }
+
+        if (!inicioISO || !fimISO) {
+            mostrarAlertaGlobal('Datas inválidas. Use o formato DD/MM/AAAA.', 'error');
+            return;
         }
 
         const evento = {
             tipoEvento: 'ferias',
             descricaoEvento: `Férias (Período ${periodo.periodoIndex}${periodo.subIndex ? ' - ' + periodo.subIndex + 'º' : ''})`,
-            dataInicioEvento: DateUtils.getIsoDate(DateUtils.parse(inicio)),
-            dataFimEvento: DateUtils.getIsoDate(DateUtils.parse(fim)),
+            dataInicioEvento: inicioISO,
+            dataFimEvento: fimISO,
             impactoEvento: 'folga',
             periodo: 'dia_todo',
             acordoIndex: null,
@@ -1046,13 +1065,24 @@ function solicitarFeriasFromRow(id) {
         const erros = Validators.validateEvento(evento);
         if (erros && erros.length) throw new Error(erros.join('; '));
 
+        // Atualizar o período com as datas de férias solicitadas
+        periodo.feriasInicio = inicioISO;
+        periodo.feriasFim = fimISO;
+        // Calcular dias
+        const dtInicio = DateUtils.parse(inicioISO);
+        const dtFim = DateUtils.parse(fimISO);
+        if (dtInicio && dtFim) {
+            periodo.dias = Math.floor((dtFim - dtInicio) / (24 * 60 * 60 * 1000)) + 1;
+        }
+
         if (!AppState.dados.eventos) AppState.dados.eventos = [];
         AppState.dados.eventos.push(evento);
         AppState.save();
         renderizarEventos();
+        renderizarPeriodosAquisitivosTable(); // Atualizar o relatório
         try { gerarTimesheetAcordo(); } catch (e) {}
         try { atualizarDashboard(); } catch (e) {}
-        mostrarAlertaGlobal('Solicitação de férias criada a partir do período.', 'success');
+        mostrarAlertaGlobal('Solicitação de férias criada e período atualizado.', 'success');
     } catch (e) {
         console.error('Erro ao solicitar férias do período:', e);
         mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias.', 'error');
@@ -1073,19 +1103,32 @@ function solicitarFeriasGroup(periodoIndex) {
         }
         // usar início/término do período (primeiro registro)
         const first = rows[0];
-        const defaultInicio = first.inicio || '';
-        const defaultFim = first.termino || '';
+        const defaultInicioISO = first.inicio || '';
+        const defaultFimISO = first.termino || '';
+        
+        // Exibir em formato DD/MM/AAAA
+        let inicioDisplay = defaultInicioISO ? DateUtils.formatBR(defaultInicioISO) : '';
+        let fimDisplay = defaultFimISO ? DateUtils.formatBR(defaultFimISO) : '';
 
-        const inicio = prompt('Data de início das férias (YYYY-MM-DD):', defaultInicio || '');
-        if (inicio === null) return;
-        const fim = prompt('Data de término das férias (YYYY-MM-DD):', defaultFim || inicio || '');
-        if (fim === null) return;
+        inicioDisplay = prompt('Data de início das férias (DD/MM/AAAA):', inicioDisplay || '');
+        if (inicioDisplay === null) return;
+        fimDisplay = prompt('Data de término das férias (DD/MM/AAAA):', fimDisplay || inicioDisplay || '');
+        if (fimDisplay === null) return;
+        
+        // Converter para ISO
+        const inicioISO = parseDateBR(inicioDisplay);
+        const fimISO = parseDateBR(fimDisplay);
+        
+        if (!inicioISO || !fimISO) {
+            mostrarAlertaGlobal('Datas inválidas. Use o formato DD/MM/AAAA.', 'error');
+            return;
+        }
 
         const evento = {
             tipoEvento: 'ferias',
             descricaoEvento: `Férias (Período ${periodoIndex})`,
-            dataInicioEvento: DateUtils.getIsoDate(DateUtils.parse(inicio)),
-            dataFimEvento: DateUtils.getIsoDate(DateUtils.parse(fim)),
+            dataInicioEvento: inicioISO,
+            dataFimEvento: fimISO,
             impactoEvento: 'folga',
             periodo: 'dia_todo',
             acordoIndex: null,
@@ -1097,7 +1140,30 @@ function solicitarFeriasGroup(periodoIndex) {
         const erros = Validators.validateEvento(evento);
         if (erros && erros.length) throw new Error(erros.join('; '));
 
+        // Atualizar todos os subperíodos com as datas de férias
+        const dtInicio = DateUtils.parse(inicioISO);
+        const dtFim = DateUtils.parse(fimISO);
+        const diasTotal = (dtInicio && dtFim) ? Math.floor((dtFim - dtInicio) / (24 * 60 * 60 * 1000)) + 1 : null;
+        
+        rows.forEach(p => {
+            p.feriasInicio = inicioISO;
+            p.feriasFim = fimISO;
+            p.dias = diasTotal;
+        });
+
         if (!AppState.dados.eventos) AppState.dados.eventos = [];
+        AppState.dados.eventos.push(evento);
+        AppState.save();
+        renderizarEventos();
+        renderizarPeriodosAquisitivosTable(); // Atualizar o relatório
+        try { gerarTimesheetAcordo(); } catch (e) {}
+        try { atualizarDashboard(); } catch (e) {}
+        mostrarAlertaGlobal('Solicitação de férias criada e período atualizado.', 'success');
+    } catch (e) {
+        console.error('Erro ao solicitar férias em grupo:', e);
+        mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias em grupo.', 'error');
+    }
+}
         AppState.dados.eventos.push(evento);
         AppState.save();
         renderizarEventos();
