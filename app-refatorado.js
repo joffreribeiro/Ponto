@@ -155,11 +155,16 @@ function inicializar() {
             const btnGerar = document.getElementById('btnGerarPeriodosAdmissao');
             const btnLimpar = document.getElementById('btnLimparPeriodosAdmissao');
             const inputAdmissao = document.getElementById('dataAdmissao');
-            // popular valor salvo da data de admissão
+            // popular valor salvo da data de admissão e desabilitar se já salvo
             try {
                 if (inputAdmissao && AppState.dados && AppState.dados.admissao) {
                     // armazenamos como ISO (YYYY-MM-DD)
                     inputAdmissao.value = AppState.dados.admissao || '';
+                    // desabilitar edição se já existe data salva
+                    inputAdmissao.disabled = true;
+                    // esconder botão salvar
+                    const btnSalvar = document.getElementById('btnSalvarAdmissao');
+                    if (btnSalvar) btnSalvar.style.display = 'none';
                 }
             } catch(e) { /* ignore */ }
             if (btnGerar && !btnGerar._listenerAttached) {
@@ -172,7 +177,14 @@ function inicializar() {
                 btnLimpar.addEventListener('click', () => {
                     const tb = document.getElementById('tablePeriodosAquisitivos');
                     if (tb && tb.tBodies && tb.tBodies[0]) tb.tBodies[0].innerHTML = '';
-                    if (inputAdmissao) inputAdmissao.value = '';
+                    if (inputAdmissao) {
+                        inputAdmissao.value = '';
+                        // Reabilitar edição do campo
+                        inputAdmissao.disabled = false;
+                    }
+                    // Mostrar botão salvar novamente
+                    const btnSalvar = document.getElementById('btnSalvarAdmissao');
+                    if (btnSalvar) btnSalvar.style.display = '';
                     try {
                         if (AppState.dados) {
                             if (Array.isArray(AppState.dados.periodosAquisitivos)) {
@@ -206,6 +218,9 @@ function inicializar() {
                                 AppState.dados.admissao = '';
                             }
                             AppState.save();
+                            // Desabilitar campo e esconder botão após salvar
+                            if (inputAdmissao) inputAdmissao.disabled = true;
+                            btnSalvarAdmissao.style.display = 'none';
                             mostrarAlertaGlobal('Data de admissão salva.', 'success');
                         } catch (e) {
                             console.warn('Erro ao salvar data de admissão via botão:', e);
