@@ -1527,6 +1527,25 @@ function escapeHtml(s) {
 
 document.addEventListener('DOMContentLoaded', inicializar);
 
+// Pergunta ao carregar a página se o usuário deseja restaurar períodos (opcional)
+function perguntarRestaurarPeriodosOnLoad() {
+    try {
+        // Só perguntar se existem poucos ou nenhum período salvo
+        if (!AppState.dados) return;
+        const arr = AppState.dados.periodosAquisitivos || [];
+        // Se existir menos de 3 subperíodos, sugerir restauração
+        if (arr.length < 3 && AppState.dados.admissao) {
+            setTimeout(() => {
+                try {
+                    if (confirm('Detectei poucos períodos aquisitivos salvos. Deseja restaurar os períodos a partir da data de admissão agora?')) {
+                        restaurarPeriodosFromAdmissao();
+                    }
+                } catch (e) { /* ignore */ }
+            }, 500);
+        }
+    } catch (e) { console.warn('Erro ao checar restauração automática de períodos:', e); }
+}
+
 // ============= ABAS =============
 
 function configurarAbas() {
@@ -3153,6 +3172,100 @@ function sincronizarFeriasComPeriodos(evento) {
     }
 }
 
+// Restaura todos os períodos aquisitivos a partir da data de admissão
+function restaurarPeriodosFromAdmissao() {
+    try {
+        if (!AppState.dados || !AppState.dados.admissao) {
+            mostrarAlertaGlobal('Não há data de admissão salva para restaurar períodos.', 'warning');
+            return false;
+        }
+
+        const isoAdmissao = AppState.dados.admissao;
+        const dtAd = DateUtils.parse(isoAdmissao);
+        if (!dtAd) {
+            mostrarAlertaGlobal('Data de admissão inválida.', 'error');
+            return false;
+        }
+
+        // Se não houver períodos salvos, gerar sem pedir confirmação
+        const existePeriodos = Array.isArray(AppState.dados.periodosAquisitivos) && AppState.dados.periodosAquisitivos.length > 0;
+        if (existePeriodos) {
+            // Perguntar confirmação para substituir; se o usuário cancelar, oferecer mesclagem
+            const substituir = confirm('Já existem períodos salvos. Deseja substituir todos os períodos aquisitivos pela versão gerada a partir da data de admissão? (OK = Substituir, Cancel = Mesclar entradas faltantes)');
+            if (!substituir) {
+                // Perguntar se deseja mesclar (OK = mesclar, Cancel = cancelar)
+                const mesclar = confirm('Deseja mesclar períodos faltantes a partir da data de admissão (não duplicará períodos já existentes)? OK = Mesclar, Cancel = Cancelar');
+                if (!mesclar) return false; // usuário cancelou
+                // Gerar, mas apenas adicionar períodos que ainda não existem
+                const existentes = AppState.dados.periodosAquisitivos.slice();
+                const chaveExists = (p) => existentes.some(ep => (Number(ep.periodoIndex) === Number(p.periodoIndex) && Number(ep.subIndex) === Number(p.subIndex)));
+                let added = 0;
+                result.forEach(p => {
+                    if (!chaveExists(p)) {
+                        existentes.push(p);
+                        added++;
+                    }
+                });
+                AppState.dados.periodosAquisitivos = existentes;
+                AppState.save();
+                renderizarPeriodosAquisitivosTable();
+                mostrarAlertaGlobal(`Mesclagem concluída. ${added} períodos adicionados.`, 'success');
+                return true;
+            }
+            // caso substituir == true, continua abaixo para substituir por completo
+        }
+
+        const divSel = document.getElementById('divisoesPeriodo');
+        const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
+
+        const result = [];
+        const now = new Date();
+        const maxYear = now.getFullYear() + 2; // gerar até 2 anos à frente
+
+        let periodoIndex = 1;
+        // Gerar períodos enquanto inicio.year <= maxYear
+        for (let y = dtAd.getFullYear(); y <= maxYear; y++) {
+            const inicio = new Date(dtAd.getFullYear() + (periodoIndex - 1), dtAd.getMonth(), dtAd.getDate());
+            if (!inicio) break;
+            const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
+            termino.setDate(termino.getDate() - 1);
+            const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
+
+            for (let s = 1; s <= divis; s++) {
+                result.push({
+                    id: gerarIdUnico(),
+                    periodoIndex: periodoIndex,
+                    inicio: DateUtils.getIsoDate(inicio),
+                    termino: DateUtils.getIsoDate(termino),
+                    limite: DateUtils.getIsoDate(limite),
+                    subIndex: s,
+                    subTotal: divis,
+                    feriasInicio: '',
+                    feriasFim: '',
+                    adto13: '',
+                    dias: null,
+                    documento: ''
+                });
+            }
+
+            periodoIndex++;
+            // condição de parada: se já ultrapassou maxYear pela data de inicio
+            if (inicio.getFullYear() + 1 > maxYear + 1) break;
+        }
+
+        // Substituir completamente (ou gerar pela primeira vez)
+        AppState.dados.periodosAquisitivos = result;
+        AppState.save();
+        renderizarPeriodosAquisitivosTable();
+        mostrarAlertaGlobal('Períodos restaurados a partir da data de admissão.', 'success');
+        return true;
+    } catch (e) {
+        console.error('Erro ao restaurar períodos:', e);
+        mostrarAlertaGlobal('Erro ao restaurar períodos. Veja console.', 'error');
+        return false;
+    }
+}
+
 
 function renderizarEventos() {
     try {
@@ -3864,16 +3977,73 @@ function fecharModalEvento() {
 function deletarEventoConfirmado() {
     try {
         if (AppState.eventoSelecionado === null) return;
+        // Antes de remover o evento, se for do tipo 'ferias', limpar marcações nos períodos
+        const ev = AppState.dados.eventos[AppState.eventoSelecionado];
+        if (ev && String(ev.tipoEvento).toLowerCase() === 'ferias') {
+            try { limparMarcacoesDeFeriasPorEvento(ev); } catch(e) { console.warn('Erro ao limpar marcações de férias:', e); }
+        }
         AppState.dados.eventos.splice(AppState.eventoSelecionado, 1);
         AppState.eventoSelecionado = null;
         AppState.save();
         renderizarEventos();
+        // Atualizar tabela de períodos para refletir remoção de marcações
+        try { renderizarPeriodosAquisitivosTable(); } catch(e) { /* ignore */ }
         gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         fecharModalEvento();
         mostrarAlertaGlobal('Evento deletado.', 'success');
     } catch (error) {
         console.error('Erro ao deletar evento:', error);
         mostrarAlertaGlobal(error.message, 'error');
+    }
+}
+
+// Limpa marcações de férias nos períodos que correspondem a um evento (ao excluir o evento)
+function limparMarcacoesDeFeriasPorEvento(evento) {
+    try {
+        if (!evento || !evento.dataInicioEvento) return;
+        const startIso = evento.dataInicioEvento;
+        const endIso = evento.dataFimEvento || evento.dataInicioEvento;
+        if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) return;
+
+        let changed = false;
+        AppState.dados.periodosAquisitivos.forEach(p => {
+            try {
+                if (!p) return;
+                // Limpar marcações quando as datas coincidirem exatamente
+                // ou quando houver intersecção entre as datas do evento e o subperíodo marcado
+                const pStart = p.feriasInicio || '';
+                const pEnd = p.feriasFim || '';
+                // Se não houver marcação, pular
+                if (!pStart && !pEnd) return;
+
+                // comparar como datas usando DateUtils (mais robusto)
+                const evStart = DateUtils.parse(startIso);
+                const evEnd = DateUtils.parse(endIso);
+                const subStart = DateUtils.parse(pStart);
+                const subEnd = DateUtils.parse(pEnd);
+                let intersects = false;
+                if (subStart && subEnd && evStart && evEnd) {
+                    // interseção: subStart <= evEnd && subEnd >= evStart
+                    if (subStart <= evEnd && subEnd >= evStart) intersects = true;
+                }
+
+                const exactMatch = (pStart === startIso && pEnd === endIso);
+                if (exactMatch || intersects) {
+                    p.feriasInicio = '';
+                    p.feriasFim = '';
+                    p.dias = null;
+                    p.documento = '';
+                    p.adto13 = '';
+                    changed = true;
+                }
+            } catch(e) { /* ignore per-item errors */ }
+        });
+
+        if (changed) {
+            AppState.save();
+        }
+    } catch (e) {
+        console.error('Erro em limparMarcacoesDeFeriasPorEvento:', e);
     }
 }
 
@@ -5479,6 +5649,24 @@ document.addEventListener('DOMContentLoaded', () => {
             setupRealtimeValidation();
         }
     }, 500);
+});
+
+// Verificação adicional ao carregar: oferecer restauração de períodos a partir da admissão
+document.addEventListener('DOMContentLoaded', () => {
+    // aguardar inicialização principal
+    setTimeout(() => {
+        try {
+            if (!window.AppState || !AppState.dados) return;
+            const adm = AppState.dados.admissao;
+            const periodos = Array.isArray(AppState.dados.periodosAquisitivos) ? AppState.dados.periodosAquisitivos : [];
+            if (adm && periodos.length === 0) {
+                const want = confirm('Detectei uma data de admissão salva, mas não há períodos aquisitivos. Deseja restaurar os períodos a partir da data de admissão agora?');
+                if (want) {
+                    try { restaurarPeriodosFromAdmissao(); } catch(e) { console.error('Erro ao restaurar periodos via prompt inicial:', e); }
+                }
+            }
+        } catch(e) { /* ignore */ }
+    }, 600);
 });
 
 // --- API grouping: expose a single namespace `App` with common action handlers.
