@@ -44,10 +44,14 @@ const AppState = {
      * Salva dados com validação
      */
     save() {
-        if (!Validators.validateConfiguracoes(this.dados.configuracoes).length) {
+        // Sempre salvar os dados - a validação de configurações não deve bloquear
+        // a persistência de outras informações (eventos, períodos, etc.)
+        try {
             return Storage.save(this.dados);
+        } catch (e) {
+            console.error('Erro ao salvar dados:', e);
+            return false;
         }
-        return false;
     },
 
     /**
