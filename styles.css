@@ -1827,6 +1827,15 @@ textarea {
 
 .modal-buttons { display: flex; justify-content: flex-end; gap: 8px; }
 
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
 .section-title {
     margin: 4px 0 2px;
     font-size: 14px;

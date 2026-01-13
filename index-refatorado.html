@@ -509,7 +509,8 @@
                                     <th rowspan="2">Período Aquisitivo</th>
                                     <th rowspan="2">Limite de Concessão</th>
                                     <th rowspan="2">Total Dias já Concedidos</th>
-                                    <th rowspan="2">Quantidade de Dias Disponíveis</th>
+                                    <th rowspan="2">Dias Disponíveis</th>
+                                    <th rowspan="2">Períodos de Férias já Programados</th>
                                     <th rowspan="2">Período</th>
                                     <th colspan="2">Férias</th>
                                     <th rowspan="2">Adto 13º</th>
@@ -713,6 +714,59 @@
         <div class="modal-footer">
             <button type="button" class="btn-secondary" data-action="fecharModalRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
             <button type="button" class="btn-primary" data-action="salvarRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Solicitação de Férias -->
+<div id="modalSolicitarFerias" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Solicitar Férias</h2>
+            <button type="button" class="modal-close" onclick="fecharModalSolicitarFerias()"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label><strong>Período Aquisitivo:</strong></label>
+                <p id="modalFeriasPeriodoAquisitivo" style="margin: 4px 0; color: #333;"></p>
+            </div>
+            <div class="form-group">
+                <label><strong>Limite de Concessão:</strong></label>
+                <p id="modalFeriasLimiteConcessao" style="margin: 4px 0; color: #333;"></p>
+            </div>
+            <div class="form-group">
+                <label><strong>Dias Disponíveis:</strong></label>
+                <p id="modalFeriasDiasDisponiveis" style="margin: 4px 0; color: #333; font-weight: bold;"></p>
+            </div>
+            <hr style="margin: 16px 0;">
+            <div class="form-group">
+                <label for="modalFeriasPeriodoSelect">Período a solicitar:</label>
+                <select id="modalFeriasPeriodoSelect" style="width: 100%; padding: 8px;">
+                    <!-- Opções preenchidas dinamicamente -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="modalFeriasInicio">Data de Início:</label>
+                <input type="date" id="modalFeriasInicio" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label for="modalFeriasFim">Data de Término:</label>
+                <input type="date" id="modalFeriasFim" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="form-group">
+                <label for="modalFeriasAdto13">Adiantamento 13º:</label>
+                <select id="modalFeriasAdto13" style="width: 100%; padding: 8px;">
+                    <option value="">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="modalFeriasDiasCalculados" style="font-weight: bold; color: #2563eb;"></label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="fecharModalSolicitarFerias()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="confirmarSolicitacaoFerias()">Confirmar Solicitação</button>
         </div>
     </div>
 </div>
