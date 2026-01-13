@@ -741,6 +741,9 @@
                     <button type="button" class="acordo-side-btn" data-panel="acordo-regras">
                         Regras
                     </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-beneficios">
+                        Abono/Pagar Hora
+                    </button>
                 </div>
 
                 <div class="acordo-content">
@@ -813,6 +816,23 @@
                             <button type="button" class="btn-secondary" id="btnAdicionarRegra">
                                 Adicionar Regra
                             </button>
+                        </div>
+                    </div>
+
+                    <div id="acordo-beneficios" class="acordo-panel">
+                        <h3>Controle de Abono e Pagar Hora</h3>
+                        <p class="small-text">Defina a quantidade disponível de abono e pagar hora para este acordo. O sistema irá abater automaticamente conforme eventos forem criados.</p>
+                        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;">
+                            <div class="form-group" style="flex:1;min-width:200px;">
+                                <label for="acordoQtdAbono">Quantidade de Abono Disponível (dias)</label>
+                                <input type="number" id="acordoQtdAbono" min="0" step="0.5" value="0" />
+                                <div id="acordoAbonoUsado" class="small-text" style="margin-top:4px;color:var(--text-secondary);">Utilizado: 0 | Restante: 0</div>
+                            </div>
+                            <div class="form-group" style="flex:1;min-width:200px;">
+                                <label for="acordoQtdPagarHora">Quantidade de Pagar Hora Disponível (horas)</label>
+                                <input type="number" id="acordoQtdPagarHora" min="0" step="0.5" value="0" />
+                                <div id="acordoPagarHoraUsado" class="small-text" style="margin-top:4px;color:var(--text-secondary);">Utilizado: 0 | Restante: 0</div>
+                            </div>
                         </div>
                     </div>
                 </div>

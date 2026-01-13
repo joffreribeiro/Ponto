@@ -303,7 +303,9 @@ function ensureTiposEventoDefault() {
         { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
         { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
         { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+        { id: 'abono', nome: 'Abono', cor: '#10b981' },
         { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+        { id: 'pagar_hora', nome: 'Pagar Hora', cor: '#f59e0b' },
         { id: 'outro', nome: 'Outro', cor: '#64748b' },
         { id: 'evento_registro', nome: 'Registro (ponto)', cor: '#06b6d4', corTexto: '#ffffff' }
     ];
@@ -3739,6 +3741,15 @@ function preencherModalAcordo() {
     document.getElementById('regraTipo').value = '';
     document.getElementById('regraVale').value = '';
 
+    // Preencher campos de Abono e Pagar Hora
+    const qtdAbonoEl = document.getElementById('acordoQtdAbono');
+    const qtdPagarHoraEl = document.getElementById('acordoQtdPagarHora');
+    if (qtdAbonoEl) qtdAbonoEl.value = AppState.acordoEmEdicao.qtdAbono || 0;
+    if (qtdPagarHoraEl) qtdPagarHoraEl.value = AppState.acordoEmEdicao.qtdPagarHora || 0;
+
+    // Calcular e exibir uso atual
+    atualizarExibicaoUsoBeneficios();
+
     if (AppState.acordoEmEdicao) {
         AppState.acordoEmEdicao.editingPeriodoIndex = null;
         AppState.acordoEmEdicao.editingRegraIndex = null;
@@ -3955,6 +3966,12 @@ function salvarAcordo() {
         const nome = document.getElementById('acordoNome').value.trim();
         AppState.acordoEmEdicao.nome = nome;
 
+        // Salvar quantidades de Abono e Pagar Hora
+        const qtdAbonoEl = document.getElementById('acordoQtdAbono');
+        const qtdPagarHoraEl = document.getElementById('acordoQtdPagarHora');
+        AppState.acordoEmEdicao.qtdAbono = qtdAbonoEl ? Number(qtdAbonoEl.value) || 0 : 0;
+        AppState.acordoEmEdicao.qtdPagarHora = qtdPagarHoraEl ? Number(qtdPagarHoraEl.value) || 0 : 0;
+
         // Validar
         const erros = Validators.validateAcordo(AppState.acordoEmEdicao);
         if (erros.length > 0) {
@@ -3986,6 +4003,125 @@ function fecharModalAcordo() {
     document.getElementById('modalAcordo').classList.remove('active');
     AppState.acordoEmEdicao = null;
     AppState.acordoEmEdicaoIndex = null;
+}
+
+/**
+ * Calcula e exibe o uso de abono e pagar hora para o acordo em edição.
+ * Conta os eventos do tipo 'abono_acordo' e 'compensar_acordo' vinculados a este acordo.
+ */
+function atualizarExibicaoUsoBeneficios() {
+    try {
+        const abonoUsadoEl = document.getElementById('acordoAbonoUsado');
+        const pagarHoraUsadoEl = document.getElementById('acordoPagarHoraUsado');
+        
+        if (!AppState.acordoEmEdicao) return;
+
+        const acordoIndex = AppState.acordoEmEdicaoIndex;
+        const eventos = AppState.dados.eventos || [];
+        
+        // Calcular dias de abono usados (eventos tipo 'abono_acordo')
+        let diasAbonoUsados = 0;
+        // Calcular horas pagas usadas (eventos tipo 'compensar_acordo' ou 'pagar_hora')
+        let horasPagasUsadas = 0;
+        
+        eventos.forEach(ev => {
+            // Verificar se o evento pertence a este acordo
+            if (ev.acordoIndex !== acordoIndex && acordoIndex !== null) return;
+            
+            const tipo = String(ev.tipoEvento || '').toLowerCase();
+            
+            if (tipo === 'abono_acordo' || tipo === 'abono') {
+                // Contar dias (diferença entre datas + 1)
+                const inicio = DateUtils.parse(ev.dataInicioEvento);
+                const fim = DateUtils.parse(ev.dataFimEvento);
+                if (inicio && fim) {
+                    const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                    diasAbonoUsados += dias;
+                }
+            }
+            
+            if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
+                // Contar horas (usar campo horas se disponível, ou calcular pelos dias como horas)
+                if (ev.horas) {
+                    horasPagasUsadas += Number(ev.horas) || 0;
+                } else {
+                    const inicio = DateUtils.parse(ev.dataInicioEvento);
+                    const fim = DateUtils.parse(ev.dataFimEvento);
+                    if (inicio && fim) {
+                        const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                        horasPagasUsadas += dias * 8; // assumindo 8h por dia
+                    }
+                }
+            }
+        });
+        
+        const qtdAbono = AppState.acordoEmEdicao.qtdAbono || 0;
+        const qtdPagarHora = AppState.acordoEmEdicao.qtdPagarHora || 0;
+        const restanteAbono = Math.max(0, qtdAbono - diasAbonoUsados);
+        const restantePagarHora = Math.max(0, qtdPagarHora - horasPagasUsadas);
+        
+        if (abonoUsadoEl) {
+            abonoUsadoEl.textContent = `Utilizado: ${diasAbonoUsados} dia(s) | Restante: ${restanteAbono} dia(s)`;
+            abonoUsadoEl.style.color = restanteAbono <= 0 && qtdAbono > 0 ? 'var(--error)' : 'var(--text-secondary)';
+        }
+        if (pagarHoraUsadoEl) {
+            pagarHoraUsadoEl.textContent = `Utilizado: ${horasPagasUsadas}h | Restante: ${restantePagarHora}h`;
+            pagarHoraUsadoEl.style.color = restantePagarHora <= 0 && qtdPagarHora > 0 ? 'var(--error)' : 'var(--text-secondary)';
+        }
+    } catch (e) {
+        console.warn('Erro ao atualizar exibição de benefícios:', e);
+    }
+}
+
+/**
+ * Calcula o uso de abono e pagar hora para um acordo específico.
+ * @param {number} acordoIndex - Índice do acordo
+ * @param {object} acordo - Objeto do acordo
+ * @returns {object} { usadoAbono, restanteAbono, usadoPagarHora, restantePagarHora }
+ */
+function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
+    const eventos = AppState.dados.eventos || [];
+    let diasAbonoUsados = 0;
+    let horasPagasUsadas = 0;
+    
+    eventos.forEach(ev => {
+        // Verificar se o evento pertence a este acordo
+        if (ev.acordoIndex !== acordoIndex) return;
+        
+        const tipo = String(ev.tipoEvento || '').toLowerCase();
+        
+        if (tipo === 'abono_acordo' || tipo === 'abono') {
+            const inicio = DateUtils.parse(ev.dataInicioEvento);
+            const fim = DateUtils.parse(ev.dataFimEvento);
+            if (inicio && fim) {
+                const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                diasAbonoUsados += dias;
+            }
+        }
+        
+        if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
+            if (ev.horas) {
+                horasPagasUsadas += Number(ev.horas) || 0;
+            } else {
+                const inicio = DateUtils.parse(ev.dataInicioEvento);
+                const fim = DateUtils.parse(ev.dataFimEvento);
+                if (inicio && fim) {
+                    const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                    horasPagasUsadas += dias * 8;
+                }
+            }
+        }
+    });
+    
+    const qtdAbono = acordo.qtdAbono || 0;
+    const qtdPagarHora = acordo.qtdPagarHora || 0;
+    
+    return {
+        usadoAbono: diasAbonoUsados,
+        restanteAbono: Math.max(0, qtdAbono - diasAbonoUsados),
+        usadoPagarHora: horasPagasUsadas,
+        restantePagarHora: Math.max(0, qtdPagarHora - horasPagasUsadas)
+    };
 }
 
 function renderizarAcordos() {
@@ -4039,6 +4175,32 @@ function renderizarAcordos() {
                 ul2.appendChild(li);
             });
             div.appendChild(ul2);
+
+            // Exibir resumo de Abono e Pagar Hora
+            if (a.qtdAbono > 0 || a.qtdPagarHora > 0) {
+                const subtBenef = document.createElement('div');
+                subtBenef.className = 'acordo-subtitulo';
+                subtBenef.textContent = 'Abono / Pagar Hora:';
+                div.appendChild(subtBenef);
+
+                const benefInfo = calcularUsoBeneficiosAcordo(idx, a);
+                const ulBenef = document.createElement('ul');
+                ulBenef.className = 'acordo-lista';
+                
+                if (a.qtdAbono > 0) {
+                    const liAbono = document.createElement('li');
+                    liAbono.innerHTML = `Abono: <strong>${benefInfo.restanteAbono}</strong> dia(s) disponível (${benefInfo.usadoAbono} usado de ${a.qtdAbono})`;
+                    if (benefInfo.restanteAbono <= 0) liAbono.style.color = 'var(--error)';
+                    ulBenef.appendChild(liAbono);
+                }
+                if (a.qtdPagarHora > 0) {
+                    const liPH = document.createElement('li');
+                    liPH.innerHTML = `Pagar Hora: <strong>${benefInfo.restantePagarHora}</strong>h disponível (${benefInfo.usadoPagarHora}h usado de ${a.qtdPagarHora}h)`;
+                    if (benefInfo.restantePagarHora <= 0) liPH.style.color = 'var(--error)';
+                    ulBenef.appendChild(liPH);
+                }
+                div.appendChild(ulBenef);
+            }
 
             const subt3 = document.createElement('div');
             subt3.className = 'acordo-subtitulo';
