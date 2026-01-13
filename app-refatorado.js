@@ -3336,6 +3336,8 @@ function salvarEvento() {
         AppState.save();
         renderizarEventos();
         renderizarAcordos();
+        // Atualizar relatório de períodos aquisitivos caso o evento seja Férias
+        try { renderizarPeriodosAquisitivosTable(); } catch(e) { /* ignore */ }
         gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         limparEvento();
         fecharModalEvento();
@@ -3977,8 +3979,11 @@ function salvarFeriasFromTab() {
         if (erros && erros.length) throw new Error(erros.join('; '));
 
         AppState.dados.eventos.push(evento);
+        try { if (String(evento.tipoEvento).toLowerCase() === 'ferias') sincronizarFeriasComPeriodos(evento); } catch(e){ console.warn('Erro sincronizando ferias:', e); }
         AppState.save();
         renderizarEventos();
+        // Atualizar relatório de períodos aquisitivos para refletir a nova solicitação
+        try { renderizarPeriodosAquisitivosTable(); } catch(e) { /* ignore */ }
         try { gerarTimesheetAcordo(); } catch(e){}
         try { atualizarDashboard(); } catch(e){}
 
