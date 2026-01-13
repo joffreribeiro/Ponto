@@ -331,36 +331,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .icon { display:inline-flex; align-items:center; justify-content:center; }
 
 /* Periodos aquisitivos table adjustments */
-#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
-#tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { border: 1px solid var(--border-table); padding: 6px 8px; text-align: center; }
+#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: auto; }
+#tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
+    border: 1px solid var(--border-table); 
+    padding: 6px 8px; 
+    text-align: center; 
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
 #tablePeriodosAquisitivos thead th { 
     background: var(--primary-soft); 
     color: var(--primary-dark); 
     font-weight: 700; 
-    white-space: normal; 
-    word-wrap: break-word; 
-    overflow-wrap: break-word;
     font-size: 0.85em;
-    line-height: 1.2;
+    line-height: 1.3;
+    min-width: 60px;
 }
 #tablePeriodosAquisitivos thead .header-blank th { background: transparent; border: none; height: 10px; }
-#tablePeriodosAquisitivos tbody td { font-size: 14px; white-space: nowrap; }
+#tablePeriodosAquisitivos tbody td { font-size: 13px; line-height: 1.3; }
 #tablePeriodosAquisitivos tbody tr td { vertical-align: middle; }
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
-/* Larguras específicas das colunas */
-#tablePeriodosAquisitivos th:nth-child(1) { width: 14%; } /* Período Aquisitivo */
-#tablePeriodosAquisitivos th:nth-child(2) { width: 9%; }  /* Limite */
-#tablePeriodosAquisitivos th:nth-child(3) { width: 7%; }  /* Total Dias */
-#tablePeriodosAquisitivos th:nth-child(4) { width: 7%; }  /* Dias Disponíveis */
-#tablePeriodosAquisitivos th:nth-child(5) { width: 12%; } /* Períodos Programados */
-#tablePeriodosAquisitivos th:nth-child(6) { width: 8%; }  /* Período */
-#tablePeriodosAquisitivos th:nth-child(7) { width: 9%; }  /* Férias Início */
-#tablePeriodosAquisitivos th:nth-child(8) { width: 9%; }  /* Férias Fim */
-#tablePeriodosAquisitivos th:nth-child(9) { width: 6%; }  /* Adto 13º */
-#tablePeriodosAquisitivos th:nth-child(10) { width: 5%; } /* Dias */
-#tablePeriodosAquisitivos th:nth-child(11) { width: 8%; } /* Documento */
-#tablePeriodosAquisitivos th:nth-child(12) { width: 10%; } /* Ações */
 
 /* ================================================
    Header / título
