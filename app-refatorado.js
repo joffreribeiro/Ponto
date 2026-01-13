@@ -240,6 +240,11 @@ function inicializar() {
                     btnSalvarAdmissao._listenerAttached = true;
                 }
             } catch(e) { console.warn('Não foi possível anexar listener ao botão Salvar Admissão:', e); }
+            
+            // Renderizar tabela de períodos aquisitivos salvos
+            try {
+                renderizarPeriodosAquisitivosTable();
+            } catch(e) { console.warn('Erro ao renderizar períodos aquisitivos:', e); }
         } catch(e){ console.warn('Não foi possível anexar listeners aos controles de períodos aquisitivos:', e); }
         atualizarSelectTiposEventos();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
