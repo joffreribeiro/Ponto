@@ -1756,6 +1756,28 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     color: var(--text-muted);
 }
 
+/* ===================================================================
+   Ensure icon-only buttons stay compact (override broader .btn-primary)
+   =================================================================== */
+.btn-icon > svg { width: 18px !important; height: 18px !important; }
+.btn-icon.btn-primary,
+.btn-icon.btn-secondary,
+.btn-icon.btn-outline {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    margin: 0 4px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.btn-icon.btn-primary { color: #fff !important; }
+.btn-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); }
+
+/* Reduce stacking in very narrow cells: allow horizontal scroll if needed */
+td[style*="white-space: nowrap"] .btn-icon { margin: 0 3px; }
+
 input[type="text"],
 input[type="number"],
 input[type="time"],
