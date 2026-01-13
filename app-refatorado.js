@@ -5689,15 +5689,137 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!window.AppState || !AppState.dados) return;
             const adm = AppState.dados.admissao;
             const periodos = Array.isArray(AppState.dados.periodosAquisitivos) ? AppState.dados.periodosAquisitivos : [];
-            if (adm && periodos.length === 0) {
-                const want = confirm('Detectei uma data de admissão salva, mas não há períodos aquisitivos. Deseja restaurar os períodos a partir da data de admissão agora?');
-                if (want) {
-                    try { restaurarPeriodosFromAdmissao(); } catch(e) { console.error('Erro ao restaurar periodos via prompt inicial:', e); }
+            if (adm) {
+                if (periodos.length === 0) {
+                    const want = confirm('Detectei uma data de admissão salva, mas não há períodos aquisitivos. Deseja restaurar os períodos a partir da data de admissão agora?');
+                    if (want) {
+                        try { restaurarPeriodosFromAdmissao(); } catch(e) { console.error('Erro ao restaurar periodos via prompt inicial:', e); }
+                    }
+                } else {
+                    // detectar subperiodos faltantes por período
+                    try {
+                        const map = {};
+                        periodos.forEach(p => {
+                            const idx = Number(p.periodoIndex) || 0;
+                            if (!map[idx]) map[idx] = new Set();
+                            map[idx].add(Number(p.subIndex) || 0);
+                        });
+                        // determinar divisões esperadas: preferir select 'divisoesPeriodo' se disponível
+                        const divSel = document.getElementById('divisoesPeriodo');
+                        const expectedDiv = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : null;
+                        let missingFound = false;
+                        Object.keys(map).forEach(k => {
+                            const present = map[k];
+                            const need = expectedDiv || Math.max(...Array.from(present)) || 1;
+                            for (let s = 1; s <= need; s++) {
+                                if (!present.has(s)) missingFound = true;
+                            }
+                        });
+                        if (missingFound) {
+                            const want = confirm('Foram detectados subperíodos faltantes em alguns Períodos. Deseja reconstruir apenas os subperíodos faltantes agora?');
+                            if (want) {
+                                try { reconstruirSubperiodosFaltantes(); } catch(e) { console.error('Erro ao reconstruir subperiodos:', e); }
+                            }
+                        }
+                    } catch(e) { /* ignore */ }
                 }
             }
         } catch(e) { /* ignore */ }
     }, 600);
 });
+
+// Reconstruir subperíodos que estiverem faltando para cada periodoIndex, preservando marcacoes existentes
+function reconstruirSubperiodosFaltantes() {
+    try {
+        if (!AppState.dados || !AppState.dados.admissao) {
+            mostrarAlertaGlobal('Não há data de admissão salva para reconstruir subperíodos.', 'warning');
+            return false;
+        }
+        if (!Array.isArray(AppState.dados.periodosAquisitivos)) AppState.dados.periodosAquisitivos = [];
+
+        const isoAdmissao = AppState.dados.admissao;
+        const dtAd = DateUtils.parse(isoAdmissao);
+        if (!dtAd) {
+            mostrarAlertaGlobal('Data de admissão inválida.', 'error');
+            return false;
+        }
+
+        // determinar divisões esperadas
+        const divSel = document.getElementById('divisoesPeriodo');
+        const expectedDiv = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : null;
+
+        // mapa de periodoIndex -> Set(subIndex)
+        const map = {};
+        AppState.dados.periodosAquisitivos.forEach(p => {
+            const pi = Number(p.periodoIndex) || 0;
+            if (!map[pi]) map[pi] = new Set();
+            map[pi].add(Number(p.subIndex) || 0);
+        });
+
+        const now = new Date();
+        const maxYear = now.getFullYear() + 2;
+        let added = 0;
+
+        // para cada periodoIndex presente ou calculável, reconstruir subperiodos faltantes
+        const periodoIndices = Object.keys(map).map(k => Number(k)).filter(n => n > 0).sort((a,b) => a-b);
+        if (periodoIndices.length === 0) {
+            mostrarAlertaGlobal('Nenhum período existente para reconstruir subperíodos.', 'info');
+            return false;
+        }
+
+        periodoIndices.forEach(periodoIndex => {
+            const present = map[periodoIndex] || new Set();
+            const divis = expectedDiv || Math.max(...Array.from(present)) || 1;
+            // calcular datas baseadas na admissão
+            const inicio = new Date(dtAd.getFullYear() + (periodoIndex - 1), dtAd.getMonth(), dtAd.getDate());
+            const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
+            termino.setDate(termino.getDate() - 1);
+            const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
+
+            for (let s = 1; s <= divis; s++) {
+                if (!present.has(s)) {
+                    AppState.dados.periodosAquisitivos.push({
+                        id: gerarIdUnico(),
+                        periodoIndex: periodoIndex,
+                        inicio: DateUtils.getIsoDate(inicio),
+                        termino: DateUtils.getIsoDate(termino),
+                        limite: DateUtils.getIsoDate(limite),
+                        subIndex: s,
+                        subTotal: divis,
+                        feriasInicio: '',
+                        feriasFim: '',
+                        adto13: '',
+                        dias: null,
+                        documento: ''
+                    });
+                    added++;
+                }
+            }
+        });
+
+        if (added > 0) {
+            // ordenar por periodoIndex, subIndex
+            AppState.dados.periodosAquisitivos.sort((a,b) => {
+                if (a.periodoIndex !== b.periodoIndex) return Number(a.periodoIndex) - Number(b.periodoIndex);
+                return Number(a.subIndex) - Number(b.subIndex);
+            });
+            AppState.save();
+            renderizarPeriodosAquisitivosTable();
+            mostrarAlertaGlobal(`Reconstruídos ${added} subperíodos faltantes.`, 'success');
+            return true;
+        } else {
+            mostrarAlertaGlobal('Nenhum subperíodo faltante encontrado.', 'info');
+            return false;
+        }
+    } catch (e) {
+        console.error('Erro em reconstruirSubperiodosFaltantes:', e);
+        mostrarAlertaGlobal('Erro ao reconstruir subperíodos. Veja console.', 'error');
+        return false;
+    }
+}
+
+// expor para console/debug
+window.reconstruirSubperiodosFaltantes = reconstruirSubperiodosFaltantes;
 
 // --- API grouping: expose a single namespace `App` with common action handlers.
 // This groups previously-global functions under `App.actions` while keeping
