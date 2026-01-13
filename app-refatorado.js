@@ -1164,17 +1164,6 @@ function solicitarFeriasGroup(periodoIndex) {
         mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias em grupo.', 'error');
     }
 }
-        AppState.dados.eventos.push(evento);
-        AppState.save();
-        renderizarEventos();
-        try { gerarTimesheetAcordo(); } catch (e) {}
-        try { atualizarDashboard(); } catch (e) {}
-        mostrarAlertaGlobal('Solicitação de férias criada para o período aquisitivo.', 'success');
-    } catch (e) {
-        console.error('Erro ao solicitar férias em grupo:', e);
-        mostrarAlertaGlobal(e.message || 'Erro ao solicitar férias em grupo.', 'error');
-    }
-}
 
 function removerAnexo(atividadeId, index) {
     if (atividadeId) {
