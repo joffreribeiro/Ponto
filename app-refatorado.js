@@ -1137,7 +1137,7 @@ function confirmarSolicitacaoFerias() {
         // Criar evento de férias
         const evento = {
             tipoEvento: 'ferias',
-            descricaoEvento: `Férias (Período ${periodo.periodoIndex}${periodo.subIndex ? ' - ' + periodo.subIndex + 'º' : ''})`,
+            descricaoEvento: 'Férias',
             dataInicioEvento: inicio,
             dataFimEvento: fim,
             impactoEvento: 'folga',
@@ -1271,7 +1271,7 @@ function solicitarFeriasFromRow(id) {
 
         const evento = {
             tipoEvento: 'ferias',
-            descricaoEvento: `Férias (Período ${periodo.periodoIndex}${periodo.subIndex ? ' - ' + periodo.subIndex + 'º' : ''})`,
+            descricaoEvento: 'Férias',
             dataInicioEvento: inicioISO,
             dataFimEvento: fimISO,
             impactoEvento: 'folga',
@@ -1346,7 +1346,7 @@ function solicitarFeriasGroup(periodoIndex) {
 
         const evento = {
             tipoEvento: 'ferias',
-            descricaoEvento: `Férias (Período ${periodoIndex})`,
+            descricaoEvento: 'Férias',
             dataInicioEvento: inicioISO,
             dataFimEvento: fimISO,
             impactoEvento: 'folga',
