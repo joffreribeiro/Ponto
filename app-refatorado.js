@@ -3555,10 +3555,17 @@ function gerarPeriodosAquisitivosFromAdmissao() {
         }
 
         const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
-        const iso = dataAd.value;
-        const dt = DateUtils.parse(iso);
+        const rawVal = (dataAd.value || '').trim();
+        // Tentar parsear como ISO primeiro, depois aceitar DD/MM/AAAA (BR)
+        let dt = DateUtils.parse(rawVal);
         if (!dt) {
-            mostrarAlertaGlobal('Data de admissão inválida.', 'error');
+            try {
+                const converted = parseDateBR(rawVal); // retorna YYYY-MM-DD ou null
+                if (converted) dt = DateUtils.parse(converted);
+            } catch (e) { dt = null; }
+        }
+        if (!dt) {
+            mostrarAlertaGlobal('Data de admissão inválida. Use YYYY-MM-DD ou DD/MM/AAAA.', 'error');
             return;
         }
 
