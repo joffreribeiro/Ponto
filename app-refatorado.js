@@ -3105,11 +3105,9 @@ function salvarFeriasFromTab() {
 }
 
 /**
- * Gera o PRÓXIMO período aquisitivo a partir da data de admissão.
- * Se já existirem períodos, gera o próximo após o último existente.
- * Se não houver períodos, gera o primeiro a partir da data de admissão.
- * Cada período tem 12 meses e pode ser dividido em N subperíodos (1..3).
- * O período gerado é salvo automaticamente.
+ * Gera uma lista de períodos aquisitivos a partir da data de admissão.
+ * Cada período tem 12 meses, e pode ser dividido em N subperíodos (1..3).
+ * A função renderiza a tabela `#tablePeriodosAquisitivos` com os resultados.
  */
 function gerarPeriodosAquisitivosFromAdmissao() {
     try {
@@ -3128,63 +3126,67 @@ function gerarPeriodosAquisitivosFromAdmissao() {
             return;
         }
 
-        // Inicializar array de períodos se não existir
-        if (!AppState.dados) AppState.dados = {};
-        if (!Array.isArray(AppState.dados.periodosAquisitivos)) {
-            AppState.dados.periodosAquisitivos = [];
+        // Quantos períodos gerar: por padrão gerar os próximos 10 períodos
+        const totalPeriods = 10;
+        const periods = [];
+
+        for (let i = 0; i < totalPeriods; i++) {
+            // início do período aquisitivo: dataAd + i anos
+            const inicio = new Date(dt.getFullYear() + i, dt.getMonth(), dt.getDate());
+            // término: 12 meses depois, menos 1 dia
+            const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
+            termino.setDate(termino.getDate() - 1);
+
+            // limite de concessão: um ano após o término
+            const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
+
+            // dividir em subperíodos
+            for (let s = 1; s <= divis; s++) {
+                periods.push({
+                    id: gerarIdUnico(),
+                    periodoIndex: i + 1,
+                    inicio: new Date(inicio),
+                    termino: new Date(termino),
+                    limite: new Date(limite),
+                    subIndex: s,
+                    subTotal: divis,
+                    feriasInicio: null,
+                    feriasFim: null,
+                    adto13: '',
+                    dias: null,
+                    documento: ''
+                });
+            }
         }
 
-        // Determinar qual será o próximo periodoIndex
-        let nextPeriodoIndex = 1;
-        if (AppState.dados.periodosAquisitivos.length > 0) {
-            const maxIndex = Math.max(...AppState.dados.periodosAquisitivos.map(p => p.periodoIndex || 0));
-            nextPeriodoIndex = maxIndex + 1;
-        }
+        // persistir períodos gerados em AppState.dados.periodosAquisitivos
+        try {
+            // salvar também a data de admissão usada (ISO YYYY-MM-DD)
+            if (!AppState.dados) AppState.dados = {};
+            AppState.dados.admissao = DateUtils.getIsoDate(dt);
+            // continuar para persistir períodos
+            if (!AppState.dados) AppState.dados = {};
+            AppState.dados.periodosAquisitivos = periods.map(p => ({
+                id: p.id,
+                periodoIndex: p.periodoIndex,
+                inicio: DateUtils.getIsoDate(p.inicio),
+                termino: DateUtils.getIsoDate(p.termino),
+                limite: DateUtils.getIsoDate(p.limite),
+                subIndex: p.subIndex,
+                subTotal: p.subTotal,
+                feriasInicio: p.feriasInicio,
+                feriasFim: p.feriasFim,
+                adto13: p.adto13,
+                dias: p.dias,
+                documento: p.documento
+            }));
+            AppState.save();
+        } catch(e) { console.warn('Não foi possível persistir períodos aquisitivos:', e); }
 
-        // Calcular datas do próximo período
-        // início: data de admissão + (nextPeriodoIndex - 1) anos
-        const inicio = new Date(dt.getFullYear() + (nextPeriodoIndex - 1), dt.getMonth(), dt.getDate());
-        // término: 12 meses depois, menos 1 dia
-        const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
-        termino.setDate(termino.getDate() - 1);
-        // limite de concessão: um ano após o término
-        const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
-
-        // Gerar subperíodos para este período
-        const newPeriods = [];
-        for (let s = 1; s <= divis; s++) {
-            newPeriods.push({
-                id: gerarIdUnico(),
-                periodoIndex: nextPeriodoIndex,
-                inicio: DateUtils.getIsoDate(inicio),
-                termino: DateUtils.getIsoDate(termino),
-                limite: DateUtils.getIsoDate(limite),
-                subIndex: s,
-                subTotal: divis,
-                feriasInicio: null,
-                feriasFim: null,
-                adto13: '',
-                dias: null,
-                documento: ''
-            });
-        }
-
-        // Adicionar ao array existente (não substituir)
-        AppState.dados.periodosAquisitivos.push(...newPeriods);
-
-        // Salvar data de admissão também
-        AppState.dados.admissao = DateUtils.getIsoDate(dt);
-
-        // Persistir automaticamente
-        AppState.save();
-
-        // Atualizar tabela
         renderizarPeriodosAquisitivosTable();
-
-        mostrarAlertaGlobal(`Período ${nextPeriodoIndex} gerado e salvo com sucesso!`, 'success');
     } catch (e) {
-        console.error('Erro ao gerar período aquisitivo:', e);
-        mostrarAlertaGlobal('Erro ao gerar período aquisitivo. Veja console.', 'error');
+        console.error('Erro ao gerar períodos aquisitivos:', e);
+        mostrarAlertaGlobal('Erro ao gerar períodos aquisitivos. Veja console.', 'error');
     }
 }
 
