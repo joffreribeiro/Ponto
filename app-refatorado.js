@@ -2866,7 +2866,12 @@ function gerarTimesheetAcordo() {
                             }
 
                             td.className = `${classeEvento} evento-vertical evento-periodo-${periodoEv}`;
-                            td.textContent = ev.descricaoEvento || ev.tipoEvento;
+                            // Para eventos de férias, exibir apenas "Férias"
+                            if (ev.tipoEvento === 'ferias') {
+                                td.textContent = 'Férias';
+                            } else {
+                                td.textContent = ev.descricaoEvento || ev.tipoEvento;
+                            }
 
                             tr.appendChild(td);
                             eventoSpanCriado[colIdx] = true;
