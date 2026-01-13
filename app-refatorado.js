@@ -3119,6 +3119,41 @@ function gerarTimesheetAcordo() {
 
 // ============= EVENTOS =============
 
+// Sincroniza um evento do tipo 'ferias' com os períodos aquisitivos salvos
+function sincronizarFeriasComPeriodos(evento) {
+    try {
+        if (!evento || !evento.dataInicioEvento) return;
+        const evStart = DateUtils.parse(evento.dataInicioEvento);
+        const evEnd = DateUtils.parse(evento.dataFimEvento || evento.dataInicioEvento);
+        if (!evStart || !evEnd) return;
+        const msDay = 24 * 60 * 60 * 1000;
+        if (!AppState.dados) AppState.dados = {};
+        if (!Array.isArray(AppState.dados.periodosAquisitivos)) return;
+
+        let changed = false;
+        AppState.dados.periodosAquisitivos.forEach(p => {
+            try {
+                const pInicio = DateUtils.parse(p.inicio);
+                const pTerm = DateUtils.parse(p.termino);
+                if (!pInicio || !pTerm) return;
+                // Se o intervalo do evento intersecta o período/subperíodo
+                if (evStart <= pTerm && evEnd >= pInicio) {
+                    // Marcar o subperíodo com as datas do evento
+                    p.feriasInicio = DateUtils.getIsoDate(evStart);
+                    p.feriasFim = DateUtils.getIsoDate(evEnd);
+                    p.dias = Math.floor((evEnd - evStart) / msDay) + 1;
+                    changed = true;
+                }
+            } catch (e) { /* ignore per-item errors */ }
+        });
+
+        if (changed) AppState.save();
+    } catch (e) {
+        console.error('Erro em sincronizarFeriasComPeriodos:', e);
+    }
+}
+
+
 function renderizarEventos() {
     try {
         const tbody = document.querySelector('#tabelaEventos tbody');
@@ -3291,6 +3326,13 @@ function salvarEvento() {
             AppState.dados.eventos.push(evento);
         }
 
+        // Se for um evento de férias, tentar sincronizar com os períodos aquisitivos
+        try {
+            if (String(evento.tipoEvento).toLowerCase() === 'ferias') {
+                sincronizarFeriasComPeriodos(evento);
+            }
+        } catch (syncErr) { console.warn('Erro ao sincronizar férias com períodos:', syncErr); }
+
         AppState.save();
         renderizarEventos();
         renderizarAcordos();
@@ -3362,6 +3404,7 @@ function salvarFeriasFromTab() {
         if (erros && erros.length) throw new Error(erros.join('; '));
 
         AppState.dados.eventos.push(evento);
+        try { if (String(evento.tipoEvento).toLowerCase() === 'ferias') sincronizarFeriasComPeriodos(evento); } catch(e){ console.warn('Erro sincronizando ferias:', e); }
         AppState.save();
 
         // Atualiza UI
