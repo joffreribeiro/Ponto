@@ -3338,26 +3338,28 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     tdLimite.textContent = DateUtils.formatBR(DateUtils.getIsoDate(r.limite));
                     tdLimite.rowSpan = rowspan;
                     tr.appendChild(tdLimite);
+                    
                     // calcular Total Dias já Concedidos e Quantidade de Dias Disponíveis para o período
+                    // Baseado nos subperíodos que têm férias preenchidas (feriasInicio/feriasFim)
                     try {
                         const msDay = 24 * 60 * 60 * 1000;
-                        const eventos = (AppState.dados && Array.isArray(AppState.dados.eventos)) ? AppState.dados.eventos : [];
                         let totalConcedidos = 0;
-                        const periodStart = r.inicio instanceof Date ? r.inicio : DateUtils.parse(r.inicio);
-                        const periodEnd = r.termino instanceof Date ? r.termino : DateUtils.parse(r.termino);
-                        eventos.forEach(ev => {
-                            try {
-                                if (!ev || String(ev.tipoEvento).toLowerCase() !== 'ferias') return;
-                                const evStart = DateUtils.parse(ev.dataInicioEvento || ev.inicio || ev.dataInicio || '');
-                                const evEnd = DateUtils.parse(ev.dataFimEvento || ev.fim || ev.dataFim || '');
-                                if (!evStart || !evEnd || !periodStart || !periodEnd) return;
-                                const s = evStart > periodStart ? evStart : periodStart;
-                                const e = evEnd < periodEnd ? evEnd : periodEnd;
-                                if (e >= s) {
-                                    totalConcedidos += Math.floor((e - s) / msDay) + 1;
+                        
+                        // Somar os dias de cada subperíodo que tem férias solicitadas
+                        grupo.forEach(sub => {
+                            if (sub.dias && typeof sub.dias === 'number' && sub.dias > 0) {
+                                totalConcedidos += sub.dias;
+                            } else if (sub.feriasInicio && sub.feriasFim) {
+                                // Calcular dias se não estiver preenchido
+                                const dtInicio = sub.feriasInicio instanceof Date ? sub.feriasInicio : DateUtils.parse(sub.feriasInicio);
+                                const dtFim = sub.feriasFim instanceof Date ? sub.feriasFim : DateUtils.parse(sub.feriasFim);
+                                if (dtInicio && dtFim) {
+                                    const dias = Math.floor((dtFim - dtInicio) / msDay) + 1;
+                                    if (dias > 0) totalConcedidos += dias;
                                 }
-                            } catch (ex2) { /* ignore per-event errors */ }
+                            }
                         });
+                        
                         const entitlement = (AppState.dados && AppState.dados.configuracoes && Number(AppState.dados.configuracoes.feriasDias) > 0) ? Number(AppState.dados.configuracoes.feriasDias) : 30;
                         const disponiveis = Math.max(0, entitlement - totalConcedidos);
 
