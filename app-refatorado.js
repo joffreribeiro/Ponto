@@ -1206,12 +1206,28 @@ function editarPeriodoGroup(periodoIndex) {
 
 // Remove todos os subperiodos de um mesmo periodoIndex (linha 'Único')
 function removerPeriodoGroup(periodoIndex) {
-    if (!confirm('Confirma a exclusão de todo o período aquisitivo (todos os subperíodos)?')) return;
+    if (!confirm('Deseja limpar as marcações de férias deste período (todos os subperíodos)? Esta ação NÃO removerá os registros dos períodos.')) return;
     const arr = AppState.dados.periodosAquisitivos || [];
-    AppState.dados.periodosAquisitivos = arr.filter(p => p.periodoIndex !== periodoIndex);
-    AppState.save();
-    renderizarPeriodosAquisitivosTable();
-    mostrarAlertaGlobal('Período removido com sucesso.');
+    let changed = false;
+    arr.forEach(p => {
+        if (p && Number(p.periodoIndex) === Number(periodoIndex)) {
+            if (p.feriasInicio || p.feriasFim || p.dias || p.documento || p.adto13) {
+                p.feriasInicio = '';
+                p.feriasFim = '';
+                p.dias = null;
+                p.documento = '';
+                p.adto13 = '';
+                changed = true;
+            }
+        }
+    });
+    if (changed) {
+        AppState.save();
+        renderizarPeriodosAquisitivosTable();
+        mostrarAlertaGlobal('Marcações de férias limpas para o período.', 'success');
+    } else {
+        mostrarAlertaGlobal('Nenhuma marcação encontrada para limpar neste período.', 'info');
+    }
 }
 
 // Solicitar férias a partir de um subperiodo (linha específica)
@@ -3817,7 +3833,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnDelG.className = 'btn-secondary';
                     btnDelG.style.marginLeft = '6px';
                     btnDelG.style.padding = '4px 8px';
-                    btnDelG.textContent = 'Excluir';
+                    btnDelG.textContent = 'Limpar';
                     btnDelG.addEventListener('click', () => removerPeriodoGroup(r.periodoIndex));
                     tdActions.appendChild(btnDelG);
                 } else {
@@ -3840,7 +3856,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnDel.className = 'btn-secondary';
                     btnDel.style.marginLeft = '6px';
                     btnDel.style.padding = '4px 8px';
-                    btnDel.textContent = 'Excluir';
+                    btnDel.textContent = 'Limpar';
                     btnDel.addEventListener('click', () => removerPeriodo(r.id || r.idRaw));
                     tdActions.appendChild(btnDel);
                 }
@@ -3922,11 +3938,18 @@ function removerPeriodo(id) {
         if (!AppState.dados || !Array.isArray(AppState.dados.periodosAquisitivos)) return;
         const idx = AppState.dados.periodosAquisitivos.findIndex(p => p.id === id);
         if (idx === -1) return;
-        if (!confirm('Deseja realmente excluir este período?')) return;
-        AppState.dados.periodosAquisitivos.splice(idx, 1);
-        AppState.save();
-        renderizarPeriodosAquisitivosTable();
-        mostrarAlertaGlobal('Período removido.', 'success');
+        if (!confirm('Deseja limpar as marcações de férias deste subperíodo? (Não removerá o registro do período)')) return;
+        const p = AppState.dados.periodosAquisitivos[idx];
+        if (p) {
+            p.feriasInicio = '';
+            p.feriasFim = '';
+            p.dias = null;
+            p.documento = '';
+            p.adto13 = '';
+            AppState.save();
+            renderizarPeriodosAquisitivosTable();
+            mostrarAlertaGlobal('Marcações de férias limpas para o subperíodo.', 'success');
+        }
     } catch (e) {
         console.error('Erro ao remover período:', e);
         mostrarAlertaGlobal('Erro ao remover período.', 'error');
