@@ -360,12 +360,53 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos colgroup col:nth-child(9) { width: 45px; }   /* Adto 13º */
 #tablePeriodosAquisitivos colgroup col:nth-child(10) { width: 35px; }  /* Dias */
 #tablePeriodosAquisitivos colgroup col:nth-child(11) { width: 70px; }  /* Documento */
-#tablePeriodosAquisitivos colgroup col:nth-child(12) { width: 120px; } /* Ações */
+#tablePeriodosAquisitivos colgroup col:nth-child(12) { width: 90px; }  /* Ações */
 #tablePeriodosAquisitivos thead .header-blank th { background: transparent; border: none; height: 10px; }
 #tablePeriodosAquisitivos tbody td { line-height: 1.2; }
 #tablePeriodosAquisitivos tbody tr td { vertical-align: middle; }
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
+
+/* Botões de ícone para ações */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 0 2px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-icon:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+}
+.btn-icon.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+.btn-icon.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+.btn-icon.btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+}
+.btn-icon.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.btn-icon svg {
+    width: 16px;
+    height: 16px;
+}
 
 /* ================================================
    Header / título
