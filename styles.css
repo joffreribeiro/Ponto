@@ -1874,15 +1874,32 @@ textarea {
     color: var(--primary);
 }
 
-/* Registro de Ponto: modal compacto */
-#modalRegistro .modal-content { max-width: 420px; }
-#modalRegistro .form-group label { font-size: 11px; }
+/* Registro de Ponto: modal (maior e com layout em duas colunas) */
+#modalRegistro .modal-content { max-width: 900px; width: 95vw; }
+#modalRegistro .form-group label { font-size: 13px; }
 #modalRegistro input[type="time"],
 #modalRegistro input[type="date"],
-#modalRegistro textarea {
-    padding: 4px 8px;
-    font-size: 12px;
+#modalRegistro textarea,
+#modalRegistro select {
+    padding: 8px 10px;
+    font-size: 13px;
 }
+
+/* Layout do corpo do modal em duas colunas para exibir mais campos */
+#modalRegistro .modal-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 18px;
+    align-items: start;
+}
+
+/* Forçar que alguns elementos ocupem a largura completa (ex: textarea, full-row controls) */
+#modalRegistro .modal-body .form-group.full-row { grid-column: 1 / -1; }
+
+/* Garantir que o footer fique fixo e o body role quando necessário */
+#modalRegistro .modal-content { display: flex; flex-direction: column; max-height: 90vh; }
+#modalRegistro .modal-body { overflow: auto; padding-right: 6px; }
+#modalRegistro .modal-footer { margin-top: 12px; display: flex; gap: 10px; justify-content: flex-end; }
 
 /* Evento: modal compacto */
 #modalEvento .modal-content { max-width: 520px; }
