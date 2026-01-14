@@ -1693,6 +1693,7 @@ td.evento-periodo-vespertino.evento-vertical {
 /* Atividades tabela */
 #tabelaAtividades th, #tabelaAtividades td { padding:8px 10px; border-bottom:1px solid #eef2f7; }
 #tabelaAtividades tbody tr:hover { background:#f1f5f9; }
+#tabelaAtividades thead th { color: #ffffff !important; }
 #subtasksList { max-height:140px; overflow:auto; }
 #subtasksList li { margin-bottom:6px; justify-content:space-between; align-items:center; }
 
