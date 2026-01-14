@@ -1,16 +1,21 @@
-/* Cores para linhas da tabela de atividades conforme prazo/status */
+/* Cores para linhas da tabela de atividades conforme prazo/status
+   Usamos as mesmas tonalidades/token do Timesheet para consistência */
 .linha-verde {
-    background: #e6fbe6 !important;
+    background: var(--positive-soft, #dcfce7) !important;
+    color: var(--text-main) !important;
 }
 .linha-amarelo {
-    background: #fffbe6 !important;
+    background: var(--warning-soft, #fed7aa) !important;
+    color: var(--text-main) !important;
 }
 .linha-vermelho {
-    background: #ffe6e6 !important;
+    background: var(--negative-soft, #fee2e2) !important;
+    color: var(--text-main) !important;
 }
 .linha-cinza {
-    background: #f3f4f6 !important;
-    color: #888 !important;
+    /* Use o mesmo tom de fim-de-semana/tabela do timesheet para consistência visual */
+    background: #BFBFBF !important;
+    color: #1e293b !important; /* var(--text-main) */
 }
 .modal-content.modal-medium {
     max-width: 900px !important;
