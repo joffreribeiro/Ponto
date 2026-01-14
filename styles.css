@@ -420,7 +420,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
 #tablePeriodosAquisitivos colgroup col:nth-child(2) { width: 70px; }   /* Limite */
 #tablePeriodosAquisitivos colgroup col:nth-child(3) { width: 45px; }   /* Total Dias */
-#tablePeriodosAquisitivos colgroup col:nth-child(4) { width: 120px; }  /* Dias Disponíveis (aumentado) */
+#tablePeriodosAquisitivos colgroup col:nth-child(4) { width: 75px; }  /* Dias Disponíveis (aumentado) */
 #tablePeriodosAquisitivos colgroup col:nth-child(5) { width: 80px; }   /* Período (reduzido) */
 #tablePeriodosAquisitivos colgroup col:nth-child(6) { width: 75px; }   /* Férias Início */
 #tablePeriodosAquisitivos colgroup col:nth-child(7) { width: 75px; }   /* Férias Fim */
