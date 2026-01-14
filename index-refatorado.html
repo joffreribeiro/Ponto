@@ -7,8 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <!-- NAVEGAÇÃO PRINCIPAL POR ABAS -->
+        <nav class="main-tabs">
+            <button class="tab-btn active" data-tab="dashboard">
+                <span class="icon">📊</span> Dashboard
+            </button>
+            <button class="tab-btn" data-tab="atividades">
+                <span class="icon">📋</span> Atividades
+            </button>
+            <button class="tab-btn" data-tab="ponto">
+                <span class="icon">⏰</span> Ponto
+            </button>
+        </nav>
 
-<!-- BODY START: conteúdo baseado em index.html, limpo de conflitos e com filtros unificados -->
+        <!-- SEÇÃO DASHBOARD -->
+        <section id="dashboard" class="tab-content active">
+            <div class="card">
+                <h2>Dashboard</h2>
                 <div class="dashboard-filters">
                     <div class="filter-group">
                         <label for="dashboardFilterAcordo">
