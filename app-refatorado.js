@@ -3610,22 +3610,21 @@ function salvarEvento() {
 }
 
 function limparEvento() {
-    document.getElementById('tipoEvento').value = 'feriado';
-    document.getElementById('descricaoEvento').value = '';
-    document.getElementById('dataInicioEvento').value = '';
-    document.getElementById('dataFimEvento').value = '';
-    document.getElementById('impactoEvento').value = 'folga';
-    document.getElementById('eventoCorFundo').value = '#ffe4e6';
-    document.getElementById('eventoCorTexto').value = '#9f1239';
-    document.getElementById('eventoNomeCSS').value = '';
-    const periodoEl = document.getElementById('eventoPeriodo');
-    if (periodoEl) periodoEl.value = 'dia_todo';
+    const tipoEl = document.getElementById('tipoEvento'); if (tipoEl) tipoEl.value = 'feriado';
+    const descEl = document.getElementById('descricaoEvento'); if (descEl) descEl.value = '';
+    const inicioEl = document.getElementById('dataInicioEvento'); if (inicioEl) inicioEl.value = '';
+    const fimEl = document.getElementById('dataFimEvento'); if (fimEl) fimEl.value = '';
+    const impactoEl = document.getElementById('impactoEvento'); if (impactoEl) impactoEl.value = 'folga';
+    const corFundoEl = document.getElementById('eventoCorFundo'); if (corFundoEl) corFundoEl.value = '#ffe4e6';
+    const corTextoEl = document.getElementById('eventoCorTexto'); if (corTextoEl) corTextoEl.value = '#9f1239';
+    const nomeCssEl = document.getElementById('eventoNomeCSS'); if (nomeCssEl) nomeCssEl.value = '';
+    const periodoEl = document.getElementById('eventoPeriodo'); if (periodoEl) periodoEl.value = 'dia_todo';
     const acordoSel = document.getElementById('acordoEventoSelect');
     if (acordoSel) {
         if (AppState.eventoAcordoPreselected != null) {
             acordoSel.value = String(AppState.eventoAcordoPreselected);
         } else {
-            acordoSel.selectedIndex = 0;
+            try { acordoSel.selectedIndex = 0; } catch(e) { acordoSel.value = acordoSel.value || ''; }
         }
     }
     AppState.eventoEmEdicao = null;
@@ -4088,24 +4087,21 @@ function abrirEditarEvento(index) {
     try {
         const e = AppState.dados.eventos[index];
         if (!e) throw new Error('Evento não encontrado');
+        const tipoEl = document.getElementById('tipoEvento'); if (tipoEl) tipoEl.value = e.tipoEvento || 'feriado';
+        const descEl = document.getElementById('descricaoEvento'); if (descEl) descEl.value = e.descricaoEvento || '';
+        const inicioEl = document.getElementById('dataInicioEvento'); if (inicioEl) inicioEl.value = e.dataInicioEvento || '';
+        const fimEl = document.getElementById('dataFimEvento'); if (fimEl) fimEl.value = e.dataFimEvento || '';
+        const impactoEl = document.getElementById('impactoEvento'); if (impactoEl) impactoEl.value = e.impactoEvento || 'folga';
+        const corFundoEl = document.getElementById('eventoCorFundo'); if (corFundoEl) corFundoEl.value = e.corFundo || '#ffe4e6';
+        const corTextoEl = document.getElementById('eventoCorTexto'); if (corTextoEl) corTextoEl.value = e.corTexto || '#9f1239';
+        const nomeCssEl = document.getElementById('eventoNomeCSS'); if (nomeCssEl) nomeCssEl.value = e.nomeCSS || '';
 
-        document.getElementById('tipoEvento').value = e.tipoEvento || 'feriado';
-        document.getElementById('descricaoEvento').value = e.descricaoEvento || '';
-        document.getElementById('dataInicioEvento').value = e.dataInicioEvento || '';
-        document.getElementById('dataFimEvento').value = e.dataFimEvento || '';
-        document.getElementById('impactoEvento').value = e.impactoEvento || 'folga';
-        document.getElementById('eventoCorFundo').value = e.corFundo || '#ffe4e6';
-        document.getElementById('eventoCorTexto').value = e.corTexto || '#9f1239';
-        document.getElementById('eventoNomeCSS').value = e.nomeCSS || '';
-        
-            const periodoEl = document.getElementById('eventoPeriodo');
-            if (periodoEl) periodoEl.value = e.periodo || 'dia_todo';
-        
-        const acordoSel = document.getElementById('acordoEventoSelect');
-        if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
-        
+        const periodoEl = document.getElementById('eventoPeriodo'); if (periodoEl) periodoEl.value = e.periodo || 'dia_todo';
+
+        const acordoSel = document.getElementById('acordoEventoSelect'); if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
+
         AppState.eventoEmEdicao = index;
-        document.getElementById('modalEvento').classList.add('active');
+        const modalEl = document.getElementById('modalEvento'); if (modalEl) modalEl.classList.add('active');
     } catch (error) {
         console.error('Erro ao editar evento:', error);
         mostrarAlertaGlobal(error.message, 'error');
@@ -4398,20 +4394,20 @@ function editarAcordo(index) {
 }
 
 function preencherModalAcordo() {
-    document.getElementById('acordoNome').value = AppState.acordoEmEdicao.nome || '';
-    document.getElementById('periodoInicio').value = '';
-    document.getElementById('periodoFim').value = '';
-    document.getElementById('periodoMinutosExtras').value = '';
+    const acordoNomeEl = document.getElementById('acordoNome'); if (acordoNomeEl) acordoNomeEl.value = (AppState.acordoEmEdicao && AppState.acordoEmEdicao.nome) ? AppState.acordoEmEdicao.nome : '';
+    const periodoInicioEl = document.getElementById('periodoInicio'); if (periodoInicioEl) periodoInicioEl.value = '';
+    const periodoFimEl = document.getElementById('periodoFim'); if (periodoFimEl) periodoFimEl.value = '';
+    const periodoMinExtrasEl = document.getElementById('periodoMinutosExtras'); if (periodoMinExtrasEl) periodoMinExtrasEl.value = '';
 
-    document.getElementById('regraInicio').value = '';
-    document.getElementById('regraFim').value = '';
-    document.getElementById('regraMinutosExtras').value = '';
-    document.getElementById('regraInicioExpediente').value = '';
-    document.getElementById('regraAlmoco').value = 60;
-    document.getElementById('regraTolAlmoco').value = 5;
-    document.getElementById('regraTolSaida').value = 5;
-    document.getElementById('regraTipo').value = '';
-    document.getElementById('regraVale').value = '';
+    const regraInicioEl = document.getElementById('regraInicio'); if (regraInicioEl) regraInicioEl.value = '';
+    const regraFimEl = document.getElementById('regraFim'); if (regraFimEl) regraFimEl.value = '';
+    const regraMinExtrasEl = document.getElementById('regraMinutosExtras'); if (regraMinExtrasEl) regraMinExtrasEl.value = '';
+    const regraInicioExpEl = document.getElementById('regraInicioExpediente'); if (regraInicioExpEl) regraInicioExpEl.value = '';
+    const regraAlmocoEl = document.getElementById('regraAlmoco'); if (regraAlmocoEl) regraAlmocoEl.value = 60;
+    const regraTolAlmocoEl = document.getElementById('regraTolAlmoco'); if (regraTolAlmocoEl) regraTolAlmocoEl.value = 5;
+    const regraTolSaidaEl = document.getElementById('regraTolSaida'); if (regraTolSaidaEl) regraTolSaidaEl.value = 5;
+    const regraTipoEl = document.getElementById('regraTipo'); if (regraTipoEl) regraTipoEl.value = '';
+    const regraValeEl = document.getElementById('regraVale'); if (regraValeEl) regraValeEl.value = '';
 
     // Preencher campos de Abono e Pagar Hora
     const qtdAbonoEl = document.getElementById('acordoQtdAbono');
