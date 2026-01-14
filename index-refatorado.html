@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <!-- NAVEGAÇÃO PRINCIPAL POR ABAS -->
-        <nav class="main-tabs">
+        <nav class="tabs">
             <button class="tab-btn active" data-tab="dashboard">
                 <span class="icon">📊</span> Dashboard
             </button>
@@ -280,6 +280,141 @@
                 </div>
             </div>
         </section>
+
+        <!-- PONTO (sub-abas) -->
+        <section id="ponto" class="tab-content">
+            <div class="subtabs">
+                <button class="subtab-btn active" data-subtab="ponto-timesheet">
+                    <span class="icon">📅</span> Timesheet
+                </button>
+                <button class="subtab-btn" data-subtab="ponto-ferias">
+                    <span class="icon">🏖️</span> Férias
+                </button>
+                <button class="subtab-btn" data-subtab="ponto-registros">
+                    <span class="icon">📝</span> Registros
+                </button>
+                <button class="subtab-btn" data-subtab="ponto-config">
+                    <span class="icon">⚙️</span> Acordos
+                </button>
+                <button class="subtab-btn" data-subtab="ponto-eventos">
+                    <span class="icon">📌</span> Eventos
+                </button>
+            </div>
+
+            <!-- Timesheet -->
+            <div id="ponto-timesheet" class="subtab-content active">
+                <div class="card">
+                    <h3>Timesheet</h3>
+                    <div class="toolbar">
+                        <div>
+                            <label for="acordoTimesheet">Acordo:</label>
+                            <select id="acordoTimesheet"></select>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button type="button" class="btn-secondary" data-action="exportarTimesheetCSV">Exportar CSV</button>
+                            <button type="button" class="btn-secondary" data-action="exportarTimesheetPDF">Exportar PDF</button>
+                        </div>
+                    </div>
+                    <div id="timesheetContainer"></div>
+                </div>
+            </div>
+
+            <!-- Férias -->
+            <div id="ponto-ferias" class="subtab-content">
+                <div class="card">
+                    <h3>Períodos Aquisitivos e Férias</h3>
+                    <div id="periodosAquisitivosContainer">
+                        <table id="tabelaPeriodosAquisitivos">
+                            <thead>
+                                <tr>
+                                    <th>Período</th>
+                                    <th>Início</th>
+                                    <th>Término</th>
+                                    <th>Limite</th>
+                                    <th>Férias Início</th>
+                                    <th>Férias Fim</th>
+                                    <th>Adto 13º</th>
+                                    <th>Dias</th>
+                                    <th>Documento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registros -->
+            <div id="ponto-registros" class="subtab-content">
+                <div class="card">
+                    <h3>Registros de Ponto</h3>
+                    <div class="toolbar">
+                        <div>
+                            <label for="acordoRegistros">Acordo:</label>
+                            <select id="acordoRegistros"></select>
+                        </div>
+                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro">+ Novo Registro</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="tabelaRegistros">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Entrada</th>
+                                    <th>Saída Almoço</th>
+                                    <th>Retorno Almoço</th>
+                                    <th>Saída</th>
+                                    <th>Total</th>
+                                    <th>Saldo</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acordos -->
+            <div id="ponto-config" class="subtab-content">
+                <div class="card">
+                    <h3>Acordos de Jornada</h3>
+                    <button type="button" class="btn-primary" data-action="abrirModalNovoAcordo">+ Novo Acordo</button>
+                    <div id="listaAcordos" style="margin-top:16px;"></div>
+                </div>
+            </div>
+
+            <!-- Eventos -->
+            <div id="ponto-eventos" class="subtab-content">
+                <div class="card">
+                    <h3>Eventos</h3>
+                    <div class="toolbar">
+                        <div>
+                            <label for="acordoEventos">Acordo:</label>
+                            <select id="acordoEventos"></select>
+                        </div>
+                        <button type="button" class="btn-primary" data-action="abrirModalNovoEvento">+ Novo Evento</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="tabelaEventos">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Descrição</th>
+                                    <th>Horas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- fim .container -->
 
 <!-- SCRIPTS -->
 <!-- Chart.js CDN - carregar antes de charts.js local -->
