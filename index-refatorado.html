@@ -490,6 +490,134 @@
 
 <!-- SCRIPTS -->
 
+<!-- Modal Acordo -->
+<div id="modalAcordo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Gerenciar Acordo</h2>
+            <button type="button" class="modal-close" data-action="fecharModalAcordo"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="acordoNome">Nome do Acordo:</label>
+                <input type="text" id="acordoNome" required>
+            </div>
+
+            <div class="acordo-panels">
+                <div class="acordo-sidebar">
+                    <button type="button" class="acordo-side-btn active" data-panel="acordo-overview">
+                        Resumo
+                    </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-periodos">
+                        Períodos
+                    </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-regras">
+                        Regras
+                    </button>
+                    <button type="button" class="acordo-side-btn" data-panel="acordo-beneficios">
+                        Abono/Pagar Hora
+                    </button>
+                </div>
+
+                <div class="acordo-content">
+                    <div id="acordo-overview" class="acordo-panel active">
+                        <p>Defina os períodos de compensação e regras de horário para este acordo.</p>
+                    </div>
+
+                    <div id="acordo-periodos" class="acordo-panel">
+                        <h3>Períodos de Compensação</h3>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Minutos Extras/dia</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaPeriodosAcordo"></tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <span class="group-label">Novo Período:</span>
+                            <input type="date" id="periodoInicio" placeholder="Início">
+                            <input type="date" id="periodoFim" placeholder="Fim">
+                            <input type="number" id="periodoMinutosExtras" placeholder="Minutos extras/dia" value="0">
+                            <button type="button" class="btn-secondary" id="btnAdicionarPeriodo">
+                                Adicionar Período
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="acordo-regras" class="acordo-panel">
+                        <h3>Regras de Horário</h3>
+                        <div class="table-scroll-nav">
+                            <button class="scroll-btn scroll-btn-left" data-action="scrollTableLeftNoEvent">‹</button>
+                            <div class="table-container" id="tableScrollContainer">
+                                <table>
+                                <thead>
+                                    <tr>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Min Extras</th>
+                                        <th>Início Expediente</th>
+                                        <th>Almoço</th>
+                                        <th>Tol. Almoço</th>
+                                        <th>Tol. Saída</th>
+                                        <th>Tipo</th>
+                                        <th>Vale (R$)</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaRegrasAcordo"></tbody>
+                            </table>
+                            </div>
+                            <button class="scroll-btn scroll-btn-right" data-action="scrollTableRightNoEvent">›</button>
+                        </div>
+                        <div class="form-group">
+                            <span class="group-label">Nova Regra:</span>
+                            <input type="date" id="regraInicio" placeholder="Início">
+                            <input type="date" id="regraFim" placeholder="Fim">
+                            <input type="number" id="regraMinutosExtras" placeholder="Minutos extras" value="0">
+                            <input type="time" id="regraInicioExpediente" placeholder="Início expediente">
+                            <input type="number" id="regraAlmoco" placeholder="Almoço (min)" value="60">
+                            <input type="number" id="regraTolAlmoco" placeholder="Tol. almoço (min)" value="5">
+                            <input type="number" id="regraTolSaida" placeholder="Tol. saída (min)" value="5">
+                            <input type="text" id="regraTipo" placeholder="Tipo">
+                            <input type="number" id="regraVale" placeholder="Vale (R$)" value="0">
+                            <button type="button" class="btn-secondary" id="btnAdicionarRegra">
+                                Adicionar Regra
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="acordo-beneficios" class="acordo-panel">
+                        <h3>Controle de Abono e Pagar Hora</h3>
+                        <p class="small-text">Defina a quantidade disponível de abono e pagar hora para este acordo. O sistema irá abater automaticamente conforme eventos forem criados.</p>
+                        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;">
+                            <div class="form-group" style="flex:1;min-width:200px;">
+                                <label for="acordoQtdAbono">Quantidade de Abono Disponível (dias)</label>
+                                <input type="number" id="acordoQtdAbono" min="0" step="0.5" value="0" />
+                                <div id="acordoAbonoUsado" class="small-text" style="margin-top:4px;color:var(--text-secondary);">Utilizado: 0 | Restante: 0</div>
+                            </div>
+                            <div class="form-group" style="flex:1;min-width:200px;">
+                                <label for="acordoQtdPagarHora">Quantidade de Pagar Hora Disponível (horas)</label>
+                                <input type="number" id="acordoQtdPagarHora" min="0" step="0.5" value="0" />
+                                <div id="acordoPagarHoraUsado" class="small-text" style="margin-top:4px;color:var(--text-secondary);">Utilizado: 0 | Restante: 0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-action="fecharModalAcordo">Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarAcordo">Salvar Acordo</button>
+        </div>
+    </div>
+</div>
+
         <!-- Modal Solicitação de Férias -->
         <div id="modalSolicitarFerias" class="modal">
             <div class="modal-content" style="max-width: 500px;">
