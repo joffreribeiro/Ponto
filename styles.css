@@ -2760,10 +2760,3 @@ select.field-invalid:focus {
     pointer-events: auto !important;
 }
 
-#chat, #chatPanel, #chatWidget, .chat, .chat-panel, .chat-widget {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 9999 !important;
-}
-
