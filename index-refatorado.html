@@ -397,6 +397,32 @@
                                         <th>Status</th>
                                         <th>Ações</th>
                                     </tr>
+                                    <tr class="table-filters-row">
+                                        <th><input id="filtroOrdem" placeholder="Ordem" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroTedPtrab" placeholder="TED/Ptrab" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroObjeto" placeholder="Objeto" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroProcessoPrincipal" placeholder="Processo Principal" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroAssunto" placeholder="Assunto" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroProcessoSolicitacao" placeholder="Processo Solicitação" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroData" placeholder="Data (DD/MM/AAAA)" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroTipoDoc" placeholder="Tipo Doc" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroNumeroDoc" placeholder="Nº Doc." style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroRemetente" placeholder="Remetente" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroDestinatario" placeholder="Destinatário" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroAcaoRealizar" placeholder="Ação a Realizar" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroPrazo" placeholder="Prazo" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroDias" placeholder="Dias" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th><input id="filtroObservacoes" placeholder="Observações" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th>
+                                            <select id="filtroFinalizado" style="width:100%;box-sizing:border-box;">
+                                                <option value="">Todos</option>
+                                                <option value="sim">Sim</option>
+                                                <option value="nao">Não</option>
+                                            </select>
+                                        </th>
+                                        <th><input id="filtroStatusCol" placeholder="Status" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th style="text-align:center;"><button id="btnLimparFiltrosTabela" class="btn-secondary" title="Limpar filtros">Limpar</button></th>
+                                    </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -1420,6 +1446,96 @@
 <script src="app-refatorado.js?v=1.2.0"></script>
 
 <!-- Removidos marcadores de conflito de merge e chamadas órfãs de funções inexistentes -->
+
+<script>
+// Filtros da tabela de atividades (aplica-se sobre as linhas já renderizadas)
+(function(){
+    function getText(row, idx){
+        return (row.cells[idx] && row.cells[idx].innerText || '').trim().toLowerCase();
+    }
+
+    function aplicarFiltrosTabelaAtividades(){
+        const tbody = document.querySelector('#tabelaAtividades tbody');
+        if (!tbody) return;
+
+        const filtros = {
+            ordem: (document.getElementById('filtroOrdem')||{}).value.trim().toLowerCase(),
+            ted: (document.getElementById('filtroTedPtrab')||{}).value.trim().toLowerCase(),
+            objeto: (document.getElementById('filtroObjeto')||{}).value.trim().toLowerCase(),
+            procPrincipal: (document.getElementById('filtroProcessoPrincipal')||{}).value.trim().toLowerCase(),
+            assunto: (document.getElementById('filtroAssunto')||{}).value.trim().toLowerCase(),
+            procSolic: (document.getElementById('filtroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
+            data: (document.getElementById('filtroData')||{}).value.trim().toLowerCase(),
+            tipoDoc: (document.getElementById('filtroTipoDoc')||{}).value.trim().toLowerCase(),
+            numeroDoc: (document.getElementById('filtroNumeroDoc')||{}).value.trim().toLowerCase(),
+            remetente: (document.getElementById('filtroRemetente')||{}).value.trim().toLowerCase(),
+            destinatario: (document.getElementById('filtroDestinatario')||{}).value.trim().toLowerCase(),
+            acao: (document.getElementById('filtroAcaoRealizar')||{}).value.trim().toLowerCase(),
+            prazo: (document.getElementById('filtroPrazo')||{}).value.trim().toLowerCase(),
+            dias: (document.getElementById('filtroDias')||{}).value.trim().toLowerCase(),
+            obs: (document.getElementById('filtroObservacoes')||{}).value.trim().toLowerCase(),
+            finalizado: (document.getElementById('filtroFinalizado')||{}).value,
+            status: (document.getElementById('filtroStatusCol')||{}).value.trim().toLowerCase()
+        };
+
+        Array.from(tbody.rows).forEach(row => {
+            let match = true;
+            if (filtros.ordem && !getText(row,0).includes(filtros.ordem)) match = false;
+            if (filtros.ted && !getText(row,1).includes(filtros.ted)) match = false;
+            if (filtros.objeto && !getText(row,2).includes(filtros.objeto)) match = false;
+            if (filtros.procPrincipal && !getText(row,3).includes(filtros.procPrincipal)) match = false;
+            if (filtros.assunto && !getText(row,4).includes(filtros.assunto)) match = false;
+            if (filtros.procSolic && !getText(row,5).includes(filtros.procSolic)) match = false;
+            if (filtros.data && !getText(row,6).includes(filtros.data)) match = false;
+            if (filtros.tipoDoc && !getText(row,7).includes(filtros.tipoDoc)) match = false;
+            if (filtros.numeroDoc && !getText(row,8).includes(filtros.numeroDoc)) match = false;
+            if (filtros.remetente && !getText(row,9).includes(filtros.remetente)) match = false;
+            if (filtros.destinatario && !getText(row,10).includes(filtros.destinatario)) match = false;
+            if (filtros.acao && !getText(row,11).includes(filtros.acao)) match = false;
+            if (filtros.prazo && !getText(row,12).includes(filtros.prazo)) match = false;
+            if (filtros.dias && !getText(row,13).includes(filtros.dias)) match = false;
+            if (filtros.obs && !getText(row,14).includes(filtros.obs)) match = false;
+            if (filtros.finalizado) {
+                const cell = getText(row,15);
+                if (filtros.finalizado === 'sim' && !(cell === 'sim' || cell === 'true' || cell === 'yes')) match = false;
+                if (filtros.finalizado === 'nao' && (cell === 'sim' || cell === 'true' || cell === 'yes')) match = false;
+            }
+            if (filtros.status && !getText(row,16).includes(filtros.status)) match = false;
+
+            row.style.display = match ? '' : 'none';
+        });
+    }
+
+    function attachFilters(){
+        const ids = ['filtroOrdem','filtroTedPtrab','filtroObjeto','filtroProcessoPrincipal','filtroAssunto','filtroProcessoSolicitacao','filtroData','filtroTipoDoc','filtroNumeroDoc','filtroRemetente','filtroDestinatario','filtroAcaoRealizar','filtroPrazo','filtroDias','filtroObservacoes','filtroFinalizado','filtroStatusCol'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = el.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+            el.addEventListener(ev, aplicarFiltrosTabelaAtividades);
+        });
+        const btn = document.getElementById('btnLimparFiltrosTabela');
+        if (btn) btn.addEventListener('click', function(){
+            ids.forEach(id=>{ const e=document.getElementById(id); if (!e) return; if (e.tagName.toLowerCase()==='select') e.value=''; else e.value=''; });
+            aplicarFiltrosTabelaAtividades();
+        });
+
+        // Reaplicar filtros quando a tabela for re-renderizada
+        const tbody = document.querySelector('#tabelaAtividades tbody');
+        if (tbody) {
+            const obs = new MutationObserver(() => setTimeout(aplicarFiltrosTabelaAtividades,20));
+            obs.observe(tbody, { childList: true, subtree: true });
+        }
+    }
+
+    // Inicializar quando DOM pronto
+    document.addEventListener('DOMContentLoaded', function(){
+        attachFilters();
+        // aplicar uma vez caso a tabela já esteja renderizada
+        setTimeout(aplicarFiltrosTabelaAtividades,50);
+    });
+})();
+</script>
 
 </body>
 </html>
