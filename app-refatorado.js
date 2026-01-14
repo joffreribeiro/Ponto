@@ -5998,15 +5998,18 @@ window.reconstruirSubperiodosFaltantes = reconstruirSubperiodosFaltantes;
 })();
 
 /**
- * Exportar atividades para Excel
+ * Exportar atividades para Excel com TODOS os dados
  */
 function exportarAtividadesExcel() {
     try {
         const atividades = AppState.dados.atividades || [];
         
-        // Preparar dados para exportação
-        const dados = [
-            ['ID', 'Título', 'Descrição', 'Status', 'Prioridade', 'Responsável', 'Progresso (%)', 'Prazo', 'Ordem', 'Criado em', 'Atualizado em'],
+        // Criar worksheets separadas
+        const wb = XLSX.utils.book_new();
+        
+        // ====== WORKSHEET 1: RESUMO (dados principais) ======
+        const dadosResumo = [
+            ['ID', 'Título', 'Descrição', 'Status', 'Prioridade', 'Responsável', 'Progresso (%)', 'Prazo', 'Dias até prazo', 'Ordem', 'TED/PTRAB', 'Objeto', 'Processo Principal', 'Assunto', 'Processo Solicitação', 'Data Doc', 'Tipo Doc', 'Nº Doc', 'Remetente', 'Destinário', 'Ação a Realizar', 'Tempo Estimado (min)', 'Tempo Gasto (min)', 'Tags', 'Lembretes (dias)', 'Observações', 'Finalizado', 'Criado em', 'Atualizado em'],
             ...atividades.map(a => [
                 a.id || '',
                 a.titulo || '',
@@ -6016,36 +6019,109 @@ function exportarAtividadesExcel() {
                 a.responsavel || '',
                 a.progresso || 0,
                 a.prazo ? DateUtils.formatBR(a.prazo) : '',
+                a.dias || '',
                 a.ordem || '',
-                a.criadoEm ? DateUtils.formatBR(a.criadoEm) : '',
-                a.atualizadoEm ? DateUtils.formatBR(a.atualizadoEm) : ''
+                a.tedPtrab || '',
+                a.objeto || '',
+                a.processoPrincipal || '',
+                a.assunto || '',
+                a.processoSolicitacao || '',
+                a.dataDoc ? DateUtils.formatBR(a.dataDoc) : '',
+                a.tipoDoc || '',
+                a.numeroDoc || '',
+                a.remetente || '',
+                a.destinatario || '',
+                a.acaoRealizar || '',
+                a.tempoEstimadoMin || 0,
+                a.tempoGastoMin || 0,
+                (a.tags || []).join('; '),
+                a.lembreteDias || '',
+                a.observacoes || '',
+                a.finalizado ? 'Sim' : 'Não',
+                a.criadoEm ? DateUtils.formatDateTime(a.criadoEm) : '',
+                a.atualizadoEm ? DateUtils.formatDateTime(a.atualizadoEm) : ''
             ])
         ];
         
-        // Criar workbook
-        const ws = XLSX.utils.aoa_to_sheet(dados);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Atividades');
-        
-        // Definir larguras das colunas
-        ws['!cols'] = [
-            { wch: 10 }, // ID
-            { wch: 20 }, // Título
-            { wch: 30 }, // Descrição
-            { wch: 15 }, // Status
-            { wch: 12 }, // Prioridade
-            { wch: 15 }, // Responsável
-            { wch: 12 }, // Progresso
-            { wch: 12 }, // Prazo
-            { wch: 10 }, // Ordem
-            { wch: 12 }, // Criado em
-            { wch: 12 }  // Atualizado em
+        const wsResumo = XLSX.utils.aoa_to_sheet(dadosResumo);
+        wsResumo['!cols'] = [
+            { wch: 12 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
+            { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 20 },
+            { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 10 },
+            { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 15 },
+            { wch: 14 }, { wch: 30 }, { wch: 10 }, { wch: 16 }, { wch: 16 }
         ];
+        XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+        
+        // ====== WORKSHEET 2: SUBTAREFAS ======
+        const linhasSubtarefas = [];
+        linhasSubtarefas.push(['ID Atividade', 'Título Atividade', 'Subtarefa', 'Concluída']);
+        atividades.forEach(a => {
+            if (a.subtarefas && a.subtarefas.length > 0) {
+                a.subtarefas.forEach(sub => {
+                    linhasSubtarefas.push([
+                        a.id || '',
+                        a.titulo || '',
+                        sub.texto || (sub.label && sub.label.textContent) || '',
+                        sub.concluida ? 'Sim' : 'Não'
+                    ]);
+                });
+            }
+        });
+        if (linhasSubtarefas.length > 1) {
+            const wsSubtarefas = XLSX.utils.aoa_to_sheet(linhasSubtarefas);
+            wsSubtarefas['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 40 }, { wch: 10 }];
+            XLSX.utils.book_append_sheet(wb, wsSubtarefas, 'Subtarefas');
+        }
+        
+        // ====== WORKSHEET 3: ANEXOS ======
+        const linhasAnexos = [];
+        linhasAnexos.push(['ID Atividade', 'Título Atividade', 'Nome Arquivo', 'Tamanho (KB)', 'Link']);
+        atividades.forEach(a => {
+            if (a.anexos && a.anexos.length > 0) {
+                a.anexos.forEach(anexo => {
+                    linhasAnexos.push([
+                        a.id || '',
+                        a.titulo || '',
+                        anexo.name || '',
+                        Math.round((anexo.size || 0) / 1024),
+                        anexo.data || ''
+                    ]);
+                });
+            }
+        });
+        if (linhasAnexos.length > 1) {
+            const wsAnexos = XLSX.utils.aoa_to_sheet(linhasAnexos);
+            wsAnexos['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 30 }, { wch: 12 }, { wch: 40 }];
+            XLSX.utils.book_append_sheet(wb, wsAnexos, 'Anexos');
+        }
+        
+        // ====== WORKSHEET 4: COMENTÁRIOS ======
+        const linhasComentarios = [];
+        linhasComentarios.push(['ID Atividade', 'Título Atividade', 'Comentário', 'Criado em']);
+        atividades.forEach(a => {
+            if (a.comentarios && a.comentarios.length > 0) {
+                a.comentarios.forEach(com => {
+                    linhasComentarios.push([
+                        a.id || '',
+                        a.titulo || '',
+                        com.texto || (com.textContent) || '',
+                        com.criadoEm ? DateUtils.formatDateTime(com.criadoEm) : ''
+                    ]);
+                });
+            }
+        });
+        if (linhasComentarios.length > 1) {
+            const wsComentarios = XLSX.utils.aoa_to_sheet(linhasComentarios);
+            wsComentarios['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 50 }, { wch: 16 }];
+            XLSX.utils.book_append_sheet(wb, wsComentarios, 'Comentários');
+        }
         
         // Fazer download
-        const nomeArquivo = `atividades_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        const nomeArquivo = `atividades_completo_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(wb, nomeArquivo);
-        console.log('Atividades exportadas com sucesso');
+        console.log('Atividades exportadas com sucesso (completo)');
+        Notifications.success(`${atividades.length} atividade(s) exportada(s)`);
     } catch (error) {
         console.error('Erro ao exportar atividades:', error);
         alert('Erro ao exportar atividades: ' + error.message);
