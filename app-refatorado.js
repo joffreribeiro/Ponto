@@ -3786,7 +3786,6 @@ function renderizarPeriodosAquisitivosTable(rows) {
                         // Coluna Períodos de Férias já Programados
                         const tdProgramados = document.createElement('td');
                         tdProgramados.rowSpan = rowspan;
-                        tdProgramados.style.fontSize = '0.85em';
                         if (periodosJaProgramados.length > 0) {
                             tdProgramados.innerHTML = periodosJaProgramados.join('<br>');
                         } else {
