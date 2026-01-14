@@ -298,28 +298,57 @@ html[data-theme="dark"] {
     cursor: pointer;
 }
 
-/* Icon / badge standardization */
+/* ===== UNIFIED ICON BUTTON STYLE: Flat black icons across entire system ===== */
 .btn-icon {
+    background: transparent;
+    color: #000;
+    border: none;
+    width: auto;
+    height: auto;
+    padding: 4px 6px;
+    margin: 0 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    margin: 0 6px;
-    border-radius: 50%;
-    border: 1px solid var(--border-soft);
-    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(243,246,255,0.9));
-    color: var(--primary-dark);
+    border-radius: 4px;
+    box-shadow: none;
     cursor: pointer;
-    box-shadow: var(--shadow-soft);
-    transition: transform .08s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+    transition: color .08s ease;
 }
-.btn-icon .icon, .btn-icon > svg { width: 18px; height: 18px; display: inline-block; fill: currentColor; }
-.icon { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 
-/* Ensure SVG icons inherit color and size */
-.btn-icon > svg { width: 24px; height: 24px; display: inline-block; fill: currentColor; }
+.btn-icon .icon, .btn-icon > svg { 
+    width: 16px; 
+    height: 16px; 
+    display: inline-block; 
+    fill: currentColor;
+    stroke: currentColor;
+}
+
+.btn-icon:hover {
+    color: #333;
+}
+
+/* Variantes (anuladas para manter estilo flat) */
+.btn-icon.btn-primary,
+.btn-icon.btn-secondary,
+.btn-icon.btn-outline {
+    background: transparent;
+    color: #000;
+    border: none;
+}
+
+.btn-icon.btn-primary:hover,
+.btn-icon.btn-secondary:hover {
+    color: #333;
+}
+
+.icon { 
+    font-size: 16px; 
+    line-height: 1; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+}
 
 /* Space icon-only buttons in activity cards */
 .activity-card .actions .btn-icon + .btn-icon { margin-left: 8px; }
@@ -342,8 +371,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     border-radius: 8px;
 }
 
-/* Small helpers */
-.icon { display:inline-flex; align-items:center; justify-content:center; }
+.btn-icon:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
 
 /* Periodos aquisitivos table adjustments */
 #tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
@@ -381,35 +412,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos tbody tr td { vertical-align: middle; }
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
-
-/* Botões de ícone para ações (comportamentos e variantes) */
-.btn-icon:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-medium);
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-color: transparent;
-}
-.btn-icon.btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-.btn-icon.btn-primary:hover {
-    background: var(--primary-dark);
-}
-.btn-icon.btn-secondary {
-    background: var(--bg-card);
-    color: var(--secondary-dark);
-}
-.btn-icon.btn-secondary:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-.btn-icon svg {
-    width: 16px;
-    height: 16px;
-}
 
 /* ================================================
    Header / título
@@ -1107,28 +1109,6 @@ button {
     font-family: inherit;
 }
 
-.btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    margin: 0 6px;
-    border-radius: 50%;
-    border: 1px solid var(--border-soft);
-    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(243,246,255,0.9));
-    color: var(--primary-dark);
-    cursor: pointer;
-    box-shadow: var(--shadow-soft);
-    transition: transform .08s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
-}
-
-.btn-icon .icon {
-    font-size: 18px;
-    line-height: 1;
-}
-
 /* Botões padrão */
 .btn-primary {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -1772,8 +1752,6 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     align-items: center !important;
     justify-content: center !important;
 }
-.btn-icon.btn-primary { color: #fff !important; }
-.btn-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); }
 
 /* Reduce stacking in very narrow cells: allow horizontal scroll if needed */
 td[style*="white-space: nowrap"] .btn-icon { margin: 0 3px; }
