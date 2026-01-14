@@ -38,9 +38,17 @@
     }
 
     function renderizarTabelaAtividades(items) {
+        try {
+            console.debug('AtividadesTabela.renderizarTabelaAtividades: called with items length =', Array.isArray(items)? items.length : typeof items);
+        } catch(e){}
         const tbody = document.querySelector('#tabelaAtividades tbody');
-        if (!tbody) return;
-        const rows = items.map(a => {
+        if (!tbody) {
+            console.error('AtividadesTabela: tbody not found for #tabelaAtividades');
+            return;
+        }
+        let rows = '';
+        try {
+            rows = items.map(a => {
             // Formatar datas usando função local
             const prazo = formatarDataBR(a.prazo);
             const dataDoc = formatarDataBR(a.dataDoc);
@@ -78,7 +86,19 @@
                 </td>
             </tr>`;
         }).join('');
-        tbody.innerHTML = rows;
+        } catch (err) {
+            console.error('AtividadesTabela: error while creating rows HTML', err);
+            // attempt to fallback to a safe empty body
+            tbody.innerHTML = '';
+            return;
+        }
+        try {
+            tbody.innerHTML = rows;
+            console.debug('AtividadesTabela: tbody children after render =', tbody.childElementCount);
+            if (tbody.childElementCount === 0) console.warn('AtividadesTabela: rendered 0 rows even though items length =', Array.isArray(items)? items.length : typeof items);
+        } catch (err) {
+            console.error('AtividadesTabela: error setting tbody.innerHTML', err);
+        }
     }
 
     window.AtividadesTabela = {
