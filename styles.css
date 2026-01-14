@@ -757,19 +757,21 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
    Atividades table: prevent header wrapping and ensure horizontal scroll
    ================================================ */
 #atividadesTableContainer .table-container { overflow-x: auto; }
-#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 980px; }
-#tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 6px 8px; font-size: 13px; vertical-align: middle; }
+#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1500px; }
+#tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 8px 10px; font-size: 13px; vertical-align: middle; }
 #tabelaAtividades thead th {
     background: var(--primary);
     color: #ffffff;
     font-weight: 700;
     text-transform: uppercase;
     padding: 10px 8px;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 1px; /* forces ellipsis behavior inside table layout */
+    line-height: 1.15;
+    /* Allow header to wrap between words but avoid breaking words in the middle */
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+    text-align: center;
 }
 #tabelaAtividades tbody td { white-space: normal; overflow-wrap: anywhere; }
 
