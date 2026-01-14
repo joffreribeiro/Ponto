@@ -420,6 +420,74 @@
 
     </div><!-- fim .container -->
 
+<!-- MODALS -->
+
+<!-- Modal Registro -->
+<div id="modalRegistro" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Registro de Ponto</h2>
+            <button type="button" class="modal-close" data-action="fecharModalRegistro"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="dataRegistro">Data:</label>
+                <input type="date" id="dataRegistro" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="entradaRegistro">Entrada:</label>
+                    <input type="time" id="entradaRegistro" required>
+                </div>
+                <div class="form-group">
+                    <label for="saidaAlmocoRegistro">Saída Almoço:</label>
+                    <input type="time" id="saidaAlmocoRegistro">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="retornoAlmocoRegistro">Retorno Almoço:</label>
+                    <input type="time" id="retornoAlmocoRegistro">
+                </div>
+                <div class="form-group">
+                    <label for="saidaRegistro">Saída:</label>
+                    <input type="time" id="saidaRegistro">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="observacoesRegistro">Observações:</label>
+                <textarea id="observacoesRegistro" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="registroPeriodoEvento">Marcar no timesheet (período):</label>
+                <select id="registroPeriodoEvento">
+                    <option value="">Nenhum</option>
+                    <option value="dia_todo">Dia todo</option>
+                    <option value="matutino">Matutino (somente manhã)</option>
+                    <option value="vespertino">Vespertino (somente tarde)</option>
+                </select>
+                <p class="small-text" style="margin-top:6px;">Selecione um período para destacar apenas parte do dia no timesheet: <strong>Matutino</strong> (apenas manhã), <strong>Vespertino</strong> (apenas tarde) ou <strong>Dia todo</strong>. Útil para informar que você sairá mais cedo ou terá apenas parte do dia afetada.</p>
+            </div>
+            <div class="form-group">
+                <label for="registroCriarEvento" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="registroCriarEvento" checked>
+                    Criar evento persistente a partir deste registro
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="registroTipoEvento">Tipo do evento (quando criado a partir deste registro):</label>
+                <select id="registroTipoEvento">
+                    <!-- será populado dinamicamente -->
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-action="fecharModalRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+        </div>
+    </div>
+</div>
+
 <!-- SCRIPTS -->
 <!-- Chart.js CDN - carregar antes de charts.js local -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
