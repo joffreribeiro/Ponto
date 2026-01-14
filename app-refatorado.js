@@ -427,13 +427,21 @@ window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
 function renderizarAtividades() {
     const container = document.getElementById('atividadesLista');
     if (!container) return;
+    // Acessos defensivos: aceitar os IDs antigos (filtroAtividades*) ou os novos topFiltro*
+    const statusEl = document.getElementById('filtroAtividadesStatus') || document.getElementById('topFiltroStatusCol');
+    const statusFiltro = statusEl ? (statusEl.value || '') : '';
 
-    const statusFiltro = document.getElementById('filtroAtividadesStatus').value;
-    const busca = (document.getElementById('filtroAtividadesBusca').value || '').toLowerCase();
+    const buscaEl = document.getElementById('filtroAtividadesBusca') || document.getElementById('topFiltroBusca');
+    const busca = buscaEl ? ((buscaEl.value || '').toLowerCase()) : '';
 
-    const prioridadeFiltro = (document.getElementById('filtroAtividadesPrioridade') && document.getElementById('filtroAtividadesPrioridade').value) || '';
-    const responsavelFiltro = (document.getElementById('filtroAtividadesResponsavel') && document.getElementById('filtroAtividadesResponsavel').value || '').toLowerCase();
-    const ordenarPor = (document.getElementById('filtroAtividadesOrdenar') && document.getElementById('filtroAtividadesOrdenar').value) || 'prioridade';
+    const prioridadeEl = document.getElementById('filtroAtividadesPrioridade') || document.getElementById('topFiltroPrioridade');
+    const prioridadeFiltro = prioridadeEl ? (prioridadeEl.value || '') : '';
+
+    const responsavelEl = document.getElementById('filtroAtividadesResponsavel') || document.getElementById('topFiltroResponsavel');
+    const responsavelFiltro = responsavelEl ? ((responsavelEl.value || '').toLowerCase()) : '';
+
+    const ordenarEl = document.getElementById('filtroAtividadesOrdenar') || document.getElementById('topFiltroOrdem');
+    const ordenarPor = ordenarEl ? (ordenarEl.value || 'prioridade') : 'prioridade';
     const kanbanVisible = !!AppState.atividadesKanbanView;
 
     const items = (AppState.dados.atividades || []).filter(a => {
