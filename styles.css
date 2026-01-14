@@ -489,6 +489,25 @@ header h1 {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Normalize icon sizes across tabs and filters */
+.tabs .tab-btn .icon,
+.subtabs .subtab-btn .icon,
+.filter-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+.tabs .tab-btn .icon svg.icon-svg,
+.filter-icon svg.icon-svg {
+    width: 18px;
+    height: 18px;
+}
+.subtabs .subtab-btn .icon {
+    font-size: 18px; /* keep emojis visually consistent */
+}
+
 .subtitle {
     margin-top: 8px;
     font-size: 14px;
