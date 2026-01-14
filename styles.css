@@ -436,6 +436,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* column sizing is controlled via <colgroup> in the table markup */
 
+/* Force widths for problem columns in case inline/colgroup is ignored by browser or overridden */
+#tablePeriodosAquisitivos col.col-periodo {
+    width: 80px !important;
+    min-width: 80px !important;
+}
+
+/* Increase 'DISPONÍVEL' (4th column) and reduce 'Período' (5th) as requested */
+#tablePeriodosAquisitivos col:nth-child(4) {
+    width: 120px !important;
+    min-width: 120px !important;
+}
+
+#tablePeriodosAquisitivos th:nth-child(4),
+#tablePeriodosAquisitivos td:nth-child(4) {
+    width: 120px !important;
+    min-width: 120px !important;
+}
+
+#tablePeriodosAquisitivos th:nth-child(5),
+#tablePeriodosAquisitivos td:nth-child(5) {
+    width: 80px !important;
+    min-width: 80px !important;
+}
+
 /* ================================================
    Header / título
    ================================================ */
