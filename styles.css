@@ -401,11 +401,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     font-size: 12px;
 }
 #tablePeriodosAquisitivos thead th { 
-    background: var(--primary-soft); 
-    color: var(--primary-dark); 
+    background: var(--primary); 
+    color: #ffffff; 
     font-weight: 700; 
-    font-size: 11px;
+    font-size: 13px;
+    padding: 12px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     line-height: 1.2;
+    border: none;
 }
 /* Larguras fixas das colunas */
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
