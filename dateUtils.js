@@ -8,6 +8,14 @@ const DateUtils = {
      */
     normalize(str) {
         if (!str) return '';
+        // Se for Date, converter para ISO
+        if (str instanceof Date) {
+            return str.toISOString().split('T')[0];
+        }
+        // Garantir que é string antes de chamar .trim()
+        if (typeof str !== 'string') {
+            str = String(str);
+        }
         const s = str.trim();
 
         // DD/MM/YYYY
