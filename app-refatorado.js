@@ -6007,19 +6007,16 @@ function exportarAtividadesExcel() {
         // Criar worksheets separadas
         const wb = XLSX.utils.book_new();
         
-        // ====== WORKSHEET 1: RESUMO (dados principais) ======
+        // ====== WORKSHEET 1: RESUMO (dados principais) - NA ORDEM DO FORMULÁRIO ======
         const dadosResumo = [
-            ['ID', 'Título', 'Descrição', 'Status', 'Prioridade', 'Responsável', 'Progresso (%)', 'Prazo', 'Dias até prazo', 'Ordem', 'TED/PTRAB', 'Objeto', 'Processo Principal', 'Assunto', 'Processo Solicitação', 'Data Doc', 'Tipo Doc', 'Nº Doc', 'Remetente', 'Destinário', 'Ação a Realizar', 'Tempo Estimado (min)', 'Tempo Gasto (min)', 'Tags', 'Lembretes (dias)', 'Observações', 'Finalizado', 'Criado em', 'Atualizado em'],
+            ['ID', 'Ordem', 'TED/PTRAB', 'Objeto', 'Processo Principal', 'Assunto', 'Processo Solicitação', 
+             'Data Doc', 'Tipo Doc', 'Nº Doc', 'Remetente', 'Destinário', 'Ação a Realizar',
+             'Título', 'Descrição', 'Responsável', 'Prioridade', 'Prazo', 'Dias até prazo', 'Status', 
+             'Progresso (%)', 'Tags', 'Tempo Estimado (min)', 'Tempo Gasto (min)', 'Nº Subtarefas', 
+             'Nº Anexos', 'Nº Comentários', 'Lembrete (dias)', 'Lembrete (data/hora)', 'Observações', 'Finalizado', 
+             'Criado em', 'Atualizado em'],
             ...atividades.map(a => [
                 a.id || '',
-                a.titulo || '',
-                a.descricao || '',
-                a.status || '',
-                a.prioridade || '',
-                a.responsavel || '',
-                a.progresso || 0,
-                a.prazo ? DateUtils.formatBR(a.prazo) : '',
-                a.dias || '',
                 a.ordem || '',
                 a.tedPtrab || '',
                 a.objeto || '',
@@ -6032,10 +6029,22 @@ function exportarAtividadesExcel() {
                 a.remetente || '',
                 a.destinatario || '',
                 a.acaoRealizar || '',
+                a.titulo || '',
+                a.descricao || '',
+                a.responsavel || '',
+                a.prioridade || '',
+                a.prazo ? DateUtils.formatBR(a.prazo) : '',
+                a.dias || '',
+                a.status || '',
+                a.progresso || 0,
+                (a.tags || []).join('; '),
                 a.tempoEstimadoMin || 0,
                 a.tempoGastoMin || 0,
-                (a.tags || []).join('; '),
+                (a.subtarefas || []).length,
+                (a.anexos || []).length,
+                (a.comentarios || []).length,
                 a.lembreteDias || '',
+                a.lembreteHorario ? DateUtils.formatDateTime(a.lembreteHorario) : '',
                 a.observacoes || '',
                 a.finalizado ? 'Sim' : 'Não',
                 a.criadoEm ? DateUtils.formatDateTime(a.criadoEm) : '',
@@ -6045,11 +6054,11 @@ function exportarAtividadesExcel() {
         
         const wsResumo = XLSX.utils.aoa_to_sheet(dadosResumo);
         wsResumo['!cols'] = [
-            { wch: 12 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 12 }, { wch: 15 },
-            { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 20 },
-            { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 10 },
-            { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 15 },
-            { wch: 14 }, { wch: 30 }, { wch: 10 }, { wch: 16 }, { wch: 16 }
+            { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 18 },
+            { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 20 },
+            { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 },
+            { wch: 12 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
+            { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 10 }, { wch: 16 }, { wch: 16 }
         ];
         XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
         
