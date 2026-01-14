@@ -206,7 +206,7 @@ function inicializar() {
             try {
                 if (inputAdmissao && AppState.dados && AppState.dados.admissao) {
                     // armazenamos como ISO (YYYY-MM-DD)
-                    inputAdmissao.value = AppState.dados.admissao || '';
+                    inputAdmissao.value = dateIsoToBr(AppState.dados.admissao || '');
                     // desabilitar edição se já existe data salva
                     inputAdmissao.disabled = true;
                     // esconder botão salvar
@@ -1126,8 +1126,8 @@ function confirmarSolicitacaoFerias() {
     try {
         const selectPeriodo = document.getElementById('modalFeriasPeriodoSelect');
         const periodoId = selectPeriodo.value;
-        const inicio = document.getElementById('modalFeriasInicio').value;
-        const fim = document.getElementById('modalFeriasFim').value;
+        const inicio = dateBrToIso(document.getElementById('modalFeriasInicio').value);
+        const fim = dateBrToIso(document.getElementById('modalFeriasFim').value);
         const adto13 = document.getElementById('modalFeriasAdto13').value;
         
         if (!periodoId) {
@@ -1783,8 +1783,8 @@ function calcularIntervaloPeriodo(periodo) {
             const dataInicioInput = document.getElementById('dashboardDataInicio');
             const dataFimInput = document.getElementById('dashboardDataFim');
             if (dataInicioInput.value && dataFimInput.value) {
-                inicio = DateUtils.parse(dataInicioInput.value);
-                fim = DateUtils.parse(dataFimInput.value);
+                inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
+                fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
             }
             break;
         
@@ -1852,8 +1852,8 @@ function aplicarFiltrosDashboard() {
             return;
         }
 
-        const inicio = DateUtils.parse(dataInicioInput.value);
-        const fim = DateUtils.parse(dataFimInput.value);
+        const inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
+        const fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
 
         if (inicio > fim) {
             Notifications.warning('A data inicial deve ser anterior à data final');
@@ -2274,7 +2274,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         const r = AppState.dados.registros.find(x => x.data === dataStr) || null;
 
         // Preencher/limpar campos
-        document.getElementById('dataRegistro').value = dataStr;
+        document.getElementById('dataRegistro').value = dateIsoToBr(dataStr);
         document.getElementById('entradaRegistro').value = (r && r.entrada) || '';
         document.getElementById('saidaAlmocoRegistro').value = (r && r.saidaAlmoco) || '';
         document.getElementById('retornoAlmocoRegistro').value = (r && r.retornoAlmoco) || '';
@@ -3633,16 +3633,10 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 
         const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
         const rawVal = (dataAd.value || '').trim();
-        // Tentar parsear como ISO primeiro, depois aceitar DD/MM/AAAA (BR)
-        let dt = DateUtils.parse(rawVal);
+        const isoVal = dateBrToIso(rawVal);
+        const dt = DateUtils.parse(isoVal);
         if (!dt) {
-            try {
-                const converted = parseDateBR(rawVal); // retorna YYYY-MM-DD ou null
-                if (converted) dt = DateUtils.parse(converted);
-            } catch (e) { dt = null; }
-        }
-        if (!dt) {
-            mostrarAlertaGlobal('Data de admissão inválida. Use YYYY-MM-DD ou DD/MM/AAAA.', 'error');
+            mostrarAlertaGlobal('Data de admissão inválida. Use o formato DD/MM/AAAA.', 'error');
             return;
         }
 
@@ -4431,8 +4425,8 @@ function editarPeriodoAcordo(index) {
     try {
         const p = AppState.acordoEmEdicao.periodos[index];
         if (!p) throw new Error('Período não encontrado');
-        document.getElementById('periodoInicio').value = p.inicio;
-        document.getElementById('periodoFim').value = p.fim;
+        document.getElementById('periodoInicio').value = dateIsoToBr(p.inicio);
+        document.getElementById('periodoFim').value = dateIsoToBr(p.fim);
         document.getElementById('periodoMinutosExtras').value = p.minutosExtras || 0;
         AppState.acordoEmEdicao.editingPeriodoIndex = index;
         const btn = document.getElementById('btnAdicionarPeriodo');
@@ -4445,8 +4439,8 @@ function editarPeriodoAcordo(index) {
 
 function adicionarPeriodoAcordo() {
     try {
-        const inicio = document.getElementById('periodoInicio').value;
-        const fim = document.getElementById('periodoFim').value;
+        const inicio = dateBrToIso(document.getElementById('periodoInicio').value);
+        const fim = dateBrToIso(document.getElementById('periodoFim').value);
         const minutosExtras = Number(document.getElementById('periodoMinutosExtras').value || 0);
 
         const periodo = { inicio, fim, minutosExtras };
