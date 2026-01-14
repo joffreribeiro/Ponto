@@ -427,6 +427,7 @@ window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
 function renderizarAtividades() {
     const container = document.getElementById('atividadesLista');
     if (!container) return;
+    try { console.debug('renderizarAtividades: AppState.dados.atividades length =', (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.length : 'no-data'); } catch(e){}
     // Acessos defensivos: aceitar os IDs antigos (filtroAtividades*) ou os novos topFiltro*
     const statusEl = document.getElementById('filtroAtividadesStatus') || document.getElementById('topFiltroStatusCol');
     const statusFiltro = statusEl ? (statusEl.value || '') : '';
@@ -451,8 +452,9 @@ function renderizarAtividades() {
     });
 
     if (!items.length) {
+        try { console.debug('renderizarAtividades: filtro resultou em 0 items. statusFiltro=', statusFiltro, 'busca=', busca); } catch(e){}
         container.innerHTML = '<div class="card">Nenhuma atividade encontrada.</div>';
-        document.getElementById('atividadesKanban').innerHTML = '';
+        const kanb = document.getElementById('atividadesKanban'); if (kanb) kanb.innerHTML = '';
         return;
     }
 
@@ -538,8 +540,9 @@ function renderizarAtividades() {
 // Icons and badges moved to `icons.js` (exposed as `Icons.svgIcon` / `svgIcon` and `Icons.getPriorityBadge` / `getPriorityBadge`)
 
 function renderizarTabelaAtividades(items) {
+    try { console.debug('renderizarTabelaAtividades: items length =', Array.isArray(items)? items.length : typeof items); } catch(e){}
     if (window.AtividadesTabela && typeof AtividadesTabela.renderizarTabelaAtividades === 'function') {
-        return AtividadesTabela.renderizarTabelaAtividades(items);
+        try { return AtividadesTabela.renderizarTabelaAtividades(items); } catch(e){ console.error('AtividadesTabela.renderizarTabelaAtividades error', e); }
     }
     // fallback mínimo: limpa o tbody
     const tbody = document.querySelector('#tabelaAtividades tbody');
