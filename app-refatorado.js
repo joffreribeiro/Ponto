@@ -6201,6 +6201,34 @@ function procesarArquivoAtividadesExcel(event) {
                     return;
                 }
                 
+                // Helpers para datas do Excel
+                const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime());
+                const excelSerialToDate = (serial) => {
+                    const utcDays = Math.floor(serial - 25569);
+                    const utcValue = utcDays * 86400;
+                    return new Date(utcValue * 1000);
+                };
+                const toIsoDate = (val) => {
+                    if (val === undefined || val === null || val === '') return '';
+                    let d;
+                    if (typeof val === 'number') {
+                        d = excelSerialToDate(val);
+                    } else {
+                        d = new Date(val);
+                    }
+                    return isValidDate(d) ? d.toISOString().split('T')[0] : '';
+                };
+                const toIsoDateTime = (val) => {
+                    if (val === undefined || val === null || val === '') return null;
+                    let d;
+                    if (typeof val === 'number') {
+                        d = excelSerialToDate(val);
+                    } else {
+                        d = new Date(val);
+                    }
+                    return isValidDate(d) ? d.toISOString() : null;
+                };
+
                 // Processar dados - IMPORTAR TODOS OS CAMPOS
                 const novasAtividades = [];
                 for (let i = 1; i < linhas.length; i++) {
@@ -6215,7 +6243,7 @@ function procesarArquivoAtividadesExcel(event) {
                         processoPrincipal: String(linha[mapa['processo principal']] || '').trim(),
                         assunto: String(linha[mapa['assunto']] || '').trim(),
                         processoSolicitacao: String(linha[mapa['processo solicitação']] || '').trim(),
-                        dataDoc: linha[mapa['data doc']] ? new Date(linha[mapa['data doc']]).toISOString().split('T')[0] : '',
+                        dataDoc: toIsoDate(linha[mapa['data doc']]),
                         tipoDoc: String(linha[mapa['tipo doc']] || '').trim(),
                         numeroDoc: String(linha[mapa['nº doc']] || '').trim(),
                         remetente: String(linha[mapa['remetente']] || '').trim(),
@@ -6225,7 +6253,7 @@ function procesarArquivoAtividadesExcel(event) {
                         descricao: String(linha[mapa['descrição']] || '').trim(),
                         responsavel: String(linha[mapa['responsável']] || '').trim(),
                         prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
-                        prazo: linha[mapa['prazo']] ? new Date(linha[mapa['prazo']]).toISOString().split('T')[0] : '',
+                        prazo: toIsoDate(linha[mapa['prazo']]),
                         dias: Number(linha[mapa['dias até prazo']] || 0),
                         status: String(linha[mapa['status']] || 'pendente').trim(),
                         progresso: Number(linha[mapa['progresso (%)']] || 0),
@@ -6233,7 +6261,7 @@ function procesarArquivoAtividadesExcel(event) {
                         tempoEstimadoMin: Number(linha[mapa['tempo estimado (min)']] || 0),
                         tempoGastoMin: Number(linha[mapa['tempo gasto (min)']] || 0),
                         lembreteDias: Number(linha[mapa['lembrete (dias)']] || 0),
-                        lembreteHorario: linha[mapa['lembrete (data/hora)']] ? new Date(linha[mapa['lembrete (data/hora)']]).toISOString() : null,
+                        lembreteHorario: toIsoDateTime(linha[mapa['lembrete (data/hora)']]),
                         observacoes: String(linha[mapa['observações']] || '').trim(),
                         finalizado: (String(linha[mapa['finalizado']] || 'não')).toLowerCase() === 'sim',
                         subtarefas: [],
