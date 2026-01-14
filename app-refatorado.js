@@ -6066,7 +6066,82 @@ window.reconstruirSubperiodosFaltantes = reconstruirSubperiodosFaltantes;
 function exportarAtividadesExcel() {
     try {
         const atividades = AppState.dados.atividades || [];
-        
+
+        // If SheetJS (XLSX) is not available, fallback to CSV download
+        if (typeof window.XLSX === 'undefined') {
+            try {
+                const headers = [
+                    'ID','Ordem','TED/PTRAB','Objeto','Processo Principal','Assunto','Processo Solicitação',
+                    'Data Doc','Tipo Doc','Nº Doc','Remetente','Destinatário','Ação a Realizar',
+                    'Título','Descrição','Responsável','Prioridade','Prazo','Dias até prazo','Status',
+                    'Progresso (%)','Tags','Tempo Estimado (min)','Tempo Gasto (min)','Nº Subtarefas',
+                    'Nº Anexos','Nº Comentários','Lembrete (dias)','Lembrete (data/hora)','Observações','Finalizado',
+                    'Criado em','Atualizado em'
+                ];
+                const rows = atividades.map(a => [
+                    a.id || '',
+                    a.ordem || '',
+                    a.tedPtrab || '',
+                    a.objeto || '',
+                    a.processoPrincipal || '',
+                    a.assunto || '',
+                    a.processoSolicitacao || '',
+                    a.dataDoc ? DateUtils.formatBR(a.dataDoc) : '',
+                    a.tipoDoc || '',
+                    a.numeroDoc || '',
+                    a.remetente || '',
+                    a.destinatario || '',
+                    a.acaoRealizar || '',
+                    a.titulo || '',
+                    (a.descricao || '').replace(/\r?\n/g, ' '),
+                    a.responsavel || '',
+                    a.prioridade || '',
+                    a.prazo ? DateUtils.formatBR(a.prazo) : '',
+                    (typeof a.dias !== 'undefined' ? a.dias : ''),
+                    a.status || '',
+                    a.progresso || '',
+                    (Array.isArray(a.tags) ? a.tags.join(';') : a.tags || ''),
+                    a.tempoEstimadoMin || '',
+                    a.tempoGastoMin || '',
+                    (Array.isArray(a.subtarefas) ? a.subtarefas.length : ''),
+                    (Array.isArray(a.anexos) ? a.anexos.length : ''),
+                    (Array.isArray(a.comentarios) ? a.comentarios.length : ''),
+                    a.lembreteDias || '',
+                    a.lembreteHorario || '',
+                    (a.observacoes || '').replace(/\r?\n/g, ' '),
+                    a.finalizado ? 'Sim' : 'Não',
+                    a.criadoEm || '',
+                    a.atualizadoEm || ''
+                ]);
+                const all = [headers].concat(rows);
+                const csv = all.map(r => r.map(cell => {
+                    if (cell === null || typeof cell === 'undefined') return '';
+                    const s = String(cell);
+                    // escape quotes
+                    if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+                        return '"' + s.replace(/"/g, '""') + '"';
+                    }
+                    return s;
+                }).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const name = 'atividades_export_' + (new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-') + '.csv';
+                if (navigator.msSaveBlob) { navigator.msSaveBlob(blob, name); }
+                else {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute('download', name);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                return;
+            } catch (e) {
+                console.error('Erro ao exportar atividades (fallback CSV):', e);
+                alert('Erro ao exportar atividades: ' + (e && e.message ? e.message : e));
+                return;
+            }
+        }
+
         // Criar worksheets separadas
         const wb = XLSX.utils.book_new();
         
