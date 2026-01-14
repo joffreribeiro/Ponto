@@ -2782,3 +2782,16 @@ select.field-invalid:focus {
     pointer-events: auto !important;
 }
 
+/* Tabela de Atividades: deixar texto em negrito para melhor leitura */
+#tabelaAtividades th,
+#tabelaAtividades td {
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+}
+
+/* Garantir que badges e elementos pequenos dentro da tabela também fiquem legíveis */
+#tabelaAtividades td * {
+    font-weight: 700 !important;
+}
+
+
