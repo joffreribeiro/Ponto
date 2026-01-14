@@ -1,69 +1,4 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Gestão de jornada, acordos coletivos e timesheet em um só lugar">
-    <meta name="theme-color" content="#0b6ea4">
-    <title>Controle de Atividades</title>
-    
-    <!-- PWA Manifest: inject only when served over http(s) to avoid CORS/file:// errors -->
-    <script>
-        (function(){
-            try {
-                if (location.protocol === 'http:' || location.protocol === 'https:') {
-                    var l = document.createElement('link');
-                    l.rel = 'manifest';
-                    l.href = './manifest.json';
-                    document.head.appendChild(l);
-                } else {
-                    console.log('Skipping manifest injection (not http/https)');
-                }
-            } catch(e){ console.warn('Manifest injection error', e); }
-        })();
-    </script>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="styles.css?v=1.2.0">
-    
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Biblioteca XLSX para importar/exportar arquivos Excel -->
-    <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
-</head>
-<body>
-<header id="mainHeader">
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;position:relative;">
-        <div style="text-align:center;">
-            <h1>Gestão de Atividades</h1>
-            <p class="subtitle">Joffre Mozart Parada Ribeiro</p>
-        </div>
-        <div class="header-actions" style="position:absolute; right:16px; top:50%; transform:translateY(-50%);">
-            <button class="btn-outline" data-action="toggleTheme" id="themeToggle" title="Alternar tema">Tema</button>
-        </div>
-    </div>
-</header>
-
-<div class="container">
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="dashboard">
-                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M3 3h2v18H3zM8 10h2v11H8zM13 5h2v16h-2zM18 13h2v8h-2z"/></svg></span>
-                <span>Dashboard</span>
-            </button>
-            <button class="tab-btn" data-tab="ponto">
-                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M11 7h2v6h-5v-2h3zM12 1a10 10 0 1 0 10 10A10 10 0 0 0 12 1zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg></span>
-                <span>Ponto</span>
-            </button>
-            <button class="tab-btn" data-tab="atividades">
-                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>
-                <span>Atividades</span>
-            </button>
-        </nav>
-
-        <section id="dashboard" class="tab-content active">
-            <!-- Filtros do Dashboard -->
-            <div class="card" style="margin-bottom: 16px;">
                 <div class="dashboard-filters">
                     <div class="filter-group">
                         <label for="dashboardFilterAcordo">
@@ -228,32 +163,65 @@
                 </div>
 
                 <div style="margin-top:12px;">
-                    <div class="filter-group" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;max-width:520px;">
+<<<<<<< HEAD
+                    <div class="advanced-filters-grid" style="width:100%;">
+                        <input id="topFiltroBusca" placeholder="Buscar (texto em qualquer coluna)" class="full-width">
+                        <select id="topFiltroStatusCol" class="full-width">
+=======
+                    <div class="filter-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <span class="label-inline">Filtro:</span>
-                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="width:100%;max-width:420px;" />
+                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="flex:1;min-width:220px;" />
                         <select id="filtroAtividadesStatus" onchange="renderizarAtividades()">
+>>>>>>> parent of 6fd248d (Update index-refatorado.html)
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
                             <option value="em andamento">Em andamento</option>
                             <option value="concluida">Concluída</option>
                             <option value="bloqueada">Bloqueada</option>
                         </select>
-                        <select id="filtroAtividadesPrioridade" onchange="renderizarAtividades()">
+                        <select id="topFiltroPrioridade" class="full-width">
                             <option value="">Todas prioridades</option>
                             <option value="baixa">Baixa</option>
                             <option value="media">Média</option>
                             <option value="alta">Alta</option>
                             <option value="critica">Crítica</option>
                         </select>
-                        <input id="filtroAtividadesResponsavel" placeholder="Responsável" oninput="renderizarAtividades()" style="width:100%;max-width:320px;" />
-                        <div style="display:flex;gap:8px;align-items:center;width:100%;">
-                            <span style="min-width:70px;">Ordenar:</span>
-                            <select id="filtroAtividadesOrdenar" onchange="renderizarAtividades()" style="flex:0 0 220px;">
+<<<<<<< HEAD
+                        <input id="topFiltroResponsavel" placeholder="Responsável" class="full-width">
+                        <select id="topFiltroOrdem" class="full-width">
+=======
+                        <input id="filtroAtividadesResponsavel" placeholder="Responsável" oninput="renderizarAtividades()" />
+                        <span style="margin-left:8px;">Ordenar:</span>
+                        <select id="filtroAtividadesOrdenar" onchange="renderizarAtividades()">
+>>>>>>> parent of 6fd248d (Update index-refatorado.html)
                             <option value="prioridade">Prioridade</option>
                             <option value="prazo">Prazo</option>
                             <option value="criadoEm">Criado</option>
                         </select>
+<<<<<<< HEAD
+
+                        <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" class="full-width">
+                        <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" class="full-width">
+                        <input id="topFiltroObjeto" placeholder="Objeto" class="full-width">
+                        <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal" class="full-width">
+                        <input id="topFiltroAssunto" placeholder="Assunto" class="full-width">
+                        <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação" class="full-width">
+                        <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroDataAte" placeholder="Data Até (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroTipoDoc" placeholder="Tipo Doc" class="full-width">
+                        <input id="topFiltroNumeroDoc" placeholder="Nº Doc." class="full-width">
+                        <input id="topFiltroRemetente" placeholder="Remetente" class="full-width">
+                        <input id="topFiltroDestinatario" placeholder="Destinatário" class="full-width">
+                        <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar" class="full-width">
+                        <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroPrazoAte" placeholder="Prazo Até (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroDias" placeholder="Dias" class="full-width">
+                        <input id="topFiltroObservacoes" placeholder="Observações" class="full-width">
+                        <select id="topFiltroFinalizado" class="full-width"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+                        <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content:flex-end;">
+                            <button id="topBtnLimparFiltros" class="btn btn-secondary">Limpar filtros</button>
                         </div>
+=======
                         <details id="advancedFilters" style="margin-left:8px;">
                             <summary style="cursor:pointer;font-weight:600;">Filtros avançados ▾</summary>
                             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
@@ -282,6 +250,7 @@
                                 <input id="topFiltroStatusCol" placeholder="Status" />
                             </div>
                         </details>
+>>>>>>> parent of 6fd248d (Update index-refatorado.html)
                     </div>
                 </div>
 
@@ -427,42 +396,7 @@
                                         <th>Status</th>
                                         <th>Ações</th>
                                     </tr>
-                                    <tr class="table-filters-row">
-                                        <th><input id="filtroOrdem" placeholder="Ordem" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroTedPtrab" placeholder="TED/Ptrab" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroObjeto" placeholder="Objeto" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroProcessoPrincipal" placeholder="Processo Principal" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroAssunto" placeholder="Assunto" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroProcessoSolicitacao" placeholder="Processo Solicitação" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th>
-                                            <div style="display:flex;gap:4px;">
-                                                <input id="filtroDataDe" placeholder="De (DD/MM/AAAA)" style="width:50%;box-sizing:border-box;" />
-                                                <input id="filtroDataAte" placeholder="Até" style="width:50%;box-sizing:border-box;" />
-                                            </div>
-                                        </th>
-                                        <th><input id="filtroTipoDoc" placeholder="Tipo Doc" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroNumeroDoc" placeholder="Nº Doc." style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroRemetente" placeholder="Remetente" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroDestinatario" placeholder="Destinatário" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroAcaoRealizar" placeholder="Ação a Realizar" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th>
-                                            <div style="display:flex;gap:4px;">
-                                                <input id="filtroPrazoDe" placeholder="De" style="width:50%;box-sizing:border-box;" />
-                                                <input id="filtroPrazoAte" placeholder="Até" style="width:50%;box-sizing:border-box;" />
-                                            </div>
-                                        </th>
-                                        <th><input id="filtroDias" placeholder="Dias" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroObservacoes" placeholder="Observações" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th>
-                                            <select id="filtroFinalizado" style="width:100%;box-sizing:border-box;">
-                                                <option value="">Todos</option>
-                                                <option value="sim">Sim</option>
-                                                <option value="nao">Não</option>
-                                            </select>
-                                        </th>
-                                        <th><input id="filtroStatusCol" placeholder="Status" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th style="text-align:center;"><button id="btnLimparFiltrosTabela" class="btn-secondary" title="Limpar filtros">Limpar</button></th>
-                                    </tr>
+                                    <!-- filters moved to top panel (advanced filters) -->
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -1488,7 +1422,7 @@
 <!-- Removidos marcadores de conflito de merge e chamadas órfãs de funções inexistentes -->
 
 <script>
-// Filtros da tabela de atividades (aplica-se sobre as linhas já renderizadas)
+// Filtros usando apenas os controles do painel superior (topFiltro*)
 (function(){
     function getText(row, idx){
         return (row.cells[idx] && row.cells[idx].innerText || '').trim().toLowerCase();
@@ -1497,11 +1431,9 @@
     function parseBrDate(s){
         if (!s) return null;
         s = (s||'').trim();
-        // DD/MM/YYYY
         const re1 = /^(\d{2})\/(\d{2})\/(\d{4})$/;
         const m1 = s.match(re1);
         if (m1) return new Date(parseInt(m1[3],10), parseInt(m1[2],10)-1, parseInt(m1[1],10));
-        // YYYY-MM-DD
         const re2 = /^(\d{4})-(\d{2})-(\d{2})$/;
         const m2 = s.match(re2);
         if (m2) return new Date(parseInt(m2[1],10), parseInt(m2[2],10)-1, parseInt(m2[3],10));
@@ -1513,25 +1445,26 @@
         if (!tbody) return;
 
         const filtros = {
-            ordem: (document.getElementById('filtroOrdem')||{}).value.trim().toLowerCase(),
-            ted: (document.getElementById('filtroTedPtrab')||{}).value.trim().toLowerCase(),
-            objeto: (document.getElementById('filtroObjeto')||{}).value.trim().toLowerCase(),
-            procPrincipal: (document.getElementById('filtroProcessoPrincipal')||{}).value.trim().toLowerCase(),
-            assunto: (document.getElementById('filtroAssunto')||{}).value.trim().toLowerCase(),
-            procSolic: (document.getElementById('filtroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
-            dataDe: (document.getElementById('filtroDataDe')||{}).value.trim(),
-            dataAte: (document.getElementById('filtroDataAte')||{}).value.trim(),
-            tipoDoc: (document.getElementById('filtroTipoDoc')||{}).value.trim().toLowerCase(),
-            numeroDoc: (document.getElementById('filtroNumeroDoc')||{}).value.trim().toLowerCase(),
-            remetente: (document.getElementById('filtroRemetente')||{}).value.trim().toLowerCase(),
-            destinatario: (document.getElementById('filtroDestinatario')||{}).value.trim().toLowerCase(),
-            acao: (document.getElementById('filtroAcaoRealizar')||{}).value.trim().toLowerCase(),
-            prazoDe: (document.getElementById('filtroPrazoDe')||{}).value.trim(),
-            prazoAte: (document.getElementById('filtroPrazoAte')||{}).value.trim(),
-            dias: (document.getElementById('filtroDias')||{}).value.trim().toLowerCase(),
-            obs: (document.getElementById('filtroObservacoes')||{}).value.trim().toLowerCase(),
-            finalizado: (document.getElementById('filtroFinalizado')||{}).value,
-            status: (document.getElementById('filtroStatusCol')||{}).value.trim().toLowerCase()
+            ordem: (document.getElementById('topFiltroOrdem')||{}).value.trim().toLowerCase(),
+            busca: (document.getElementById('topFiltroBusca')||{}).value.trim().toLowerCase(),
+            ted: (document.getElementById('topFiltroTedPtrab')||{}).value.trim().toLowerCase(),
+            objeto: (document.getElementById('topFiltroObjeto')||{}).value.trim().toLowerCase(),
+            procPrincipal: (document.getElementById('topFiltroProcessoPrincipal')||{}).value.trim().toLowerCase(),
+            assunto: (document.getElementById('topFiltroAssunto')||{}).value.trim().toLowerCase(),
+            procSolic: (document.getElementById('topFiltroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
+            dataDe: (document.getElementById('topFiltroDataDe')||{}).value.trim(),
+            dataAte: (document.getElementById('topFiltroDataAte')||{}).value.trim(),
+            tipoDoc: (document.getElementById('topFiltroTipoDoc')||{}).value.trim().toLowerCase(),
+            numeroDoc: (document.getElementById('topFiltroNumeroDoc')||{}).value.trim().toLowerCase(),
+            remetente: (document.getElementById('topFiltroRemetente')||{}).value.trim().toLowerCase(),
+            destinatario: (document.getElementById('topFiltroDestinatario')||{}).value.trim().toLowerCase(),
+            acao: (document.getElementById('topFiltroAcaoRealizar')||{}).value.trim().toLowerCase(),
+            prazoDe: (document.getElementById('topFiltroPrazoDe')||{}).value.trim(),
+            prazoAte: (document.getElementById('topFiltroPrazoAte')||{}).value.trim(),
+            dias: (document.getElementById('topFiltroDias')||{}).value.trim().toLowerCase(),
+            obs: (document.getElementById('topFiltroObservacoes')||{}).value.trim().toLowerCase(),
+            finalizado: (document.getElementById('topFiltroFinalizado')||{}).value,
+            status: (document.getElementById('topFiltroStatusCol')||{}).value.trim().toLowerCase()
         };
 
         const dataDeDate = parseBrDate(filtros.dataDe) || null;
@@ -1585,44 +1518,31 @@
             }
             if (filtros.status && !getText(row,16).includes(filtros.status)) match = false;
 
+            // Busca global por texto em qualquer célula
+            if (filtros.busca) {
+                const text = (row.innerText||'').toLowerCase();
+                if (!text.includes(filtros.busca)) match = false;
+            }
+
             row.style.display = match ? '' : 'none';
         });
     }
 
-    function syncTopToTable(){
-        const mapping = [
-            ['topFiltroOrdem','filtroOrdem'],['topFiltroTedPtrab','filtroTedPtrab'],['topFiltroObjeto','filtroObjeto'],['topFiltroProcessoPrincipal','filtroProcessoPrincipal'],['topFiltroAssunto','filtroAssunto'],['topFiltroProcessoSolicitacao','filtroProcessoSolicitacao'],['topFiltroDataDe','filtroDataDe'],['topFiltroDataAte','filtroDataAte'],['topFiltroTipoDoc','filtroTipoDoc'],['topFiltroNumeroDoc','filtroNumeroDoc'],['topFiltroRemetente','filtroRemetente'],['topFiltroDestinatario','filtroDestinatario'],['topFiltroAcaoRealizar','filtroAcaoRealizar'],['topFiltroPrazoDe','filtroPrazoDe'],['topFiltroPrazoAte','filtroPrazoAte'],['topFiltroDias','filtroDias'],['topFiltroObservacoes','filtroObservacoes'],['topFiltroFinalizado','filtroFinalizado'],['topFiltroStatusCol','filtroStatusCol']
-        ];
-        mapping.forEach(pair => {
-            const top = document.getElementById(pair[0]);
-            const dest = document.getElementById(pair[1]);
-            if (!top || !dest) return;
-            const ev = top.tagName.toLowerCase() === 'select' ? 'change' : 'input';
-            top.addEventListener(ev, function(){ dest.value = top.value; dest.dispatchEvent(new Event(ev)); });
-            // keep top updated when table input changes
-            const ev2 = dest.tagName.toLowerCase() === 'select' ? 'change' : 'input';
-            dest.addEventListener(ev2, function(){ top.value = dest.value; });
-        });
-    }
-
-    function attachFilters(){
-        const ids = ['filtroOrdem','filtroTedPtrab','filtroObjeto','filtroProcessoPrincipal','filtroAssunto','filtroProcessoSolicitacao','filtroDataDe','filtroDataAte','filtroTipoDoc','filtroNumeroDoc','filtroRemetente','filtroDestinatario','filtroAcaoRealizar','filtroPrazoDe','filtroPrazoAte','filtroDias','filtroObservacoes','filtroFinalizado','filtroStatusCol'];
+    function attachTopFilters(){
+        const ids = ['topFiltroBusca','topFiltroOrdem','topFiltroTedPtrab','topFiltroObjeto','topFiltroProcessoPrincipal','topFiltroAssunto','topFiltroProcessoSolicitacao','topFiltroDataDe','topFiltroDataAte','topFiltroTipoDoc','topFiltroNumeroDoc','topFiltroRemetente','topFiltroDestinatario','topFiltroAcaoRealizar','topFiltroPrazoDe','topFiltroPrazoAte','topFiltroDias','topFiltroObservacoes','topFiltroFinalizado','topFiltroStatusCol','topFiltroPrioridade','topFiltroResponsavel'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             const ev = el.tagName.toLowerCase() === 'select' ? 'change' : 'input';
             el.addEventListener(ev, aplicarFiltrosTabelaAtividades);
         });
-        const btn = document.getElementById('btnLimparFiltrosTabela');
-        if (btn) btn.addEventListener('click', function(){
+
+        const clearBtn = document.getElementById('topBtnLimparFiltros');
+        if (clearBtn) clearBtn.addEventListener('click', function(){
             ids.forEach(id=>{ const e=document.getElementById(id); if (!e) return; if (e.tagName.toLowerCase()==='select') e.value=''; else e.value=''; });
-            // also clear top filters
-            const topIds = document.querySelectorAll('[id^="topFiltro"]');
-            topIds.forEach(t=>{ if (t.tagName.toLowerCase()==='select') t.value=''; else t.value=''; });
             aplicarFiltrosTabelaAtividades();
         });
 
-        // Reaplicar filtros quando a tabela for re-renderizada
         const tbody = document.querySelector('#tabelaAtividades tbody');
         if (tbody) {
             const obs = new MutationObserver(() => setTimeout(aplicarFiltrosTabelaAtividades,20));
@@ -1630,11 +1550,19 @@
         }
     }
 
-    // Inicializar quando DOM pronto
+    function updateToggleButtonsState(){
+        const tableCont = document.getElementById('atividadesTableContainer');
+        const kanban = document.getElementById('atividadesKanban');
+        const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (!tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+    }
+
     document.addEventListener('DOMContentLoaded', function(){
-        attachFilters();
-        syncTopToTable();
-        // aplicar uma vez caso a tabela já esteja renderizada
+        attachTopFilters();
+        updateToggleButtonsState();
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120)));
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120)));
         setTimeout(aplicarFiltrosTabelaAtividades,50);
     });
 })();

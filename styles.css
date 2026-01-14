@@ -672,6 +672,37 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
 .table-filters-row input { width: 100%; box-sizing: border-box; }
 .table-filters-row select { width: 100%; box-sizing: border-box; }
 
+/* Active state for secondary buttons (Tabela / Kanban) */
+.btn-secondary.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid rgba(30,58,138,0.12);
+}
+
+/* Advanced filters grid: distribute controls across full page width */
+.advanced-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px 18px;
+    align-items: start;
+}
+.advanced-filters-grid input,
+.advanced-filters-grid select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text-main);
+}
+.advanced-filters-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+    .advanced-filters-grid { grid-template-columns: 1fr; }
+}
+
 .form-group.valid input, .form-group.valid textarea, .form-group.valid select { border-color: var(--positive); }
 .form-group.valid .validation-feedback { color: var(--positive-dark); }
 
