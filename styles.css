@@ -2749,3 +2749,21 @@ select.field-invalid:focus {
     }
 }
 
+/* ========================================
+   CHAT VISIBILITY FIX: Force chat to remain visible
+   ======================================== */
+[id*="chat" i], [class*="chat" i] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+#chat, #chatPanel, #chatWidget, .chat, .chat-panel, .chat-widget {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+}
+

@@ -100,6 +100,28 @@ function inicializar() {
         // Inicializar módulo de Atividades
         ensureAtividadesDefault();
         renderizarAtividades();
+        
+        // ===== CHAT VISIBILITY FIX: Force chat to remain visible =====
+        try {
+            const enforceChatVisibility = () => {
+                const chatElements = document.querySelectorAll('[id*="chat" i], [class*="chat" i]');
+                chatElements.forEach(el => {
+                    el.style.display = 'block';
+                    el.style.visibility = 'visible';
+                    el.style.opacity = '1';
+                    el.style.zIndex = '9999';
+                    el.style.pointerEvents = 'auto';
+                });
+            };
+            enforceChatVisibility();
+            // Re-enforce on tab clicks
+            document.querySelectorAll('.tab-btn, .subtab-btn').forEach(btn => {
+                btn.addEventListener('click', () => setTimeout(enforceChatVisibility, 100));
+            });
+            // Also monitor DOM changes
+            new MutationObserver(() => enforceChatVisibility()).observe(document.body, { childList: true, subtree: true });
+        } catch (e) { console.warn('Chat visibility fix error:', e); }
+        
         // fallback: garantir botão 'Nova Atividade' ligado mesmo que onclick inline falhe
             try {
                 let btnNew = document.querySelector('button[onclick="abrirModalAtividade()"]');
