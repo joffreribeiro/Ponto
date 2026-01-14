@@ -6330,15 +6330,21 @@ function procesarArquivoAtividadesExcel(event) {
                 const novasAtividades = [];
                 for (let i = 1; i < linhas.length; i++) {
                     const linha = linhas[i];
-                    // obter título a partir de variantes
+                    // considerar linha válida se existir qualquer célula com conteúdo
+                    const rowHasData = (linha || []).some(c => c !== undefined && c !== null && String(c).toString().trim() !== '');
+                    if (!rowHasData) continue;
+
+                    // obter título a partir de variantes (com fallback em objeto/assunto/ted/ordem)
                     const idxTitulo = idxOf(['título','titulo','title']);
                     const valorTitulo = idxTitulo !== -1 ? linha[idxTitulo] : null;
-                    if (!valorTitulo || String(valorTitulo).toString().trim() === '') continue; // pular linhas sem título
 
                     const get = (variants) => {
                         const idx = idxOf(variants);
                         return idx === -1 ? undefined : linha[idx];
                     };
+
+                    const tituloFallback = (get(['objeto','assunto','ted/ptrab','tedptrab','ordem']) || '').toString().trim();
+                    const tituloFinal = (valorTitulo && String(valorTitulo).toString().trim()) ? String(valorTitulo).toString().trim() : (tituloFallback || `Atividade ${i}`);
 
                     const atividade = {
                         id: get(['id']) || generateId(),
@@ -6354,7 +6360,7 @@ function procesarArquivoAtividadesExcel(event) {
                         remetente: String(get(['remetente']) || '').trim(),
                         destinatario: String(get(['destinatario','destinario']) || '').trim(),
                         acaoRealizar: String(get(['ação a realizar','acao a realizar','acaoarealizar','acao']) || '').trim(),
-                        titulo: String(valorTitulo || '').trim(),
+                        titulo: String(tituloFinal || '').trim(),
                         descricao: String(get(['descrição','descricao','description']) || '').trim(),
                         responsavel: String(get(['responsável','responsavel']) || '').trim(),
                         prioridade: String(get(['prioridade']) || 'media').trim(),
