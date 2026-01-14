@@ -3850,14 +3850,6 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnDelG.addEventListener('click', () => removerPeriodoGroup(r.periodoIndex));
                     tdActions.appendChild(btnDelG);
                 } else {
-                    const btnSolic = document.createElement('button');
-                    btnSolic.type = 'button';
-                    btnSolic.className = 'btn-secondary btn-icon';
-                    btnSolic.title = 'Solicitar férias';
-                    btnSolic.innerHTML = (typeof svgIcon === 'function') ? svgIcon('plus', { title: 'Solicitar férias', color: 'currentColor' }) : '➕';
-                    btnSolic.addEventListener('click', () => solicitarFeriasFromRow(r.id || r.idRaw));
-                    tdActions.appendChild(btnSolic);
-                    
                     const btnEdit = document.createElement('button');
                     btnEdit.type = 'button';
                     btnEdit.className = 'btn-secondary btn-icon';
@@ -3865,6 +3857,14 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnEdit.innerHTML = (typeof svgIcon === 'function') ? svgIcon('edit', { title: 'Editar período', color: 'currentColor' }) : '✏️';
                     btnEdit.addEventListener('click', () => editarPeriodo(r.id || r.idRaw));
                     tdActions.appendChild(btnEdit);
+                    
+                    const btnSolic = document.createElement('button');
+                    btnSolic.type = 'button';
+                    btnSolic.className = 'btn-secondary btn-icon';
+                    btnSolic.title = 'Solicitar férias';
+                    btnSolic.innerHTML = (typeof svgIcon === 'function') ? svgIcon('plus', { title: 'Solicitar férias', color: 'currentColor' }) : '➕';
+                    btnSolic.addEventListener('click', () => solicitarFeriasFromRow(r.id || r.idRaw));
+                    tdActions.appendChild(btnSolic);
                     
                     const btnDel = document.createElement('button');
                     btnDel.type = 'button';
