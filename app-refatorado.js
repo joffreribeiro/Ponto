@@ -6243,20 +6243,38 @@ function procesarArquivoAtividadesExcel(event) {
                     return;
                 }
                 
-                // Mapear colunas pelo cabeçalho (case-insensitive)
-                const cabecalho = linhas[0];
-                const mapa = {};
+                // Mapear colunas pelo cabeçalho (case-insensitive, sem acentos)
+                const cabecalho = linhas[0] || [];
+                const normalizeHeader = (s) => {
+                    if (s === undefined || s === null) return '';
+                    return String(s).toLowerCase().trim()
+                        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+                        .replace(/[^a-z0-9]/g, '');
+                };
+
+                const headerMap = {};
                 cabecalho.forEach((col, idx) => {
-                    const chave = String(col || '').toLowerCase().trim();
-                    mapa[chave] = idx;
+                    const key = normalizeHeader(col);
+                    if (key) headerMap[key] = idx;
                 });
-                
-                // Colunas obrigatórias
-                const colunasEsperadas = ['título', 'status', 'prioridade'];
-                const colunasAusentes = colunasEsperadas.filter(c => !(c in mapa));
-                
-                if (colunasAusentes.length > 0) {
-                    alert('Colunas obrigatórias faltando no arquivo: ' + colunasAusentes.join(', '));
+
+                // Função auxiliar para obter índice a partir de múltiplas variantes
+                const idxOf = (variants) => {
+                    for (const v of variants) {
+                        const k = normalizeHeader(v);
+                        if (k && (k in headerMap)) return headerMap[k];
+                    }
+                    return -1;
+                };
+
+                // Colunas obrigatórias (aceitamos variantes sem acento)
+                const obrigatorias = [ ['título','titulo','title'], ['status'], ['prioridade'] ];
+                const faltando = [];
+                obrigatorias.forEach(group => {
+                    if (idxOf(group) === -1) faltando.push(group[0]);
+                });
+                if (faltando.length > 0) {
+                    alert('Colunas obrigatórias faltando no arquivo: ' + faltando.join(', '));
                     return;
                 }
                 
@@ -6312,44 +6330,52 @@ function procesarArquivoAtividadesExcel(event) {
                 const novasAtividades = [];
                 for (let i = 1; i < linhas.length; i++) {
                     const linha = linhas[i];
-                    if (!linha[mapa['título']]) continue; // Pular linhas vazias
-                    
+                    // obter título a partir de variantes
+                    const idxTitulo = idxOf(['título','titulo','title']);
+                    const valorTitulo = idxTitulo !== -1 ? linha[idxTitulo] : null;
+                    if (!valorTitulo || String(valorTitulo).toString().trim() === '') continue; // pular linhas sem título
+
+                    const get = (variants) => {
+                        const idx = idxOf(variants);
+                        return idx === -1 ? undefined : linha[idx];
+                    };
+
                     const atividade = {
-                        id: linha[mapa['id']] || generateId(),
-                        ordem: String(linha[mapa['ordem']] || '').trim(),
-                        tedPtrab: String(linha[mapa['ted/ptrab']] || '').trim(),
-                        objeto: String(linha[mapa['objeto']] || '').trim(),
-                        processoPrincipal: String(linha[mapa['processo principal']] || '').trim(),
-                        assunto: String(linha[mapa['assunto']] || '').trim(),
-                        processoSolicitacao: String(linha[mapa['processo solicitação']] || '').trim(),
-                        dataDoc: brToIsoDate(linha[mapa['data doc']]),
-                        tipoDoc: String(linha[mapa['tipo doc']] || '').trim(),
-                        numeroDoc: String(linha[mapa['nº doc']] || '').trim(),
-                        remetente: String(linha[mapa['remetente']] || '').trim(),
-                        destinatario: String(linha[mapa['destinário']] || '').trim(),
-                        acaoRealizar: String(linha[mapa['ação a realizar']] || '').trim(),
-                        titulo: String(linha[mapa['título']] || '').trim(),
-                        descricao: String(linha[mapa['descrição']] || '').trim(),
-                        responsavel: String(linha[mapa['responsável']] || '').trim(),
-                        prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
-                        prazo: brToIsoDate(linha[mapa['prazo']]),
-                        dias: Number(linha[mapa['dias até prazo']] || 0),
-                        status: String(linha[mapa['status']] || 'pendente').trim(),
-                        progresso: Number(linha[mapa['progresso (%)']] || 0),
-                        tags: (String(linha[mapa['tags']] || '')).split(';').map(t => t.trim()).filter(Boolean),
-                        tempoEstimadoMin: Number(linha[mapa['tempo estimado (min)']] || 0),
-                        tempoGastoMin: Number(linha[mapa['tempo gasto (min)']] || 0),
-                        lembreteDias: Number(linha[mapa['lembrete (dias)']] || 0),
-                        lembreteHorario: brToIsoDateTime(linha[mapa['lembrete (data/hora)']]),
-                        observacoes: String(linha[mapa['observações']] || '').trim(),
-                        finalizado: (String(linha[mapa['finalizado']] || 'não')).toLowerCase() === 'sim',
+                        id: get(['id']) || generateId(),
+                        ordem: String(get(['ordem']) || '').trim(),
+                        tedPtrab: String(get(['ted/ptrab','tedptrab','tedptrab']) || '').trim(),
+                        objeto: String(get(['objeto']) || '').trim(),
+                        processoPrincipal: String(get(['processo principal','processoprincipal','processo']) || '').trim(),
+                        assunto: String(get(['assunto']) || '').trim(),
+                        processoSolicitacao: String(get(['processo solicitação','processosolicitacao']) || '').trim(),
+                        dataDoc: brToIsoDate(get(['data doc','datadoc','data_documento']) || ''),
+                        tipoDoc: String(get(['tipo doc','tipodoc']) || '').trim(),
+                        numeroDoc: String(get(['nº doc','ndoc','numero','numdoc']) || '').trim(),
+                        remetente: String(get(['remetente']) || '').trim(),
+                        destinatario: String(get(['destinatario','destinario']) || '').trim(),
+                        acaoRealizar: String(get(['ação a realizar','acao a realizar','acaoarealizar','acao']) || '').trim(),
+                        titulo: String(valorTitulo || '').trim(),
+                        descricao: String(get(['descrição','descricao','description']) || '').trim(),
+                        responsavel: String(get(['responsável','responsavel']) || '').trim(),
+                        prioridade: String(get(['prioridade']) || 'media').trim(),
+                        prazo: brToIsoDate(get(['prazo']) || ''),
+                        dias: Number(get(['dias até prazo','diasateprazo','dias']) || 0),
+                        status: String(get(['status']) || 'pendente').trim(),
+                        progresso: Number(get(['progresso (%)','progresso','progressopercent']) || 0),
+                        tags: (String(get(['tags']) || '')).split(';').map(t => t.trim()).filter(Boolean),
+                        tempoEstimadoMin: Number(get(['tempo estimado (min)','tempoestimado','tempoestimado(min)']) || 0),
+                        tempoGastoMin: Number(get(['tempo gasto (min)','tempogasto','tempogasto(min)']) || 0),
+                        lembreteDias: Number(get(['lembrete (dias)','lembretedias','lembrete']) || 0),
+                        lembreteHorario: brToIsoDateTime(get(['lembrete (data/hora)','lembrete(data/hora)','lembretemin']) || ''),
+                        observacoes: String(get(['observações','observacoes','observacao']) || '').trim(),
+                        finalizado: (String(get(['finalizado']) || 'não')).toLowerCase() === 'sim',
                         subtarefas: [],
                         anexos: [],
                         comentarios: [],
                         criadoEm: new Date().toISOString(),
                         atualizadoEm: new Date().toISOString()
                     };
-                    
+
                     novasAtividades.push(atividade);
                 }
                 
