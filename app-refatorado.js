@@ -6184,22 +6184,24 @@ function procesarArquivoAtividadesExcel(event) {
                     return;
                 }
                 
-                // Mapear colunas pelo cabeçalho
+                // Mapear colunas pelo cabeçalho (case-insensitive)
                 const cabecalho = linhas[0];
                 const mapa = {};
                 cabecalho.forEach((col, idx) => {
-                    mapa[col.toLowerCase().trim()] = idx;
+                    const chave = String(col || '').toLowerCase().trim();
+                    mapa[chave] = idx;
                 });
                 
+                // Colunas obrigatórias
                 const colunasEsperadas = ['título', 'status', 'prioridade'];
                 const colunasAusentes = colunasEsperadas.filter(c => !(c in mapa));
                 
                 if (colunasAusentes.length > 0) {
-                    alert('Colunas faltando no arquivo: ' + colunasAusentes.join(', '));
+                    alert('Colunas obrigatórias faltando no arquivo: ' + colunasAusentes.join(', '));
                     return;
                 }
                 
-                // Processar dados
+                // Processar dados - IMPORTAR TODOS OS CAMPOS
                 const novasAtividades = [];
                 for (let i = 1; i < linhas.length; i++) {
                     const linha = linhas[i];
@@ -6207,14 +6209,36 @@ function procesarArquivoAtividadesExcel(event) {
                     
                     const atividade = {
                         id: linha[mapa['id']] || generateId(),
+                        ordem: String(linha[mapa['ordem']] || '').trim(),
+                        tedPtrab: String(linha[mapa['ted/ptrab']] || '').trim(),
+                        objeto: String(linha[mapa['objeto']] || '').trim(),
+                        processoPrincipal: String(linha[mapa['processo principal']] || '').trim(),
+                        assunto: String(linha[mapa['assunto']] || '').trim(),
+                        processoSolicitacao: String(linha[mapa['processo solicitação']] || '').trim(),
+                        dataDoc: linha[mapa['data doc']] ? new Date(linha[mapa['data doc']]).toISOString().split('T')[0] : '',
+                        tipoDoc: String(linha[mapa['tipo doc']] || '').trim(),
+                        numeroDoc: String(linha[mapa['nº doc']] || '').trim(),
+                        remetente: String(linha[mapa['remetente']] || '').trim(),
+                        destinatario: String(linha[mapa['destinário']] || '').trim(),
+                        acaoRealizar: String(linha[mapa['ação a realizar']] || '').trim(),
                         titulo: String(linha[mapa['título']] || '').trim(),
                         descricao: String(linha[mapa['descrição']] || '').trim(),
-                        status: String(linha[mapa['status']] || 'pendente').trim(),
-                        prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
                         responsavel: String(linha[mapa['responsável']] || '').trim(),
-                        progresso: Number(linha[mapa['progresso (%)']] || 0),
+                        prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
                         prazo: linha[mapa['prazo']] ? new Date(linha[mapa['prazo']]).toISOString().split('T')[0] : '',
-                        ordem: String(linha[mapa['ordem']] || '').trim(),
+                        dias: Number(linha[mapa['dias até prazo']] || 0),
+                        status: String(linha[mapa['status']] || 'pendente').trim(),
+                        progresso: Number(linha[mapa['progresso (%)']] || 0),
+                        tags: (String(linha[mapa['tags']] || '')).split(';').map(t => t.trim()).filter(Boolean),
+                        tempoEstimadoMin: Number(linha[mapa['tempo estimado (min)']] || 0),
+                        tempoGastoMin: Number(linha[mapa['tempo gasto (min)']] || 0),
+                        lembreteDias: Number(linha[mapa['lembrete (dias)']] || 0),
+                        lembreteHorario: linha[mapa['lembrete (data/hora)']] ? new Date(linha[mapa['lembrete (data/hora)']]).toISOString() : null,
+                        observacoes: String(linha[mapa['observações']] || '').trim(),
+                        finalizado: (String(linha[mapa['finalizado']] || 'não')).toLowerCase() === 'sim',
+                        subtarefas: [],
+                        anexos: [],
+                        comentarios: [],
                         criadoEm: new Date().toISOString(),
                         atualizadoEm: new Date().toISOString()
                     };
@@ -6229,9 +6253,8 @@ function procesarArquivoAtividadesExcel(event) {
                 
                 // Confirmação de merge
                 const confirmacao = confirm(`Importar ${novasAtividades.length} atividades?\n\n` +
-                    'Escolha:\n' +
-                    '- OK: Adicionar às atividades existentes\n' +
-                    '- Cancelar: Substituir todas as atividades');
+                    'OK: Adicionar às atividades existentes\n' +
+                    'Cancelar: Substituir todas as atividades');
                 
                 if (confirmacao) {
                     // Merge: adicionar novas
@@ -6244,7 +6267,11 @@ function procesarArquivoAtividadesExcel(event) {
                 
                 AppState.save();
                 renderizarAtividades();
-                alert(`${novasAtividades.length} atividade(s) importada(s) com sucesso!`);
+                
+                // Limpar o input para permitir seleção do mesmo arquivo novamente
+                event.target.value = '';
+                
+                Notifications.success(`${novasAtividades.length} atividade(s) importada(s) com sucesso!`);
             } catch (error) {
                 console.error('Erro ao processar arquivo:', error);
                 alert('Erro ao processar arquivo: ' + error.message);
