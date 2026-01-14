@@ -863,6 +863,34 @@
 <script src="app-refatorado.js?v=1.2.0"></script>
 
 <script>
+// Fallback delegado: garante execução de ações marcadas com data-action
+(function(){
+    try {
+        document.addEventListener('click', function(ev){
+            try {
+                const el = ev.target.closest && ev.target.closest('[data-action]');
+                if (!el) return;
+                const action = el.dataset && el.dataset.action;
+                const id = el.dataset && el.dataset.id;
+                console.debug('Fallback data-action click:', action, 'id=', id, 'el=', el);
+                if (!action) return;
+                if (window.App && typeof window.App.handleAction === 'function') {
+                    window.App.handleAction(action, id);
+                } else if (typeof window[action] === 'function') {
+                    if (typeof id !== 'undefined' && id !== null && id !== '') window[action](id);
+                    else window[action]();
+                } else {
+                    console.warn('Fallback: ação não encontrada', action);
+                }
+                ev.preventDefault();
+                ev.stopPropagation();
+            } catch(e) { console.error('Erro no fallback data-action:', e); }
+        }, true);
+    } catch(e) { console.error('Erro ao instalar fallback data-action:', e); }
+})();
+
+// end fallback
+
 // Filtros: versão que usa controles topFiltro*
 (function(){
     function getText(row, idx){
