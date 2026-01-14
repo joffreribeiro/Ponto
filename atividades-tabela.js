@@ -6,8 +6,11 @@
         const tbody = document.querySelector('#tabelaAtividades tbody');
         if (!tbody) return;
         const rows = items.map(a => {
-            const prazo = a.prazo ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(a.prazo) : a.prazo) : '';
-            const dataDoc = a.dataDoc ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(a.dataDoc) : a.dataDoc) : '';
+            // Garantir que as datas estão em ISO antes de formatar
+            const prazoISO = a.prazo ? (window.DateUtils ? DateUtils.normalize(a.prazo) : a.prazo) : '';
+            const dataDocISO = a.dataDoc ? (window.DateUtils ? DateUtils.normalize(a.dataDoc) : a.dataDoc) : '';
+            const prazo = prazoISO ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(prazoISO) : prazoISO) : '';
+            const dataDoc = dataDocISO ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(dataDocISO) : dataDocISO) : '';
             const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
             const diasNum = Number(rawDias);
             let corClasse = '';

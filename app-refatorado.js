@@ -1589,9 +1589,71 @@ function escapeHtml(s) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    migrarDatasParaISO(); // Migra dados antigos para formato ISO
     inicializar();
     initDateFieldsBR(); // Inicializa campos de data com formato brasileiro
 });
+
+/**
+ * Migra todas as datas salvas para o formato ISO (YYYY-MM-DD)
+ * Isso garante compatibilidade com dados antigos
+ */
+function migrarDatasParaISO() {
+    try {
+        if (!AppState.dados) return;
+        
+        let modificado = false;
+        
+        // Migrar datas de atividades
+        if (AppState.dados.atividades) {
+            AppState.dados.atividades.forEach(a => {
+                if (a.prazo && DateUtils.normalize) {
+                    const normalizado = DateUtils.normalize(a.prazo);
+                    if (normalizado !== a.prazo) {
+                        a.prazo = normalizado;
+                        modificado = true;
+                    }
+                }
+                if (a.dataDoc && DateUtils.normalize) {
+                    const normalizado = DateUtils.normalize(a.dataDoc);
+                    if (normalizado !== a.dataDoc) {
+                        a.dataDoc = normalizado;
+                        modificado = true;
+                    }
+                }
+            });
+        }
+        
+        // Migrar datas de registros
+        if (AppState.dados.registros) {
+            AppState.dados.registros.forEach(r => {
+                if (r.data && DateUtils.normalize) {
+                    const normalizado = DateUtils.normalize(r.data);
+                    if (normalizado !== r.data) {
+                        r.data = normalizado;
+                        modificado = true;
+                    }
+                }
+            });
+        }
+        
+        // Migrar data de admissão
+        if (AppState.dados.admissao && DateUtils.normalize) {
+            const normalizado = DateUtils.normalize(AppState.dados.admissao);
+            if (normalizado !== AppState.dados.admissao) {
+                AppState.dados.admissao = normalizado;
+                modificado = true;
+            }
+        }
+        
+        if (modificado) {
+            AppState.save();
+            console.log('Datas migradas para formato ISO com sucesso');
+        }
+    } catch (e) {
+        console.error('Erro ao migrar datas:', e);
+    }
+}
 
 // Pergunta ao carregar a página se o usuário deseja restaurar períodos (opcional)
 function perguntarRestaurarPeriodosOnLoad() {
