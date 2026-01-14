@@ -1315,9 +1315,19 @@ td {
     padding: 1px 2px;
     border: 1px solid var(--border-table);
     text-align: center;
-    white-space: nowrap;
     line-height: 0.9;
     font-size: 11px;
+}
+
+/* Keep body cells on a single line (no wrapping), but allow header cells to wrap */
+.table-container tbody td {
+    white-space: nowrap;
+}
+
+.table-container thead th {
+    white-space: normal;
+    word-break: break-word;
+    vertical-align: middle;
 }
 
 /* cabeçalho geral */
