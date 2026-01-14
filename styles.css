@@ -376,6 +376,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
+/* Variante btn-error com btn-icon (manter ícone preto) */
+.btn-error.btn-icon {
+    background: transparent;
+    color: #000;
+    border: none;
+    padding: 4px 6px;
+}
+
+.btn-error.btn-icon:hover {
+    color: #333;
+    background: transparent;
+}
+
 /* Periodos aquisitivos table adjustments */
 #tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
