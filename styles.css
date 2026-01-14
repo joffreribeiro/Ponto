@@ -2751,6 +2751,41 @@ select.field-invalid:focus {
     font-family: inherit !important;
 }
 
+/* ===== Table action buttons: white circular buttons with blue icons (vacations table) ===== */
+#tablePeriodosAquisitivos .table-action {
+    background: #ffffff !important;
+    color: var(--primary-dark) !important;
+    border: 1px solid rgba(30,58,138,0.06) !important;
+    width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    box-shadow: 0 3px 10px rgba(14,30,77,0.07) !important;
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+}
+
+#tablePeriodosAquisitivos .table-action > svg {
+    width: 16px !important;
+    height: 16px !important;
+    fill: currentColor !important;
+}
+
+#tablePeriodosAquisitivos .table-action:hover {
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(30,58,138,0.12) !important;
+}
+
+#tablePeriodosAquisitivos .table-action.btn-primary {
+    /* If any primary variant remains, keep it subtle */
+    background: linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%) !important;
+    color: #fff !important;
+}
+
     .pagination-select {
         width: 100%;
     }
