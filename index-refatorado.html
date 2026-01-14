@@ -860,6 +860,168 @@
         };
     }
 </script>
+
+<!-- Modal Nova Atividade Completa (layout igual ao registro de ponto, mas com campos de atividade e barra lateral) -->
+<div id="modalNovaAtividadeCompleta" class="modal">
+    <div class="modal-content modal-medium">
+        <div class="modal-header">
+            <h2>Nova Atividade</h2>
+            <button type="button" class="modal-close" data-action="fecharModalNovaAtividadeCompleta"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
+        </div>
+        <div class="modal-body" style="display:flex; gap:16px;">
+            <!-- Barra lateral de navegação -->
+            <nav class="nova-sidebar" style="min-width:180px; border-right:1px solid #eee; padding-right:12px;">
+                <ul style="list-style:none; padding:0; margin:8px 0;">
+                    <li><a href="#" data-scroll-to="atividadeOrdemCompleta">Documento/Processo</a></li>
+                    <li><a href="#" data-scroll-to="atividadeTituloCompleta">Título/Descrição</a></li>
+                    <li><a href="#" data-scroll-to="atividadeResponsavelCompleta">Responsável/Prazo</a></li>
+                    <li><a href="#" data-scroll-to="atividadeStatusCompleta">Status/Progresso</a></li>
+                    <li><a href="#" data-scroll-to="atividadeTagsCompleta">Tags/Tempo</a></li>
+                    <li><a href="#" data-scroll-to="subtaskInputCompleta">Subtarefas</a></li>
+                    <li><a href="#" data-scroll-to="atividadeLembreteDiasCompleta">Lembretes</a></li>
+                    <li><a href="#" data-scroll-to="atividadeObservacoesCompleta">Observações</a></li>
+                    <li><a href="#" data-scroll-to="atividadeFinalizadoCompleta">Finalizado</a></li>
+                    <li><a href="#" data-scroll-to="atividadeArquivoCompleta">Anexos</a></li>
+                    <li><a href="#" data-scroll-to="comentarioInputCompleta">Comentários</a></li>
+                </ul>
+            </nav>
+            <!-- Formulário principal -->
+            <div style="flex:1; padding-left:12px;">
+                <h3 style="margin-top:0;">Dados do Documento / Processo</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeOrdemCompleta">Ordem</label>
+                        <input type="text" id="atividadeOrdemCompleta" readonly placeholder="Automático" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeTedPtrabCompleta">TED/Ptrab</label>
+                        <input type="text" id="atividadeTedPtrabCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeObjetoCompleta">Objeto</label>
+                        <input type="text" id="atividadeObjetoCompleta" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeProcessoPrincipalCompleta">Processo Principal</label>
+                        <input type="text" id="atividadeProcessoPrincipalCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeAssuntoCompleta">Assunto</label>
+                        <input type="text" id="atividadeAssuntoCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeProcessoSolicitacaoCompleta">Processo Solicitação</label>
+                        <input type="text" id="atividadeProcessoSolicitacaoCompleta" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeDataDocCompleta">Data</label>
+                        <input type="date" id="atividadeDataDocCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeTipoDocCompleta">Tipo Doc</label>
+                        <input type="text" id="atividadeTipoDocCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeNumeroDocCompleta">Nº Doc.</label>
+                        <input type="text" id="atividadeNumeroDocCompleta" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeRemetenteCompleta">Remetente</label>
+                        <input type="text" id="atividadeRemetenteCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeDestinatarioCompleta">Destinatário</label>
+                        <input type="text" id="atividadeDestinatarioCompleta" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeAcaoRealizarCompleta">Ação a Realizar</label>
+                        <input type="text" id="atividadeAcaoRealizarCompleta" />
+                    </div>
+                </div>
+                <hr />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadePrioridadeCompleta">Prioridade</label>
+                        <select id="atividadePrioridadeCompleta">
+                            <option value="baixa">Baixa</option>
+                            <option value="media">Média</option>
+                            <option value="alta">Alta</option>
+                            <option value="critica">Crítica</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadePrazoCompleta">Prazo</label>
+                        <input type="date" id="atividadePrazoCompleta" onchange="atualizarDiasFromPrazo('atividadePrazoCompleta','atividadeDiasCompleta')" title="Data limite para a atividade" />
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeDiasCompleta">Dias</label>
+                        <input type="number" id="atividadeDiasCompleta" min="0" readonly title="Dias entre hoje e o prazo (negativo = vencido)" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeStatusCompleta">Status</label>
+                        <select id="atividadeStatusCompleta">
+                            <option value="pendente">Pendente</option>
+                            <option value="em andamento">Em andamento</option>
+                            <option value="concluida">Concluída</option>
+                            <option value="bloqueada">Bloqueada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeTagsCompleta">Tags (separadas por vírgula)</label>
+                        <input type="text" id="atividadeTagsCompleta" placeholder="ex: financeiro, urgente" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="atividadeLembreteDiasCompleta">Lembrar X dias antes do prazo (0 para desativar)</label>
+                    <input type="number" id="atividadeLembreteDiasCompleta" min="0" value="0" />
+                </div>
+                <div class="form-group">
+                    <label for="atividadeLembreteHorarioCompleta">Lembrar em (data/hora específica)</label>
+                    <input type="datetime-local" id="atividadeLembreteHorarioCompleta" />
+                </div>
+                <div class="form-group">
+                    <label for="atividadeObservacoesCompleta">Observações</label>
+                    <textarea id="atividadeObservacoesCompleta" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="atividadeFinalizadoCompleta">Finalizado</label>
+                    <select id="atividadeFinalizadoCompleta">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="atividadeArquivoCompleta">Anexar arquivo</label>
+                    <input type="file" id="atividadeArquivoCompleta" onchange="adicionarAnexoCompleta(event)" />
+                    <ul id="anexosListCompleta" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
+                </div>
+                <div class="form-group">
+                    <span class="group-label">Comentários</span>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input id="comentarioInputCompleta" placeholder="Adicionar comentário" style="flex:1;" />
+                        <button class="btn-secondary" data-action="adicionarComentarioCompleta">Adicionar</button>
+                    </div>
+                    <ul id="comentariosListCompleta" style="list-style:none;padding-left:0;margin-top:8px;"></ul>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-action="fecharModalNovaAtividadeCompleta"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarNovaAtividadeCompleta"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+        </div>
+    </div>
+</div>
+
 <script src="app-refatorado.js?v=1.2.0"></script>
 
 <script>
