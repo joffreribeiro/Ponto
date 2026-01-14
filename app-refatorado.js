@@ -2155,7 +2155,8 @@ function atualizarDashboard() {
 
             if (schedListEl) {
                 if (overview.scheduledList.length) {
-                    schedListEl.innerHTML = overview.scheduledList.map(s => `${DateUtils.formatBR(s.start)} → ${DateUtils.formatBR(s.end)} (${s.days}d)`).join('<br>');
+                    // Use a non-breaking separator instead of HTML <br> so cells don't wrap
+                    schedListEl.textContent = overview.scheduledList.map(s => `${DateUtils.formatBR(s.start)} → ${DateUtils.formatBR(s.end)} (${s.days}d)`).join(' • ');
                 } else {
                     schedListEl.textContent = '-';
                 }
@@ -3900,7 +3901,8 @@ function renderizarPeriodosAquisitivosTable(rows) {
                         const tdProgramados = document.createElement('td');
                         tdProgramados.rowSpan = rowspan;
                         if (periodosJaProgramados.length > 0) {
-                            tdProgramados.innerHTML = periodosJaProgramados.join('<br>');
+                            // Avoid inserting <br> so the table cell remains a single line (overflow horizontally)
+                            tdProgramados.textContent = periodosJaProgramados.join(' • ');
                         } else {
                             tdProgramados.textContent = '-';
                             tdProgramados.style.color = '#999';
