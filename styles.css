@@ -2729,34 +2729,6 @@ select.field-invalid:focus {
     font-family: inherit !important;
 }
 
-/* ===== Table action buttons: flat black icons (vacations table) ===== */
-.table-action {
-    background: transparent;
-    color: #000;
-    border: none;
-    width: auto;
-    height: auto;
-    padding: 4px 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    box-shadow: none;
-    cursor: pointer;
-    transition: color .08s ease;
-}
-
-.table-action > svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    stroke: currentColor;
-}
-
-.table-action:hover {
-    color: #333;
-}
-
     .pagination-select {
         width: 100%;
     }
