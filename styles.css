@@ -400,11 +400,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     border: 1px solid var(--border-table); 
     padding: 4px 6px; 
     text-align: center; 
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
     font-size: 12px;
 }
+
+/* Prevent header text from wrapping and use ellipsis when too long */
 #tablePeriodosAquisitivos thead th { 
     background: var(--primary); 
     color: #ffffff; 
@@ -415,6 +414,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     letter-spacing: 0.5px;
     line-height: 1.2;
     border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 1px; /* helps force ellipsis in table cells */
 }
 #/* Larguras fixas das colunas (ajustado para 11 colunas) */
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
@@ -749,6 +752,26 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
 @media (max-width: 900px) {
     .advanced-filters-grid { grid-template-columns: 1fr; }
 }
+
+/* ================================================
+   Atividades table: prevent header wrapping and ensure horizontal scroll
+   ================================================ */
+#atividadesTableContainer .table-container { overflow-x: auto; }
+#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 980px; }
+#tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 6px 8px; font-size: 13px; vertical-align: middle; }
+#tabelaAtividades thead th {
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 10px 8px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 1px; /* forces ellipsis behavior inside table layout */
+}
+#tabelaAtividades tbody td { white-space: normal; overflow-wrap: anywhere; }
 
 .form-group.valid input, .form-group.valid textarea, .form-group.valid select { border-color: var(--positive); }
 .form-group.valid .validation-feedback { color: var(--positive-dark); }
