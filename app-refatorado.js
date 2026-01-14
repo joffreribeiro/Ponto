@@ -166,7 +166,7 @@ function inicializar() {
                 
                 const action = btn.getAttribute('data-action');
                 
-                const actions = {
+                    const actions = {
                     'abrirModalAtividade': abrirModalAtividade,
                     'exportarAtividadesExcel': exportarAtividadesExcelAction,
                     'importarAtividadesExcel': importarAtividadesExcelAction,
@@ -174,7 +174,13 @@ function inicializar() {
                     'toggleAtividadesTable': toggleAtividadesTable,
                     'abrirAbaNovaAtividade': abrirAbaNovaAtividade,
                     'fecharAbaNovaAtividade': fecharAbaNovaAtividade,
-                    'toggleTheme': toggleTheme
+                        // wrap theme toggle to avoid ReferenceError if global not defined yet
+                        'toggleTheme': function() {
+                            try {
+                                if (window.App && window.App.actions && typeof window.App.actions.toggleTheme === 'function') return window.App.actions.toggleTheme();
+                                if (typeof window['toggleTheme'] === 'function') return window['toggleTheme']();
+                            } catch (e) { console.error('Erro ao executar toggleTheme wrapper', e); }
+                        }
                 };
                 
                 if (typeof actions[action] === 'function') {
