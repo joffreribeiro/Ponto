@@ -228,9 +228,9 @@
                 </div>
 
                 <div style="margin-top:12px;">
-                    <div class="filter-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <div class="filter-group" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;max-width:520px;">
                         <span class="label-inline">Filtro:</span>
-                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="flex:1;min-width:220px;" />
+                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="width:100%;max-width:420px;" />
                         <select id="filtroAtividadesStatus" onchange="renderizarAtividades()">
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
@@ -245,13 +245,15 @@
                             <option value="alta">Alta</option>
                             <option value="critica">Crítica</option>
                         </select>
-                        <input id="filtroAtividadesResponsavel" placeholder="Responsável" oninput="renderizarAtividades()" />
-                        <span style="margin-left:8px;">Ordenar:</span>
-                        <select id="filtroAtividadesOrdenar" onchange="renderizarAtividades()">
+                        <input id="filtroAtividadesResponsavel" placeholder="Responsável" oninput="renderizarAtividades()" style="width:100%;max-width:320px;" />
+                        <div style="display:flex;gap:8px;align-items:center;width:100%;">
+                            <span style="min-width:70px;">Ordenar:</span>
+                            <select id="filtroAtividadesOrdenar" onchange="renderizarAtividades()" style="flex:0 0 220px;">
                             <option value="prioridade">Prioridade</option>
                             <option value="prazo">Prazo</option>
                             <option value="criadoEm">Criado</option>
                         </select>
+                        </div>
                         <details id="advancedFilters" style="margin-left:8px;">
                             <summary style="cursor:pointer;font-weight:600;">Filtros avançados ▾</summary>
                             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
