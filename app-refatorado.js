@@ -4808,14 +4808,6 @@ function renderizarAcordos() {
             p.className = 'small-text';
             p.textContent = 'Nenhum acordo cadastrado ainda.';
             container.appendChild(p);
-            // Add a prominent button to create the first agreement
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn-primary';
-            btn.style.marginTop = '12px';
-            btn.textContent = '+ Criar Primeiro Acordo';
-            btn.addEventListener('click', () => { try { novoAcordo(); } catch(e){ console.error('Erro ao criar novo acordo via botão:', e); } });
-            container.appendChild(btn);
             return;
         }
 
