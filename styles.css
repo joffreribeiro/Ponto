@@ -395,7 +395,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 /* Periodos aquisitivos table adjustments */
-#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
+#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 960px; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
     border: 1px solid var(--border-table); 
     padding: 4px 6px; 
@@ -435,6 +435,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
 
 /* column sizing is controlled via <colgroup> in the table markup */
+
+/* Allow horizontal scrolling so fixed column widths are respected on narrow screens */
+#periodosAquisitivosContainer { overflow-x: auto; }
 
 /* Force widths for problem columns in case inline/colgroup is ignored by browser or overridden */
 #tablePeriodosAquisitivos col.col-periodo {
