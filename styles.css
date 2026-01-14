@@ -395,15 +395,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 /* Periodos aquisitivos table adjustments */
-#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 960px; }
+#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 1200px; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
     border: 1px solid var(--border-table); 
-    padding: 4px 6px; 
+    padding: 6px 8px; 
     text-align: center; 
-    font-size: 12px;
+    font-size: 13px;
 }
 
-/* Prevent header text from wrapping and use ellipsis when too long */
+/* Allow header to wrap between words (no mid-word breaks) and improve readability */
 #tablePeriodosAquisitivos thead th { 
     background: var(--primary); 
     color: #ffffff; 
@@ -412,12 +412,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 12px 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    line-height: 1.2;
+    line-height: 1.15;
     border: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 1px; /* helps force ellipsis in table cells */
+    white-space: normal; /* allow wrapping */
+    word-break: normal;  /* don't break words in the middle */
+    overflow-wrap: normal;
+    hyphens: none;
 }
 #/* Larguras fixas das colunas (ajustado para 11 colunas) */
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
