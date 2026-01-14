@@ -2,15 +2,48 @@
     // Módulo responsável por renderizar a tabela de atividades
     function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
 
+    /**
+     * Formata data para DD/MM/AAAA
+     * Aceita formatos: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+     */
+    function formatarDataBR(str) {
+        if (!str) return '';
+        const s = String(str).trim();
+        
+        // Se já está em DD/MM/AAAA, retorna como está
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+            return s;
+        }
+        
+        // YYYY-MM-DD -> DD/MM/AAAA
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            const [ano, mes, dia] = s.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+        
+        // DD-MM-YYYY -> DD/MM/AAAA
+        if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+            const [dia, mes, ano] = s.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+        
+        // YYYY/MM/DD -> DD/MM/AAAA
+        if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) {
+            const [ano, mes, dia] = s.split('/');
+            return `${dia}/${mes}/${ano}`;
+        }
+        
+        // Fallback: retorna original
+        return s;
+    }
+
     function renderizarTabelaAtividades(items) {
         const tbody = document.querySelector('#tabelaAtividades tbody');
         if (!tbody) return;
         const rows = items.map(a => {
-            // Garantir que as datas estão em ISO antes de formatar
-            const prazoISO = a.prazo ? (window.DateUtils ? DateUtils.normalize(a.prazo) : a.prazo) : '';
-            const dataDocISO = a.dataDoc ? (window.DateUtils ? DateUtils.normalize(a.dataDoc) : a.dataDoc) : '';
-            const prazo = prazoISO ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(prazoISO) : prazoISO) : '';
-            const dataDoc = dataDocISO ? (window.DateUtils && DateUtils.formatBR ? DateUtils.formatBR(dataDocISO) : dataDocISO) : '';
+            // Formatar datas usando função local
+            const prazo = formatarDataBR(a.prazo);
+            const dataDoc = formatarDataBR(a.dataDoc);
             const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
             const diasNum = Number(rawDias);
             let corClasse = '';
