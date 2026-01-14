@@ -972,7 +972,7 @@ function atualizarListaAnexosModal() {
     const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover anexo') : '🗑️'}</button>`;
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary btn-icon" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover anexo', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -1446,7 +1446,7 @@ function atualizarListaComentariosModal() {
     const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover comentário') : '🗑️'}</button>`;
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary btn-icon" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover comentário', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -2170,17 +2170,17 @@ function renderizarTabelaRegistros() {
             
             const btnEdit = document.createElement('button');
             btnEdit.type = 'button';
-            btnEdit.className = 'btn-secondary';
+            btnEdit.className = 'btn-secondary btn-icon';
             btnEdit.setAttribute('title', 'Editar registro');
-            btnEdit.innerHTML = '✏️';
+            btnEdit.innerHTML = (typeof svgIcon === 'function')? svgIcon('edit', { title: 'Editar registro', color: 'currentColor' }) : '✏️';
             btnEdit.addEventListener('click', () => editarRegistro(r._idx));
             tdActions.appendChild(btnEdit);
 
             const btnDel = document.createElement('button');
             btnDel.type = 'button';
-            btnDel.className = 'btn-error';
+            btnDel.className = 'btn-error btn-icon';
             btnDel.setAttribute('title', 'Deletar registro');
-                    btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', 'Remover') : '🗑️';
+            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover', color: 'currentColor' }) : '🗑️';
             btnDel.addEventListener('click', () => excluirRegistro(r._idx));
             tdActions.appendChild(btnDel);
 
@@ -3394,17 +3394,17 @@ function renderizarEventos() {
 
             const btnEdit = document.createElement('button');
             btnEdit.type = 'button';
-            btnEdit.className = 'btn-secondary';
+            btnEdit.className = 'btn-secondary btn-icon';
             btnEdit.setAttribute('title', 'Editar evento');
-            btnEdit.innerHTML = '✏️';
+            btnEdit.innerHTML = (typeof svgIcon === 'function')? svgIcon('edit', { title: 'Editar evento', color: 'currentColor' }) : '✏️';
             btnEdit.addEventListener('click', () => abrirEditarEvento(idxOriginal));
             tdActions.appendChild(btnEdit);
 
             const btnDel = document.createElement('button');
             btnDel.type = 'button';
-            btnDel.className = 'btn-error';
+            btnDel.className = 'btn-error btn-icon';
             btnDel.setAttribute('title', 'Deletar evento');
-            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', 'Remover') : '🗑️';
+            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover', color: 'currentColor' }) : '🗑️';
             btnDel.addEventListener('click', () => abrirModalExcluirEvento(idxOriginal));
             tdActions.appendChild(btnDel);
 
@@ -4347,8 +4347,8 @@ function renderizarListasAcordo() {
                 <td>${p.fim}</td>
                 <td>${p.minutosExtras} min</td>
                     <td>
-                        <button type="button" class="btn-secondary" onclick="editarPeriodoAcordo(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', 'Editar período') : '✏️'}</button>
-                        <button type="button" class="btn-error" onclick="removerPeriodoAcordo(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover período') : '🗑️'}</button>
+                        <button type="button" class="btn-secondary btn-icon" onclick="editarPeriodoAcordo(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', { title: 'Editar período', color: 'currentColor' }) : '✏️'}</button>
+                        <button type="button" class="btn-error btn-icon" onclick="removerPeriodoAcordo(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover período', color: 'currentColor' }) : '🗑️'}</button>
                     </td>
             `;
             tbodyPeriodos.appendChild(tr);
@@ -4368,8 +4368,8 @@ function renderizarListasAcordo() {
                 <td>${r.tipo || ''}</td>
                 <td>R$ ${Number(r.vale || 0).toFixed(2)}</td>
                 <td>
-                    <button type="button" class="btn-secondary" onclick="editarRegraHorario(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', 'Editar regra') : '✏️'}</button>
-                    <button type="button" class="btn-error" onclick="removerRegraHorario(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', 'Remover regra') : '🗑️'}</button>
+                    <button type="button" class="btn-secondary btn-icon" onclick="editarRegraHorario(${idx})" title="Editar">${(typeof svgIcon === 'function')? svgIcon('edit', { title: 'Editar regra', color: 'currentColor' }) : '✏️'}</button>
+                    <button type="button" class="btn-error btn-icon" onclick="removerRegraHorario(${idx})" title="Deletar">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover regra', color: 'currentColor' }) : '🗑️'}</button>
                 </td>
             `;
             tbodyRegras.appendChild(tr);
@@ -5434,14 +5434,14 @@ function renderizarListaTiposEventos() {
         
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.className = 'btn-secondary btn-sm';
-        editBtn.textContent = '✏️ Editar';
+        editBtn.className = 'btn-secondary btn-icon';
+        editBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('edit', { title: 'Editar', color: 'currentColor' }) : '✏️';
         editBtn.onclick = () => abrirEditarTipoEvento(index);
         
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-error btn-sm';
-        deleteBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('trash', 'Remover') + ' Deletar' : '🗑️ Deletar';
+        deleteBtn.className = 'btn-error btn-icon';
+        deleteBtn.innerHTML = (typeof svgIcon === 'function') ? svgIcon('trash', { title: 'Deletar', color: 'currentColor' }) : '🗑️';
         deleteBtn.onclick = () => deletarTipoEvento(index);
         
         // Desabilitar delete se for tipo padrão (primeiros 7)
