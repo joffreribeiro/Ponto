@@ -610,14 +610,14 @@ function abrirModalAtividade(editId) {
         if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = a.processoPrincipal || '';
         if (document.getElementById('atividadeAssuntoCompleta')) document.getElementById('atividadeAssuntoCompleta').value = a.assunto || '';
         if (document.getElementById('atividadeProcessoSolicitacaoCompleta')) document.getElementById('atividadeProcessoSolicitacaoCompleta').value = a.processoSolicitacao || '';
-        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = a.dataDoc || '';
+        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = dateIsoToBr(a.dataDoc) || '';
         if (document.getElementById('atividadeTipoDocCompleta')) document.getElementById('atividadeTipoDocCompleta').value = a.tipoDoc || '';
         if (document.getElementById('atividadeNumeroDocCompleta')) document.getElementById('atividadeNumeroDocCompleta').value = a.numeroDoc || '';
         if (document.getElementById('atividadeRemetenteCompleta')) document.getElementById('atividadeRemetenteCompleta').value = a.remetente || '';
         if (document.getElementById('atividadeDestinatarioCompleta')) document.getElementById('atividadeDestinatarioCompleta').value = a.destinatario || '';
         if (document.getElementById('atividadeAcaoRealizarCompleta')) document.getElementById('atividadeAcaoRealizarCompleta').value = a.acaoRealizar || '';
         if (document.getElementById('atividadePrioridadeCompleta')) document.getElementById('atividadePrioridadeCompleta').value = a.prioridade || 'media';
-        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = a.prazo || '';
+        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = dateIsoToBr(a.prazo) || '';
         if (document.getElementById('atividadeDiasCompleta')) document.getElementById('atividadeDiasCompleta').value = typeof a.dias !== 'undefined' ? a.dias : '';
         if (document.getElementById('atividadeStatusCompleta')) document.getElementById('atividadeStatusCompleta').value = a.status || 'pendente';
         if (document.getElementById('atividadeProgressoCompleta')) document.getElementById('atividadeProgressoCompleta').value = a.progresso || 0;
@@ -649,14 +649,14 @@ function salvarNovaAtividadeCompleta() {
         processoPrincipal: get('atividadeProcessoPrincipalCompleta'),
         assunto: get('atividadeAssuntoCompleta'),
         processoSolicitacao: get('atividadeProcessoSolicitacaoCompleta'),
-        dataDoc: get('atividadeDataDocCompleta'),
+        dataDoc: dateBrToIso(get('atividadeDataDocCompleta')),
         tipoDoc: get('atividadeTipoDocCompleta'),
         numeroDoc: get('atividadeNumeroDocCompleta'),
         remetente: get('atividadeRemetenteCompleta'),
         destinatario: get('atividadeDestinatarioCompleta'),
         acaoRealizar: get('atividadeAcaoRealizarCompleta'),
         prioridade: get('atividadePrioridadeCompleta'),
-        prazo: get('atividadePrazoCompleta'),
+        prazo: dateBrToIso(get('atividadePrazoCompleta')),
         dias: get('atividadeDiasCompleta'),
         status: get('atividadeStatusCompleta'),
         progresso: get('atividadeProgressoCompleta'),
@@ -715,8 +715,8 @@ function salvarAtividade() {
         descricao: document.getElementById('atividadeDescricao').value.trim(),
         responsavel: document.getElementById('atividadeResponsavel').value.trim(),
         prioridade: document.getElementById('atividadePrioridade').value,
-        prazo: document.getElementById('atividadePrazo').value || null,
-        dataDoc: document.getElementById('atividadeDataDoc').value || null,
+        prazo: dateBrToIso(document.getElementById('atividadePrazo').value) || null,
+        dataDoc: dateBrToIso(document.getElementById('atividadeDataDoc').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDoc').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDoc').value || '',
         remetente: document.getElementById('atividadeRemetente').value || '',
@@ -732,7 +732,7 @@ function salvarAtividade() {
         observacoes: observacoes,
         finalizado: finalizadoVal,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(document.getElementById('atividadePrazo').value || null),
+        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazo').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrab').value || '',
         objeto: document.getElementById('atividadeObjeto').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipal').value || '',
@@ -843,7 +843,7 @@ function salvarAtividadeInline() {
         descricao: '',
         responsavel: '',
         prioridade: 'media',
-        dataDoc: document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value || null,
+        dataDoc: dateBrToIso(document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDocInline') && document.getElementById('atividadeTipoDocInline').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDocInline') && document.getElementById('atividadeNumeroDocInline').value || '',
         remetente: document.getElementById('atividadeRemetenteInline') && document.getElementById('atividadeRemetenteInline').value || '',
@@ -858,9 +858,9 @@ function salvarAtividadeInline() {
         lembreteHorario: null,
         observacoes: document.getElementById('atividadeObservacoesInline') && document.getElementById('atividadeObservacoesInline').value || '',
         finalizado: (document.getElementById('atividadeFinalizadoInline') && document.getElementById('atividadeFinalizadoInline').value === 'true') || false,
-        prazo: document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value || null,
+        prazo: dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value || null),
+        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrabInline') && document.getElementById('atividadeTedPtrabInline').value || '',
         objeto: document.getElementById('atividadeObjetoInline') && document.getElementById('atividadeObjetoInline').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipalInline') && document.getElementById('atividadeProcessoPrincipalInline').value || '',
@@ -1588,7 +1588,10 @@ function escapeHtml(s) {
     return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
 }
 
-document.addEventListener('DOMContentLoaded', inicializar);
+document.addEventListener('DOMContentLoaded', () => {
+    inicializar();
+    initDateFieldsBR(); // Inicializa campos de data com formato brasileiro
+});
 
 // Pergunta ao carregar a página se o usuário deseja restaurar períodos (opcional)
 function perguntarRestaurarPeriodosOnLoad() {
@@ -2305,7 +2308,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
 }
 function salvarRegistro() {
     try {
-        const data = document.getElementById('dataRegistro').value;
+        const data = dateBrToIso(document.getElementById('dataRegistro').value);
         const entrada = document.getElementById('entradaRegistro').value;
         const saidaAlmoco = document.getElementById('saidaAlmocoRegistro').value;
         const retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
@@ -2394,7 +2397,7 @@ function editarRegistro(index) {
         const r = AppState.dados.registros[index];
         if (!r) throw new Error('Registro não encontrado');
 
-        document.getElementById('dataRegistro').value = r.data;
+        document.getElementById('dataRegistro').value = dateIsoToBr(r.data);
         document.getElementById('entradaRegistro').value = r.entrada || '';
         document.getElementById('saidaAlmocoRegistro').value = r.saidaAlmoco || '';
         document.getElementById('retornoAlmocoRegistro').value = r.retornoAlmoco || '';
@@ -6299,19 +6302,8 @@ function procesarArquivoAtividadesExcel(event) {
                     return;
                 }
                 
-                // Confirmação de merge
-                const confirmacao = confirm(`Importar ${novasAtividades.length} atividades?\n\n` +
-                    'OK: Adicionar às atividades existentes\n' +
-                    'Cancelar: Substituir todas as atividades');
-                
-                if (confirmacao) {
-                    // Merge: adicionar novas
-                    const atividades = AppState.dados.atividades || [];
-                    AppState.dados.atividades = [...atividades, ...novasAtividades];
-                } else {
-                    // Replace: substituir
-                    AppState.dados.atividades = novasAtividades;
-                }
+                // Sempre substituir ao importar
+                AppState.dados.atividades = novasAtividades;
                 
                 AppState.save();
                 renderizarAtividades();
@@ -6337,6 +6329,99 @@ function procesarArquivoAtividadesExcel(event) {
  */
 function generateId() {
     return 'ativ_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+/**
+ * Inicializa campos de data para usar formato brasileiro (DD/MM/AAAA)
+ * Converte automaticamente entre formato ISO (usado internamente) e BR (exibido)
+ */
+function initDateFieldsBR() {
+    // Lista de todos os IDs de campos de data no sistema
+    const dateFieldIds = [
+        'dashboardDataInicio', 'dashboardDataFim',
+        'atividadeDataDocInline', 'atividadePrazoInline',
+        'dataAdmissao', 'dataRegistro',
+        'modalFeriasInicio', 'modalFeriasFim',
+        'periodoInicio', 'periodoFim',
+        'regraInicio', 'regraFim',
+        'atividadeDataDoc', 'atividadePrazo',
+        'dataInicioEvento', 'dataFimEvento',
+        'atividadeDataDocCompleta', 'atividadePrazoCompleta'
+    ];
+
+    dateFieldIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+
+        // Mudar tipo para texto e adicionar máscara
+        input.type = 'text';
+        input.placeholder = 'DD/MM/AAAA';
+        input.maxLength = 10;
+
+        // Aplicar máscara enquanto digita
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove não-dígitos
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '/' + value.substring(5, 9);
+            }
+            
+            e.target.value = value;
+        });
+
+        // Validar ao sair do campo
+        input.addEventListener('blur', function(e) {
+            const value = e.target.value.trim();
+            if (!value) return;
+
+            // Validar formato DD/MM/AAAA
+            const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (!match) {
+                Notifications.warning('Data inválida. Use o formato DD/MM/AAAA');
+                e.target.classList.add('error');
+                return;
+            }
+
+            const [, dia, mes, ano] = match;
+            const d = parseInt(dia);
+            const m = parseInt(mes);
+            const a = parseInt(ano);
+
+            // Validar valores
+            if (d < 1 || d > 31 || m < 1 || m > 12 || a < 1900 || a > 2100) {
+                Notifications.warning('Data inválida');
+                e.target.classList.add('error');
+                return;
+            }
+
+            e.target.classList.remove('error');
+        });
+    });
+}
+
+/**
+ * Converte data DD/MM/AAAA para YYYY-MM-DD (formato ISO)
+ */
+function dateBrToIso(dataBr) {
+    if (!dataBr) return '';
+    const match = dataBr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) return dataBr;
+    const [, dia, mes, ano] = match;
+    return `${ano}-${mes}-${dia}`;
+}
+
+/**
+ * Converte data YYYY-MM-DD (formato ISO) para DD/MM/AAAA
+ */
+function dateIsoToBr(dataIso) {
+    if (!dataIso) return '';
+    const match = dataIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return dataIso;
+    const [, ano, mes, dia] = match;
+    return `${dia}/${mes}/${ano}`;
 }
 
 
