@@ -6201,32 +6201,52 @@ function procesarArquivoAtividadesExcel(event) {
                     return;
                 }
                 
-                // Helpers para datas do Excel
-                const isValidDate = (d) => d instanceof Date && !isNaN(d.getTime());
-                const excelSerialToDate = (serial) => {
-                    const utcDays = Math.floor(serial - 25569);
-                    const utcValue = utcDays * 86400;
-                    return new Date(utcValue * 1000);
-                };
-                const toIsoDate = (val) => {
+                // Helpers para datas do Excel - converter DD/MM/AAAA ou DD-MM-AAAA para AAAA-MM-DD
+                const brToIsoDate = (val) => {
                     if (val === undefined || val === null || val === '') return '';
-                    let d;
-                    if (typeof val === 'number') {
-                        d = excelSerialToDate(val);
-                    } else {
-                        d = new Date(val);
+                    const str = String(val).trim();
+                    
+                    // Tenta formatos: DD/MM/AAAA, DD-MM-AAAA, AAAA-MM-DD
+                    let matches = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                    if (matches) {
+                        const dia = String(matches[1]).padStart(2, '0');
+                        const mes = String(matches[2]).padStart(2, '0');
+                        const ano = matches[3];
+                        return `${ano}-${mes}-${dia}`;
                     }
-                    return isValidDate(d) ? d.toISOString().split('T')[0] : '';
+                    
+                    // Se for AAAA-MM-DD já, devolve como está
+                    if (str.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        return str;
+                    }
+                    
+                    // Se for número (serial Excel)
+                    if (!isNaN(val)) {
+                        const d = new Date((val - 25569) * 86400 * 1000);
+                        if (!isNaN(d.getTime())) {
+                            const ano = d.getFullYear();
+                            const mes = String(d.getMonth() + 1).padStart(2, '0');
+                            const dia = String(d.getDate()).padStart(2, '0');
+                            return `${ano}-${mes}-${dia}`;
+                        }
+                    }
+                    
+                    return '';
                 };
-                const toIsoDateTime = (val) => {
+                const brToIsoDateTime = (val) => {
                     if (val === undefined || val === null || val === '') return null;
-                    let d;
-                    if (typeof val === 'number') {
-                        d = excelSerialToDate(val);
-                    } else {
-                        d = new Date(val);
+                    const str = String(val).trim();
+                    
+                    // Tenta converter para data válida
+                    let d = new Date(str);
+                    if (isNaN(d.getTime())) {
+                        // Se for número (serial Excel)
+                        if (!isNaN(val)) {
+                            d = new Date((val - 25569) * 86400 * 1000);
+                        }
                     }
-                    return isValidDate(d) ? d.toISOString() : null;
+                    
+                    return !isNaN(d.getTime()) ? d.toISOString() : null;
                 };
 
                 // Processar dados - IMPORTAR TODOS OS CAMPOS
@@ -6243,7 +6263,7 @@ function procesarArquivoAtividadesExcel(event) {
                         processoPrincipal: String(linha[mapa['processo principal']] || '').trim(),
                         assunto: String(linha[mapa['assunto']] || '').trim(),
                         processoSolicitacao: String(linha[mapa['processo solicitação']] || '').trim(),
-                        dataDoc: toIsoDate(linha[mapa['data doc']]),
+                        dataDoc: brToIsoDate(linha[mapa['data doc']]),
                         tipoDoc: String(linha[mapa['tipo doc']] || '').trim(),
                         numeroDoc: String(linha[mapa['nº doc']] || '').trim(),
                         remetente: String(linha[mapa['remetente']] || '').trim(),
@@ -6253,7 +6273,7 @@ function procesarArquivoAtividadesExcel(event) {
                         descricao: String(linha[mapa['descrição']] || '').trim(),
                         responsavel: String(linha[mapa['responsável']] || '').trim(),
                         prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
-                        prazo: toIsoDate(linha[mapa['prazo']]),
+                        prazo: brToIsoDate(linha[mapa['prazo']]),
                         dias: Number(linha[mapa['dias até prazo']] || 0),
                         status: String(linha[mapa['status']] || 'pendente').trim(),
                         progresso: Number(linha[mapa['progresso (%)']] || 0),
@@ -6261,7 +6281,7 @@ function procesarArquivoAtividadesExcel(event) {
                         tempoEstimadoMin: Number(linha[mapa['tempo estimado (min)']] || 0),
                         tempoGastoMin: Number(linha[mapa['tempo gasto (min)']] || 0),
                         lembreteDias: Number(linha[mapa['lembrete (dias)']] || 0),
-                        lembreteHorario: toIsoDateTime(linha[mapa['lembrete (data/hora)']]),
+                        lembreteHorario: brToIsoDateTime(linha[mapa['lembrete (data/hora)']]),
                         observacoes: String(linha[mapa['observações']] || '').trim(),
                         finalizado: (String(linha[mapa['finalizado']] || 'não')).toLowerCase() === 'sim',
                         subtarefas: [],
