@@ -157,6 +157,38 @@ function inicializar() {
                 document._atividadeGlobalClickAttached = true;
             }
         } catch (e) { console.error('Erro ao anexar listener Nova Atividade:', e); }
+        
+        // Listeners para data-action buttons (exportar/importar atividades)
+        try {
+            document.addEventListener('click', function(ev) {
+                const btn = ev.target.closest && ev.target.closest('button[data-action]');
+                if (!btn) return;
+                
+                const action = btn.getAttribute('data-action');
+                
+                const actions = {
+                    'abrirModalAtividade': abrirModalAtividade,
+                    'exportarAtividadesExcel': exportarAtividadesExcelAction,
+                    'importarAtividadesExcel': importarAtividadesExcelAction,
+                    'toggleAtividadesKanban': toggleAtividadesKanban,
+                    'toggleAtividadesTable': toggleAtividadesTable,
+                    'abrirAbaNovaAtividade': abrirAbaNovaAtividade,
+                    'fecharAbaNovaAtividade': fecharAbaNovaAtividade,
+                    'toggleTheme': toggleTheme
+                };
+                
+                if (typeof actions[action] === 'function') {
+                    try {
+                        actions[action]();
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                    } catch (err) {
+                        console.error(`Erro ao executar ação ${action}:`, err);
+                    }
+                }
+            });
+        } catch (e) { console.error('Erro ao anexar listener de data-action:', e); }
+        
         // Botão rápido no dashboard para abrir aba Férias
         try {
             const btnFerias = document.getElementById('btnSolicitarFeriasDashboard');
@@ -1513,6 +1545,20 @@ function toggleAtividadesTable() {
     if (!cont) return;
     cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
     renderizarAtividades();
+}
+
+/**
+ * Wrapper para exportação via data-action
+ */
+function exportarAtividadesExcelAction() {
+    exportarAtividadesExcel();
+}
+
+/**
+ * Wrapper para importação via data-action
+ */
+function importarAtividadesExcelAction() {
+    importarAtividadesExcel();
 }
 
 // ============= LEMBRETES / CHECK DEADLINES =============
@@ -5950,4 +5996,187 @@ window.reconstruirSubperiodosFaltantes = reconstruirSubperiodosFaltantes;
         // attributes `data-action` will resolve against the names stored in `App.actions`.
     } catch (e) { console.error('Erro ao configurar namespace App:', e); }
 })();
+
+/**
+ * Exportar atividades para Excel
+ */
+function exportarAtividadesExcel() {
+    try {
+        const atividades = AppState.dados.atividades || [];
+        
+        // Preparar dados para exportação
+        const dados = [
+            ['ID', 'Título', 'Descrição', 'Status', 'Prioridade', 'Responsável', 'Progresso (%)', 'Prazo', 'Ordem', 'Criado em', 'Atualizado em'],
+            ...atividades.map(a => [
+                a.id || '',
+                a.titulo || '',
+                a.descricao || '',
+                a.status || '',
+                a.prioridade || '',
+                a.responsavel || '',
+                a.progresso || 0,
+                a.prazo ? DateUtils.formatBR(a.prazo) : '',
+                a.ordem || '',
+                a.criadoEm ? DateUtils.formatBR(a.criadoEm) : '',
+                a.atualizadoEm ? DateUtils.formatBR(a.atualizadoEm) : ''
+            ])
+        ];
+        
+        // Criar workbook
+        const ws = XLSX.utils.aoa_to_sheet(dados);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Atividades');
+        
+        // Definir larguras das colunas
+        ws['!cols'] = [
+            { wch: 10 }, // ID
+            { wch: 20 }, // Título
+            { wch: 30 }, // Descrição
+            { wch: 15 }, // Status
+            { wch: 12 }, // Prioridade
+            { wch: 15 }, // Responsável
+            { wch: 12 }, // Progresso
+            { wch: 12 }, // Prazo
+            { wch: 10 }, // Ordem
+            { wch: 12 }, // Criado em
+            { wch: 12 }  // Atualizado em
+        ];
+        
+        // Fazer download
+        const nomeArquivo = `atividades_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, nomeArquivo);
+        console.log('Atividades exportadas com sucesso');
+    } catch (error) {
+        console.error('Erro ao exportar atividades:', error);
+        alert('Erro ao exportar atividades: ' + error.message);
+    }
+}
+
+/**
+ * Importar atividades do Excel
+ */
+function importarAtividadesExcel() {
+    try {
+        const input = document.getElementById('importarAtividadesInput');
+        if (!input) {
+            const newInput = document.createElement('input');
+            newInput.type = 'file';
+            newInput.id = 'importarAtividadesInput';
+            newInput.accept = '.xlsx,.xls';
+            newInput.style.display = 'none';
+            newInput.onchange = procesarArquivoAtividadesExcel;
+            document.body.appendChild(newInput);
+            newInput.click();
+        } else {
+            input.onchange = procesarArquivoAtividadesExcel;
+            input.click();
+        }
+    } catch (error) {
+        console.error('Erro ao abrir diálogo de importação:', error);
+        alert('Erro ao abrir arquivo: ' + error.message);
+    }
+}
+
+/**
+ * Processar arquivo Excel importado
+ */
+function procesarArquivoAtividadesExcel(event) {
+    try {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const dados = e.target.result;
+                const workbook = XLSX.read(dados, { type: 'binary' });
+                const nomeAba = workbook.SheetNames[0];
+                const ws = workbook.Sheets[nomeAba];
+                const linhas = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                
+                if (linhas.length < 2) {
+                    alert('Arquivo Excel vazio ou inválido');
+                    return;
+                }
+                
+                // Mapear colunas pelo cabeçalho
+                const cabecalho = linhas[0];
+                const mapa = {};
+                cabecalho.forEach((col, idx) => {
+                    mapa[col.toLowerCase().trim()] = idx;
+                });
+                
+                const colunasEsperadas = ['título', 'status', 'prioridade'];
+                const colunasAusentes = colunasEsperadas.filter(c => !(c in mapa));
+                
+                if (colunasAusentes.length > 0) {
+                    alert('Colunas faltando no arquivo: ' + colunasAusentes.join(', '));
+                    return;
+                }
+                
+                // Processar dados
+                const novasAtividades = [];
+                for (let i = 1; i < linhas.length; i++) {
+                    const linha = linhas[i];
+                    if (!linha[mapa['título']]) continue; // Pular linhas vazias
+                    
+                    const atividade = {
+                        id: linha[mapa['id']] || generateId(),
+                        titulo: String(linha[mapa['título']] || '').trim(),
+                        descricao: String(linha[mapa['descrição']] || '').trim(),
+                        status: String(linha[mapa['status']] || 'pendente').trim(),
+                        prioridade: String(linha[mapa['prioridade']] || 'media').trim(),
+                        responsavel: String(linha[mapa['responsável']] || '').trim(),
+                        progresso: Number(linha[mapa['progresso (%)']] || 0),
+                        prazo: linha[mapa['prazo']] ? new Date(linha[mapa['prazo']]).toISOString().split('T')[0] : '',
+                        ordem: String(linha[mapa['ordem']] || '').trim(),
+                        criadoEm: new Date().toISOString(),
+                        atualizadoEm: new Date().toISOString()
+                    };
+                    
+                    novasAtividades.push(atividade);
+                }
+                
+                if (novasAtividades.length === 0) {
+                    alert('Nenhuma atividade válida encontrada no arquivo');
+                    return;
+                }
+                
+                // Confirmação de merge
+                const confirmacao = confirm(`Importar ${novasAtividades.length} atividades?\n\n` +
+                    'Escolha:\n' +
+                    '- OK: Adicionar às atividades existentes\n' +
+                    '- Cancelar: Substituir todas as atividades');
+                
+                if (confirmacao) {
+                    // Merge: adicionar novas
+                    const atividades = AppState.dados.atividades || [];
+                    AppState.dados.atividades = [...atividades, ...novasAtividades];
+                } else {
+                    // Replace: substituir
+                    AppState.dados.atividades = novasAtividades;
+                }
+                
+                AppState.save();
+                renderizarAtividades();
+                alert(`${novasAtividades.length} atividade(s) importada(s) com sucesso!`);
+            } catch (error) {
+                console.error('Erro ao processar arquivo:', error);
+                alert('Erro ao processar arquivo: ' + error.message);
+            }
+        };
+        reader.readAsBinaryString(file);
+    } catch (error) {
+        console.error('Erro ao ler arquivo:', error);
+        alert('Erro ao ler arquivo: ' + error.message);
+    }
+}
+
+/**
+ * Gerar ID único
+ */
+function generateId() {
+    return 'ativ_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
 
