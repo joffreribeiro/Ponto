@@ -230,6 +230,7 @@
                 <div style="margin-top:12px;">
                     <div class="filter-group" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <span class="label-inline">Filtro:</span>
+                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="flex:1;min-width:220px;" />
                         <select id="filtroAtividadesStatus" onchange="renderizarAtividades()">
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
@@ -245,7 +246,6 @@
                             <option value="critica">Crítica</option>
                         </select>
                         <input id="filtroAtividadesResponsavel" placeholder="Responsável" oninput="renderizarAtividades()" />
-                        <input id="filtroAtividadesBusca" placeholder="Buscar título/descrição" oninput="renderizarAtividades()" style="flex:1;min-width:160px;" />
                         <span style="margin-left:8px;">Ordenar:</span>
                         <select id="filtroAtividadesOrdenar" onchange="renderizarAtividades()">
                             <option value="prioridade">Prioridade</option>
