@@ -252,6 +252,34 @@
                             <option value="prazo">Prazo</option>
                             <option value="criadoEm">Criado</option>
                         </select>
+                        <details id="advancedFilters" style="margin-left:8px;">
+                            <summary style="cursor:pointer;font-weight:600;">Filtros avançados ▾</summary>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                                <input id="topFiltroOrdem" placeholder="Ordem" />
+                                <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" />
+                                <input id="topFiltroObjeto" placeholder="Objeto" />
+                                <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal" />
+                                <input id="topFiltroAssunto" placeholder="Assunto" />
+                                <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação" />
+                                <div style="display:flex;gap:6px;align-items:center;">
+                                    <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)" />
+                                    <input id="topFiltroDataAte" placeholder="Até" />
+                                </div>
+                                <input id="topFiltroTipoDoc" placeholder="Tipo Doc" />
+                                <input id="topFiltroNumeroDoc" placeholder="Nº Doc." />
+                                <input id="topFiltroRemetente" placeholder="Remetente" />
+                                <input id="topFiltroDestinatario" placeholder="Destinatário" />
+                                <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar" />
+                                <div style="display:flex;gap:6px;align-items:center;">
+                                    <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)" />
+                                    <input id="topFiltroPrazoAte" placeholder="Até" />
+                                </div>
+                                <input id="topFiltroDias" placeholder="Dias" />
+                                <input id="topFiltroObservacoes" placeholder="Observações" />
+                                <select id="topFiltroFinalizado"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+                                <input id="topFiltroStatusCol" placeholder="Status" />
+                            </div>
+                        </details>
                     </div>
                 </div>
 
@@ -372,8 +400,8 @@
                             </div>
                         </div>
                     </div>
-                    <div id="atividadesLista"></div>
-                    <div id="atividadesTableContainer" style="margin-top:12px; display:none;">
+                    <div id="atividadesLista" style="display:none;"></div>
+                    <div id="atividadesTableContainer" style="margin-top:12px; display:block;">
                         <div class="table-container">
                             <table id="tabelaAtividades">
                                 <thead>
@@ -404,13 +432,23 @@
                                         <th><input id="filtroProcessoPrincipal" placeholder="Processo Principal" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroAssunto" placeholder="Assunto" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroProcessoSolicitacao" placeholder="Processo Solicitação" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroData" placeholder="Data (DD/MM/AAAA)" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th>
+                                            <div style="display:flex;gap:4px;">
+                                                <input id="filtroDataDe" placeholder="De (DD/MM/AAAA)" style="width:50%;box-sizing:border-box;" />
+                                                <input id="filtroDataAte" placeholder="Até" style="width:50%;box-sizing:border-box;" />
+                                            </div>
+                                        </th>
                                         <th><input id="filtroTipoDoc" placeholder="Tipo Doc" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroNumeroDoc" placeholder="Nº Doc." style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroRemetente" placeholder="Remetente" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroDestinatario" placeholder="Destinatário" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroAcaoRealizar" placeholder="Ação a Realizar" style="width:100%;box-sizing:border-box;" /></th>
-                                        <th><input id="filtroPrazo" placeholder="Prazo" style="width:100%;box-sizing:border-box;" /></th>
+                                        <th>
+                                            <div style="display:flex;gap:4px;">
+                                                <input id="filtroPrazoDe" placeholder="De" style="width:50%;box-sizing:border-box;" />
+                                                <input id="filtroPrazoAte" placeholder="Até" style="width:50%;box-sizing:border-box;" />
+                                            </div>
+                                        </th>
                                         <th><input id="filtroDias" placeholder="Dias" style="width:100%;box-sizing:border-box;" /></th>
                                         <th><input id="filtroObservacoes" placeholder="Observações" style="width:100%;box-sizing:border-box;" /></th>
                                         <th>
@@ -1454,6 +1492,20 @@
         return (row.cells[idx] && row.cells[idx].innerText || '').trim().toLowerCase();
     }
 
+    function parseBrDate(s){
+        if (!s) return null;
+        s = (s||'').trim();
+        // DD/MM/YYYY
+        const re1 = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const m1 = s.match(re1);
+        if (m1) return new Date(parseInt(m1[3],10), parseInt(m1[2],10)-1, parseInt(m1[1],10));
+        // YYYY-MM-DD
+        const re2 = /^(\d{4})-(\d{2})-(\d{2})$/;
+        const m2 = s.match(re2);
+        if (m2) return new Date(parseInt(m2[1],10), parseInt(m2[2],10)-1, parseInt(m2[3],10));
+        return null;
+    }
+
     function aplicarFiltrosTabelaAtividades(){
         const tbody = document.querySelector('#tabelaAtividades tbody');
         if (!tbody) return;
@@ -1465,18 +1517,25 @@
             procPrincipal: (document.getElementById('filtroProcessoPrincipal')||{}).value.trim().toLowerCase(),
             assunto: (document.getElementById('filtroAssunto')||{}).value.trim().toLowerCase(),
             procSolic: (document.getElementById('filtroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
-            data: (document.getElementById('filtroData')||{}).value.trim().toLowerCase(),
+            dataDe: (document.getElementById('filtroDataDe')||{}).value.trim(),
+            dataAte: (document.getElementById('filtroDataAte')||{}).value.trim(),
             tipoDoc: (document.getElementById('filtroTipoDoc')||{}).value.trim().toLowerCase(),
             numeroDoc: (document.getElementById('filtroNumeroDoc')||{}).value.trim().toLowerCase(),
             remetente: (document.getElementById('filtroRemetente')||{}).value.trim().toLowerCase(),
             destinatario: (document.getElementById('filtroDestinatario')||{}).value.trim().toLowerCase(),
             acao: (document.getElementById('filtroAcaoRealizar')||{}).value.trim().toLowerCase(),
-            prazo: (document.getElementById('filtroPrazo')||{}).value.trim().toLowerCase(),
+            prazoDe: (document.getElementById('filtroPrazoDe')||{}).value.trim(),
+            prazoAte: (document.getElementById('filtroPrazoAte')||{}).value.trim(),
             dias: (document.getElementById('filtroDias')||{}).value.trim().toLowerCase(),
             obs: (document.getElementById('filtroObservacoes')||{}).value.trim().toLowerCase(),
             finalizado: (document.getElementById('filtroFinalizado')||{}).value,
             status: (document.getElementById('filtroStatusCol')||{}).value.trim().toLowerCase()
         };
+
+        const dataDeDate = parseBrDate(filtros.dataDe) || null;
+        const dataAteDate = parseBrDate(filtros.dataAte) || null;
+        const prazoDeDate = parseBrDate(filtros.prazoDe) || null;
+        const prazoAteDate = parseBrDate(filtros.prazoAte) || null;
 
         Array.from(tbody.rows).forEach(row => {
             let match = true;
@@ -1486,13 +1545,35 @@
             if (filtros.procPrincipal && !getText(row,3).includes(filtros.procPrincipal)) match = false;
             if (filtros.assunto && !getText(row,4).includes(filtros.assunto)) match = false;
             if (filtros.procSolic && !getText(row,5).includes(filtros.procSolic)) match = false;
-            if (filtros.data && !getText(row,6).includes(filtros.data)) match = false;
+
+            // Data (col 6) - compare as date when range provided
+            if ((dataDeDate || dataAteDate)){
+                const cell = (row.cells[6] && row.cells[6].innerText || '').trim();
+                const rowDate = parseBrDate(cell);
+                if (!rowDate) match = false;
+                else {
+                    if (dataDeDate && rowDate < dataDeDate) match = false;
+                    if (dataAteDate && rowDate > dataAteDate) match = false;
+                }
+            }
+
             if (filtros.tipoDoc && !getText(row,7).includes(filtros.tipoDoc)) match = false;
             if (filtros.numeroDoc && !getText(row,8).includes(filtros.numeroDoc)) match = false;
             if (filtros.remetente && !getText(row,9).includes(filtros.remetente)) match = false;
             if (filtros.destinatario && !getText(row,10).includes(filtros.destinatario)) match = false;
             if (filtros.acao && !getText(row,11).includes(filtros.acao)) match = false;
-            if (filtros.prazo && !getText(row,12).includes(filtros.prazo)) match = false;
+
+            // Prazo (col 12)
+            if ((prazoDeDate || prazoAteDate)){
+                const cellP = (row.cells[12] && row.cells[12].innerText || '').trim();
+                const rowPrazo = parseBrDate(cellP);
+                if (!rowPrazo) match = false;
+                else {
+                    if (prazoDeDate && rowPrazo < prazoDeDate) match = false;
+                    if (prazoAteDate && rowPrazo > prazoAteDate) match = false;
+                }
+            }
+
             if (filtros.dias && !getText(row,13).includes(filtros.dias)) match = false;
             if (filtros.obs && !getText(row,14).includes(filtros.obs)) match = false;
             if (filtros.finalizado) {
@@ -1506,8 +1587,24 @@
         });
     }
 
+    function syncTopToTable(){
+        const mapping = [
+            ['topFiltroOrdem','filtroOrdem'],['topFiltroTedPtrab','filtroTedPtrab'],['topFiltroObjeto','filtroObjeto'],['topFiltroProcessoPrincipal','filtroProcessoPrincipal'],['topFiltroAssunto','filtroAssunto'],['topFiltroProcessoSolicitacao','filtroProcessoSolicitacao'],['topFiltroDataDe','filtroDataDe'],['topFiltroDataAte','filtroDataAte'],['topFiltroTipoDoc','filtroTipoDoc'],['topFiltroNumeroDoc','filtroNumeroDoc'],['topFiltroRemetente','filtroRemetente'],['topFiltroDestinatario','filtroDestinatario'],['topFiltroAcaoRealizar','filtroAcaoRealizar'],['topFiltroPrazoDe','filtroPrazoDe'],['topFiltroPrazoAte','filtroPrazoAte'],['topFiltroDias','filtroDias'],['topFiltroObservacoes','filtroObservacoes'],['topFiltroFinalizado','filtroFinalizado'],['topFiltroStatusCol','filtroStatusCol']
+        ];
+        mapping.forEach(pair => {
+            const top = document.getElementById(pair[0]);
+            const dest = document.getElementById(pair[1]);
+            if (!top || !dest) return;
+            const ev = top.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+            top.addEventListener(ev, function(){ dest.value = top.value; dest.dispatchEvent(new Event(ev)); });
+            // keep top updated when table input changes
+            const ev2 = dest.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+            dest.addEventListener(ev2, function(){ top.value = dest.value; });
+        });
+    }
+
     function attachFilters(){
-        const ids = ['filtroOrdem','filtroTedPtrab','filtroObjeto','filtroProcessoPrincipal','filtroAssunto','filtroProcessoSolicitacao','filtroData','filtroTipoDoc','filtroNumeroDoc','filtroRemetente','filtroDestinatario','filtroAcaoRealizar','filtroPrazo','filtroDias','filtroObservacoes','filtroFinalizado','filtroStatusCol'];
+        const ids = ['filtroOrdem','filtroTedPtrab','filtroObjeto','filtroProcessoPrincipal','filtroAssunto','filtroProcessoSolicitacao','filtroDataDe','filtroDataAte','filtroTipoDoc','filtroNumeroDoc','filtroRemetente','filtroDestinatario','filtroAcaoRealizar','filtroPrazoDe','filtroPrazoAte','filtroDias','filtroObservacoes','filtroFinalizado','filtroStatusCol'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -1517,6 +1614,9 @@
         const btn = document.getElementById('btnLimparFiltrosTabela');
         if (btn) btn.addEventListener('click', function(){
             ids.forEach(id=>{ const e=document.getElementById(id); if (!e) return; if (e.tagName.toLowerCase()==='select') e.value=''; else e.value=''; });
+            // also clear top filters
+            const topIds = document.querySelectorAll('[id^="topFiltro"]');
+            topIds.forEach(t=>{ if (t.tagName.toLowerCase()==='select') t.value=''; else t.value=''; });
             aplicarFiltrosTabelaAtividades();
         });
 
@@ -1531,6 +1631,7 @@
     // Inicializar quando DOM pronto
     document.addEventListener('DOMContentLoaded', function(){
         attachFilters();
+        syncTopToTable();
         // aplicar uma vez caso a tabela já esteja renderizada
         setTimeout(aplicarFiltrosTabelaAtividades,50);
     });

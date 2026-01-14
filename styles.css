@@ -656,6 +656,22 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
 .form-group.invalid input, .form-group.invalid textarea, .form-group.invalid select { border-color: var(--negative); }
 .form-group.invalid .validation-feedback { color: var(--negative); }
 
+/* Table filters row styling to match dashboard filter inputs */
+.table-filters-row input[type="text"],
+.table-filters-row input[type="number"],
+.table-filters-row input[type="date"],
+.table-filters-row select {
+    padding: 8px 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff;
+    color: var(--text-main);
+}
+.table-filters-row th { padding: 6px; }
+.table-filters-row input { width: 100%; box-sizing: border-box; }
+.table-filters-row select { width: 100%; box-sizing: border-box; }
+
 .form-group.valid input, .form-group.valid textarea, .form-group.valid select { border-color: var(--positive); }
 .form-group.valid .validation-feedback { color: var(--positive-dark); }
 
