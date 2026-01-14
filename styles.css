@@ -2752,62 +2752,31 @@ select.field-invalid:focus {
 }
 
 /* ===== Table action buttons: flat black icons (vacations table) ===== */
-#tablePeriodosAquisitivos .table-action {
-    background: transparent !important;
-    color: var(--text-main) !important;
-    border: none !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 6px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 6px !important;
-    box-shadow: none !important;
-    transition: color .08s ease, transform .08s ease;
+.table-action {
+    background: transparent;
+    color: #000;
+    border: none;
+    width: auto;
+    height: auto;
+    padding: 4px 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    box-shadow: none;
+    cursor: pointer;
+    transition: color .08s ease;
 }
 
-#tablePeriodosAquisitivos .table-action > svg {
-    width: 16px !important;
-    height: 16px !important;
-    fill: currentColor !important;
+.table-action > svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    stroke: currentColor;
 }
 
-#tablePeriodosAquisitivos .table-action:hover {
-    background: transparent !important;
-    color: #000 !important;
-    transform: none !important;
-}
-
-#tablePeriodosAquisitivos .table-action.btn-primary {
-    /* remove special primary styling for flat appearance */
-    background: transparent !important;
-    color: var(--text-main) !important;
-}
-
-/* Strong overrides: ensure any .btn-icon inside the periods table renders flat/black */
-#tablePeriodosAquisitivos .btn-icon {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 6px !important;
-    margin: 0 4px !important;
-    border-radius: 6px !important;
-    color: #000 !important;
-}
-
-#tablePeriodosAquisitivos .btn-icon.btn-primary {
-    background: transparent !important;
-    color: #000 !important;
-}
-
-#tablePeriodosAquisitivos .btn-icon > svg,
-#tablePeriodosAquisitivos .btn-icon .icon {
-    width: 16px !important;
-    height: 16px !important;
-    fill: currentColor !important;
+.table-action:hover {
+    color: #333;
 }
 
     .pagination-select {
