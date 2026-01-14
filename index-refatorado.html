@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ponto - Refatorado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- BODY START: conteúdo baseado em index.html, limpo de conflitos e com filtros unificados -->
+                <div class="dashboard-filters">
+                    <div class="filter-group">
+                        <label for="dashboardFilterAcordo">
+                            <span class="filter-icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M16 4h-1.5l-.71-.71A1 1 0 0 0 12.9 3h-1.8a1 1 0 0 0-.89.29L9.5 4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM12 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></span>
+                            Acordo:
+                        </label>
+                        <select id="dashboardFilterAcordo" onchange="aplicarFiltrosDashboard()">
+                            <option value="">Todos os acordos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="dashboardFilterPeriodo">
+                            <span class="filter-icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M7 10h5v5H7zM19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM5 20V9h14l.002 11z"/></svg></span>
+                            Período:
+                        </label>
+                        <select id="dashboardFilterPeriodo" onchange="aplicarFiltrosDashboard()">
+                            <option value="todos">Todos os registros</option>
+                            <option value="mesAtual" selected>Mês atual</option>
+                            <option value="mesAnterior">Mês anterior</option>
+                            <option value="ultimosTresMeses">Últimos 3 meses</option>
+                            <option value="ultimosSeisMeses">Últimos 6 meses</option>
+                            <option value="anoAtual">Ano atual</option>
+                            <option value="customizado">Período customizado</option>
+                        </select>
+                    </div>
+
+                    <div id="customRangeInputs">
+                        <div class="filter-group">
+                            <label for="dashboardDataInicio">
+                                <span class="filter-icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M7 10h5v5H7zM19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM5 20V9h14l.002 11z"/></svg></span>
+                                De:
+                            </label>
+                            <input type="date" id="dashboardDataInicio" onchange="aplicarFiltrosDashboard()">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="dashboardDataFim">
+                                <span class="filter-icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M7 10h5v5H7zM19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM5 20V9h14l.002 11z"/></svg></span>
+                                Até:
+                            </label>
+                            <input type="date" id="dashboardDataFim" onchange="aplicarFiltrosDashboard()">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="button" class="btn-outline" data-action="limparFiltrosDashboard" title="Limpar filtros">
+                            <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7c2.76 0 5 2.24 5 5a5 5 0 0 1-5 5 5 5 0 0 1-4.9-4H5a8 8 0 0 0 12.65-7.65z"/></svg></span>
+                            Resetar
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="filtroInfo" class="filter-info"></div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Resumo da Jornada</h2>
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <span class="stat-label">Horas Trabalhadas (período)</span>
+                            <span id="horasPeriodo" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Saldo de Banco de Horas</span>
+                            <span id="saldoBancoHoras" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Horas Extras</span>
+                            <span id="horasExtras" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Horas em Acordo</span>
+                            <span id="horasAcordo" class="stat-value">00:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="dashboard-ferias-card">
+                    <h2>Férias</h2>
+                    <div class="ferias-grid">
+                        <div class="ferias-item">
+                            <span class="ferias-label">Próxima Férias</span>
+                            <div id="nextVacationInfo" class="ferias-value">Nenhuma férias agendada</div>
+                            <div id="vacationWarning" class="ferias-warning" style="display:none;color:var(--warning);font-weight:600;"></div>
+                        </div>
+                        <div class="ferias-item">
+                            <span class="ferias-label">Período aquisitivo</span>
+                            <div id="acquisitionInfo" class="ferias-value">-</div>
+                        </div>
+                        <div class="ferias-item">
+                            <span class="ferias-label">Dias restantes no período (suposto 30d)</span>
+                            <div id="remainingVacationDays" class="ferias-value">-</div>
+                        </div>
+                        <div class="ferias-item">
+                            <span class="ferias-label">Férias já marcadas</span>
+                            <div id="scheduledVacationsList" class="ferias-value">-</div>
+                            <div style="margin-top:12px;">
+                                <button id="btnSolicitarFeriasDashboard" class="btn-primary" type="button">Solicitar Férias</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Avisos</h2>
+                    <ul id="listaAvisos" class="lista-avisos"></ul>
+                </div>
+            </div>
+
+            <!-- Analytics e Gráficos -->
+                    <div class="card" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 style="margin: 0;"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M3 3h2v18H3zM8 10h2v11H8zM13 5h2v16h-2zM18 13h2v8h-2z"/></svg></span> Analytics</h2>
+                    <button type="button" class="btn-secondary" data-action="toggleAnalytics">
+                        <span id="analyticsToggleText">Mostrar Gráficos</span>
+                    </button>
+                </div>
+                
+                <div id="analyticsSection" style="display: none;">
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <h3>Horas Trabalhadas</h3>
+                            <div class="chart-container">
+                                <canvas id="chartHours"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Saldo Mensal</h3>
+                            <div class="chart-container">
+                                <canvas id="chartBalance"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Distribuição Semanal</h3>
+                            <div class="chart-container">
+                                <canvas id="chartWeekly"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Tipos de Eventos</h3>
+                            <div class="chart-container">
+                                <canvas id="chartEvents"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ATIVIDADES -->
+        <section id="atividades" class="tab-content">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Atividades</h2>
+                    <div>
+                        <button type="button" class="btn-primary" data-action="abrirModalAtividade"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"/></svg></span> Nova Atividade</button>
+                        <button class="btn-secondary" data-action="exportarAtividadesExcel"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></span> Exportar Excel</button>
+                        <input type="file" id="importarAtividadesInput" accept=".xlsx,.xls" style="display:none;" />
+                        <button class="btn-secondary" data-action="importarAtividadesExcel"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9H13V7h-2v4H8.5l3.5 3.5 3.5-3.5z"/></svg></span> Importar Excel</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M10 4H8l4 6-4 6h2l4-6zM20 7v4h-2V9.41l-3.29 3.3-1.42-1.42L16.59 8H14V6h6z"/></svg></span> Kanban</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <div class="advanced-filters-grid" style="width:100%;">
+                        <input id="topFiltroBusca" placeholder="Buscar (texto em qualquer coluna)" class="full-width">
+                        <select id="topFiltroStatusCol" class="full-width">
+                            <option value="">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="em andamento">Em andamento</option>
+                            <option value="concluida">Concluída</option>
+                            <option value="bloqueada">Bloqueada</option>
+                        </select>
+                        <select id="topFiltroPrioridade" class="full-width">
+                            <option value="">Todas prioridades</option>
+                            <option value="baixa">Baixa</option>
+                            <option value="media">Média</option>
+                            <option value="alta">Alta</option>
+                            <option value="critica">Crítica</option>
+                        </select>
+                        <input id="topFiltroResponsavel" placeholder="Responsável" class="full-width">
+                        <select id="topFiltroOrdem" class="full-width">
+                            <option value="prioridade">Prioridade</option>
+                            <option value="prazo">Prazo</option>
+                            <option value="criadoEm">Criado</option>
+                        </select>
+
+                        <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" class="full-width">
+                        <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" class="full-width">
+                        <input id="topFiltroObjeto" placeholder="Objeto" class="full-width">
+                        <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal" class="full-width">
+                        <input id="topFiltroAssunto" placeholder="Assunto" class="full-width">
+                        <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação" class="full-width">
+                        <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroDataAte" placeholder="Data Até (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroTipoDoc" placeholder="Tipo Doc" class="full-width">
+                        <input id="topFiltroNumeroDoc" placeholder="Nº Doc." class="full-width">
+                        <input id="topFiltroRemetente" placeholder="Remetente" class="full-width">
+                        <input id="topFiltroDestinatario" placeholder="Destinatário" class="full-width">
+                        <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar" class="full-width">
+                        <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroPrazoAte" placeholder="Prazo Até (DD/MM/AAAA)" class="full-width">
+                        <input id="topFiltroDias" placeholder="Dias" class="full-width">
+                        <input id="topFiltroObservacoes" placeholder="Observações" class="full-width">
+                        <select id="topFiltroFinalizado" class="full-width"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+                        <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content:flex-end;">
+                            <button id="topBtnLimparFiltros" class="btn btn-secondary">Limpar filtros</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="atividadesContainer" style="margin-top:12px;">
+                    <div id="atividadesControls" style="margin-bottom:8px;">
+                        <button class="btn-secondary" data-action="toggleAtividadesTable"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M16 4h-1.5l-.71-.71A1 1 0 0 0 12.9 3h-1.8a1 1 0 0 0-.89.29L9.5 4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM12 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></span> Tabela</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M10 4H8l4 6-4 6h2l4-6zM20 7v4h-2V9.41l-3.29 3.3-1.42-1.42L16.59 8H14V6h6z"/></svg></span> Kanban</button>
+                    </div>
+                    <!-- Painel inline Nova Atividade (oculto por padrão) -->
+                    <div id="novaAtividadeInline" style="display:none; margin-bottom:12px;">
+                        <!-- ... formulário omitido para brevidade (mantido no arquivo original) ... -->
+                    </div>
+                    <div id="atividadesLista" style="display:none;"></div>
+                    <div id="atividadesTableContainer" style="margin-top:12px; display:block;">
+                        <div class="table-container">
+                            <table id="tabelaAtividades">
+                                <thead>
+                                    <tr>
+                                        <th>Ordem</th>
+                                        <th>TED/Ptrab</th>
+                                        <th>Objeto</th>
+                                        <th>Processo Principal</th>
+                                        <th>Assunto</th>
+                                        <th>Processo Solicitação</th>
+                                        <th>Data</th>
+                                        <th>Tipo Doc</th>
+                                        <th>Nº Doc.</th>
+                                        <th>Remetente</th>
+                                        <th>Destinatário</th>
+                                        <th>Ação a Realizar</th>
+                                        <th>Prazo</th>
+                                        <th>Dias</th>
+                                        <th>Observações</th>
+                                        <th>Finalizado</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                    <!-- filters moved to top panel (advanced filters) -->
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="atividadesKanban" style="display:none;margin-top:8px;"></div>
+                </div>
+            </div>
+        </section>
+
+<!-- SCRIPTS -->
+<script src="utils.js?v=1.2.0"></script>
+<script src="icons.js?v=1.0.0"></script>
+<script src="notifications.js?v=1.2.0"></script>
+<script src="pagination.js?v=1.2.0"></script>
+<script src="cache.js?v=1.2.0"></script>
+<script src="validation-realtime.js?v=1.2.0"></script>
+<script src="charts.js?v=1.2.0"></script>
+<script src="pwa.js?v=1.2.0"></script>
+<script src="dateUtils.js?v=1.2.0"></script>
+<script src="validators.js?v=1.2.0"></script>
+<script src="storage.js?v=1.2.0"></script>
+<script src="calculations.js?v=1.2.0"></script>
+<script src="atividades-tabela.js?v=1.1.0"></script>
+<script src="atividades-kanban.js?v=1.0.0"></script>
+<script>
+    // Shim mínimo para funções de UI
+    if (typeof window.toggleAtividadesKanban === 'undefined') {
+        window.toggleAtividadesKanban = function(){
+            try {
+                const kanban = document.getElementById('atividadesKanban');
+                const tabela = document.getElementById('atividadesTableContainer');
+                if (kanban) kanban.style.display = (kanban.style.display === 'none' || kanban.style.display === '') ? 'block' : 'none';
+                if (tabela) tabela.style.display = (tabela.style.display === 'none' || tabela.style.display === '') ? 'block' : 'none';
+                if (typeof renderizarAtividades === 'function') renderizarAtividades();
+            } catch (e) { console.error('toggleAtividadesKanban shim error', e); }
+        };
+    }
+    if (typeof window.toggleAtividadesTable === 'undefined') {
+        window.toggleAtividadesTable = function(){
+            try {
+                const cont = document.getElementById('atividadesTableContainer');
+                if (!cont) return;
+                cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
+                if (typeof renderizarAtividades === 'function') renderizarAtividades();
+            } catch (e) { console.error('toggleAtividadesTable shim error', e); }
+        };
+    }
+</script>
+<script src="app-refatorado.js?v=1.2.0"></script>
+
+<script>
+// Filtros: versão que usa controles topFiltro*
+(function(){
+    function getText(row, idx){
+        return (row.cells[idx] && row.cells[idx].innerText || '').trim().toLowerCase();
+    }
+    function parseBrDate(s){
+        if (!s) return null;
+        s=(s||'').trim();
+        const re1=/^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const m1=s.match(re1);
+        if (m1) return new Date(parseInt(m1[3],10),parseInt(m1[2],10)-1,parseInt(m1[1],10));
+        const re2=/^(\d{4})-(\d{2})-(\d{2})$/;
+        const m2=s.match(re2);
+        if (m2) return new Date(parseInt(m2[1],10),parseInt(m2[2],10)-1,parseInt(m2[3],10));
+        return null;
+    }
+    function aplicarFiltrosTabelaAtividades(){
+        const tbody=document.querySelector('#tabelaAtividades tbody'); if (!tbody) return;
+        const filtros={
+            ordem:(document.getElementById('topFiltroOrdem')||{}).value.trim().toLowerCase(),
+            busca:(document.getElementById('topFiltroBusca')||{}).value.trim().toLowerCase(),
+            ted:(document.getElementById('topFiltroTedPtrab')||{}).value.trim().toLowerCase(),
+            objeto:(document.getElementById('topFiltroObjeto')||{}).value.trim().toLowerCase(),
+            procPrincipal:(document.getElementById('topFiltroProcessoPrincipal')||{}).value.trim().toLowerCase(),
+            assunto:(document.getElementById('topFiltroAssunto')||{}).value.trim().toLowerCase(),
+            procSolic:(document.getElementById('topFiltroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
+            dataDe:(document.getElementById('topFiltroDataDe')||{}).value.trim(),
+            dataAte:(document.getElementById('topFiltroDataAte')||{}).value.trim(),
+            tipoDoc:(document.getElementById('topFiltroTipoDoc')||{}).value.trim().toLowerCase(),
+            numeroDoc:(document.getElementById('topFiltroNumeroDoc')||{}).value.trim().toLowerCase(),
+            remetente:(document.getElementById('topFiltroRemetente')||{}).value.trim().toLowerCase(),
+            destinatario:(document.getElementById('topFiltroDestinatario')||{}).value.trim().toLowerCase(),
+            acao:(document.getElementById('topFiltroAcaoRealizar')||{}).value.trim().toLowerCase(),
+            prazoDe:(document.getElementById('topFiltroPrazoDe')||{}).value.trim(),
+            prazoAte:(document.getElementById('topFiltroPrazoAte')||{}).value.trim(),
+            dias:(document.getElementById('topFiltroDias')||{}).value.trim().toLowerCase(),
+            obs:(document.getElementById('topFiltroObservacoes')||{}).value.trim().toLowerCase(),
+            finalizado:(document.getElementById('topFiltroFinalizado')||{}).value,
+            status:(document.getElementById('topFiltroStatusCol')||{}).value.trim().toLowerCase()
+        };
+        const dataDeDate=parseBrDate(filtros.dataDe)||null;
+        const dataAteDate=parseBrDate(filtros.dataAte)||null;
+        const prazoDeDate=parseBrDate(filtros.prazoDe)||null;
+        const prazoAteDate=parseBrDate(filtros.prazoAte)||null;
+        Array.from(tbody.rows).forEach(row=>{
+            let match=true;
+            if (filtros.ordem && !getText(row,0).includes(filtros.ordem)) match=false;
+            if (filtros.ted && !getText(row,1).includes(filtros.ted)) match=false;
+            if (filtros.objeto && !getText(row,2).includes(filtros.objeto)) match=false;
+            if (filtros.procPrincipal && !getText(row,3).includes(filtros.procPrincipal)) match=false;
+            if (filtros.assunto && !getText(row,4).includes(filtros.assunto)) match=false;
+            if (filtros.procSolic && !getText(row,5).includes(filtros.procSolic)) match=false;
+            if ((dataDeDate||dataAteDate)){
+                const cell=(row.cells[6]&&row.cells[6].innerText||'').trim();
+                const rowDate=parseBrDate(cell);
+                if (!rowDate) match=false; else { if (dataDeDate && rowDate < dataDeDate) match=false; if (dataAteDate && rowDate > dataAteDate) match=false; }
+            }
+            if (filtros.tipoDoc && !getText(row,7).includes(filtros.tipoDoc)) match=false;
+            if (filtros.numeroDoc && !getText(row,8).includes(filtros.numeroDoc)) match=false;
+            if (filtros.remetente && !getText(row,9).includes(filtros.remetente)) match=false;
+            if (filtros.destinatario && !getText(row,10).includes(filtros.destinatario)) match=false;
+            if (filtros.acao && !getText(row,11).includes(filtros.acao)) match=false;
+            if ((prazoDeDate||prazoAteDate)){
+                const cellP=(row.cells[12]&&row.cells[12].innerText||'').trim();
+                const rowPrazo=parseBrDate(cellP);
+                if (!rowPrazo) match=false; else { if (prazoDeDate && rowPrazo < prazoDeDate) match=false; if (prazoAteDate && rowPrazo > prazoAteDate) match=false; }
+            }
+            if (filtros.dias && !getText(row,13).includes(filtros.dias)) match=false;
+            if (filtros.obs && !getText(row,14).includes(filtros.obs)) match=false;
+            if (filtros.finalizado) { const cell=getText(row,15); if (filtros.finalizado==='sim' && !(cell==='sim'||cell==='true'||cell==='yes')) match=false; if (filtros.finalizado==='nao' && (cell==='sim'||cell==='true'||cell==='yes')) match=false; }
+            if (filtros.status && !getText(row,16).includes(filtros.status)) match=false;
+            if (filtros.busca) { const text=(row.innerText||'').toLowerCase(); if (!text.includes(filtros.busca)) match=false; }
+            row.style.display = match ? '' : 'none';
+        });
+    }
+    function attachTopFilters(){
+        const ids=['topFiltroBusca','topFiltroOrdem','topFiltroTedPtrab','topFiltroObjeto','topFiltroProcessoPrincipal','topFiltroAssunto','topFiltroProcessoSolicitacao','topFiltroDataDe','topFiltroDataAte','topFiltroTipoDoc','topFiltroNumeroDoc','topFiltroRemetente','topFiltroDestinatario','topFiltroAcaoRealizar','topFiltroPrazoDe','topFiltroPrazoAte','topFiltroDias','topFiltroObservacoes','topFiltroFinalizado','topFiltroStatusCol','topFiltroPrioridade','topFiltroResponsavel'];
+        ids.forEach(id=>{ const el=document.getElementById(id); if(!el) return; const ev=el.tagName.toLowerCase()==='select'?'change':'input'; el.addEventListener(ev, aplicarFiltrosTabelaAtividades); });
+        const clearBtn=document.getElementById('topBtnLimparFiltros'); if (clearBtn) clearBtn.addEventListener('click', function(){ ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.value=''; }); aplicarFiltrosTabelaAtividades(); });
+        const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
+    }
+    function updateToggleButtonsState(){
+        const tableCont=document.getElementById('atividadesTableContainer'); const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (!tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+    }
+    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); updateToggleButtonsState(); document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120))); document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120))); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+})();
+</script>
+
+</body>
+</html>
