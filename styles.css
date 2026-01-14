@@ -416,19 +416,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     line-height: 1.2;
     border: none;
 }
-/* Larguras fixas das colunas */
+#/* Larguras fixas das colunas (ajustado para 11 colunas) */
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
-#tablePeriodosAquisitivos colgroup col:nth-child(2) { width: 60px; }   /* Limite */
+#tablePeriodosAquisitivos colgroup col:nth-child(2) { width: 70px; }   /* Limite */
 #tablePeriodosAquisitivos colgroup col:nth-child(3) { width: 45px; }   /* Total Dias */
-#tablePeriodosAquisitivos colgroup col:nth-child(4) { width: 75px; }   /* Dias Disponíveis */
-#tablePeriodosAquisitivos colgroup col:nth-child(5) { width: 75px; }  /* Períodos Programados */
-#tablePeriodosAquisitivos colgroup col:nth-child(6) { width: 65px; }   /* Período */
-#tablePeriodosAquisitivos colgroup col:nth-child(7) { width: 75px; }   /* Férias Início */
-#tablePeriodosAquisitivos colgroup col:nth-child(8) { width: 75px; }   /* Férias Fim */
-#tablePeriodosAquisitivos colgroup col:nth-child(9) { width: 45px; }   /* Adto 13º */
-#tablePeriodosAquisitivos colgroup col:nth-child(10) { width: 35px; }  /* Dias */
-#tablePeriodosAquisitivos colgroup col:nth-child(11) { width: 70px; }  /* Documento */
-#tablePeriodosAquisitivos colgroup col:nth-child(12) { width: 90px; }  /* Ações */
+#tablePeriodosAquisitivos colgroup col:nth-child(4) { width: 120px; }  /* Dias Disponíveis (aumentado) */
+#tablePeriodosAquisitivos colgroup col:nth-child(5) { width: 80px; }   /* Período (reduzido) */
+#tablePeriodosAquisitivos colgroup col:nth-child(6) { width: 75px; }   /* Férias Início */
+#tablePeriodosAquisitivos colgroup col:nth-child(7) { width: 75px; }   /* Férias Fim */
+#tablePeriodosAquisitivos colgroup col:nth-child(8) { width: 45px; }   /* Adto 13º */
+#tablePeriodosAquisitivos colgroup col:nth-child(9) { width: 35px; }   /* Dias */
+#tablePeriodosAquisitivos colgroup col:nth-child(10) { width: 70px; }  /* Documento */
+#tablePeriodosAquisitivos colgroup col:nth-child(11) { width: 90px; }  /* Ações */
 #tablePeriodosAquisitivos thead .header-blank th { background: transparent; border: none; height: 10px; }
 #tablePeriodosAquisitivos tbody td { line-height: 1.2; }
 #tablePeriodosAquisitivos tbody tr td { vertical-align: middle; }
