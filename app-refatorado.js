@@ -3896,21 +3896,10 @@ function renderizarPeriodosAquisitivosTable(rows) {
                         tdDispon.rowSpan = rowspan;
                         tr.appendChild(tdDispon);
                         
-                        // Coluna Períodos de Férias já Programados
-                        const tdProgramados = document.createElement('td');
-                        tdProgramados.rowSpan = rowspan;
-                        if (periodosJaProgramados.length > 0) {
-                            // Avoid inserting <br> so the table cell remains a single line (overflow horizontally)
-                            tdProgramados.textContent = periodosJaProgramados.join(' • ');
-                        } else {
-                            tdProgramados.textContent = '-';
-                            tdProgramados.style.color = '#999';
-                        }
-                        tr.appendChild(tdProgramados);
+                        // (programados column removed)
                     } catch (err) {
                         const tdTotal = document.createElement('td'); tdTotal.textContent = ''; tdTotal.rowSpan = rowspan; tr.appendChild(tdTotal);
                         const tdDispon = document.createElement('td'); tdDispon.textContent = ''; tdDispon.rowSpan = rowspan; tr.appendChild(tdDispon);
-                        const tdProgramados = document.createElement('td'); tdProgramados.textContent = '-'; tdProgramados.rowSpan = rowspan; tr.appendChild(tdProgramados);
                     }
                 }
 

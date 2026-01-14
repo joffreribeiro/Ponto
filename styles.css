@@ -435,6 +435,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos th[colspan] { text-align: center; }
 #tablePeriodosAquisitivos thead tr.header-blank th { height: 12px; }
 
+/* Ajuste: aumentar largura da coluna "Período" (agora é a 5ª coluna após remoção da coluna 'programados') */
+#tablePeriodosAquisitivos th:nth-child(5),
+#tablePeriodosAquisitivos td:nth-child(5) {
+    width: 160px;
+    max-width: 160px;
+    /* permitir quebra somente se necessário */
+    white-space: normal;
+}
+
 /* ================================================
    Header / título
    ================================================ */
