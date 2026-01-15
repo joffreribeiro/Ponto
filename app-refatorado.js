@@ -1898,10 +1898,15 @@ function popularFiltroAcordosDashboard() {
 function configurarFiltrosDashboard() {
     const periodSelect = document.getElementById('dashboardFilterPeriodo');
     if (periodSelect) {
-        // Sincroniza o estado com o valor do select
-        AppState.dashboardFilters.periodo = periodSelect.value || 'todos';
+        // Sincroniza o estado com o valor do select (importante na primeira carga)
+        const periodoSelecionado = periodSelect.value || 'todos';
+        console.log('[DEBUG configurarFiltrosDashboard] periodo inicial:', periodoSelecionado);
+        AppState.dashboardFilters.periodo = periodoSelecionado;
         
         periodSelect.addEventListener('change', function() {
+            console.log('[DEBUG] mudança de periodo para:', this.value);
+            AppState.dashboardFilters.periodo = this.value;
+            
             const customInputs = document.getElementById('customRangeInputs');
             if (customInputs) {
                 if (this.value === 'customizado') {
@@ -1910,6 +1915,10 @@ function configurarFiltrosDashboard() {
                     customInputs.classList.remove('active');
                 }
             }
+            
+            // Aplicar filtros ao mudar período
+            atualizarDashboard();
+            mostrarInfoFiltros();
         });
     }
 }
@@ -2118,8 +2127,11 @@ function limparFiltrosDashboard() {
 
 function atualizarDashboard() {
     try {
+        console.log('[DEBUG atualizarDashboard] AppState.dashboardFilters:', AppState.dashboardFilters);
+        
         // Pega os registros filtrados
         const registrosFiltrados = filtrarRegistros();
+        console.log('[DEBUG atualizarDashboard] registrosFiltrados.length:', registrosFiltrados.length);
 
         const totais = Calculations.calculatePeriodTotals(
             registrosFiltrados,
