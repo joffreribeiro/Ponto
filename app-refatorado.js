@@ -1934,6 +1934,7 @@ function calcularIntervaloPeriodo(periodo) {
         case 'mesAtual':
             inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
             fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+            console.log('[DEBUG calcularIntervaloPeriodo] mesAtual:', { inicio: inicio.toLocaleDateString('pt-BR'), fim: fim.toLocaleDateString('pt-BR') });
             break;
         
         case 'mesAnterior':
@@ -1978,6 +1979,7 @@ function calcularIntervaloPeriodo(periodo) {
  */
 function filtrarRegistros() {
     let registrosFiltrados = [...AppState.dados.registros];
+    console.log('[DEBUG filtrarRegistros] total registros no AppState:', registrosFiltrados.length);
 
     // Filtro por acordo
     if (AppState.dashboardFilters.acordoIndex !== null) {
@@ -1997,13 +1999,22 @@ function filtrarRegistros() {
 
     // Filtro por período
     const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
+    console.log('[DEBUG filtrarRegistros] intervalo calculado:', intervalo ? { inicio: intervalo.inicio.toLocaleDateString('pt-BR'), fim: intervalo.fim.toLocaleDateString('pt-BR') } : 'null');
+    
     if (intervalo) {
+        const before = registrosFiltrados.length;
         registrosFiltrados = registrosFiltrados.filter(r => {
             // Tenta vários campos de data
             const dateStr = r.dataRegistroIso || r.data || r.dataStr || r.dataRegistro;
             const dataReg = DateUtils.parse(dateStr);
-            return dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
+            const passes = dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
+            
+            if (before < 10) {
+                console.log(`[DEBUG] registro data=${dateStr}, parsed=${dataReg?.toLocaleDateString?.('pt-BR')}, passes=${passes}`);
+            }
+            return passes;
         });
+        console.log('[DEBUG filtrarRegistros] filtrados por período:', before, '->', registrosFiltrados.length);
     }
 
     return registrosFiltrados;
