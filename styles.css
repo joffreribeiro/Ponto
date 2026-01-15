@@ -398,9 +398,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 1200px; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
     border: 1px solid var(--border-table); 
-    padding: 6px 8px; 
+    padding: 4px 6px;                 /* reduzido de 6px 8px para altura menor */
     text-align: center; 
     font-size: 13px;
+    height: 28px;                     /* altura fixa para linhas compactas */
 }
 
 /* Allow header to wrap between words (no mid-word breaks) and improve readability */
@@ -409,13 +410,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     color: #ffffff; 
     font-weight: 700; 
     font-size: 13px;
-    padding: 12px 8px;
+    padding: 8px 6px;                 /* reduzido de 12px 8px */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     line-height: 1.15;
     border: none;
-    white-space: normal; /* allow wrapping */
-    word-break: normal;  /* don't break words in the middle */
+    white-space: normal;              /* allow wrapping */
+    word-break: normal;               /* don't break words in the middle */
     overflow-wrap: normal;
     hyphens: none;
 }
@@ -441,6 +442,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* Allow horizontal scrolling so fixed column widths are respected on narrow screens */
 #periodosAquisitivosContainer { overflow-x: auto; }
+
+/* Bordas mais escuras para separar períodos aquisitivos */
+#tablePeriodosAquisitivos tbody tr {
+    border-bottom: 2px solid #4b5563;    /* separador mais escuro entre períodos */
+}
 
 /* Force widths for problem columns in case inline/colgroup is ignored by browser or overridden */
 #tablePeriodosAquisitivos col.col-periodo {
