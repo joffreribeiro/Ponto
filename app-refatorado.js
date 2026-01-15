@@ -2084,6 +2084,43 @@ function atualizarDashboard() {
         document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totais.totalSaldo);
         document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
         document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
+
+        // KPIs essenciais
+        const diasTrabalhados = new Set(registrosFiltrados.map(r => r.data || r.dataRegistro || r.dataStr)).size;
+        const mediaDiariaMin = diasTrabalhados > 0 ? Math.round(totais.totalTrabalhadas / diasTrabalhados) : 0;
+        const mediaHorasDiaEl = document.getElementById('mediaHorasDia');
+        if (mediaHorasDiaEl) mediaHorasDiaEl.textContent = DateUtils.minutesToTime(mediaDiariaMin);
+        const diasTrabalhadosEl = document.getElementById('diasTrabalhados');
+        if (diasTrabalhadosEl) diasTrabalhadosEl.textContent = diasTrabalhados.toString();
+
+        // Tendência 30d
+        const hoje = DateUtils.parse(DateUtils.today());
+        const start30 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 29);
+        const start60 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 59);
+        const endPrev = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30);
+
+        const registros30 = registrosFiltrados.filter(r => {
+            const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr || r.dataRegistroIso);
+            return d && d >= start30 && d <= hoje;
+        });
+        const registrosPrev30 = registrosFiltrados.filter(r => {
+            const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr || r.dataRegistroIso);
+            return d && d >= start60 && d <= endPrev;
+        });
+
+        const totals30 = Calculations.calculatePeriodTotals(registros30, AppState.dados.eventos, AppState.dados.acordos);
+        const totalsPrev30 = Calculations.calculatePeriodTotals(registrosPrev30, AppState.dados.eventos, AppState.dados.acordos);
+
+        const saldo30El = document.getElementById('saldo30d');
+        if (saldo30El) saldo30El.textContent = DateUtils.minutesToTime(totals30.totalSaldo);
+
+        const diff = totals30.totalSaldo - totalsPrev30.totalSaldo;
+        const tendenciaEl = document.getElementById('tendenciaSaldo');
+        if (tendenciaEl) {
+            const sign = diff > 0 ? '+' : '';
+            tendenciaEl.textContent = `${sign}${DateUtils.minutesToTime(diff)} vs 30d ant.`;
+            tendenciaEl.style.color = diff >= 0 ? 'var(--positive)' : 'var(--negative)';
+        }
         
         // Atualiza os gráficos com os dados filtrados
         if (typeof renderAnalytics === 'function') {

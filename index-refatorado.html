@@ -102,6 +102,24 @@
                             <span id="horasAcordo" class="stat-value">00:00</span>
                         </div>
                     </div>
+                    <div class="stats-grid kpi-grid">
+                        <div class="stat">
+                            <span class="stat-label">Média diária</span>
+                            <span id="mediaHorasDia" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Dias com registro</span>
+                            <span id="diasTrabalhados" class="stat-value">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Saldo últimos 30d</span>
+                            <span id="saldo30d" class="stat-value">00:00</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Tendência 30d vs 30d ant.</span>
+                            <span id="tendenciaSaldo" class="stat-value">-</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="card" id="dashboard-ferias-card">
                     <h2>Férias</h2>
@@ -140,11 +158,11 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h2 style="margin: 0;"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M3 3h2v18H3zM8 10h2v11H8zM13 5h2v16h-2zM18 13h2v8h-2z"/></svg></span> Analytics</h2>
                     <button type="button" class="btn-secondary" data-action="toggleAnalytics">
-                        <span id="analyticsToggleText">Mostrar Gráficos</span>
+                        <span id="analyticsToggleText">Ocultar Gráficos</span>
                     </button>
                 </div>
                 
-                <div id="analyticsSection" style="display: none;">
+                <div id="analyticsSection" style="display: block;">
                     <div class="chart-grid">
                         <div class="chart-card">
                             <h3>Horas Trabalhadas</h3>
