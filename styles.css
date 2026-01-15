@@ -34,7 +34,7 @@
     max-height: 65vh !important;
     padding-bottom: 8px;
 }
-.nova-sidebar { /* legacy removed — canonical .nova-sidebar appears later */ }
+/* legacy .nova-sidebar definition removed — canonical appears later */
 .modal-content.modal-medium .modal-body > div[style*="flex:1"] {
     flex: 1 1 0%;
     min-width: 0;
@@ -419,7 +419,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     overflow-wrap: normal;
     hyphens: none;
 }
-#/* Larguras fixas das colunas (ajustado para 11 colunas) */
+/* Larguras fixas das colunas (ajustado para 11 colunas) */
 #tablePeriodosAquisitivos colgroup col:nth-child(1) { width: 130px; }  /* Período Aquisitivo */
 #tablePeriodosAquisitivos colgroup col:nth-child(2) { width: 70px; }   /* Limite */
 #tablePeriodosAquisitivos colgroup col:nth-child(3) { width: 45px; }   /* Total Dias */
@@ -1064,7 +1064,7 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
 
 .dashboard-filters button {
     padding: 10px 18px;
-    background: linear-gradient(135deg, var(--negative) 0%, #b91c1c 100%);\
+    background: linear-gradient(135deg, var(--negative) 0%, #b91c1c 100%);
     color: white;
     border: none;
     border-radius: 8px;
