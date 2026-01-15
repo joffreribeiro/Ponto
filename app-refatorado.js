@@ -3778,7 +3778,11 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 function renderizarPeriodosAquisitivosTable(rows) {
     try {
         const tb = document.querySelector('#tablePeriodosAquisitivos tbody');
-        if (!tb) return;
+        console.debug('renderizarPeriodosAquisitivosTable called, tbody=', tb);
+        if (!tb) {
+            console.warn('Tabela de períodos aquisitivos não encontrada no DOM (#tablePeriodosAquisitivos tbody).');
+            return;
+        }
         tb.innerHTML = '';
         // Se não foram passadas linhas, carregar do estado persistido
         if (!rows) {
@@ -3799,6 +3803,20 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     idRaw: p.id
                 })) : [];
             } catch (e) { rows = []; }
+        }
+
+        // Se não houver linhas para renderizar, mostrar linha informativa
+        if (!rows || rows.length === 0) {
+            const trEmpty = document.createElement('tr');
+            const tdEmpty = document.createElement('td');
+            tdEmpty.colSpan = 11;
+            tdEmpty.style.textAlign = 'center';
+            tdEmpty.style.padding = '12px';
+            tdEmpty.textContent = 'Nenhum período aquisitivo salvo.';
+            trEmpty.appendChild(tdEmpty);
+            tb.appendChild(trEmpty);
+            console.debug('Nenhum período aquisitivo encontrado; renderizada linha vazia.');
+            return;
         }
 
         // Agrupar por período aquisitivo (periodoIndex)
