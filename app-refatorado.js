@@ -287,6 +287,8 @@ function inicializar() {
             // Renderizar tabela de períodos aquisitivos salvos
             try {
                 renderizarPeriodosAquisitivosTable();
+                // Verificar e gerar automaticamente o próximo período se o atual expirou
+                gerarProximoPeriodoSeNecessario();
             } catch(e) { console.warn('Erro ao renderizar períodos aquisitivos:', e); }
         } catch(e){ console.warn('Não foi possível anexar listeners aos controles de períodos aquisitivos:', e); }
         atualizarSelectTiposEventos();
@@ -3738,6 +3740,95 @@ function salvarFeriasFromTab() {
     } catch (error) {
         console.error('Erro ao salvar férias:', error);
         mostrarAlertaGlobal(error.message || 'Erro ao salvar férias.', 'error');
+    }
+}
+
+/**
+ * Gera automaticamente o próximo período aquisitivo quando o período atual expira.
+ * Validações:
+ * - Verifica se a data de admissão existe
+ * - Encontra o período com a data de término mais recente
+ * - Se esse período expirou (término < hoje), cria um novo período
+ * - Garante que não haja sobreposições de períodos
+ */
+function gerarProximoPeriodoSeNecessario() {
+    try {
+        if (!AppState.dados || !AppState.dados.admissao) {
+            // Sem data de admissão, não pode gerar
+            return;
+        }
+
+        const periodos = AppState.dados.periodosAquisitivos || [];
+        if (periodos.length === 0) {
+            // Nenhum período ainda
+            return;
+        }
+
+        // Encontrar o período com maior periodoIndex e verificar sua data de término
+        let maxIndex = 0;
+        let ultimoPeriodo = null;
+        periodos.forEach(p => {
+            if (p.periodoIndex && p.periodoIndex > maxIndex) {
+                maxIndex = p.periodoIndex;
+                ultimoPeriodo = p;
+            }
+        });
+
+        if (!ultimoPeriodo || !ultimoPeriodo.termino) {
+            // Sem período válido
+            return;
+        }
+
+        // Converter data de término para Date para comparação
+        const dtTermino = DateUtils.parse(ultimoPeriodo.termino);
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        // Se a data de término ainda não expirou, não gerar
+        if (dtTermino >= hoje) {
+            return;
+        }
+
+        // Data de término expirou - verificar se já existe próximo período
+        const proximoIndex = maxIndex + 1;
+        const jaExisteProximo = periodos.some(p => p.periodoIndex === proximoIndex);
+
+        if (jaExisteProximo) {
+            // Próximo período já foi gerado
+            return;
+        }
+
+        // Gerar o próximo período
+        // Início: dia seguinte ao término do período anterior (ou data de aniversário)
+        const dtAdmissao = DateUtils.parse(AppState.dados.admissao);
+        const inicio = new Date(dtAdmissao.getFullYear() + proximoIndex - 1, dtAdmissao.getMonth(), dtAdmissao.getDate());
+        const termino = new Date(inicio.getFullYear() + 1, inicio.getMonth(), inicio.getDate());
+        termino.setDate(termino.getDate() - 1);
+        const limite = new Date(termino.getFullYear() + 1, termino.getMonth(), termino.getDate());
+
+        // Criar novo período
+        AppState.dados.periodosAquisitivos.push({
+            id: gerarIdUnico(),
+            periodoIndex: proximoIndex,
+            inicio: DateUtils.getIsoDate(inicio),
+            termino: DateUtils.getIsoDate(termino),
+            limite: DateUtils.getIsoDate(limite),
+            subIndex: null,
+            subTotal: null,
+            feriasInicio: null,
+            feriasFim: null,
+            adto13: '',
+            dias: null,
+            documento: ''
+        });
+
+        // Salvar e atualizar UI
+        AppState.save();
+        renderizarPeriodosAquisitivosTable();
+
+        console.log(`Período aquisitivo ${proximoIndex} gerado automaticamente: ${DateUtils.formatBR(DateUtils.getIsoDate(inicio))} → ${DateUtils.formatBR(DateUtils.getIsoDate(termino))}`);
+    } catch (e) {
+        console.warn('Erro ao gerar próximo período automaticamente:', e);
     }
 }
 
