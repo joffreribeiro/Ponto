@@ -999,6 +999,19 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
     padding:10px 12px; border-radius:8px; border:1px solid var(--border-soft);
 }
 
+/* Timesheet/Registros: allow Observações column to wrap text (column 9) */
+#tabelaRegistros th:nth-child(9),
+#tabelaRegistros td:nth-child(9) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: left;
+}
+
+/* Ensure table container can scroll horizontally if content grows */
+#tabelaRegistros { width: 100%; border-collapse: collapse; }
+#tabelaRegistros .table-cell-wrap { max-width: 420px; }
+
 @media(max-width:700px) {
     .modal-inline-card { border-radius:10px; }
     #novaAtividadeInline .modal-body { display:block; }
