@@ -1858,6 +1858,27 @@ function popularFiltroAcordosDashboard() {
 /**
  * Configura os event listeners dos filtros do dashboard
  */
+/**
+ * Popula o filtro de acordos do dashboard
+ */
+function popularFiltroAcordosDashboard() {
+    const select = document.getElementById('dashboardFilterAcordo');
+    if (!select) return;
+    
+    // Limpa e adiciona opção padrão
+    select.innerHTML = '<option value="todos">Todos os acordos</option>';
+    
+    // Adiciona acordos ativos
+    if (AppState.dados && AppState.dados.acordos && AppState.dados.acordos.length > 0) {
+        AppState.dados.acordos.forEach((acordo, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = acordo.nome || `Acordo ${index + 1}`;
+            select.appendChild(option);
+        });
+    }
+}
+
 function configurarFiltrosDashboard() {
     const periodSelect = document.getElementById('dashboardFilterPeriodo');
     if (periodSelect) {
