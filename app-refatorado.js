@@ -72,22 +72,6 @@ const AppState = {
 function inicializar() {
     try {
         AppState.init();
-        
-        // DEBUG: Adicionar registros de teste se não houver nenhum
-        if (!AppState.dados.registros || AppState.dados.registros.length === 0) {
-            console.log('[DEBUG] Adicionando registros de teste para período de janeiro 2026');
-            AppState.dados.registros = [
-                { data: '2026-01-05', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-05' },
-                { data: '2026-01-06', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-06' },
-                { data: '2026-01-07', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-07' },
-                { data: '2026-01-08', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-08' },
-                { data: '2026-01-09', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-09' },
-                { data: '2025-12-15', entrada: '09:00', saida: '18:00', dataRegistroIso: '2025-12-15' },
-                { data: '2025-12-16', entrada: '09:00', saida: '18:00', dataRegistroIso: '2025-12-16' }
-            ];
-            AppState.save();
-        }
-        
         ensureTiposEventoDefault();
         configurarAbas();
         configurarSubAbas();
@@ -1899,12 +1883,9 @@ function configurarFiltrosDashboard() {
     const periodSelect = document.getElementById('dashboardFilterPeriodo');
     if (periodSelect) {
         // Sincroniza o estado com o valor do select (importante na primeira carga)
-        const periodoSelecionado = periodSelect.value || 'todos';
-        console.log('[DEBUG configurarFiltrosDashboard] periodo inicial:', periodoSelecionado);
-        AppState.dashboardFilters.periodo = periodoSelecionado;
+        AppState.dashboardFilters.periodo = periodSelect.value || 'todos';
         
         periodSelect.addEventListener('change', function() {
-            console.log('[DEBUG] mudança de periodo para:', this.value);
             AppState.dashboardFilters.periodo = this.value;
             
             const customInputs = document.getElementById('customRangeInputs');
@@ -1934,7 +1915,6 @@ function calcularIntervaloPeriodo(periodo) {
         case 'mesAtual':
             inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
             fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-            console.log('[DEBUG calcularIntervaloPeriodo] mesAtual:', { inicio: inicio.toLocaleDateString('pt-BR'), fim: fim.toLocaleDateString('pt-BR') });
             break;
         
         case 'mesAnterior':
@@ -1979,7 +1959,6 @@ function calcularIntervaloPeriodo(periodo) {
  */
 function filtrarRegistros() {
     let registrosFiltrados = [...AppState.dados.registros];
-    console.log('[DEBUG filtrarRegistros] total registros no AppState:', registrosFiltrados.length);
 
     // Filtro por acordo
     if (AppState.dashboardFilters.acordoIndex !== null) {
@@ -1999,22 +1978,13 @@ function filtrarRegistros() {
 
     // Filtro por período
     const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
-    console.log('[DEBUG filtrarRegistros] intervalo calculado:', intervalo ? { inicio: intervalo.inicio.toLocaleDateString('pt-BR'), fim: intervalo.fim.toLocaleDateString('pt-BR') } : 'null');
-    
     if (intervalo) {
-        const before = registrosFiltrados.length;
         registrosFiltrados = registrosFiltrados.filter(r => {
             // Tenta vários campos de data
             const dateStr = r.dataRegistroIso || r.data || r.dataStr || r.dataRegistro;
             const dataReg = DateUtils.parse(dateStr);
-            const passes = dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
-            
-            if (before < 10) {
-                console.log(`[DEBUG] registro data=${dateStr}, parsed=${dataReg?.toLocaleDateString?.('pt-BR')}, passes=${passes}`);
-            }
-            return passes;
+            return dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
         });
-        console.log('[DEBUG filtrarRegistros] filtrados por período:', before, '->', registrosFiltrados.length);
     }
 
     return registrosFiltrados;
@@ -2138,11 +2108,8 @@ function limparFiltrosDashboard() {
 
 function atualizarDashboard() {
     try {
-        console.log('[DEBUG atualizarDashboard] AppState.dashboardFilters:', AppState.dashboardFilters);
-        
         // Pega os registros filtrados
         const registrosFiltrados = filtrarRegistros();
-        console.log('[DEBUG atualizarDashboard] registrosFiltrados.length:', registrosFiltrados.length);
 
         const totais = Calculations.calculatePeriodTotals(
             registrosFiltrados,
@@ -6824,6 +6791,205 @@ function dateIsoToBr(dataIso) {
     if (!match) return dataIso;
     const [, ano, mes, dia] = match;
     return `${dia}/${mes}/${ano}`;
+}
+
+// ============= BACKUP E RESTORE =============
+
+/**
+ * Executa backup de todos os dados do sistema
+ * Baixa um arquivo JSON com timestamp
+ */
+function executarBackup() {
+    try {
+        if (!AppState.dados) {
+            Notifications.warning('Nenhum dado para fazer backup');
+            return;
+        }
+
+        // Gerar timestamp para o arquivo
+        const now = new Date();
+        const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `ponto-backup-${timestamp}.json`;
+
+        // Converter dados para JSON com formatação legível
+        const jsonString = JSON.stringify(AppState.dados, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        
+        // Criar link de download e simular clique
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        Notifications.success(`✅ Backup realizado com sucesso!\nArquivo: ${filename}`);
+    } catch (error) {
+        console.error('Erro ao executar backup:', error);
+        Notifications.error('Erro ao fazer backup: ' + error.message);
+    }
+}
+
+/**
+ * Abre dialog para seleção de arquivo de backup
+ */
+function selecionarArquivoRestaurar() {
+    try {
+        const fileInput = document.getElementById('inputRestaurarBackup');
+        if (!fileInput) {
+            Notifications.error('Elemento de input de arquivo não encontrado');
+            return;
+        }
+        
+        // Adicionar listener para quando arquivo for selecionado
+        fileInput.onchange = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                restaurarDoBackup(file);
+            }
+            // Limpar o input para permitir selecionar o mesmo arquivo novamente
+            fileInput.value = '';
+        };
+        
+        // Disparar clique para abrir dialog de seleção
+        fileInput.click();
+    } catch (error) {
+        console.error('Erro ao abrir seletor de arquivo:', error);
+        Notifications.error('Erro ao abrir seletor: ' + error.message);
+    }
+}
+
+/**
+ * Restaura dados a partir de um arquivo de backup
+ * @param {File} file - Arquivo JSON de backup
+ */
+function restaurarDoBackup(file) {
+    try {
+        if (!file) {
+            Notifications.warning('Nenhum arquivo selecionado');
+            return;
+        }
+
+        // Validar tipo de arquivo
+        if (!file.name.endsWith('.json')) {
+            Notifications.error('Por favor, selecione um arquivo JSON válido');
+            return;
+        }
+
+        // Ler arquivo
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                // Tentar fazer parse do JSON
+                const jsonString = event.target.result;
+                const dadosBackup = JSON.parse(jsonString);
+
+                // Validar estrutura básica
+                if (!dadosBackup || typeof dadosBackup !== 'object') {
+                    throw new Error('Arquivo de backup inválido: não contém um objeto JSON válido');
+                }
+
+                // Tentar usar Storage.import para validar
+                const validado = Storage.import(jsonString);
+                if (!validado) {
+                    throw new Error('Arquivo de backup não passou na validação');
+                }
+
+                // Perguntar confirmação ao usuário
+                const confirmacao = confirm(
+                    '⚠️ ATENÇÃO: Restaurar arquivo de backup substituirá COMPLETAMENTE todos os dados atuais.\n\n' +
+                    'Dados que serão sobrescritos:\n' +
+                    '- Registros de ponto\n' +
+                    '- Eventos\n' +
+                    '- Acordos\n' +
+                    '- Atividades\n' +
+                    '- Períodos aquisitivos\n' +
+                    '- Todas as outras configurações\n\n' +
+                    'Tem certeza que deseja continuar?'
+                );
+
+                if (!confirmacao) {
+                    Notifications.info('Restauração cancelada');
+                    return;
+                }
+
+                // Restaurar dados
+                AppState.dados = validado;
+                AppState.save();
+
+                // Reinicializar a aplicação
+                inicializar();
+
+                Notifications.success('✅ Backup restaurado com sucesso!\nAplicação reinicializada.');
+            } catch (error) {
+                console.error('Erro ao restaurar backup:', error);
+                Notifications.error('Erro ao restaurar: ' + error.message);
+            }
+        };
+
+        reader.onerror = function() {
+            Notifications.error('Erro ao ler arquivo');
+        };
+
+        reader.readAsText(file);
+    } catch (error) {
+        console.error('Erro ao processar arquivo de backup:', error);
+        Notifications.error('Erro: ' + error.message);
+    }
+}
+
+/**
+ * Confirma e limpa completamente todos os dados do sistema
+ */
+function confirmarLimpezaCompleta() {
+    try {
+        // Primeira confirmação
+        const confirmacao1 = confirm(
+            '⚠️ ATENÇÃO - LIMPEZA COMPLETA:\n\n' +
+            'Isso removerá PERMANENTEMENTE:\n' +
+            '✗ Todos os registros de ponto\n' +
+            '✗ Todos os eventos\n' +
+            '✗ Todos os acordos\n' +
+            '✗ Todas as atividades\n' +
+            '✗ Todos os períodos aquisitivos\n' +
+            '✗ Todas as configurações\n\n' +
+            'Esta ação NÃO pode ser desfeita!\n\n' +
+            'Tem CERTEZA que deseja continuar?'
+        );
+
+        if (!confirmacao1) {
+            Notifications.info('Limpeza cancelada');
+            return;
+        }
+
+        // Segunda confirmação para ter certeza absoluta
+        const confirmacao2 = confirm(
+            '⚠️ CONFIRMAÇÃO FINAL:\n\n' +
+            'Você tem certeza absoluta que deseja APAGAR TUDO?'
+        );
+
+        if (!confirmacao2) {
+            Notifications.info('Limpeza cancelada');
+            return;
+        }
+
+        // Limpar localStorage
+        Storage.clear();
+
+        // Reinicializar aplicação com dados padrão
+        AppState.reset();
+        AppState.init();
+        
+        // Reinicializar interface
+        inicializar();
+
+        Notifications.success('✅ Todos os dados foram removidos.\nAplicação reinicializada com configurações padrão.');
+    } catch (error) {
+        console.error('Erro ao limpar dados:', error);
+        Notifications.error('Erro ao limpar: ' + error.message);
+    }
 }
 
 
