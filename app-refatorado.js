@@ -1882,6 +1882,9 @@ function popularFiltroAcordosDashboard() {
 function configurarFiltrosDashboard() {
     const periodSelect = document.getElementById('dashboardFilterPeriodo');
     if (periodSelect) {
+        // Sincroniza o estado com o valor do select
+        AppState.dashboardFilters.periodo = periodSelect.value || 'todos';
+        
         periodSelect.addEventListener('change', function() {
             const customInputs = document.getElementById('customRangeInputs');
             if (customInputs) {
@@ -1942,7 +1945,6 @@ function calcularIntervaloPeriodo(periodo) {
             return null; // Sem filtro de período
     }
 
-    console.log('[DEBUG calcularIntervaloPeriodo]', periodo, '-> inicio:', inicio, 'fim:', fim);
     return inicio && fim ? { inicio, fim } : null;
 }
 
@@ -1951,10 +1953,6 @@ function calcularIntervaloPeriodo(periodo) {
  */
 function filtrarRegistros() {
     let registrosFiltrados = [...AppState.dados.registros];
-    
-    console.log('[DEBUG filtrarRegistros] periodo:', AppState.dashboardFilters.periodo);
-    console.log('[DEBUG filtrarRegistros] total registros:', registrosFiltrados.length);
-    console.log('[DEBUG filtrarRegistros] exemplo de registro:', registrosFiltrados[0]);
 
     // Filtro por acordo
     if (AppState.dashboardFilters.acordoIndex !== null) {
@@ -1974,18 +1972,13 @@ function filtrarRegistros() {
 
     // Filtro por período
     const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
-    console.log('[DEBUG filtrarRegistros] intervalo:', intervalo);
     if (intervalo) {
-        const before = registrosFiltrados.length;
         registrosFiltrados = registrosFiltrados.filter(r => {
-            const dataReg = DateUtils.parse(r.data);
-            const passes = dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
-            if (!passes && registrosFiltrados.length < 5) {
-                console.log('[DEBUG] registro rejeitado:', r.data, 'parsed:', dataReg, 'intervalo:', intervalo.inicio, intervalo.fim);
-            }
-            return passes;
+            // Tenta vários campos de data
+            const dateStr = r.dataRegistroIso || r.data || r.dataStr || r.dataRegistro;
+            const dataReg = DateUtils.parse(dateStr);
+            return dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
         });
-        console.log('[DEBUG filtrarRegistros] filtrados por período:', before, '->', registrosFiltrados.length);
     }
 
     return registrosFiltrados;
