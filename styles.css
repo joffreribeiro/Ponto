@@ -1007,13 +1007,13 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
     white-space: normal;            /* allow wrapping between words */
     overflow-wrap: break-word;     /* wrap long words only when necessary */
     word-break: normal;            /* avoid mid-word breaks */
-    max-width: 300px;              /* increase as needed so 'Expediente' fits */
+    max-width: 340px;              /* increase so 'Expediente' fits comfortably */
     text-align: left;
 }
 /* Optional inner wrapper if cell content needs constrained width */
 #tabelaRegistros td:nth-child(9) > .obs-cell {
     display: block;
-    max-width: 300px;
+    max-width: 340px;
     white-space: normal;
     overflow-wrap: break-word;
 }

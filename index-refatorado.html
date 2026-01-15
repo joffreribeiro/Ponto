@@ -392,6 +392,18 @@
                     </div>
                     <div class="table-container">
                         <table id="tabelaRegistros">
+                            <colgroup>
+                                <col style="width:90px" />  <!-- DATA -->
+                                <col style="width:90px" />  <!-- ENTRADA -->
+                                <col style="width:110px" /> <!-- SAÍDA ALMOÇO -->
+                                <col style="width:110px" /> <!-- RETORNO ALMOÇO -->
+                                <col style="width:90px" />  <!-- SAÍDA -->
+                                <col style="width:90px" />  <!-- PERÍODO -->
+                                <col style="width:90px" />  <!-- TOTAL -->
+                                <col style="width:90px" />  <!-- SALDO -->
+                                <col style="width:320px" /> <!-- OBSERVAÇÕES (garantir espaço) -->
+                                <col style="width:110px" /> <!-- AÇÕES -->
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>DATA</th>
@@ -1145,3 +1157,32 @@
 
 </body>
 </html>
+
+<script>
+// Ensure Observações cells are wrapped with .obs-cell so CSS max-width applies
+(function(){
+    function wrapObsCells(){
+        try{
+            document.querySelectorAll('#tabelaRegistros tbody tr').forEach(tr=>{
+                const td = tr.children && tr.children[8]; // 9th column
+                if (!td) return;
+                if (td.querySelector && td.querySelector('.obs-cell')) return;
+                const html = td.innerHTML || '';
+                td.innerHTML = '<span class="obs-cell">' + html + '</span>';
+            });
+        } catch(e){ console.error('wrapObsCells error', e); }
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(wrapObsCells, 100);
+    } else {
+        document.addEventListener('DOMContentLoaded', ()=> setTimeout(wrapObsCells, 100));
+    }
+    // observe table body for changes
+    (function(){
+        const tbody = document.querySelector('#tabelaRegistros tbody');
+        if (!tbody) return;
+        const mo = new MutationObserver(()=> setTimeout(wrapObsCells, 50));
+        mo.observe(tbody, { childList: true, subtree: true });
+    })();
+})();
+</script>
