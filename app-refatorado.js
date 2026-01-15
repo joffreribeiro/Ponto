@@ -1931,7 +1931,7 @@ function calcularIntervaloPeriodo(periodo) {
         case 'customizado':
             const dataInicioInput = document.getElementById('dashboardDataInicio');
             const dataFimInput = document.getElementById('dashboardDataFim');
-            if (dataInicioInput.value && dataFimInput.value) {
+            if (dataInicioInput && dataInicioInput.value && dataFimInput && dataFimInput.value) {
                 inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
                 fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
             }
@@ -1942,6 +1942,7 @@ function calcularIntervaloPeriodo(periodo) {
             return null; // Sem filtro de período
     }
 
+    console.log('[DEBUG calcularIntervaloPeriodo]', periodo, '-> inicio:', inicio, 'fim:', fim);
     return inicio && fim ? { inicio, fim } : null;
 }
 
@@ -1950,6 +1951,10 @@ function calcularIntervaloPeriodo(periodo) {
  */
 function filtrarRegistros() {
     let registrosFiltrados = [...AppState.dados.registros];
+    
+    console.log('[DEBUG filtrarRegistros] periodo:', AppState.dashboardFilters.periodo);
+    console.log('[DEBUG filtrarRegistros] total registros:', registrosFiltrados.length);
+    console.log('[DEBUG filtrarRegistros] exemplo de registro:', registrosFiltrados[0]);
 
     // Filtro por acordo
     if (AppState.dashboardFilters.acordoIndex !== null) {
@@ -1969,12 +1974,18 @@ function filtrarRegistros() {
 
     // Filtro por período
     const intervalo = calcularIntervaloPeriodo(AppState.dashboardFilters.periodo);
+    console.log('[DEBUG filtrarRegistros] intervalo:', intervalo);
     if (intervalo) {
+        const before = registrosFiltrados.length;
         registrosFiltrados = registrosFiltrados.filter(r => {
             const dataReg = DateUtils.parse(r.data);
-            if (!dataReg) return false;
-            return dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
+            const passes = dataReg && dataReg >= intervalo.inicio && dataReg <= intervalo.fim;
+            if (!passes && registrosFiltrados.length < 5) {
+                console.log('[DEBUG] registro rejeitado:', r.data, 'parsed:', dataReg, 'intervalo:', intervalo.inicio, intervalo.fim);
+            }
+            return passes;
         });
+        console.log('[DEBUG filtrarRegistros] filtrados por período:', before, '->', registrosFiltrados.length);
     }
 
     return registrosFiltrados;
