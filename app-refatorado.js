@@ -1866,7 +1866,7 @@ function popularFiltroAcordosDashboard() {
     if (!select) return;
     
     // Limpa e adiciona opção padrão
-    select.innerHTML = '<option value="todos">Todos os acordos</option>';
+    select.innerHTML = '<option value="">Todos os acordos</option>';
     
     // Adiciona acordos ativos
     if (AppState.dados && AppState.dados.acordos && AppState.dados.acordos.length > 0) {
@@ -1988,7 +1988,13 @@ function aplicarFiltrosDashboard() {
     const periodoSelect = document.getElementById('dashboardFilterPeriodo');
 
     // Atualiza o estado dos filtros
-    AppState.dashboardFilters.acordoIndex = acordoSelect.value === '' ? null : parseInt(acordoSelect.value);
+    const acordoVal = acordoSelect ? acordoSelect.value : '';
+    if (acordoVal === '' || acordoVal === 'todos') {
+        AppState.dashboardFilters.acordoIndex = null;
+    } else {
+        const parsed = Number.parseInt(acordoVal, 10);
+        AppState.dashboardFilters.acordoIndex = Number.isNaN(parsed) ? null : parsed;
+    }
     AppState.dashboardFilters.periodo = periodoSelect.value;
 
     // Valida datas customizadas
