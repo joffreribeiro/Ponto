@@ -999,21 +999,21 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
     padding:10px 12px; border-radius:8px; border:1px solid var(--border-soft);
 }
 
-/* Timesheet/Registros: make Observações readable without breaking words mid-word
-   Increase max-width so words like 'Expediente' fit on one line */
+/* Timesheet/Registros: coluna Observações quebra texto e não excede largura de 'Expediente' (~85px) */
 #tabelaRegistros { width: 100%; border-collapse: collapse; }
 #tabelaRegistros th:nth-child(9),
 #tabelaRegistros td:nth-child(9) {
-    white-space: normal;            /* allow wrapping between words */
-    overflow-wrap: break-word;     /* wrap long words only when necessary */
-    word-break: normal;            /* avoid mid-word breaks */
-    max-width: 340px;              /* increase so 'Expediente' fits comfortably */
+    white-space: normal;           /* permite quebra de linha */
+    overflow-wrap: break-word;     /* quebra palavras longas se necessário */
+    word-break: normal;            /* não quebra palavras no meio */
+    max-width: 85px;               /* largura máx. aprox. da palavra 'Expediente' */
+    min-width: 60px;
     text-align: left;
 }
-/* Optional inner wrapper if cell content needs constrained width */
+/* Wrapper interno para garantir quebra adequada */
 #tabelaRegistros td:nth-child(9) > .obs-cell {
     display: block;
-    max-width: 340px;
+    max-width: 85px;
     white-space: normal;
     overflow-wrap: break-word;
 }
