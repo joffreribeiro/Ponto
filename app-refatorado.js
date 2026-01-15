@@ -72,6 +72,22 @@ const AppState = {
 function inicializar() {
     try {
         AppState.init();
+        
+        // DEBUG: Adicionar registros de teste se não houver nenhum
+        if (!AppState.dados.registros || AppState.dados.registros.length === 0) {
+            console.log('[DEBUG] Adicionando registros de teste para período de janeiro 2026');
+            AppState.dados.registros = [
+                { data: '2026-01-05', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-05' },
+                { data: '2026-01-06', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-06' },
+                { data: '2026-01-07', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-07' },
+                { data: '2026-01-08', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-08' },
+                { data: '2026-01-09', entrada: '09:00', saida: '18:00', dataRegistroIso: '2026-01-09' },
+                { data: '2025-12-15', entrada: '09:00', saida: '18:00', dataRegistroIso: '2025-12-15' },
+                { data: '2025-12-16', entrada: '09:00', saida: '18:00', dataRegistroIso: '2025-12-16' }
+            ];
+            AppState.save();
+        }
+        
         ensureTiposEventoDefault();
         configurarAbas();
         configurarSubAbas();
