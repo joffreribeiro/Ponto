@@ -16,7 +16,15 @@ const DateUtils = {
         if (typeof str !== 'string') {
             str = String(str);
         }
-        const s = str.trim();
+        let s = str.trim();
+
+        // Se vier com hora (ISO completo ou com espaço), mantém só a parte da data
+        if (s.includes('T')) {
+            s = s.split('T')[0];
+        } else if (s.includes(' ')) {
+            // exemplo: 2024-10-01 08:00:00
+            s = s.split(' ')[0];
+        }
 
         // DD/MM/YYYY
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
