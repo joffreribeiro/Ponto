@@ -2372,8 +2372,13 @@ function atualizarDashboard() {
                     limparPeriodosInvalidos();
                     
                     // Iterar por TODOS os períodos aquisitivos em ordem (mais antigo primeiro)
+                    // MAS apenas aqueles que ainda não expiraram (termino >= hoje)
                     const periodosOrdenados = (AppState.dados?.periodosAquisitivos || [])
                         .filter(p => p.inicio && p.termino)
+                        .filter(p => {
+                            const pe = DateUtils.parse(p.termino);
+                            return pe && pe >= today; // Apenas períodos ainda válidos
+                        })
                         .sort((a, b) => {
                             const aStart = DateUtils.parse(a.inicio);
                             const bStart = DateUtils.parse(b.inicio);
