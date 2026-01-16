@@ -2261,7 +2261,21 @@ function atualizarDashboard() {
         );
 
         document.getElementById('horasPeriodo').textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
-        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totais.totalSaldo);
+        
+        // MODIFICAÇÃO: Saldo de Banco de Horas = saldo do mês ATUAL (janeiro/2026)
+        const hoje = DateUtils.parse(DateUtils.today());
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const registrosMes = registrosFiltrados.filter(r => {
+            const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr || r.dataRegistroIso);
+            return d && d >= inicioMes && d <= hoje;
+        });
+        const totaisMes = Calculations.calculatePeriodTotals(
+            registrosMes,
+            AppState.dados.eventos,
+            AppState.dados.acordos
+        );
+        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totaisMes.totalSaldo);
+        
         document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
         document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
 
@@ -2274,7 +2288,6 @@ function atualizarDashboard() {
         if (diasTrabalhadosEl) diasTrabalhadosEl.textContent = diasTrabalhados.toString();
 
         // Tendência 30d
-        const hoje = DateUtils.parse(DateUtils.today());
         const start30 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 29);
         const start60 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 59);
         const endPrev = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30);
