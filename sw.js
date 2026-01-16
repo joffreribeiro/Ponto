@@ -5,35 +5,45 @@
 
 const CACHE_NAME = 'controle-ponto-v2';
 const CACHE_ASSETS = [
-    './',
-    './index-refatorado.html',
-    './styles.css',
-    './utils.js',
-    './notifications.js',
-    './loading.js',
-    './keyboard.js',
-    './dateUtils.js',
-    './validators.js',
-    './storage.js',
-    './calculations.js',
-    './pagination.js',
-    './cache.js',
-    './validation-realtime.js',
-    './app-refatorado.js'
+    'index-refatorado.html',
+    'styles.css',
+    'utils.js',
+    'notifications.js',
+    'loading.js',
+    'keyboard.js',
+    'dateUtils.js',
+    'validators.js',
+    'storage.js',
+    'calculations.js',
+    'pagination.js',
+    'cache.js',
+    'validation-realtime.js',
+    'app-refatorado.js'
 ];
 
 // Instalação - cachear assets
 self.addEventListener('install', (event) => {
     console.log('[SW] Instalando Service Worker...');
-    
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('[SW] Cacheando arquivos');
-                return cache.addAll(CACHE_ASSETS);
-            })
-            .then(() => self.skipWaiting())
-    );
+
+    event.waitUntil((async () => {
+        try {
+            const cache = await caches.open(CACHE_NAME);
+            console.log('[SW] Cacheando arquivos (best-effort)');
+            for (const asset of CACHE_ASSETS) {
+                try {
+                    const req = new Request(asset, { cache: 'no-cache' });
+                    const res = await fetch(req);
+                    if (res && res.ok) await cache.put(req, res);
+                    else console.warn('[SW] Falha ao cachear:', asset, res && res.status);
+                } catch (e) {
+                    console.warn('[SW] Erro ao buscar asset:', asset, e);
+                }
+            }
+        } catch (err) {
+            console.error('[SW] Erro durante install/cache:', err);
+        }
+        await self.skipWaiting();
+    })());
 });
 
 // Ativação - limpar caches antigos
