@@ -64,6 +64,16 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+// Permitir skipWaiting sob demanda
+self.addEventListener('message', (event) => {
+    try {
+        const data = event.data || {};
+        if (data && data.type === 'SKIP_WAITING') {
+            self.skipWaiting();
+        }
+    } catch (e) { /* ignore */ }
+});
+
 // Fetch - estratégia Cache First com Network Fallback
 self.addEventListener('fetch', (event) => {
     // Ignorar requisições não-GET

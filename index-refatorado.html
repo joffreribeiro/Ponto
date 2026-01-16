@@ -9,6 +9,12 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230066cc'/%3E%3Ctext x='50%' y='54%' font-size='34' font-family='Arial' text-anchor='middle' fill='white'%3EP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
+    <header class="topbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);">
+        <div style="font-weight:600;">Controle de Ponto</div>
+        <div id="version-controls" style="display:flex;gap:8px;align-items:center;">
+            <button id="btnUpdateVersion" class="btn-secondary">Atualizar Versão</button>
+        </div>
+    </header>
     <div class="container">
         <!-- NAVEGAÇÃO PRINCIPAL POR ABAS -->
         <nav class="tabs">
@@ -948,6 +954,30 @@
             } catch (e) { console.error('toggleAtividadesTable shim error', e); }
         };
     }
+</script>
+
+<script>
+// Inicializa PWA e botão de atualização
+(function(){
+    function initPWA(){ try { if (window.PWA && typeof PWA.init === 'function') PWA.init(); } catch(e){ console.warn('PWA.init falhou', e); } }
+    function setupUpdateButton(){
+        const btn = document.getElementById('btnUpdateVersion');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            try {
+                const reg = await navigator.serviceWorker?.getRegistration();
+                if (reg) {
+                    await reg.update();
+                    if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+            } catch(e){ /* ignore */ }
+            // Pequeno atraso para permitir ativação, depois recarrega
+            setTimeout(() => window.location.reload(), 300);
+        });
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') { initPWA(); setupUpdateButton(); }
+    else { document.addEventListener('DOMContentLoaded', () => { initPWA(); setupUpdateButton(); }); }
+})();
 </script>
 
 <!-- Modal Nova Atividade Completa (layout igual ao registro de ponto, mas com campos de atividade e barra lateral) -->
