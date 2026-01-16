@@ -5654,10 +5654,12 @@ function exportarTimesheetPDF() {
         const printStyles = `
             @page { size: A4 landscape; margin: 10mm; }
             * { box-sizing: border-box; }
-            body { padding: 8px; font-size: 12px; }
-            table { width: 100% !important; table-layout: fixed; border-collapse: collapse; }
-            th, td { page-break-inside: avoid; word-break: break-word; padding: 4px 6px; }
+            body { padding: 6px; font-size: 11px; }
+            table { width: 100% !important; table-layout: auto; border-collapse: collapse; }
+            th, td { page-break-inside: avoid; word-break: break-word; white-space: normal; padding: 3px 4px; }
             .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; max-width: 100%; }
+            .timesheet-table th .th-dia { display: flex; flex-direction: column; align-items: center; font-size: 10px; gap: 2px; }
+            .timesheet-table th .th-dia-num { font-size: 11px; font-weight: 700; }
         `;
 
         const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"><style>${printStyles}</style></head><body>${cont.innerHTML}</body></html>`;
