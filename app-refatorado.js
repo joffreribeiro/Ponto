@@ -514,36 +514,32 @@ function ensureTiposEventoDefault() {
     ];
 
     // Inserir qualquer tipo default que esteja faltando
-        eventos.forEach(ev => {
-            const tipo = String(ev.tipoEvento || '').toLowerCase();
-            const periodo = String(ev.periodo || '').toLowerCase();
+    defaults.forEach(d => {
+        if (!AppState.dados.tiposEvento.some(t => t.id === d.id)) {
+            AppState.dados.tiposEvento.push(d);
+        }
+    });
 
-            // helper para fator de meio período
-            const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
+    // Salvar se foi modificado
+    AppState.save();
+}
 
-            if (tipo === 'abono_acordo' || tipo === 'abono') {
-                const inicio = DateUtils.parse(ev.dataInicioEvento);
-                const fim = DateUtils.parse(ev.dataFimEvento);
-                if (inicio && fim) {
-                    const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    diasAbonoUsados += dias * fatorPeriodo; // conta meio período como 0.5
-                }
-            }
-            
-            if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
-                if (ev.horas) {
-                    horasPagasUsadas += Number(ev.horas) || 0;
-                } else {
-                    const inicio = DateUtils.parse(ev.dataInicioEvento);
-                    const fim = DateUtils.parse(ev.dataFimEvento);
-                    if (inicio && fim) {
-                        const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                        const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
-                        horasPagasUsadas += dias * horasPorDia;
-                    }
-                }
-            }
-        });
+function ensureAtividadesDefault() {
+    if (!AppState.dados) AppState.dados = {};
+    if (!Array.isArray(AppState.dados.atividades)) AppState.dados.atividades = [];
+    if (typeof AppState.dados.atividadesKanbanView === 'undefined') AppState.dados.atividadesKanbanView = false;
+    if (!Array.isArray(AppState.dados.atividadesReminders)) AppState.dados.atividadesReminders = [];
+    AppState.save();
+}
+
+// Calcula quantos dias faltam de hoje até a data do prazo (ex: prazo - hoje)
+function calcularDiasAtePrazo(prazoIso) {
+    if (!prazoIso) return 0;
+    try {
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        const prazo = new Date(prazoIso);
+        prazo.setHours(0,0,0,0);
+        const diffMs = prazo.getTime() - hoje.getTime();
         const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         // retornar valor assinado: negativo = vencido, 0 = vence hoje, positivo = dias restantes
         return dias;
@@ -5232,17 +5228,17 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
     let horasPagasUsadas = 0;
     
     eventos.forEach(ev => {
+        // Verificar se o evento pertence a este acordo
         if (ev.acordoIndex !== acordoIndex) return;
+        
         const tipo = String(ev.tipoEvento || '').toLowerCase();
-        const periodo = String(ev.periodo || '').toLowerCase();
-        const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
-
+        
         if (tipo === 'abono_acordo' || tipo === 'abono') {
             const inicio = DateUtils.parse(ev.dataInicioEvento);
             const fim = DateUtils.parse(ev.dataFimEvento);
             if (inicio && fim) {
                 const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                diasAbonoUsados += dias * fatorPeriodo;
+                diasAbonoUsados += dias;
             }
         }
         
@@ -5254,8 +5250,7 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
-                    horasPagasUsadas += dias * horasPorDia;
+                    horasPagasUsadas += dias * 8;
                 }
             }
         }
@@ -5658,13 +5653,10 @@ function exportarTimesheetPDF() {
 
         const printStyles = `
             @page { size: A4 landscape; margin: 10mm; }
-            * { box-sizing: border-box; }
-            body { padding: 6px; font-size: 11px; }
-            table { width: 100% !important; table-layout: auto; border-collapse: collapse; }
-            th, td { page-break-inside: avoid; word-break: break-word; white-space: normal; padding: 3px 4px; }
-            .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; max-width: 100%; }
-            .timesheet-table th .th-dia { display: flex; flex-direction: column; align-items: center; font-size: 10px; gap: 2px; }
-            .timesheet-table th .th-dia-num { font-size: 11px; font-weight: 700; }
+            body { padding: 12px; }
+            table { width: 100% !important; border-collapse: collapse; }
+            th, td { page-break-inside: avoid; }
+            .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; }
         `;
 
         const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"><style>${printStyles}</style></head><body>${cont.innerHTML}</body></html>`;
