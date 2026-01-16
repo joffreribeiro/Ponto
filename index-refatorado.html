@@ -1151,6 +1151,29 @@
 <script src="app-refatorado.js?v=1.2.0"></script>
 
 <script>
+// Fallback simples para abas: garante troca mesmo se inicialização falhar
+(function(){
+    function bindTabs(){
+        try {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            if (!tabBtns.length || !tabContents.length) return;
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const alvo = btn.dataset.tab;
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    const sec = document.getElementById(alvo);
+                    if (sec) sec.classList.add('active');
+                });
+            });
+        } catch (e) { console.warn('Fallback tabs falhou', e); }
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') bindTabs();
+    else document.addEventListener('DOMContentLoaded', bindTabs);
+})();
+
 // Fallback delegado: garante execução de ações marcadas com data-action
 (function(){
     try {
