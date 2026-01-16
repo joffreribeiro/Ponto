@@ -5639,7 +5639,40 @@ function importarRegistrosCSV(event) {
 // stubs restantes
 function exportarRegistrosPDF() { Notifications.info('📄 Exportação PDF em desenvolvimento'); }
 function exportarTimesheetCSV() { Notifications.info('📊 Exportação de timesheet em desenvolvimento'); }
-function exportarTimesheetPDF() { Notifications.info('📄 PDF timesheet em desenvolvimento'); }
+
+function exportarTimesheetPDF() {
+    try {
+        const cont = document.getElementById('timesheetContent');
+        if (!cont || !cont.innerHTML.trim()) {
+            Notifications.warning('Gere o timesheet antes de exportar.');
+            return;
+        }
+
+        // Descobrir o stylesheet principal (styles.css) para manter a aparência
+        const cssLink = (document.querySelector('link[href="styles.css"]')?.href) || 'styles.css';
+
+        const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"></head><body style="padding:16px;">${cont.innerHTML}</body></html>`;
+
+        const win = window.open('', '_blank');
+        if (!win) {
+            Notifications.error('Não foi possível abrir a janela de exportação.');
+            return;
+        }
+
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+
+        // Pequena espera para garantir renderização antes de imprimir
+        setTimeout(() => {
+            win.print();
+            win.close();
+        }, 300);
+    } catch (err) {
+        console.error('Erro ao exportar timesheet PDF:', err);
+        Notifications.error('Erro ao exportar timesheet para PDF.');
+    }
+}
 
 // ============= BACKUP E RESTAURAÇÃO LOCAL =============
 
