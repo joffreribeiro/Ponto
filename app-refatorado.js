@@ -2262,19 +2262,35 @@ function atualizarDashboard() {
 
         document.getElementById('horasPeriodo').textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
         
-        // MODIFICAÇÃO: Saldo de Banco de Horas = saldo do mês ATUAL (janeiro/2026)
+        // MODIFICAÇÃO: Saldo de Banco de Horas = saldo acumulado do último registro do mês atual
         const hoje = DateUtils.parse(DateUtils.today());
         const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        
+        // Encontrar o último registro do mês atual
         const registrosMes = registrosFiltrados.filter(r => {
             const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr || r.dataRegistroIso);
             return d && d >= inicioMes && d <= hoje;
+        }).sort((a, b) => {
+            const dA = DateUtils.parse(a.data || a.dataRegistro || a.dataStr || a.dataRegistroIso);
+            const dB = DateUtils.parse(b.data || b.dataRegistro || b.dataStr || b.dataRegistroIso);
+            return dB - dA; // Descending order
         });
-        const totaisMes = Calculations.calculatePeriodTotals(
-            registrosMes,
-            AppState.dados.eventos,
-            AppState.dados.acordos
-        );
-        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(totaisMes.totalSaldo);
+        
+        // Se há registros no mês, usar o saldo do último registro
+        let saldoMes = 0;
+        if (registrosMes.length > 0) {
+            const ultimoRegistroMes = registrosMes[0];
+            const calcUltimo = Calculations.calculateDayWithContext(
+                registrosFiltrados,
+                AppState.dados.eventos,
+                AppState.dados.acordos,
+                ultimoRegistroMes.data || ultimoRegistroMes.dataRegistro || ultimoRegistroMes.dataStr,
+                ultimoRegistroMes
+            );
+            saldoMes = calcUltimo.saldo || 0;
+        }
+        
+        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(saldoMes);
         
         document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
         document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
