@@ -514,32 +514,36 @@ function ensureTiposEventoDefault() {
     ];
 
     // Inserir qualquer tipo default que esteja faltando
-    defaults.forEach(d => {
-        if (!AppState.dados.tiposEvento.some(t => t.id === d.id)) {
-            AppState.dados.tiposEvento.push(d);
-        }
-    });
+        eventos.forEach(ev => {
+            const tipo = String(ev.tipoEvento || '').toLowerCase();
+            const periodo = String(ev.periodo || '').toLowerCase();
 
-    // Salvar se foi modificado
-    AppState.save();
-}
+            // helper para fator de meio período
+            const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
 
-function ensureAtividadesDefault() {
-    if (!AppState.dados) AppState.dados = {};
-    if (!Array.isArray(AppState.dados.atividades)) AppState.dados.atividades = [];
-    if (typeof AppState.dados.atividadesKanbanView === 'undefined') AppState.dados.atividadesKanbanView = false;
-    if (!Array.isArray(AppState.dados.atividadesReminders)) AppState.dados.atividadesReminders = [];
-    AppState.save();
-}
-
-// Calcula quantos dias faltam de hoje até a data do prazo (ex: prazo - hoje)
-function calcularDiasAtePrazo(prazoIso) {
-    if (!prazoIso) return 0;
-    try {
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        const prazo = new Date(prazoIso);
-        prazo.setHours(0,0,0,0);
-        const diffMs = prazo.getTime() - hoje.getTime();
+            if (tipo === 'abono_acordo' || tipo === 'abono') {
+                const inicio = DateUtils.parse(ev.dataInicioEvento);
+                const fim = DateUtils.parse(ev.dataFimEvento);
+                if (inicio && fim) {
+                    const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                    diasAbonoUsados += dias * fatorPeriodo; // conta meio período como 0.5
+                }
+            }
+            
+            if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
+                if (ev.horas) {
+                    horasPagasUsadas += Number(ev.horas) || 0;
+                } else {
+                    const inicio = DateUtils.parse(ev.dataInicioEvento);
+                    const fim = DateUtils.parse(ev.dataFimEvento);
+                    if (inicio && fim) {
+                        const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
+                        const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
+                        horasPagasUsadas += dias * horasPorDia;
+                    }
+                }
+            }
+        });
         const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         // retornar valor assinado: negativo = vencido, 0 = vence hoje, positivo = dias restantes
         return dias;
@@ -5228,17 +5232,17 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
     let horasPagasUsadas = 0;
     
     eventos.forEach(ev => {
-        // Verificar se o evento pertence a este acordo
         if (ev.acordoIndex !== acordoIndex) return;
-        
         const tipo = String(ev.tipoEvento || '').toLowerCase();
-        
+        const periodo = String(ev.periodo || '').toLowerCase();
+        const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
+
         if (tipo === 'abono_acordo' || tipo === 'abono') {
             const inicio = DateUtils.parse(ev.dataInicioEvento);
             const fim = DateUtils.parse(ev.dataFimEvento);
             if (inicio && fim) {
                 const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                diasAbonoUsados += dias;
+                diasAbonoUsados += dias * fatorPeriodo;
             }
         }
         
@@ -5250,7 +5254,8 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    horasPagasUsadas += dias * 8;
+                    const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
+                    horasPagasUsadas += dias * horasPorDia;
                 }
             }
         }
