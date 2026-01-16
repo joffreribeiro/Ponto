@@ -2368,48 +2368,60 @@ function atualizarDashboard() {
                 let bestPeriod = null; // Melhor período encontrado (mais antigo com dias)
                 
                 try {
-                    // Pegar acordo atual
-                    acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
-                    
-                    if (acquisitionAcordo && Array.isArray(acquisitionAcordo.periodos)) {
-                        // Iterar por TODOS os períodos aquisitivos em ordem (mais antigo primeiro)
-                        acquisitionAcordo.periodos.forEach(p => {
-                            try {
-                                const ps = DateUtils.parse(p.inicio);
-                                const pe = DateUtils.parse(p.fim || p.termino || p.inicio);
-                                
-                                if (!ps || !pe) return;
-                                
-                                // Contar dias de férias já marcadas NESTE período
-                                let scheduledDaysInThisPeriod = 0;
-                                ferias.forEach(f => {
-                                    const overlap = overlapDays(f.start, f.end, ps, pe);
-                                    if (overlap > 0) {
-                                        scheduledDaysInThisPeriod += overlap;
-                                    }
-                                });
-                                
-                                // Calcular dias restantes (assumindo 30 dias de direito)
-                                const entitlementDays = 30;
-                                const remainingDaysInPeriod = Math.max(0, entitlementDays - scheduledDaysInThisPeriod);
-                                
-                                // Se este período tem dias disponíveis E é o primeiro a ter (mais antigo)
-                                if (remainingDaysInPeriod > 0 && !bestPeriod) {
-                                    bestPeriod = {
-                                        start: ps,
-                                        end: pe,
-                                        entitlement: entitlementDays,
-                                        scheduled: scheduledDaysInThisPeriod,
-                                        remaining: remainingDaysInPeriod
-                                    };
-                                }
-                            } catch (err) {
-                                console.warn('Erro ao processar período:', err);
-                            }
+                    // Iterar por TODOS os períodos aquisitivos em ordem (mais antigo primeiro)
+                    const periodosOrdenados = (AppState.dados?.periodosAquisitivos || [])
+                        .filter(p => p.inicio && p.termino)
+                        .sort((a, b) => {
+                            const aStart = DateUtils.parse(a.inicio);
+                            const bStart = DateUtils.parse(b.inicio);
+                            return aStart - bStart; // Ordem crescente (mais antigo primeiro)
                         });
+                    
+                    for (let p of periodosOrdenados) {
+                        try {
+                            const ps = DateUtils.parse(p.inicio);
+                            const pe = DateUtils.parse(p.termino);
+                            
+                            if (!ps || !pe) continue;
+                            
+                            // Contar dias de férias já marcadas NESTE período
+                            let scheduledDaysInThisPeriod = 0;
+                            ferias.forEach(f => {
+                                const overlap = overlapDays(f.start, f.end, ps, pe);
+                                if (overlap > 0) {
+                                    scheduledDaysInThisPeriod += overlap;
+                                }
+                            });
+                            
+                            // Calcular dias restantes (assumindo 30 dias de direito)
+                            const entitlementDays = 30;
+                            const remainingDaysInPeriod = Math.max(0, entitlementDays - scheduledDaysInThisPeriod);
+                            
+                            // Se este período tem dias disponíveis E é o primeiro a ter (mais antigo)
+                            if (remainingDaysInPeriod > 0 && !bestPeriod) {
+                                bestPeriod = {
+                                    start: ps,
+                                    end: pe,
+                                    entitlement: entitlementDays,
+                                    scheduled: scheduledDaysInThisPeriod,
+                                    remaining: remainingDaysInPeriod
+                                };
+                                // Encontrou o mais antigo, pode sair do loop
+                                break;
+                            }
+                        } catch (err) {
+                            console.warn('Erro ao processar período:', err);
+                        }
                     }
                 } catch (err) {
                     console.warn('Erro ao determinar acordo para período aquisitivo', err);
+                }
+                
+                // Sempre pegar o acordo para referência
+                try {
+                    acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
+                } catch (err) {
+                    console.warn('Erro ao pegar acordo', err);
                 }
 
                 // Se encontrou um período com dias disponíveis, usar esse
