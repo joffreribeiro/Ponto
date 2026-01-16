@@ -2368,6 +2368,9 @@ function atualizarDashboard() {
                 let bestPeriod = null; // Melhor período encontrado (mais antigo com dias)
                 
                 try {
+                    // Limpar períodos duplicados/inválidos primeiro
+                    limparPeriodosInvalidos();
+                    
                     // Iterar por TODOS os períodos aquisitivos em ordem (mais antigo primeiro)
                     const periodosOrdenados = (AppState.dados?.periodosAquisitivos || [])
                         .filter(p => p.inicio && p.termino)
