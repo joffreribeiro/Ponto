@@ -2355,36 +2355,91 @@ function atualizarDashboard() {
                 const next = upcoming.find(f => f.start >= today) || upcoming[0] || null;
                 const daysUntilNext = next ? Math.max(0, Math.ceil((next.start - today) / msDay)) : null;
 
-                // Determine acquisition period: try to find acordo.periodo that contains today
-                let acquisitionStart = null, acquisitionEnd = null, acquisitionAcordo = null;
-                try {
-                    acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
-                    if (acquisitionAcordo && Array.isArray(acquisitionAcordo.periodos)) {
-                        const p = acquisitionAcordo.periodos.find(p => {
-                            const ps = DateUtils.parse(p.inicio);
-                            const pe = DateUtils.parse(p.fim || p.inicio);
-                            return ps && pe && ps <= today && pe >= today;
-                        });
-                        if (p) {
-                            acquisitionStart = DateUtils.parse(p.inicio);
-                            acquisitionEnd = DateUtils.parse(p.fim || p.inicio);
-                        }
-                    }
-                } catch (err) {
-                    console.warn('Erro ao determinar acordo para período aquisitivo', err);
-                }
-
-                // Fallback: last 12 months ending today
-                if (!acquisitionStart) {
-                    acquisitionEnd = today;
-                    acquisitionStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-                }
-
+                // Função auxiliar para calcular dias sobrepostos
                 function overlapDays(aStart,aEnd,bStart,bEnd){
                     const s = aStart > bStart ? aStart : bStart;
                     const e = aEnd < bEnd ? aEnd : bEnd;
                     if (!s || !e || e < s) return 0;
                     return Math.floor((e - s) / msDay) + 1;
+                }
+
+                // Procurar pelo PERÍODO MAIS ANTIGO que ainda tem dias disponíveis
+                let acquisitionStart = null, acquisitionEnd = null, acquisitionAcordo = null;
+                let bestPeriod = null; // Melhor período encontrado (mais antigo com dias)
+                
+                try {
+                    // Pegar acordo atual
+                    acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
+                    
+                    if (acquisitionAcordo && Array.isArray(acquisitionAcordo.periodos)) {
+                        // Iterar por TODOS os períodos aquisitivos em ordem (mais antigo primeiro)
+                        acquisitionAcordo.periodos.forEach(p => {
+                            try {
+                                const ps = DateUtils.parse(p.inicio);
+                                const pe = DateUtils.parse(p.fim || p.termino || p.inicio);
+                                
+                                if (!ps || !pe) return;
+                                
+                                // Contar dias de férias já marcadas NESTE período
+                                let scheduledDaysInThisPeriod = 0;
+                                ferias.forEach(f => {
+                                    const overlap = overlapDays(f.start, f.end, ps, pe);
+                                    if (overlap > 0) {
+                                        scheduledDaysInThisPeriod += overlap;
+                                    }
+                                });
+                                
+                                // Calcular dias restantes (assumindo 30 dias de direito)
+                                const entitlementDays = 30;
+                                const remainingDaysInPeriod = Math.max(0, entitlementDays - scheduledDaysInThisPeriod);
+                                
+                                // Se este período tem dias disponíveis E é o primeiro a ter (mais antigo)
+                                if (remainingDaysInPeriod > 0 && !bestPeriod) {
+                                    bestPeriod = {
+                                        start: ps,
+                                        end: pe,
+                                        entitlement: entitlementDays,
+                                        scheduled: scheduledDaysInThisPeriod,
+                                        remaining: remainingDaysInPeriod
+                                    };
+                                }
+                            } catch (err) {
+                                console.warn('Erro ao processar período:', err);
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Erro ao determinar acordo para período aquisitivo', err);
+                }
+
+                // Se encontrou um período com dias disponíveis, usar esse
+                if (bestPeriod) {
+                    acquisitionStart = bestPeriod.start;
+                    acquisitionEnd = bestPeriod.end;
+                } else {
+                    // Fallback: período que contém hoje
+                    try {
+                        acquisitionAcordo = Calculations.getAcordoByData(acordos, DateUtils.today());
+                        if (acquisitionAcordo && Array.isArray(acquisitionAcordo.periodos)) {
+                            const p = acquisitionAcordo.periodos.find(p => {
+                                const ps = DateUtils.parse(p.inicio);
+                                const pe = DateUtils.parse(p.fim || p.termino || p.inicio);
+                                return ps && pe && ps <= today && pe >= today;
+                            });
+                            if (p) {
+                                acquisitionStart = DateUtils.parse(p.inicio);
+                                acquisitionEnd = DateUtils.parse(p.fim || p.termino || p.inicio);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('Erro ao determinar período atual', err);
+                    }
+
+                    // Fallback final: últimos 12 meses
+                    if (!acquisitionStart) {
+                        acquisitionEnd = today;
+                        acquisitionStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+                    }
                 }
 
                 // Sum scheduled vacation days inside acquisition period
