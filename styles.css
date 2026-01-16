@@ -1150,6 +1150,21 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
     border-color: var(--primary);
 }
 
+.stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 2px solid var(--border-soft);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-soft);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--primary);
+}
+
 .stat-label {
     display: block;
     font-size: 12px;
