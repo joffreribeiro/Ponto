@@ -5172,19 +5172,22 @@ function atualizarExibicaoUsoBeneficios() {
             if (ev.acordoIndex !== acordoIndex && acordoIndex !== null) return;
             
             const tipo = String(ev.tipoEvento || '').toLowerCase();
+            const periodo = String(ev.periodo || '').toLowerCase();
+            // Fator: meio período (matutino/vespertino) conta como 0.5
+            const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
             
             if (tipo === 'abono_acordo' || tipo === 'abono') {
-                // Contar dias (diferença entre datas + 1)
+                // Contar períodos (meio período = 0.5, dia todo = 1)
                 const inicio = DateUtils.parse(ev.dataInicioEvento);
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    diasAbonoUsados += dias;
+                    diasAbonoUsados += dias * fatorPeriodo;
                 }
             }
             
             if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
-                // Contar horas (usar campo horas se disponível, ou calcular pelos dias como horas)
+                // Contar horas (usar campo horas se disponível, ou calcular pelos dias)
                 if (ev.horas) {
                     horasPagasUsadas += Number(ev.horas) || 0;
                 } else {
@@ -5192,7 +5195,9 @@ function atualizarExibicaoUsoBeneficios() {
                     const fim = DateUtils.parse(ev.dataFimEvento);
                     if (inicio && fim) {
                         const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                        horasPagasUsadas += dias * 8; // assumindo 8h por dia
+                        // Meio período = 4h, dia todo = 8h
+                        const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
+                        horasPagasUsadas += dias * horasPorDia;
                     }
                 }
             }
@@ -5204,7 +5209,7 @@ function atualizarExibicaoUsoBeneficios() {
         const restantePagarHora = Math.max(0, qtdPagarHora - horasPagasUsadas);
         
         if (abonoUsadoEl) {
-            abonoUsadoEl.textContent = `Utilizado: ${diasAbonoUsados} dia(s) | Restante: ${restanteAbono} dia(s)`;
+            abonoUsadoEl.textContent = `Utilizado: ${diasAbonoUsados} período(s) | Restante: ${restanteAbono} período(s)`;
             abonoUsadoEl.style.color = restanteAbono <= 0 && qtdAbono > 0 ? 'var(--error)' : 'var(--text-secondary)';
         }
         if (pagarHoraUsadoEl) {
@@ -5232,13 +5237,16 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
         if (ev.acordoIndex !== acordoIndex) return;
         
         const tipo = String(ev.tipoEvento || '').toLowerCase();
+        const periodo = String(ev.periodo || '').toLowerCase();
+        // Fator: meio período (matutino/vespertino) conta como 0.5
+        const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
         
         if (tipo === 'abono_acordo' || tipo === 'abono') {
             const inicio = DateUtils.parse(ev.dataInicioEvento);
             const fim = DateUtils.parse(ev.dataFimEvento);
             if (inicio && fim) {
                 const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                diasAbonoUsados += dias;
+                diasAbonoUsados += dias * fatorPeriodo;
             }
         }
         
@@ -5250,7 +5258,9 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    horasPagasUsadas += dias * 8;
+                    // Meio período = 4h, dia todo = 8h
+                    const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
+                    horasPagasUsadas += dias * horasPorDia;
                 }
             }
         }
