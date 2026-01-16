@@ -16,7 +16,8 @@ function parseDateBR(dataBR) {
 
 /**
  * Limpa períodos duplicados/antigos mantendo apenas os válidos
- * Mantém apenas períodos com índice sequencial e sem saltos
+ * Mantém apenas períodos com índice sequencial (1-4) e sem saltos
+ * Períodos futuros serão gerados automaticamente por gerarProximoPeriodoSeNecessario()
  */
 function limparPeriodosInvalidos() {
     try {
@@ -38,13 +39,15 @@ function limparPeriodosInvalidos() {
         console.log(`[limparPeriodosInvalidos] Índices únicos encontrados:`, Object.keys(porIndex).sort((a, b) => a - b));
         
         // Manter apenas o período mais recente de cada índice
-        // e descartar índices muito altos (>10 = problema)
+        // E manter apenas índices 1-4 (períodos iniciais reais)
+        // Períodos futuros (5+) serão gerados automaticamente conforme necessário
         for (const [idxStr, periodos] of Object.entries(porIndex)) {
             const idx = parseInt(idxStr);
             
-            // Descartar índices muito altos (mantém até índice 10, que seria ~2035)
-            if (idx > 10) {
-                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (muito alto)`);
+            // Manter apenas índices 1-4 (os períodos iniciais reais)
+            // Índices 5+ são provavelmente gerados por bug e serão recriados automaticamente
+            if (idx > 4) {
+                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (mantém apenas 1-4)`);
                 continue;
             }
             
