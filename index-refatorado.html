@@ -134,33 +134,52 @@
                     </div>
                 </div>
                 <div class="card" id="dashboard-ferias-card">
-                    <h2>Férias</h2>
-                    <div class="ferias-grid">
-                        <div class="ferias-item">
-                            <span class="ferias-label">Próxima Férias</span>
-                            <div id="nextVacationInfo" class="ferias-value">Nenhuma férias agendada</div>
-                            <div id="vacationWarning" class="ferias-warning" style="display:none;color:var(--warning);font-weight:600;"></div>
+                    <h2>📅 Resumo de Férias</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px;">
+                        <!-- Próxima Férias -->
+                        <div class="stat-card">
+                            <div class="stat-label">PRÓXIMA FÉRIAS</div>
+                            <div id="nextVacationInfo" class="stat-value" style="font-size: 16px; color: var(--primary);">-</div>
+                            <div id="vacationWarning" class="stat-value" style="display:none; font-size: 14px; color: var(--warning); margin-top: 8px;"></div>
                         </div>
-                        <div class="ferias-item">
-                            <span class="ferias-label">Período aquisitivo</span>
-                            <div id="acquisitionInfo" class="ferias-value">-</div>
+
+                        <!-- Período Aquisitivo Atual -->
+                        <div class="stat-card">
+                            <div class="stat-label">PERÍODO AQUISITIVO</div>
+                            <div id="acquisitionInfo" class="stat-value" style="font-size: 14px;">-</div>
                         </div>
-                        <div class="ferias-item">
-                            <span class="ferias-label">Dias restantes no período (suposto 30d)</span>
-                            <div id="remainingVacationDays" class="ferias-value">-</div>
+
+                        <!-- Dias Restantes -->
+                        <div class="stat-card">
+                            <div class="stat-label">DIAS RESTANTES NO PERÍODO</div>
+                            <div id="remainingVacationDays" class="stat-value" style="font-size: 24px; color: var(--accent);">-</div>
                         </div>
-                        <div class="ferias-item">
-                            <span class="ferias-label">Férias já marcadas</span>
-                            <div id="scheduledVacationsList" class="ferias-value">-</div>
-                            <div style="margin-top:12px;">
-                                <button id="btnSolicitarFeriasDashboard" class="btn-primary" type="button">Solicitar Férias</button>
+
+                        <!-- Férias Já Marcadas -->
+                        <div class="stat-card">
+                            <div class="stat-label">FÉRIAS JÁ MARCADAS</div>
+                            <div id="scheduledVacationsList" class="stat-value" style="font-size: 14px;">-</div>
+                            <div style="margin-top: 12px;">
+                                <button id="btnSolicitarFeriasDashboard" class="btn-primary" type="button" style="width: 100%;">➕ Solicitar Férias</button>
                             </div>
+                        </div>
+
+                        <!-- Dias Utilizados -->
+                        <div class="stat-card">
+                            <div class="stat-label">DIAS UTILIZADOS</div>
+                            <div id="usedVacationDays" class="stat-value" style="font-size: 24px; color: var(--info);">-</div>
+                        </div>
+
+                        <!-- Status do Período -->
+                        <div class="stat-card">
+                            <div class="stat-label">STATUS</div>
+                            <div id="vacationStatus" class="stat-value" style="font-size: 14px;">-</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Avisos</h2>
+                    <h2>⚠️ Avisos</h2>
                     <ul id="listaAvisos" class="lista-avisos"></ul>
                 </div>
             </div>

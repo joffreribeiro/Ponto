@@ -2423,6 +2423,8 @@ function atualizarDashboard() {
             const acqInfo = document.getElementById('acquisitionInfo');
             const remInfo = document.getElementById('remainingVacationDays');
             const schedListEl = document.getElementById('scheduledVacationsList');
+            const usedDaysEl = document.getElementById('usedVacationDays');
+            const statusEl = document.getElementById('vacationStatus');
 
             if (nextInfo) {
                 if (overview.next) {
@@ -2464,6 +2466,31 @@ function atualizarDashboard() {
                 } else {
                     schedListEl.textContent = '-';
                 }
+            }
+
+            // Adicionar novos campos
+            if (usedDaysEl) {
+                const usedDays = overview.entitlement - overview.remaining;
+                usedDaysEl.textContent = `${usedDays} / ${overview.entitlement} dia(s)`;
+            }
+
+            if (statusEl) {
+                let status = '✅ OK';
+                let statusColor = 'var(--positive)';
+                
+                if (overview.remaining <= 0) {
+                    status = '⚠️ Sem dias';
+                    statusColor = 'var(--negative)';
+                } else if (overview.remaining <= 5) {
+                    status = '⚡ Poucos dias';
+                    statusColor = 'var(--warning)';
+                } else if (overview.daysUntilNext !== null && overview.daysUntilNext <= 7) {
+                    status = '📅 Férias próximas';
+                    statusColor = 'var(--info)';
+                }
+                
+                statusEl.textContent = status;
+                statusEl.style.color = statusColor;
             }
         } catch (err) {
             console.warn('Erro ao calcular/atualizar resumo de férias:', err);
