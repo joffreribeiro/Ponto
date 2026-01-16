@@ -423,6 +423,11 @@
                             <select id="filtroAcordoRegistros"></select>
                         </div>
                         <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro">+ Novo Registro</button>
+                        <button type="button" class="btn-secondary" onclick="exportarRegistrosCSV()" title="Exportar em formato CSV">📥 Exportar CSV</button>
+                        <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;" title="Importar de arquivo CSV">
+                            📤 Importar CSV
+                            <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display: none;">
+                        </label>
                     </div>
                     <div class="table-container">
                         <table id="tabelaRegistros">
@@ -462,7 +467,14 @@
             <div id="ponto-config" class="subtab-content">
                 <div class="card">
                     <h3>Acordos de Jornada</h3>
-                    <button type="button" class="btn-primary" data-action="novoAcordo">+ Novo Acordo</button>
+                    <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" data-action="novoAcordo">+ Novo Acordo</button>
+                        <button type="button" class="btn-secondary" onclick="exportarAcordosJSON()">📥 Exportar Acordos</button>
+                        <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;">
+                            📤 Importar Acordos
+                            <input type="file" id="importarAcordosInput" accept=".json" onchange="importarAcordosJSON(event)" style="display: none;">
+                        </label>
+                    </div>
                     <div id="listaAcordos" style="margin-top:16px;"></div>
                 </div>
             </div>
@@ -477,6 +489,11 @@
                             <select id="filtroAcordoEventos"></select>
                         </div>
                         <button type="button" class="btn-primary" data-action="abrirModalEvento">+ Novo Evento</button>
+                        <button type="button" class="btn-secondary" onclick="exportarEventosExcel()" title="Exportar em formato Excel">📥 Exportar Excel</button>
+                        <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;" title="Importar de arquivo Excel">
+                            📤 Importar Excel
+                            <input type="file" id="importarEventosInput" accept=".xlsx,.xls" onchange="importarEventosExcel(event)" style="display: none;">
+                        </label>
                     </div>
                     <div class="table-container">
                         <table id="tabelaEventos">

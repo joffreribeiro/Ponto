@@ -5804,6 +5804,122 @@ function importarEventosExcel(event) {
     }
 }
 
+// ============= EXPORTAR/IMPORTAR ACORDOS =============
+
+/**
+ * Exporta acordos em formato JSON
+ */
+function exportarAcordosJSON() {
+    try {
+        if (!AppState.dados.acordos || AppState.dados.acordos.length === 0) {
+            Notifications.warning('Nenhum acordo para exportar.');
+            return;
+        }
+
+        const acordos = AppState.dados.acordos.map(a => ({
+            id: a.id,
+            nome: a.nome,
+            horasPorDia: a.horasPorDia,
+            diaInicio: a.diaInicio,
+            diaFim: a.diaFim,
+            descricao: a.descricao || '',
+            ativo: a.ativo !== false
+        }));
+
+        const blob = new Blob([JSON.stringify(acordos, null, 2)], { type: 'application/json;charset=utf-8' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `acordos_${new Date().toISOString().split('T')[0]}.json`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        Notifications.success(`✅ ${acordos.length} acordo(s) exportado(s)!`);
+    } catch (error) {
+        console.error('Erro ao exportar acordos:', error);
+        Notifications.error('Erro ao exportar: ' + error.message);
+    }
+}
+
+/**
+ * Importa acordos a partir de arquivo JSON
+ */
+function importarAcordosJSON(event) {
+    try {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        
+        reader.onload = function (e) {
+            try {
+                const acordos = JSON.parse(e.target.result);
+                
+                if (!Array.isArray(acordos)) {
+                    Notifications.error('Arquivo inválido: deve conter um array de acordos');
+                    return;
+                }
+
+                let importados = 0;
+                let duplicados = 0;
+
+                acordos.forEach(acordo => {
+                    // Verificar se já existe
+                    const existe = AppState.dados.acordos.some(a => a.nome === acordo.nome);
+                    
+                    if (existe) {
+                        duplicados++;
+                        return;
+                    }
+
+                    // Validar campos obrigatórios
+                    if (!acordo.nome || typeof acordo.horasPorDia !== 'number') {
+                        console.warn('Acordo inválido:', acordo);
+                        return;
+                    }
+
+                    // Adicionar novo acordo
+                    AppState.dados.acordos.push({
+                        id: acordo.id || gerarIdUnico(),
+                        nome: acordo.nome,
+                        horasPorDia: acordo.horasPorDia,
+                        diaInicio: acordo.diaInicio || 1,
+                        diaFim: acordo.diaFim || 28,
+                        descricao: acordo.descricao || '',
+                        ativo: acordo.ativo !== false
+                    });
+
+                    importados++;
+                });
+
+                AppState.save();
+                atualizarSelectAcordosRegistros();
+                atualizarSelectAcordosEventos();
+                atualizarSelectAcordosFerias();
+                renderizarAcordos();
+
+                let mensagem = `✅ ${importados} acordo(s) importado(s)`;
+                if (duplicados > 0) mensagem += ` (${duplicados} duplicado(s) ignorado(s))`;
+                
+                Notifications.success(mensagem);
+                console.log(`Acordos importados: ${importados}, duplicados: ${duplicados}`);
+            } catch (error) {
+                console.error('Erro ao processar arquivo:', error);
+                Notifications.error('Arquivo inválido: ' + error.message);
+            }
+        };
+
+        reader.readAsText(file);
+        event.target.value = ''; // Reset para permitir reselecionar mesmo arquivo
+    } catch (error) {
+        console.error('Erro ao importar acordos:', error);
+        Notifications.error('Erro ao importar: ' + error.message);
+    }
+}
+
 // ============= DEBUG E DIAGNÓSTICO =============
 
 // Função para exportar config completa e debug
