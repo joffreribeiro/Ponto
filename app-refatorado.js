@@ -5651,7 +5651,15 @@ function exportarTimesheetPDF() {
         // Descobrir o stylesheet principal (styles.css) para manter a aparência
         const cssLink = (document.querySelector('link[href="styles.css"]')?.href) || 'styles.css';
 
-        const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"></head><body style="padding:16px;">${cont.innerHTML}</body></html>`;
+        const printStyles = `
+            @page { size: A4 landscape; margin: 10mm; }
+            body { padding: 12px; }
+            table { width: 100% !important; border-collapse: collapse; }
+            th, td { page-break-inside: avoid; }
+            .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; }
+        `;
+
+        const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"><style>${printStyles}</style></head><body>${cont.innerHTML}</body></html>`;
 
         const win = window.open('', '_blank');
         if (!win) {
