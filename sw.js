@@ -3,7 +3,7 @@
  * Permite funcionamento offline e cache inteligente
  */
 
-const CACHE_NAME = 'controle-ponto-v1';
+const CACHE_NAME = 'controle-ponto-v2';
 const CACHE_ASSETS = [
     './',
     './index-refatorado.html',
@@ -58,10 +58,34 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     // Ignorar requisições não-GET
     if (event.request.method !== 'GET') return;
-    
+
     // Ignorar URLs externas
     if (!event.request.url.startsWith(self.location.origin)) return;
 
+    const url = new URL(event.request.url);
+    const isDocument = event.request.mode === 'navigate' || event.request.destination === 'document' || url.pathname.endsWith('/index-refatorado.html');
+    const isCriticalAsset = isDocument || url.pathname.endsWith('/app-refatorado.js') || url.pathname.endsWith('/styles.css');
+
+    // Para HTML e assets críticos: Network First com fallback para cache
+    if (isCriticalAsset) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    if (response && response.ok) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    }
+                    return response;
+                })
+                .catch(async () => {
+                    const cached = await caches.match(event.request);
+                    return cached || caches.match('./index-refatorado.html');
+                })
+        );
+        return;
+    }
+
+    // Demais recursos: Cache First com atualização em background
     event.respondWith(
         caches.match(event.request)
             .then(cachedResponse => {
@@ -74,14 +98,10 @@ self.addEventListener('fetch', (event) => {
                             });
                         }
                     }).catch(() => {});
-                    
                     return cachedResponse;
                 }
-
-                // Não está em cache, buscar da rede
                 return fetch(event.request)
                     .then(response => {
-                        // Cachear resposta bem-sucedida
                         if (response.ok) {
                             const responseClone = response.clone();
                             caches.open(CACHE_NAME).then(cache => {
@@ -90,10 +110,7 @@ self.addEventListener('fetch', (event) => {
                         }
                         return response;
                     })
-                    .catch(() => {
-                        // Offline e não cacheado - retornar página offline
-                        return caches.match('./index-refatorado.html');
-                    });
+                    .catch(() => caches.match('./index-refatorado.html'));
             })
     );
 });
