@@ -981,12 +981,33 @@
         if (!btn) return;
         btn.addEventListener('click', () => {
             try {
+                console.log('[setupUpdateVacationButton] Clique detectado');
+                console.log('[setupUpdateVacationButton] atualizarTabelaFerias existe?', typeof atualizarTabelaFerias === 'function');
+                
+                // Estratégia 1: função já carregada
                 if (typeof atualizarTabelaFerias === 'function') {
+                    console.log('[setupUpdateVacationButton] Chamando atualizarTabelaFerias() diretamente');
                     atualizarTabelaFerias();
-                } else {
-                    console.error('Função atualizarTabelaFerias não encontrada');
+                    return;
                 }
-            } catch(e){ console.error('Erro ao atualizar tabela de férias:', e); }
+                
+                // Estratégia 2: aguardar carregamento da função
+                console.log('[setupUpdateVacationButton] Aguardando carregamento de atualizarTabelaFerias...');
+                const maxTries = 10;
+                let tries = 0;
+                const checkInterval = setInterval(() => {
+                    tries++;
+                    if (typeof atualizarTabelaFerias === 'function') {
+                        clearInterval(checkInterval);
+                        console.log('[setupUpdateVacationButton] Função encontrada após', tries, 'tentativas');
+                        atualizarTabelaFerias();
+                    } else if (tries >= maxTries) {
+                        clearInterval(checkInterval);
+                        console.error('[setupUpdateVacationButton] Função não encontrada após', tries, 'tentativas');
+                        alert('Erro: Função atualizarTabelaFerias não carregada. Tente atualizar a página.');
+                    }
+                }, 100);
+            } catch(e){ console.error('[setupUpdateVacationButton] Erro:', e); }
         });
     }
     if (document.readyState === 'complete' || document.readyState === 'interactive') { initPWA(); setupUpdateButton(); setupUpdateVacationButton(); }

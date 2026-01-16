@@ -16,28 +16,58 @@ function parseDateBR(dataBR) {
 
 /**
  * Atualiza apenas a tabela de férias (períodos aquisitivos)
- * sem recarregar a página inteira
+ * Recarrega dados do localStorage e renderiza sem recarregar página
  */
 function atualizarTabelaFerias() {
     try {
-        // Recarregar dados do localStorage
+        console.log('[atualizarTabelaFerias] Iniciando...');
+        console.log('[atualizarTabelaFerias] AppState antes:', AppState.dados?.periodosAquisitivos?.length || 0);
+        
+        // 1. Garantir que a aba de férias está visível
+        const feriaTab = document.getElementById('ponto-ferias');
+        if (feriaTab) {
+            feriaTab.style.display = 'block';
+            console.log('[atualizarTabelaFerias] Aba de férias exibida');
+        }
+        
+        // 2. Recarregar dados do localStorage (sem resetar a tudo padrão)
         AppState.init();
         
-        // Renderizar tabela
+        console.log('[atualizarTabelaFerias] AppState depois de init():', AppState.dados?.periodosAquisitivos?.length || 0);
+        console.log('[atualizarTabelaFerias] Dados localStorage completos:', JSON.stringify({
+            periodosCount: AppState.dados?.periodosAquisitivos?.length || 0,
+            periodos: AppState.dados?.periodosAquisitivos?.map(p => ({
+                index: p.periodoIndex,
+                inicio: p.inicio,
+                termino: p.termino
+            })) || []
+        }));
+        
+        // 3. Renderizar tabela
         if (typeof renderizarPeriodosAquisitivosTable === 'function') {
+            console.log('[atualizarTabelaFerias] Chamando renderizarPeriodosAquisitivosTable()');
             renderizarPeriodosAquisitivosTable();
+            console.log('[atualizarTabelaFerias] Tabela renderizada com sucesso');
+        } else {
+            console.error('[atualizarTabelaFerias] Função renderizarPeriodosAquisitivosTable não encontrada!');
         }
         
-        // Feedback ao usuário
+        // 4. Feedback ao usuário
+        const periodos = AppState.dados?.periodosAquisitivos?.length || 0;
+        console.log(`[atualizarTabelaFerias] Tabela de férias atualizada! Total: ${periodos} períodos`);
+        
         if (typeof Notifications !== 'undefined' && Notifications.success) {
-            Notifications.success('✅ Tabela de férias atualizada!');
+            Notifications.success(`✅ Tabela de férias atualizada! (${periodos} períodos)`);
         } else {
-            console.log('Tabela de férias atualizada');
+            alert(`Tabela de férias atualizada! (${periodos} períodos)`);
         }
     } catch (error) {
-        console.error('Erro ao atualizar tabela de férias:', error);
+        console.error('[atualizarTabelaFerias] Erro:', error);
+        console.error('[atualizarTabelaFerias] Stack:', error.stack);
         if (typeof Notifications !== 'undefined' && Notifications.error) {
-            Notifications.error('Erro ao atualizar tabela de férias');
+            Notifications.error('Erro ao atualizar: ' + error.message);
+        } else {
+            alert('Erro ao atualizar: ' + error.message);
         }
     }
 }
