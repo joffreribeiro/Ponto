@@ -2572,6 +2572,58 @@ function atualizarDashboard() {
             console.warn('Erro ao calcular/atualizar resumo de férias:', err);
         }
         
+        // Atualizar Abono e Horas a Pagar no dashboard
+        try {
+            const abonoEl = document.getElementById('dashboardAbono');
+            const horasEl = document.getElementById('dashboardHorasPagar');
+            
+            if (abonoEl || horasEl) {
+                // Buscar o acordo vigente (mais recente ou com período atual)
+                const hoje = DateUtils.today();
+                let acordoAtual = null;
+                let acordoIndex = -1;
+                
+                // Tentar encontrar acordo que cobre a data atual
+                AppState.dados.acordos.forEach((ac, idx) => {
+                    if (ac.periodos && ac.periodos.length > 0) {
+                        const periodoAtivo = ac.periodos.find(p => {
+                            const inicio = DateUtils.parse(p.dataInicio);
+                            const fim = DateUtils.parse(p.dataFim);
+                            return inicio && fim && hoje >= inicio && hoje <= fim;
+                        });
+                        if (periodoAtivo) {
+                            acordoAtual = ac;
+                            acordoIndex = idx;
+                        }
+                    }
+                });
+                
+                // Se não encontrou por período, usar o mais recente
+                if (!acordoAtual && AppState.dados.acordos.length > 0) {
+                    acordoIndex = AppState.dados.acordos.length - 1;
+                    acordoAtual = AppState.dados.acordos[acordoIndex];
+                }
+                
+                if (acordoAtual) {
+                    const uso = calcularUsoBeneficiosAcordo(acordoIndex, acordoAtual);
+                    const totalAbono = uso.usadoAbono + uso.restanteAbono;
+                    const totalHoras = uso.usadoPagarHora + uso.restantePagarHora;
+                    
+                    if (abonoEl) {
+                        abonoEl.textContent = `${uso.usadoAbono} / ${totalAbono}`;
+                    }
+                    if (horasEl) {
+                        horasEl.textContent = `${uso.usadoPagarHora}h / ${totalHoras}h`;
+                    }
+                } else {
+                    if (abonoEl) abonoEl.textContent = '-';
+                    if (horasEl) horasEl.textContent = '-';
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao calcular abono/horas no dashboard:', err);
+        }
+        
         // Debug: log detalhado dos cálculos de novembro
         console.log('=== CÁLCULO DE HORAS TRABALHADAS ===');
         console.log('Total de registros:', AppState.dados.registros.length);
