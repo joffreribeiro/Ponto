@@ -382,10 +382,6 @@
             <div id="ponto-ferias" class="subtab-content">
                 <div class="card">
                     <h3>Períodos Aquisitivos e Férias</h3>
-                    <div style="margin-bottom: 12px;">
-                        <button type="button" class="btn-secondary" onclick="gerarProximoPeriodoSeNecessario(); renderizarPeriodosAquisitivosTable();">↻ Gerar Próximo Período (Manual)</button>
-                        <button type="button" class="btn-warning" onclick="if(confirm('Remover períodos duplicados/inválidos? Serão mantidos apenas períodos válidos até 10 anos no futuro.')) { limparPeriodosInvalidos(); atualizarTabelaFerias(); }">🧹 Limpar Duplicados</button>
-                    </div>
                     <div id="periodosAquisitivosContainer">
                         <table id="tablePeriodosAquisitivos">
                             <colgroup>
