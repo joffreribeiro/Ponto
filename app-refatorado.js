@@ -15,6 +15,41 @@ function parseDateBR(dataBR) {
 // ============= ATUALIZAÇÃO DE COMPONENTES =============
 
 /**
+ * Limpa períodos duplicados/antigos mantendo apenas os válidos
+ * Útil quando há muitos períodos gerados incorretamente
+ */
+function limparPeriodosInvalidos() {
+    try {
+        if (!AppState.dados?.periodosAquisitivos) return;
+        
+        const hoje = new Date();
+        const periodosValidos = [];
+        
+        // Manter apenas períodos razoáveis (até 10 anos no futuro)
+        const dataMaxima = new Date();
+        dataMaxima.setFullYear(dataMaxima.getFullYear() + 10);
+        
+        for (const p of AppState.dados.periodosAquisitivos) {
+            try {
+                const termino = p.termino ? DateUtils.parse(p.termino) : null;
+                if (termino && termino <= dataMaxima) {
+                    periodosValidos.push(p);
+                }
+            } catch (e) {
+                console.warn('Período inválido:', p);
+            }
+        }
+        
+        console.log(`[limparPeriodosInvalidos] Removidos ${AppState.dados.periodosAquisitivos.length - periodosValidos.length} períodos inválidos`);
+        AppState.dados.periodosAquisitivos = periodosValidos;
+        AppState.save();
+        
+    } catch (error) {
+        console.error('[limparPeriodosInvalidos] Erro:', error);
+    }
+}
+
+/**
  * Atualiza apenas a tabela de férias (períodos aquisitivos)
  * Recarrega dados do localStorage e renderiza sem recarregar página
  */
@@ -33,6 +68,13 @@ function atualizarTabelaFerias() {
         // 2. Recarregar dados do localStorage (sem resetar a tudo padrão)
         AppState.init();
         
+        // 3. Limpar períodos inválidos se houver muitos
+        const periodosBefore = AppState.dados?.periodosAquisitivos?.length || 0;
+        if (periodosBefore > 10) {
+            console.log(`[atualizarTabelaFerias] Detectados ${periodosBefore} períodos - limpando duplicatas...`);
+            limparPeriodosInvalidos();
+        }
+        
         console.log('[atualizarTabelaFerias] AppState depois de init():', AppState.dados?.periodosAquisitivos?.length || 0);
         console.log('[atualizarTabelaFerias] Dados localStorage completos:', JSON.stringify({
             periodosCount: AppState.dados?.periodosAquisitivos?.length || 0,
@@ -43,7 +85,7 @@ function atualizarTabelaFerias() {
             })) || []
         }));
         
-        // 3. Renderizar tabela
+        // 4. Renderizar tabela
         if (typeof renderizarPeriodosAquisitivosTable === 'function') {
             console.log('[atualizarTabelaFerias] Chamando renderizarPeriodosAquisitivosTable()');
             renderizarPeriodosAquisitivosTable();
@@ -52,7 +94,7 @@ function atualizarTabelaFerias() {
             console.error('[atualizarTabelaFerias] Função renderizarPeriodosAquisitivosTable não encontrada!');
         }
         
-        // 4. Feedback ao usuário
+        // 5. Feedback ao usuário
         const periodos = AppState.dados?.periodosAquisitivos?.length || 0;
         console.log(`[atualizarTabelaFerias] Tabela de férias atualizada! Total: ${periodos} períodos`);
         
