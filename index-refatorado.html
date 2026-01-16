@@ -12,6 +12,7 @@
     <header class="topbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);">
         <div style="font-weight:600;">Controle de Ponto</div>
         <div id="version-controls" style="display:flex;gap:8px;align-items:center;">
+            <button id="btnUpdateVacationTable" class="btn-secondary" title="Atualizar tabela de férias">🔄 Férias</button>
             <button id="btnUpdateVersion" class="btn-secondary">Atualizar Versão</button>
         </div>
     </header>
@@ -975,8 +976,21 @@
             setTimeout(() => window.location.reload(), 300);
         });
     }
-    if (document.readyState === 'complete' || document.readyState === 'interactive') { initPWA(); setupUpdateButton(); }
-    else { document.addEventListener('DOMContentLoaded', () => { initPWA(); setupUpdateButton(); }); }
+    function setupUpdateVacationButton(){
+        const btn = document.getElementById('btnUpdateVacationTable');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            try {
+                if (typeof atualizarTabelaFerias === 'function') {
+                    atualizarTabelaFerias();
+                } else {
+                    console.error('Função atualizarTabelaFerias não encontrada');
+                }
+            } catch(e){ console.error('Erro ao atualizar tabela de férias:', e); }
+        });
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') { initPWA(); setupUpdateButton(); setupUpdateVacationButton(); }
+    else { document.addEventListener('DOMContentLoaded', () => { initPWA(); setupUpdateButton(); setupUpdateVacationButton(); }); }
 })();
 </script>
 

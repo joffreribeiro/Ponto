@@ -12,6 +12,36 @@ function parseDateBR(dataBR) {
     return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
 }
 
+// ============= ATUALIZAÇÃO DE COMPONENTES =============
+
+/**
+ * Atualiza apenas a tabela de férias (períodos aquisitivos)
+ * sem recarregar a página inteira
+ */
+function atualizarTabelaFerias() {
+    try {
+        // Recarregar dados do localStorage
+        AppState.init();
+        
+        // Renderizar tabela
+        if (typeof renderizarPeriodosAquisitivosTable === 'function') {
+            renderizarPeriodosAquisitivosTable();
+        }
+        
+        // Feedback ao usuário
+        if (typeof Notifications !== 'undefined' && Notifications.success) {
+            Notifications.success('✅ Tabela de férias atualizada!');
+        } else {
+            console.log('Tabela de férias atualizada');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar tabela de férias:', error);
+        if (typeof Notifications !== 'undefined' && Notifications.error) {
+            Notifications.error('Erro ao atualizar tabela de férias');
+        }
+    }
+}
+
 /**
  * app.js - Versão refatorada com validação robusta
  * Utiliza módulos: storage.js, calculations.js, dateUtils.js, validators.js
