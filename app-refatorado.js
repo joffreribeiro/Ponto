@@ -5653,10 +5653,11 @@ function exportarTimesheetPDF() {
 
         const printStyles = `
             @page { size: A4 landscape; margin: 10mm; }
-            body { padding: 12px; }
-            table { width: 100% !important; border-collapse: collapse; }
-            th, td { page-break-inside: avoid; }
-            .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; }
+            * { box-sizing: border-box; }
+            body { padding: 8px; font-size: 12px; }
+            table { width: 100% !important; table-layout: fixed; border-collapse: collapse; }
+            th, td { page-break-inside: avoid; word-break: break-word; padding: 4px 6px; }
+            .timesheet-container, .timesheet-wrapper { width: 100%; overflow: visible; max-width: 100%; }
         `;
 
         const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Timesheet</title><link rel="stylesheet" href="${cssLink}"><style>${printStyles}</style></head><body>${cont.innerHTML}</body></html>`;
