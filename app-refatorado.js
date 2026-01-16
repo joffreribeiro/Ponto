@@ -16,7 +16,7 @@ function parseDateBR(dataBR) {
 
 /**
  * Limpa períodos duplicados/antigos mantendo apenas os válidos
- * Útil quando há muitos períodos gerados incorretamente
+ * Mantém apenas períodos com índice sequencial e sem saltos
  */
 function limparPeriodosInvalidos() {
     try {
@@ -25,27 +25,56 @@ function limparPeriodosInvalidos() {
         const hoje = new Date();
         const periodosValidos = [];
         
-        // Manter apenas períodos razoáveis (até 10 anos no futuro)
-        const dataMaxima = new Date();
-        dataMaxima.setFullYear(dataMaxima.getFullYear() + 10);
+        console.log(`[limparPeriodosInvalidos] Total de períodos antes: ${AppState.dados.periodosAquisitivos.length}`);
         
+        // Agrupar períodos por periodoIndex
+        const porIndex = {};
         for (const p of AppState.dados.periodosAquisitivos) {
-            try {
-                const termino = p.termino ? DateUtils.parse(p.termino) : null;
-                if (termino && termino <= dataMaxima) {
-                    periodosValidos.push(p);
-                }
-            } catch (e) {
-                console.warn('Período inválido:', p);
-            }
+            const idx = p.periodoIndex || 0;
+            if (!porIndex[idx]) porIndex[idx] = [];
+            porIndex[idx].push(p);
         }
         
-        console.log(`[limparPeriodosInvalidos] Removidos ${AppState.dados.periodosAquisitivos.length - periodosValidos.length} períodos inválidos`);
+        console.log(`[limparPeriodosInvalidos] Índices únicos encontrados:`, Object.keys(porIndex).sort((a, b) => a - b));
+        
+        // Manter apenas o período mais recente de cada índice
+        // e descartar índices muito altos (>10 = problema)
+        for (const [idxStr, periodos] of Object.entries(porIndex)) {
+            const idx = parseInt(idxStr);
+            
+            // Descartar índices muito altos (mantém até índice 10, que seria ~2035)
+            if (idx > 10) {
+                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (muito alto)`);
+                continue;
+            }
+            
+            // Se houver múltiplos períodos com mesmo índice, manter o mais recente
+            if (periodos.length > 1) {
+                console.log(`[limparPeriodosInvalidos] Índice ${idx} tem ${periodos.length} períodos - mantendo apenas 1`);
+                periodos.sort((a, b) => {
+                    const dtA = a.termino ? DateUtils.parse(a.termino) : new Date(0);
+                    const dtB = b.termino ? DateUtils.parse(b.termino) : new Date(0);
+                    return dtB - dtA;
+                });
+            }
+            
+            periodosValidos.push(periodos[0]);
+        }
+        
+        // Ordenar por índice
+        periodosValidos.sort((a, b) => a.periodoIndex - b.periodoIndex);
+        
+        console.log(`[limparPeriodosInvalidos] Total após limpeza: ${periodosValidos.length}`);
+        console.log(`[limparPeriodosInvalidos] Períodos mantidos:`, periodosValidos.map(p => `Idx${p.periodoIndex}(${p.inicio}→${p.termino})`).join(', '));
+        
         AppState.dados.periodosAquisitivos = periodosValidos;
         AppState.save();
         
+        return periodosValidos.length;
+        
     } catch (error) {
         console.error('[limparPeriodosInvalidos] Erro:', error);
+        return 0;
     }
 }
 
@@ -68,15 +97,20 @@ function atualizarTabelaFerias() {
         // 2. Recarregar dados do localStorage (sem resetar a tudo padrão)
         AppState.init();
         
-        // 3. Limpar períodos inválidos se houver muitos
+        // 3. Limpar períodos inválidos/duplicados se houver muitos
         const periodosBefore = AppState.dados?.periodosAquisitivos?.length || 0;
+        let periodosAfter = periodosBefore;
+        
         if (periodosBefore > 10) {
             console.log(`[atualizarTabelaFerias] Detectados ${periodosBefore} períodos - limpando duplicatas...`);
-            limparPeriodosInvalidos();
+            periodosAfter = limparPeriodosInvalidos() || periodosAfter;
+            
+            // Recarregar AppState após limpeza
+            AppState.init();
         }
         
-        console.log('[atualizarTabelaFerias] AppState depois de init():', AppState.dados?.periodosAquisitivos?.length || 0);
-        console.log('[atualizarTabelaFerias] Dados localStorage completos:', JSON.stringify({
+        console.log('[atualizarTabelaFerias] AppState depois de limpeza:', AppState.dados?.periodosAquisitivos?.length || 0);
+        console.log('[atualizarTabelaFerias] Dados localStorage após processamento:', JSON.stringify({
             periodosCount: AppState.dados?.periodosAquisitivos?.length || 0,
             periodos: AppState.dados?.periodosAquisitivos?.map(p => ({
                 index: p.periodoIndex,
@@ -94,9 +128,13 @@ function atualizarTabelaFerias() {
             console.error('[atualizarTabelaFerias] Função renderizarPeriodosAquisitivosTable não encontrada!');
         }
         
-        // 5. Feedback ao usuário
+        // 5. Feedback ao usuário com contagem correta
         const periodos = AppState.dados?.periodosAquisitivos?.length || 0;
-        console.log(`[atualizarTabelaFerias] Tabela de férias atualizada! Total: ${periodos} períodos`);
+        console.log(`[atualizarTabelaFerias] Finalizando. Total final: ${periodos} períodos`);
+        
+        if (periodosBefore !== periodos) {
+            console.log(`[atualizarTabelaFerias] Limpeza executada: ${periodosBefore} → ${periodos} períodos`);
+        }
         
         if (typeof Notifications !== 'undefined' && Notifications.success) {
             Notifications.success(`✅ Tabela de férias atualizada! (${periodos} períodos)`);
