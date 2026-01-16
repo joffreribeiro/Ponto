@@ -2377,6 +2377,8 @@ function atualizarDashboard() {
                             return aStart - bStart; // Ordem crescente (mais antigo primeiro)
                         });
                     
+                    console.log('DEBUG: periodosOrdenados =', periodosOrdenados.map(p => `${p.inicio}-${p.termino}`));
+                    
                     for (let p of periodosOrdenados) {
                         try {
                             const ps = DateUtils.parse(p.inicio);
@@ -2397,8 +2399,11 @@ function atualizarDashboard() {
                             const entitlementDays = 30;
                             const remainingDaysInPeriod = Math.max(0, entitlementDays - scheduledDaysInThisPeriod);
                             
+                            console.log(`DEBUG: Período ${p.inicio}-${p.termino}: ${scheduledDaysInThisPeriod} marcados, ${remainingDaysInPeriod} restantes`);
+                            
                             // Se este período tem dias disponíveis E é o primeiro a ter (mais antigo)
                             if (remainingDaysInPeriod > 0 && !bestPeriod) {
+                                console.log(`DEBUG: Selecionado período ${p.inicio}-${p.termino}`);
                                 bestPeriod = {
                                     start: ps,
                                     end: pe,
