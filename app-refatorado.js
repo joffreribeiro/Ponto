@@ -2375,6 +2375,303 @@ function atualizarDashboard() {
             tendenciaEl.style.color = diff >= 0 ? 'var(--positive)' : 'var(--negative)';
         }
         
+        // ===== NOVOS KPIs: Hora de Saída Estimada, Faltas, Alertas =====
+        
+        // 1. Hora de Saída Estimada (Hoje)
+        try {
+            const horaSaidaEl = document.getElementById('horaSaidaEstimada');
+            const horaSaidaInfoEl = document.getElementById('horaSaidaInfo');
+            
+            if (horaSaidaEl) {
+                const hojeStr = DateUtils.formatISO ? DateUtils.formatISO(hoje) : hoje.toISOString().slice(0, 10);
+                const registroHoje = AppState.dados.registros.find(r => {
+                    const dataReg = r.data || r.dataRegistro || r.dataStr;
+                    return dataReg === hojeStr || (dataReg && dataReg.startsWith && dataReg.startsWith(hojeStr));
+                });
+                
+                if (registroHoje) {
+                    // Determinar jornada esperada do acordo
+                    let jornadaEsperadaMin = 8 * 60; // default 8h
+                    try {
+                        const acordoHoje = Calculations.getAcordoByData(AppState.dados.acordos, hoje);
+                        if (acordoHoje && acordoHoje.jornadaDiaria) {
+                            const parts = String(acordoHoje.jornadaDiaria).split(':');
+                            jornadaEsperadaMin = parseInt(parts[0] || 8, 10) * 60 + parseInt(parts[1] || 0, 10);
+                        }
+                    } catch (e) { /* usar default */ }
+                    
+                    // Encontrar primeira entrada do dia
+                    const entrada1 = registroHoje.entrada1 || registroHoje.entrada || '';
+                    const saida1 = registroHoje.saida1 || registroHoje.saida || '';
+                    const entrada2 = registroHoje.entrada2 || '';
+                    const saida2 = registroHoje.saida2 || '';
+                    
+                    if (entrada1) {
+                        const [hE, mE] = entrada1.split(':').map(Number);
+                        const entradaMin = hE * 60 + mE;
+                        
+                        // Calcular horas já trabalhadas hoje
+                        let trabalhadas = 0;
+                        if (saida1) {
+                            const [hS1, mS1] = saida1.split(':').map(Number);
+                            trabalhadas += (hS1 * 60 + mS1) - entradaMin;
+                        }
+                        if (entrada2 && saida2) {
+                            const [hE2, mE2] = entrada2.split(':').map(Number);
+                            const [hS2, mS2] = saida2.split(':').map(Number);
+                            trabalhadas += (hS2 * 60 + mS2) - (hE2 * 60 + mE2);
+                        }
+                        
+                        // Se ainda não tem saída final, calcular hora estimada
+                        if (!saida2 && entrada2) {
+                            // Já voltou do almoço, calcular saída
+                            const [hE2, mE2] = entrada2.split(':').map(Number);
+                            const minutosRestantes = jornadaEsperadaMin - trabalhadas;
+                            const saidaEstimadaMin = hE2 * 60 + mE2 + minutosRestantes;
+                            const horasSaida = Math.floor(saidaEstimadaMin / 60);
+                            const minutosSaida = saidaEstimadaMin % 60;
+                            horaSaidaEl.textContent = `${String(horasSaida).padStart(2, '0')}:${String(minutosSaida).padStart(2, '0')}`;
+                            horaSaidaEl.style.color = 'var(--positive)';
+                            if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = `Faltam ${DateUtils.minutesToTime(minutosRestantes)} para completar ${DateUtils.minutesToTime(jornadaEsperadaMin)}`;
+                        } else if (!saida1) {
+                            // Ainda não saiu para almoço - estimar considerando 1h de intervalo
+                            const intervaloMin = 60;
+                            const saidaEstimadaMin = entradaMin + jornadaEsperadaMin + intervaloMin;
+                            const horasSaida = Math.floor(saidaEstimadaMin / 60);
+                            const minutosSaida = saidaEstimadaMin % 60;
+                            horaSaidaEl.textContent = `${String(horasSaida).padStart(2, '0')}:${String(minutosSaida).padStart(2, '0')}`;
+                            horaSaidaEl.style.color = 'var(--info)';
+                            if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = `Estimativa com 1h de intervalo`;
+                        } else if (saida2) {
+                            // Já saiu - mostrar hora que saiu
+                            horaSaidaEl.textContent = saida2;
+                            horaSaidaEl.style.color = 'var(--text-muted)';
+                            if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = `Jornada concluída: ${DateUtils.minutesToTime(trabalhadas)}`;
+                        } else if (saida1 && !entrada2) {
+                            // Saiu para almoço mas não voltou
+                            horaSaidaEl.textContent = '--:--';
+                            horaSaidaEl.style.color = 'var(--warning)';
+                            if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = `Aguardando retorno do intervalo`;
+                        }
+                    } else {
+                        horaSaidaEl.textContent = '--:--';
+                        horaSaidaEl.style.color = 'var(--text-muted)';
+                        if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = 'Nenhuma entrada registrada hoje';
+                    }
+                } else {
+                    horaSaidaEl.textContent = '--:--';
+                    horaSaidaEl.style.color = 'var(--text-muted)';
+                    if (horaSaidaInfoEl) horaSaidaInfoEl.textContent = 'Nenhum registro hoje';
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao calcular hora de saída estimada:', err);
+        }
+        
+        // 2. Faltas/Ausências no período
+        try {
+            const faltasEl = document.getElementById('faltasPeriodo');
+            const faltasInfoEl = document.getElementById('faltasInfo');
+            
+            if (faltasEl) {
+                // Determinar período de análise
+                const startPeriodo = start30; // Usando últimos 30 dias como período padrão
+                const endPeriodo = hoje;
+                
+                // Obter lista de feriados dos eventos
+                const feriados = new Set();
+                (AppState.dados.eventos || []).forEach(e => {
+                    if (String(e.tipoEvento || e.tipo).toLowerCase() === 'feriado') {
+                        const d = e.dataInicioEvento || e.inicio || e.data;
+                        if (d) feriados.add(d);
+                    }
+                });
+                
+                // Obter dias com registro
+                const diasComRegistro = new Set();
+                registrosFiltrados.forEach(r => {
+                    const d = r.data || r.dataRegistro || r.dataStr;
+                    if (d) diasComRegistro.add(d);
+                });
+                
+                // Obter dias com eventos que justificam ausência (férias, abono, licença, etc.)
+                const diasJustificados = new Set();
+                (AppState.dados.eventos || []).forEach(e => {
+                    const tipo = String(e.tipoEvento || e.tipo).toLowerCase();
+                    if (['ferias', 'abono', 'licenca', 'atestado', 'folga', 'pagarhora'].includes(tipo)) {
+                        const inicio = DateUtils.parse(e.dataInicioEvento || e.inicio || e.data);
+                        const fim = DateUtils.parse(e.dataFimEvento || e.fim || e.data);
+                        if (inicio && fim) {
+                            for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+                                const iso = d.toISOString().slice(0, 10);
+                                diasJustificados.add(iso);
+                            }
+                        } else if (inicio) {
+                            diasJustificados.add(inicio.toISOString().slice(0, 10));
+                        }
+                    }
+                });
+                
+                // Contar dias úteis sem registro
+                let faltas = 0;
+                const datasFaltas = [];
+                for (let d = new Date(startPeriodo); d <= endPeriodo; d.setDate(d.getDate() + 1)) {
+                    const diaSemana = d.getDay();
+                    const iso = d.toISOString().slice(0, 10);
+                    
+                    // Pular fins de semana
+                    if (diaSemana === 0 || diaSemana === 6) continue;
+                    
+                    // Pular feriados
+                    if (feriados.has(iso)) continue;
+                    
+                    // Pular dias justificados
+                    if (diasJustificados.has(iso)) continue;
+                    
+                    // Pular dias futuros
+                    if (d > hoje) continue;
+                    
+                    // Se não tem registro, é falta
+                    if (!diasComRegistro.has(iso)) {
+                        faltas++;
+                        if (datasFaltas.length < 3) {
+                            datasFaltas.push(DateUtils.formatBR ? DateUtils.formatBR(d) : iso);
+                        }
+                    }
+                }
+                
+                faltasEl.textContent = faltas.toString();
+                faltasEl.style.color = faltas > 0 ? 'var(--warning)' : 'var(--positive)';
+                
+                if (faltasInfoEl) {
+                    if (faltas === 0) {
+                        faltasInfoEl.textContent = '✓ Nenhuma ausência';
+                    } else if (datasFaltas.length > 0) {
+                        faltasInfoEl.textContent = `Ex: ${datasFaltas.join(', ')}${faltas > 3 ? '...' : ''}`;
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao calcular faltas:', err);
+        }
+        
+        // 3. Alertas de Jornada
+        try {
+            const alertasContainer = document.getElementById('alertasJornada');
+            const alertasLista = document.getElementById('listaAlertasJornada');
+            
+            if (alertasContainer && alertasLista) {
+                const alertas = [];
+                let temCritico = false;
+                
+                // Verificar últimos 7 dias para alertas
+                const seteDiasAtras = new Date(hoje);
+                seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+                
+                const registrosRecentes = registrosFiltrados.filter(r => {
+                    const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr);
+                    return d && d >= seteDiasAtras && d <= hoje;
+                });
+                
+                // Verificar cada registro
+                registrosRecentes.forEach(r => {
+                    try {
+                        const dataStr = r.data || r.dataRegistro || r.dataStr;
+                        const dataFormatada = DateUtils.formatBR ? DateUtils.formatBR(DateUtils.parse(dataStr)) : dataStr;
+                        
+                        // Calcular horas trabalhadas no dia
+                        let trabalhadas = 0;
+                        const entrada1 = r.entrada1 || r.entrada || '';
+                        const saida1 = r.saida1 || r.saida || '';
+                        const entrada2 = r.entrada2 || '';
+                        const saida2 = r.saida2 || '';
+                        
+                        if (entrada1 && saida1) {
+                            const [hE, mE] = entrada1.split(':').map(Number);
+                            const [hS, mS] = saida1.split(':').map(Number);
+                            trabalhadas += (hS * 60 + mS) - (hE * 60 + mE);
+                        }
+                        if (entrada2 && saida2) {
+                            const [hE2, mE2] = entrada2.split(':').map(Number);
+                            const [hS2, mS2] = saida2.split(':').map(Number);
+                            trabalhadas += (hS2 * 60 + mS2) - (hE2 * 60 + mE2);
+                        }
+                        
+                        // Alerta: Jornada excessiva (>10h)
+                        if (trabalhadas > 600) {
+                            alertas.push({
+                                tipo: 'warning',
+                                texto: `${dataFormatada}: Jornada excessiva (${DateUtils.minutesToTime(trabalhadas)})`
+                            });
+                            if (trabalhadas > 720) temCritico = true; // >12h é crítico
+                        }
+                        
+                        // Alerta: Intervalo curto (<1h)
+                        if (saida1 && entrada2) {
+                            const [hS1, mS1] = saida1.split(':').map(Number);
+                            const [hE2, mE2] = entrada2.split(':').map(Number);
+                            const intervalo = (hE2 * 60 + mE2) - (hS1 * 60 + mS1);
+                            if (intervalo > 0 && intervalo < 60) {
+                                alertas.push({
+                                    tipo: 'warning',
+                                    texto: `${dataFormatada}: Intervalo curto (${intervalo} min) - mínimo legal: 1h`
+                                });
+                            }
+                        }
+                    } catch (e) { /* ignorar registro com erro */ }
+                });
+                
+                // Verificar horas semanais (semana atual)
+                const inicioSemana = new Date(hoje);
+                inicioSemana.setDate(hoje.getDate() - hoje.getDay()); // Domingo
+                
+                const registrosSemana = registrosFiltrados.filter(r => {
+                    const d = DateUtils.parse(r.data || r.dataRegistro || r.dataStr);
+                    return d && d >= inicioSemana && d <= hoje;
+                });
+                
+                let horasSemana = 0;
+                registrosSemana.forEach(r => {
+                    try {
+                        const entrada1 = r.entrada1 || r.entrada || '';
+                        const saida1 = r.saida1 || r.saida || '';
+                        const entrada2 = r.entrada2 || '';
+                        const saida2 = r.saida2 || '';
+                        
+                        if (entrada1 && saida1) {
+                            const [hE, mE] = entrada1.split(':').map(Number);
+                            const [hS, mS] = saida1.split(':').map(Number);
+                            horasSemana += (hS * 60 + mS) - (hE * 60 + mE);
+                        }
+                        if (entrada2 && saida2) {
+                            const [hE2, mE2] = entrada2.split(':').map(Number);
+                            const [hS2, mS2] = saida2.split(':').map(Number);
+                            horasSemana += (hS2 * 60 + mS2) - (hE2 * 60 + mE2);
+                        }
+                    } catch (e) { /* ignorar */ }
+                });
+                
+                if (horasSemana > 44 * 60) {
+                    alertas.push({
+                        tipo: 'critical',
+                        texto: `Semana atual: ${DateUtils.minutesToTime(horasSemana)} - excede limite legal de 44h`
+                    });
+                    temCritico = true;
+                }
+                
+                // Mostrar ou esconder alertas
+                if (alertas.length > 0) {
+                    alertasContainer.style.display = 'block';
+                    alertasContainer.classList.toggle('alertas-critical', temCritico);
+                    alertasLista.innerHTML = alertas.map(a => `<li>${a.texto}</li>`).join('');
+                } else {
+                    alertasContainer.style.display = 'none';
+                }
+            }
+        } catch (err) {
+            console.warn('Erro ao calcular alertas de jornada:', err);
+        }
+        
         // Atualiza os gráficos com os dados filtrados
         if (typeof renderAnalytics === 'function') {
             renderAnalytics();

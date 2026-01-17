@@ -111,6 +111,29 @@
                             <span id="tendenciaSaldo" class="stat-value">-</span>
                         </div>
                     </div>
+                    
+                    <!-- NOVOS KPIs: Hora de saída, Faltas, Alertas -->
+                    <div class="stats-grid kpi-grid kpi-highlight" style="margin-top: 16px;">
+                        <div class="stat stat-highlight">
+                            <span class="stat-label">🕐 Hora de Saída Estimada (Hoje)</span>
+                            <span id="horaSaidaEstimada" class="stat-value stat-value-large">--:--</span>
+                            <span id="horaSaidaInfo" class="stat-subtext"></span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">📋 Faltas/Ausências (período)</span>
+                            <span id="faltasPeriodo" class="stat-value">0</span>
+                            <span id="faltasInfo" class="stat-subtext"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Alertas de Jornada -->
+                    <div id="alertasJornada" class="alertas-jornada" style="margin-top: 16px; display: none;">
+                        <div class="alertas-header">
+                            <span class="alertas-icon">⚠️</span>
+                            <span class="alertas-title">Alertas de Jornada</span>
+                        </div>
+                        <ul id="listaAlertasJornada" class="alertas-lista"></ul>
+                    </div>
                 </div><!-- end card Resumo -->
                 </div><!-- end left-column -->
 
