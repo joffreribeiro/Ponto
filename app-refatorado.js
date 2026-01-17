@@ -3418,16 +3418,13 @@ function gerarTimesheetAcordo() {
 
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
-                    // Eventos do tipo "compensar_acordo" devem permitir preenchimento normal.
-                    // Não tratar `impactoEvento === 'trabalho'` como bloqueador — eventos de trabalho
-                    // (criados a partir de registro) ainda devem renderizar blocos parciais quando tiverem `periodo`.
+                    // Eventos do tipo "compensar_acordo", "pagar_hora", "abono_acordo", "abono" 
+                    // em períodos específicos (matutino/vespertino) devem renderizar células normais coloridas
+                    // ao invés de células mescladas verticalmente
+                    const tiposNaoMesclar = ['compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
                     const isCompensar = ev && (
-                        ev.tipoEvento === 'compensar_acordo' ||
-                        ev.tipoEvento === 'compensacao_acordo' ||
-                        ev.tipoEvento === 'compensação_acordo' ||
-                        // Para abono/pagar_hora em períodos, também não criar célula vertical mesclada
-                        ((ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono' || ev.tipoEvento === 'pagar_hora') && 
-                         (ev.periodo === 'matutino' || ev.periodo === 'vespertino'))
+                        tiposNaoMesclar.includes(ev.tipoEvento) && 
+                        (ev.periodo === 'matutino' || ev.periodo === 'vespertino')
                     );
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
@@ -3508,9 +3505,26 @@ function gerarTimesheetAcordo() {
                     // Dia útil normal (ou compensação de acordo)
                     const r = mapaReg[dia.dataStr] || null;
                     const td = document.createElement('td');
-                    if (isCompensar) {
-                        td.classList.add('evento-compensar-acordo');
-                        if (ev) td.setAttribute('data-tipo', ev.tipoEvento);
+                    
+                    // Para eventos abono/pagar_hora/compensar em períodos, colorir as células correspondentes
+                    if (isCompensar && ev) {
+                        const periodoEv = ev.periodo || 'dia_todo';
+                        // Determinar se esta linha está no período do evento
+                        let linhaNoEvento = false;
+                        if (periodoEv === 'matutino' && rowIndex >= 0 && rowIndex <= 3) {
+                            linhaNoEvento = true;
+                        } else if (periodoEv === 'vespertino' && rowIndex >= 3 && rowIndex <= 5) {
+                            linhaNoEvento = true;
+                        }
+                        
+                        if (linhaNoEvento) {
+                            // Aplicar classe baseada no tipo de evento
+                            if (ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono') {
+                                td.classList.add('evento-abono-periodo');
+                            } else if (ev.tipoEvento === 'compensar_acordo' || ev.tipoEvento === 'pagar_hora') {
+                                td.classList.add('evento-pagar-hora-periodo');
+                            }
+                        }
                     }
 
                     if (rowIndex === 0) td.textContent = r && r.entrada || '';
