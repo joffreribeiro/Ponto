@@ -5469,8 +5469,8 @@ function atualizarExibicaoUsoBeneficios() {
         const acordoIndex = AppState.acordoEmEdicaoIndex;
         const eventos = AppState.dados.eventos || [];
         
-        // Calcular dias de abono usados (eventos tipo 'abono_acordo')
-        let diasAbonoUsados = 0;
+        // Calcular uso de abono em MEIO-PERÍODOS (cada dia = 2 meios)
+        let usadosMeioPeriodo = 0;
         // Calcular horas pagas usadas (eventos tipo 'compensar_acordo' ou 'pagar_hora')
         let horasPagasUsadas = 0;
         
@@ -5484,12 +5484,12 @@ function atualizarExibicaoUsoBeneficios() {
             const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
             
             if (tipo === 'abono_acordo' || tipo === 'abono') {
-                // Contar períodos (meio período = 0.5, dia todo = 1)
+                // Contar uso em meio-períodos: dia todo = 2 meios, meio período = 1 meio
                 const inicio = DateUtils.parse(ev.dataInicioEvento);
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    diasAbonoUsados += dias * fatorPeriodo;
+                    usadosMeioPeriodo += dias * (fatorPeriodo * 2);
                 }
             }
             
@@ -5510,13 +5510,14 @@ function atualizarExibicaoUsoBeneficios() {
             }
         });
         
+        // `qtdAbono` agora representa MEIO-PERÍODOS disponíveis
         const qtdAbono = AppState.acordoEmEdicao.qtdAbono || 0;
         const qtdPagarHora = AppState.acordoEmEdicao.qtdPagarHora || 0;
-        const restanteAbono = Math.max(0, qtdAbono - diasAbonoUsados);
+        const restanteAbono = Math.max(0, qtdAbono - usadosMeioPeriodo);
         const restantePagarHora = Math.max(0, qtdPagarHora - horasPagasUsadas);
         
         if (abonoUsadoEl) {
-            abonoUsadoEl.textContent = `Utilizado: ${diasAbonoUsados} período(s) | Restante: ${restanteAbono} período(s)`;
+            abonoUsadoEl.textContent = `Utilizado: ${usadosMeioPeriodo} meio-período(s) | Restante: ${restanteAbono} meio-período(s)`;
             abonoUsadoEl.style.color = restanteAbono <= 0 && qtdAbono > 0 ? 'var(--error)' : 'var(--text-secondary)';
         }
         if (pagarHoraUsadoEl) {
@@ -5536,7 +5537,8 @@ function atualizarExibicaoUsoBeneficios() {
  */
 function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
     const eventos = AppState.dados.eventos || [];
-    let diasAbonoUsados = 0;
+    // `qtdAbono` e os retornos aqui são expressos em MEIO-PERÍODOS (1 = meio-período, 2 = dia inteiro)
+    let usadosMeioPeriodo = 0;
     let horasPagasUsadas = 0;
     
     eventos.forEach(ev => {
@@ -5554,7 +5556,8 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
             const fim = DateUtils.parse(ev.dataFimEvento);
             if (inicio && fim) {
                 const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                diasAbonoUsados += dias * fatorPeriodo;
+                // cada dia = 2 meios; meio-período conta como 1 meio
+                usadosMeioPeriodo += dias * (fatorPeriodo * 2);
             }
         }
         
@@ -5574,12 +5577,12 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
         }
     });
     
-    const qtdAbono = acordo.qtdAbono || 0;
+    const qtdAbono = acordo.qtdAbono || 0; // agora em meios
     const qtdPagarHora = acordo.qtdPagarHora || 0;
-    
+
     return {
-        usadoAbono: diasAbonoUsados,
-        restanteAbono: Math.max(0, qtdAbono - diasAbonoUsados),
+        usadoAbono: usadosMeioPeriodo,
+        restanteAbono: Math.max(0, qtdAbono - usadosMeioPeriodo),
         usadoPagarHora: horasPagasUsadas,
         restantePagarHora: Math.max(0, qtdPagarHora - horasPagasUsadas)
     };
@@ -5650,7 +5653,7 @@ function renderizarAcordos() {
                 
                 if (a.qtdAbono > 0) {
                     const liAbono = document.createElement('li');
-                    liAbono.innerHTML = `Abono: <strong>${benefInfo.restanteAbono}</strong> dia(s) disponível (${benefInfo.usadoAbono} usado de ${a.qtdAbono})`;
+                    liAbono.innerHTML = `Abono: <strong>${benefInfo.restanteAbono}</strong> meio-período(s) disponível (${benefInfo.usadoAbono} usado de ${a.qtdAbono})`;
                     if (benefInfo.restanteAbono <= 0) liAbono.style.color = 'var(--error)';
                     ulBenef.appendChild(liAbono);
                 }
