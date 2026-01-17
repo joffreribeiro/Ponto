@@ -6585,7 +6585,7 @@ function setupRealtimeValidation() {
         debounceTime: 300
     });
 
-    RealtimeValidation.enableForField('entradaRegistro', ['required', 'time'], {
+    RealtimeValidation.enableForField('entradaRegistro', ['time'], {
         debounceTime: 300
     });
 
@@ -6597,7 +6597,7 @@ function setupRealtimeValidation() {
         debounceTime: 300
     });
 
-    RealtimeValidation.enableForField('saidaRegistro', ['required', 'time'], {
+    RealtimeValidation.enableForField('saidaRegistro', ['time'], {
         debounceTime: 300
     });
 
