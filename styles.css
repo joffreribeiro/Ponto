@@ -1792,6 +1792,14 @@ td.evento-vertical {
     color: #92400e;
 }
 
+/* Abono/Pagar Hora em períodos (não mesclado) */
+.evento-compensar-acordo[data-tipo="abono_acordo"],
+.evento-compensar-acordo[data-tipo="abono"],
+.evento-compensar-acordo[data-tipo="pagar_hora"] {
+    background: #fef3c7; /* laranja claro */
+    color: #92400e;
+}
+
 /* Eventos parciais: matutino (alinhado ao topo) e vespertino (alinhado ao rodapé) */
 td.evento-periodo-matutino {
     background: linear-gradient(180deg, rgba(37,99,235,0.08) 0%, rgba(37,99,235,0.03) 100%);

@@ -3424,7 +3424,10 @@ function gerarTimesheetAcordo() {
                     const isCompensar = ev && (
                         ev.tipoEvento === 'compensar_acordo' ||
                         ev.tipoEvento === 'compensacao_acordo' ||
-                        ev.tipoEvento === 'compensação_acordo'
+                        ev.tipoEvento === 'compensação_acordo' ||
+                        // Para abono/pagar_hora em períodos, também não criar célula vertical mesclada
+                        ((ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono' || ev.tipoEvento === 'pagar_hora') && 
+                         (ev.periodo === 'matutino' || ev.periodo === 'vespertino'))
                     );
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
@@ -3505,7 +3508,10 @@ function gerarTimesheetAcordo() {
                     // Dia útil normal (ou compensação de acordo)
                     const r = mapaReg[dia.dataStr] || null;
                     const td = document.createElement('td');
-                    if (isCompensar) td.classList.add('evento-compensar-acordo');
+                    if (isCompensar) {
+                        td.classList.add('evento-compensar-acordo');
+                        if (ev) td.setAttribute('data-tipo', ev.tipoEvento);
+                    }
 
                     if (rowIndex === 0) td.textContent = r && r.entrada || '';
                     if (rowIndex === 1) td.textContent = r && r.saidaAlmoco || '';
