@@ -116,30 +116,70 @@
 
                 <div class="card" id="dashboard-ferias-card">
                     <h2>📅 Resumo de Férias</h2>
+                    
+                    <!-- Mini Linha do Tempo Visual -->
+                    <div class="ferias-timeline" id="feriasTimeline">
+                        <div class="timeline-bar">
+                            <div class="timeline-segment timeline-aquisitivo" id="timelineAquisitivo" title="Período Aquisitivo"></div>
+                            <div class="timeline-segment timeline-concessivo" id="timelineConcessivo" title="Período Concessivo"></div>
+                            <div class="timeline-marker timeline-hoje" id="timelineHoje" title="Hoje"></div>
+                            <div class="timeline-segment timeline-ferias" id="timelineFerias" title="Férias Agendadas"></div>
+                        </div>
+                        <div class="timeline-labels">
+                            <span id="timelineLabelStart">-</span>
+                            <span id="timelineLabelEnd">-</span>
+                        </div>
+                    </div>
+                    
                     <div class="ferias-vertical-grid">
-                        <!-- Período Aquisitivo Atual (agora em 1ª posição) -->
+                        <!-- Período Aquisitivo Atual -->
                         <div class="stat-card">
                             <div class="stat-label">PERÍODO AQUISITIVO</div>
                             <div id="acquisitionInfo" class="stat-value">-</div>
                         </div>
 
-                        <!-- Próxima Férias (agora em 2ª posição) -->
+                        <!-- Período Concessivo -->
+                        <div class="stat-card">
+                            <div class="stat-label">PERÍODO CONCESSIVO</div>
+                            <div id="concessiveInfo" class="stat-value">-</div>
+                            <div id="concessiveWarning" class="stat-value" style="display:none; font-size: 13px; color: var(--negative); margin-top: 6px;"></div>
+                        </div>
+
+                        <!-- Próxima Férias -->
                         <div class="stat-card">
                             <div class="stat-label">PRÓXIMA FÉRIAS</div>
                             <div id="nextVacationInfo" class="stat-value">-</div>
                             <div id="vacationWarning" class="stat-value" style="display:none; font-size: 13px; color: var(--warning); margin-top: 6px;"></div>
                         </div>
 
-                        <!-- Dias Restantes -->
+                        <!-- Próxima Férias Permitida -->
+                        <div class="stat-card">
+                            <div class="stat-label">PODE TIRAR FÉRIAS A PARTIR DE</div>
+                            <div id="earliestVacationDate" class="stat-value" style="color: var(--info);">-</div>
+                        </div>
+
+                        <!-- Dias Restantes com barra -->
                         <div class="stat-card">
                             <div class="stat-label">DIAS RESTANTES</div>
                             <div id="remainingVacationDays" class="stat-value" style="color: var(--primary);">-</div>
+                            <div class="progress-bar-container">
+                                <div id="remainingProgressBar" class="progress-bar progress-remaining"></div>
+                            </div>
                         </div>
 
-                        <!-- Dias Utilizados -->
+                        <!-- Dias Utilizados com barra -->
                         <div class="stat-card">
                             <div class="stat-label">DIAS UTILIZADOS</div>
                             <div id="usedVacationDays" class="stat-value" style="color: var(--info);">-</div>
+                            <div class="progress-bar-container">
+                                <div id="usedProgressBar" class="progress-bar progress-used"></div>
+                            </div>
+                        </div>
+
+                        <!-- Saldo Acumulado -->
+                        <div class="stat-card">
+                            <div class="stat-label">SALDO ACUMULADO (TODOS PERÍODOS)</div>
+                            <div id="totalAccumulatedDays" class="stat-value" style="color: var(--positive);">-</div>
                         </div>
 
                         <!-- Abono Disponível -->

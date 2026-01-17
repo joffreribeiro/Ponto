@@ -2617,8 +2617,218 @@ function atualizarDashboard() {
                 statusEl.textContent = status;
                 statusEl.style.color = statusColor;
             }
+
+            // ===== NOVOS CAMPOS: Período Concessivo, Saldo Acumulado, Data Permitida, Barras, Timeline =====
+            
+            // 1. Período Concessivo (12 meses após fim do aquisitivo)
+            const concessiveInfo = document.getElementById('concessiveInfo');
+            const concessiveWarning = document.getElementById('concessiveWarning');
+            if (concessiveInfo && overview.acquisitionEnd) {
+                const concessiveStart = new Date(overview.acquisitionEnd);
+                concessiveStart.setDate(concessiveStart.getDate() + 1);
+                const concessiveEnd = new Date(concessiveStart);
+                concessiveEnd.setFullYear(concessiveEnd.getFullYear() + 1);
+                concessiveEnd.setDate(concessiveEnd.getDate() - 1);
+                
+                concessiveInfo.textContent = `${DateUtils.formatBR(concessiveStart)} → ${DateUtils.formatBR(concessiveEnd)}`;
+                
+                // Calcular dias até vencer o período concessivo
+                const hoje = DateUtils.today();
+                const diasAteVencer = Math.ceil((concessiveEnd - hoje) / (1000 * 60 * 60 * 24));
+                
+                if (concessiveWarning) {
+                    if (diasAteVencer <= 0) {
+                        concessiveWarning.style.display = 'block';
+                        concessiveWarning.textContent = '⚠️ PERÍODO VENCIDO! Férias devem ser gozadas imediatamente.';
+                        concessiveWarning.style.color = 'var(--negative)';
+                    } else if (diasAteVencer <= 30) {
+                        concessiveWarning.style.display = 'block';
+                        concessiveWarning.textContent = `⚠️ Atenção: ${diasAteVencer} dia(s) para vencer!`;
+                        concessiveWarning.style.color = 'var(--negative)';
+                    } else if (diasAteVencer <= 60) {
+                        concessiveWarning.style.display = 'block';
+                        concessiveWarning.textContent = `⏰ ${diasAteVencer} dias restantes no período concessivo`;
+                        concessiveWarning.style.color = 'var(--warning)';
+                    } else {
+                        concessiveWarning.style.display = 'none';
+                    }
+                }
+            }
+            
+            // 2. Próxima férias permitida (considerando antecedência mínima de 30 dias)
+            const earliestVacationEl = document.getElementById('earliestVacationDate');
+            if (earliestVacationEl) {
+                const hoje = DateUtils.today();
+                const antecedenciaMinima = 30; // dias de antecedência para solicitar férias
+                const dataMinima = new Date(hoje);
+                dataMinima.setDate(dataMinima.getDate() + antecedenciaMinima);
+                
+                // Se o período aquisitivo ainda não terminou, a data mínima é o dia após o fim do aquisitivo
+                if (overview.acquisitionEnd && overview.acquisitionEnd > hoje) {
+                    const diaAposAquisitivo = new Date(overview.acquisitionEnd);
+                    diaAposAquisitivo.setDate(diaAposAquisitivo.getDate() + 1);
+                    if (diaAposAquisitivo > dataMinima) {
+                        earliestVacationEl.textContent = DateUtils.formatBR(diaAposAquisitivo);
+                        earliestVacationEl.title = 'Primeiro dia após completar o período aquisitivo';
+                    } else {
+                        earliestVacationEl.textContent = DateUtils.formatBR(dataMinima);
+                        earliestVacationEl.title = `Considerando ${antecedenciaMinima} dias de antecedência`;
+                    }
+                } else {
+                    earliestVacationEl.textContent = DateUtils.formatBR(dataMinima);
+                    earliestVacationEl.title = `Considerando ${antecedenciaMinima} dias de antecedência`;
+                }
+            }
+            
+            // 3. Saldo Acumulado de todos os períodos
+            const totalAccumulatedEl = document.getElementById('totalAccumulatedDays');
+            if (totalAccumulatedEl) {
+                let totalAcumulado = 0;
+                const periodos = AppState.dados.periodosAquisitivos || [];
+                const eventos = AppState.dados.eventos || [];
+                const ferias = eventos.filter(e => e.tipo === 'Ferias');
+                
+                periodos.forEach(p => {
+                    try {
+                        const ps = DateUtils.parse(p.inicio);
+                        const pe = DateUtils.parse(p.fim || p.termino);
+                        if (!ps || !pe) return;
+                        
+                        const entitlementDays = p.diasDireito || 30;
+                        let usados = 0;
+                        
+                        ferias.forEach(f => {
+                            const fs = DateUtils.parse(f.start || f.inicio);
+                            const fe = DateUtils.parse(f.end || f.fim);
+                            if (fs && fe) {
+                                const overlap = Math.max(0, Math.min(pe, fe) - Math.max(ps, fs)) / (1000 * 60 * 60 * 24) + 1;
+                                if (overlap > 0) usados += overlap;
+                            }
+                        });
+                        
+                        totalAcumulado += Math.max(0, entitlementDays - usados);
+                    } catch (err) { /* ignore */ }
+                });
+                
+                // Se não há períodos cadastrados, usar o saldo atual
+                if (periodos.length === 0) {
+                    totalAcumulado = overview.remaining;
+                }
+                
+                totalAccumulatedEl.textContent = `${totalAcumulado} dia(s)`;
+                
+                // Colorir com base no total
+                if (totalAcumulado > 30) {
+                    totalAccumulatedEl.style.color = 'var(--warning)';
+                    totalAccumulatedEl.title = 'Você tem férias acumuladas de períodos anteriores';
+                } else {
+                    totalAccumulatedEl.style.color = 'var(--positive)';
+                }
+            }
+            
+            // 4. Barras de progresso
+            const remainingProgressBar = document.getElementById('remainingProgressBar');
+            const usedProgressBar = document.getElementById('usedProgressBar');
+            
+            if (remainingProgressBar) {
+                const percentRemaining = (overview.remaining / overview.entitlement) * 100;
+                remainingProgressBar.style.width = `${percentRemaining}%`;
+                
+                // Adicionar classe de alerta se poucos dias
+                remainingProgressBar.classList.remove('progress-low', 'progress-critical');
+                if (percentRemaining <= 15) {
+                    remainingProgressBar.classList.add('progress-critical');
+                } else if (percentRemaining <= 30) {
+                    remainingProgressBar.classList.add('progress-low');
+                }
+            }
+            
+            if (usedProgressBar) {
+                const usedDays = overview.entitlement - overview.remaining;
+                const percentUsed = (usedDays / overview.entitlement) * 100;
+                usedProgressBar.style.width = `${percentUsed}%`;
+            }
+            
+            // 5. Mini linha do tempo visual
+            updateVacationTimeline(overview);
         } catch (err) {
             console.warn('Erro ao calcular/atualizar resumo de férias:', err);
+        }
+        
+        // Função auxiliar para atualizar a linha do tempo
+        function updateVacationTimeline(overview) {
+            try {
+                const timelineContainer = document.getElementById('feriasTimeline');
+                if (!timelineContainer) return;
+                
+                const hoje = DateUtils.today();
+                
+                // Calcular período concessivo
+                let concessiveStart = null, concessiveEnd = null;
+                if (overview.acquisitionEnd) {
+                    concessiveStart = new Date(overview.acquisitionEnd);
+                    concessiveStart.setDate(concessiveStart.getDate() + 1);
+                    concessiveEnd = new Date(concessiveStart);
+                    concessiveEnd.setFullYear(concessiveEnd.getFullYear() + 1);
+                    concessiveEnd.setDate(concessiveEnd.getDate() - 1);
+                }
+                
+                // Definir range total da timeline (do início do aquisitivo até fim do concessivo)
+                const timelineStart = overview.acquisitionStart || hoje;
+                const timelineEnd = concessiveEnd || new Date(hoje.getFullYear() + 1, hoje.getMonth(), hoje.getDate());
+                const totalDays = Math.max(1, (timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
+                
+                // Atualizar labels
+                const labelStart = document.getElementById('timelineLabelStart');
+                const labelEnd = document.getElementById('timelineLabelEnd');
+                if (labelStart) labelStart.textContent = DateUtils.formatBR(timelineStart);
+                if (labelEnd) labelEnd.textContent = DateUtils.formatBR(timelineEnd);
+                
+                // Calcular posições percentuais
+                const calcPosition = (date) => {
+                    const diff = (date - timelineStart) / (1000 * 60 * 60 * 24);
+                    return Math.max(0, Math.min(100, (diff / totalDays) * 100));
+                };
+                
+                // Período Aquisitivo
+                const timelineAquisitivo = document.getElementById('timelineAquisitivo');
+                if (timelineAquisitivo && overview.acquisitionStart && overview.acquisitionEnd) {
+                    const startPos = calcPosition(overview.acquisitionStart);
+                    const endPos = calcPosition(overview.acquisitionEnd);
+                    timelineAquisitivo.style.left = `${startPos}%`;
+                    timelineAquisitivo.style.width = `${endPos - startPos}%`;
+                }
+                
+                // Período Concessivo
+                const timelineConcessivo = document.getElementById('timelineConcessivo');
+                if (timelineConcessivo && concessiveStart && concessiveEnd) {
+                    const startPos = calcPosition(concessiveStart);
+                    const endPos = calcPosition(concessiveEnd);
+                    timelineConcessivo.style.left = `${startPos}%`;
+                    timelineConcessivo.style.width = `${endPos - startPos}%`;
+                }
+                
+                // Marcador "Hoje"
+                const timelineHoje = document.getElementById('timelineHoje');
+                if (timelineHoje) {
+                    const hojePos = calcPosition(hoje);
+                    timelineHoje.style.left = `${hojePos}%`;
+                }
+                
+                // Férias agendadas (mostrar a próxima)
+                const timelineFerias = document.getElementById('timelineFerias');
+                if (timelineFerias && overview.next) {
+                    const startPos = calcPosition(overview.next.start);
+                    const endPos = calcPosition(overview.next.end);
+                    timelineFerias.style.left = `${startPos}%`;
+                    timelineFerias.style.width = `${Math.max(2, endPos - startPos)}%`;
+                    timelineFerias.style.display = 'block';
+                } else if (timelineFerias) {
+                    timelineFerias.style.display = 'none';
+                }
+            } catch (err) {
+                console.warn('Erro ao atualizar timeline de férias:', err);
+            }
         }
         
         // Atualizar Abono e Horas a Pagar no dashboard
