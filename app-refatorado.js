@@ -3889,8 +3889,8 @@ function renderizarEventos() {
                 { id: 'ferias', nome: 'Férias', cor: '#d97706' },
                 { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
-                { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
-                { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+                { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
+                { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
                 { id: 'outro', nome: 'Outro', cor: '#64748b' }
             ];
             AppState.save();
@@ -5823,8 +5823,8 @@ function restaurarBackupLocal(event) {
                                 { id: 'ferias', nome: 'Férias', cor: '#d97706' },
                                 { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
-                                { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
-                                { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+                                { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
+                                { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
                                 { id: 'outro', nome: 'Outro', cor: '#64748b' }
                             ];
                         }
