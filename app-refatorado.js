@@ -1992,6 +1992,33 @@ function configurarModalEvento() {
 
     const btnCancel = modal.querySelector('.btn-cancelar-evento');
     if (btnCancel) btnCancel.addEventListener('click', fecharModalEvento);
+
+    // Auto-preencher acordo baseado na data do evento
+    try {
+        const inicioEl = modal.querySelector('#dataInicioEvento');
+        const fimEl = modal.querySelector('#dataFimEvento');
+        const acordoSelect = document.getElementById('acordoEventoSelect');
+
+        function aplicarAcordoPorData(valorData) {
+            try {
+                if (!valorData) return;
+                if (!Array.isArray(AppState.dados.acordos) || AppState.dados.acordos.length === 0) return;
+                const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, valorData);
+                if (!acordoObj) return;
+                const idx = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
+                if (idx >= 0 && acordoSelect) acordoSelect.value = String(idx);
+            } catch(e) { console.error('Erro ao aplicar acordo por data:', e); }
+        }
+
+        if (inicioEl && !inicioEl._acordoListener) {
+            inicioEl.addEventListener('change', function(ev){ aplicarAcordoPorData(this.value); });
+            inicioEl._acordoListener = true;
+        }
+        if (fimEl && !fimEl._acordoListener) {
+            fimEl.addEventListener('change', function(ev){ aplicarAcordoPorData(this.value); });
+            fimEl._acordoListener = true;
+        }
+    } catch(e) { console.warn('Não foi possível anexar auto-fill de acordo no modalEvento:', e); }
 }
 
 // ============= DASHBOARD =============
@@ -4111,8 +4138,22 @@ function salvarEvento() {
         const acordoSelEl = document.getElementById('acordoEventoSelect');
         const acordoIdxRaw = acordoSelEl ? acordoSelEl.value : '';
 
+        let acordoIndexFinal = null;
         if (!acordoIdxRaw) {
-            throw new Error('Selecione um Acordo antes de salvar o evento');
+            // Tentar inferir acordo a partir da data de início do evento
+            try {
+                const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, dataInicioEvento);
+                if (acordoObj) {
+                    const idx = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
+                    if (idx >= 0) acordoIndexFinal = Number(idx);
+                }
+            } catch(e) { console.warn('Não foi possível inferir acordo automaticamente:', e); }
+
+            if (acordoIndexFinal === null) {
+                throw new Error('Selecione um Acordo antes de salvar o evento');
+            }
+        } else {
+            acordoIndexFinal = Number(acordoIdxRaw);
         }
 
         const evento = {
@@ -4122,7 +4163,7 @@ function salvarEvento() {
             dataFimEvento: dataFimEvento || dataInicioEvento,
             impactoEvento,
             periodo: periodoEvento,
-            acordoIndex: Number(acordoIdxRaw),
+            acordoIndex: acordoIndexFinal,
             corFundo,
             corTexto,
             nomeCSS
@@ -5004,7 +5045,26 @@ function abrirModalEvento() {
 
         const acordoSel = document.getElementById('acordoEventoSelect');
         if (acordoSel) {
-            acordoSel.value = '0';
+            // Tentar detectar acordo automaticamente se já houver data preenchida
+            try {
+                const inicioInput = document.getElementById('dataInicioEvento');
+                const dataVal = inicioInput ? inicioInput.value : '';
+                if (dataVal) {
+                    const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, dataVal);
+                    if (acordoObj) {
+                        const idx = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
+                        if (idx >= 0) {
+                            acordoSel.value = String(idx);
+                        } else {
+                            acordoSel.value = '0';
+                        }
+                    } else {
+                        acordoSel.value = '0';
+                    }
+                } else {
+                    acordoSel.value = '0';
+                }
+            } catch(e) { try { acordoSel.value = '0'; } catch(_){} }
         }
 
         const modal = document.getElementById('modalEvento');
