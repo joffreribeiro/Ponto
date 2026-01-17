@@ -66,12 +66,11 @@ const Validators = {
             errors.push('Data inválida (use formato YYYY-MM-DD)');
         }
 
-        // Entrada obrigatória
-        if (!this.isValidTime(registro.entrada)) {
+        // Horários agora são opcionais: validar somente se preenchidos
+        if (registro.entrada && !this.isValidTime(registro.entrada)) {
             errors.push('Hora de entrada inválida (use formato HH:MM)');
         }
 
-        // Saída é OPCIONAL - permite registros com só entrada
         if (registro.saida && !this.isValidTime(registro.saida)) {
             errors.push('Hora de saída inválida (use formato HH:MM)');
         }
