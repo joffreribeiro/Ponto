@@ -216,6 +216,8 @@ function inicializar() {
     try {
         AppState.init();
         ensureTiposEventoDefault();
+        // Atualizar acordos de eventos já existentes com base nas datas
+        try { atualizarAcordosEventosExistentes(); } catch(e) { console.warn('Erro ao atualizar acordos de eventos na inicialização:', e); }
         configurarAbas();
         configurarSubAbas();
         configurarModalAcordo();
@@ -4958,6 +4960,53 @@ function atualizarSelectAcordosFerias() {
 
     // default to first acordo
     try { select.value = '0'; } catch(e){}
+}
+
+/**
+ * Atualiza automaticamente o `acordoIndex` de eventos já cadastrados
+ * - Percorre AppState.dados.eventos
+ * - Para cada evento tenta inferir um acordo através de Calculations.getAcordoByData
+ * - Atualiza apenas quando o índice atual é inválido/ausente e um acordo é encontrado
+ */
+function atualizarAcordosEventosExistentes() {
+    try {
+        if (!AppState.dados || !Array.isArray(AppState.dados.eventos) || !Array.isArray(AppState.dados.acordos)) return;
+
+        let changed = false;
+        const acordos = AppState.dados.acordos;
+
+        AppState.dados.eventos.forEach((ev, idx) => {
+            try {
+                const currentIdx = (ev && (ev.acordoIndex != null)) ? Number(ev.acordoIndex) : null;
+                const validCurrent = Number.isInteger(currentIdx) && currentIdx >= 0 && currentIdx < acordos.length;
+
+                // Tentar inferir acordo pela data de início do evento
+                const dataRef = ev && (ev.dataInicioEvento || ev.dataFimEvento);
+                if (!dataRef) return;
+
+                const acordoObj = Calculations.getAcordoByData(acordos, dataRef);
+                if (!acordoObj) return;
+
+                const inferredIdx = acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
+                if (inferredIdx < 0) return;
+
+                // Atualizar somente se atual inválido ou diferente
+                if (!validCurrent || currentIdx !== inferredIdx) {
+                    ev.acordoIndex = inferredIdx;
+                    changed = true;
+                }
+            } catch(e) { /* per-item ignore */ }
+        });
+
+        if (changed) {
+            AppState.save();
+            try { atualizarSelectAcordosEventos(); } catch(e){}
+            try { renderizarEventos(); } catch(e){}
+            console.info('[atualizarAcordosEventosExistentes] Acordos de eventos atualizados.');
+        }
+    } catch (e) {
+        console.error('Erro em atualizarAcordosEventosExistentes:', e);
+    }
 }
 
 function salvarFeriasFromTab() {
