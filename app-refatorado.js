@@ -2627,21 +2627,15 @@ function atualizarDashboard() {
                 let acordoAtual = null;
                 let acordoIndex = -1;
                 
-                // Tentar encontrar acordo que cobre a data atual
-                AppState.dados.acordos.forEach((ac, idx) => {
-                    if (ac.periodos && ac.periodos.length > 0) {
-                        const periodoAtivo = ac.periodos.find(p => {
-                            const inicio = DateUtils.parse(p.dataInicio);
-                            const fim = DateUtils.parse(p.dataFim);
-                            return inicio && fim && hoje >= inicio && hoje <= fim;
-                        });
-                        if (periodoAtivo) {
-                            acordoAtual = ac;
-                            acordoIndex = idx;
-                        }
+                // Determinar o acordo vigente para hoje usando o helper central (aceita múltiplos formatos)
+                try {
+                    const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, hoje);
+                    if (acordoObj) {
+                        acordoAtual = acordoObj;
+                        acordoIndex = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
                     }
-                });
-                
+                } catch(e) { console.warn('Erro ao determinar acordo atual via Calculations.getAcordoByData:', e); }
+
                 // Se não encontrou por período, usar o mais recente
                 if (!acordoAtual && AppState.dados.acordos.length > 0) {
                     acordoIndex = AppState.dados.acordos.length - 1;
@@ -5546,8 +5540,9 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
     let horasPagasUsadas = 0;
     
     eventos.forEach(ev => {
-        // Verificar se o evento pertence a este acordo
-        if (ev.acordoIndex !== acordoIndex) return;
+        // Verificar se o evento pertence a este acordo (normalizar tipos/string)
+        if (ev.acordoIndex == null) return;
+        if (Number(ev.acordoIndex) !== Number(acordoIndex)) return;
         
         const tipo = String(ev.tipoEvento || '').toLowerCase();
         const periodo = String(ev.periodo || '').toLowerCase();
