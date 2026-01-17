@@ -91,11 +91,9 @@
                             <span id="horasAcordo" class="stat-value">00:00</span>
                         </div>
                     </div>
-                </div>
-
-                
-
-                    <div class="stats-grid kpi-grid">
+                    
+                    <!-- KPIs secundários dentro do mesmo card -->
+                    <div class="stats-grid kpi-grid" style="margin-top: 16px;">
                         <div class="stat">
                             <span class="stat-label">Média diária</span>
                             <span id="mediaHorasDia" class="stat-value">00:00</span>
@@ -113,11 +111,12 @@
                             <span id="tendenciaSaldo" class="stat-value">-</span>
                         </div>
                     </div>
-                </div>
-                </div>
+                </div><!-- end card Resumo -->
+                </div><!-- end left-column -->
+
                 <div class="card" id="dashboard-ferias-card">
                     <h2>📅 Resumo de Férias</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
+                    <div class="ferias-vertical-grid">
                         <!-- Próxima Férias -->
                         <div class="stat-card">
                             <div class="stat-label">PRÓXIMA FÉRIAS</div>

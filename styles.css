@@ -620,11 +620,24 @@ header h1 {
 .dashboard-grid { align-items: stretch; }
 
 /* Explicitly assign grid columns to avoid layout differences across browsers
-    and to guarantee the Férias card sits in the right column. */
+   and to guarantee the Férias card sits in the right column. */
 .dashboard-grid > .left-column { grid-column: 1 / 2; }
 .dashboard-grid > .card#dashboard-ferias-card { grid-column: 2 / 3; align-self: stretch; }
 
-.card {
+/* Layout vertical para os itens de férias quando em coluna direita */
+.ferias-vertical-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.ferias-vertical-grid .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-soft);
+}.card {
     background: var(--bg-card);
     border-radius: 16px;
     border: 1px solid var(--border-soft);
