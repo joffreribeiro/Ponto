@@ -619,6 +619,11 @@ header h1 {
    full height of the left column stack. */
 .dashboard-grid { align-items: stretch; }
 
+/* Explicitly assign grid columns to avoid layout differences across browsers
+    and to guarantee the Férias card sits in the right column. */
+.dashboard-grid > .left-column { grid-column: 1 / 2; }
+.dashboard-grid > .card#dashboard-ferias-card { grid-column: 2 / 3; align-self: stretch; }
+
 .card {
     background: var(--bg-card);
     border-radius: 16px;
