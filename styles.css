@@ -608,9 +608,16 @@ header h1 {
     gap: 16px;
 }
 
-.dashboard-grid > .card:nth-child(3) {
-    grid-column: 1 / -1;
+/* Group left column elements (Resumo + KPIs) into a single column wrapper. */
+.dashboard-grid > .left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
+
+/* Ensure grid children stretch to match heights so the right column (Férias) spans the
+   full height of the left column stack. */
+.dashboard-grid { align-items: stretch; }
 
 .card {
     background: var(--bg-card);
