@@ -2861,7 +2861,7 @@ function salvarRegistro() {
         const observacoes = document.getElementById('observacoesRegistro').value;
         const periodoEvento = document.getElementById('registroPeriodoEvento') ? document.getElementById('registroPeriodoEvento').value : '';
         const tipoEventoRegistro = document.getElementById('registroTipoEvento') ? document.getElementById('registroTipoEvento').value : '';
-        const createLinkedEvent = document.getElementById('registroCriarEvento') ? Boolean(document.getElementById('registroCriarEvento').checked) : true;
+        let createLinkedEvent = document.getElementById('registroCriarEvento') ? Boolean(document.getElementById('registroCriarEvento').checked) : true;
 
         const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent };
 
@@ -2894,6 +2894,13 @@ function salvarRegistro() {
             acordoIndexForDay = null;
         }
 
+        // Tipos que devem sempre gerar um evento persistente quando marcados no registro
+        const tiposAutoEvento = ['abono_acordo', 'abono', 'compensar_acordo', 'pagar_hora'];
+        // Se o tipo do registro for um destes, forçar criação do evento (facilita fluxo via registro)
+        if (tiposAutoEvento.includes(tipoEventoRegistro)) {
+            createLinkedEvent = true;
+        }
+
         if (periodoEvento && createLinkedEvent) {
             const descricao = observacoes || `Registro: ${periodoEvento}`;
             const tipoValido = (AppState.dados.tiposEvento || []).some(t => t.id === tipoEventoRegistro) ? tipoEventoRegistro : 'outro';
@@ -2911,9 +2918,19 @@ function salvarRegistro() {
                 linkedRegistroDate: data
             };
 
+            // Evitar duplicar: procurar evento persistente existente na mesma data e mesmo tipo
+            const existingSameDayIdx = AppState.dados.eventos.findIndex(ev => (
+                ev.dataInicioEvento === data && ev.dataFimEvento === data && ev.tipoEvento === tipoValido
+            ));
+
             if (linkedIdx >= 0) {
+                // Já existe um evento vinculado especificamente a este registro -> atualizar
                 AppState.dados.eventos[linkedIdx] = { ...AppState.dados.eventos[linkedIdx], ...novoEvento };
+            } else if (existingSameDayIdx >= 0) {
+                // Existe um evento não vinculado mas com mesmo dia/tipo -> marcar como vinculado e atualizar campos
+                AppState.dados.eventos[existingSameDayIdx] = { ...AppState.dados.eventos[existingSameDayIdx], ...novoEvento };
             } else {
+                // Nenhum evento existente -> criar novo
                 AppState.dados.eventos.push(novoEvento);
             }
             console.debug('salvarRegistro - criado/atualizado evento vinculado:', novoEvento, 'linkedIdx:', linkedIdx);
