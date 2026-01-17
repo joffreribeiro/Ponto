@@ -520,6 +520,14 @@ function ensureTiposEventoDefault() {
         }
     });
 
+    // Atualizar nomes dos tipos existentes com os defaults (para sincronizar mudanças)
+    AppState.dados.tiposEvento.forEach(t => {
+        const defaultTipo = defaults.find(d => d.id === t.id);
+        if (defaultTipo && t.nome !== defaultTipo.nome) {
+            t.nome = defaultTipo.nome;
+        }
+    });
+
     // Salvar se foi modificado
     AppState.save();
 }
