@@ -3419,13 +3419,9 @@ function gerarTimesheetAcordo() {
                 dias.forEach((dia, colIdx) => {
                     const ev = eventos[colIdx];
                     // Eventos do tipo "compensar_acordo", "pagar_hora", "abono_acordo", "abono" 
-                    // em períodos específicos (matutino/vespertino) devem renderizar células normais coloridas
-                    // ao invés de células mescladas verticalmente
+                    // NUNCA devem criar células mescladas - sempre células normais coloridas
                     const tiposNaoMesclar = ['compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
-                    const isCompensar = ev && (
-                        tiposNaoMesclar.includes(ev.tipoEvento) && 
-                        (ev.periodo === 'matutino' || ev.periodo === 'vespertino')
-                    );
+                    const isCompensar = ev && tiposNaoMesclar.includes(ev.tipoEvento);
                     
                     // DEBUG: Log para eventos de interesse
                     if (ev && tiposNaoMesclar.includes(ev.tipoEvento) && rowIndex === 0) {
@@ -3511,7 +3507,7 @@ function gerarTimesheetAcordo() {
                     const r = mapaReg[dia.dataStr] || null;
                     const td = document.createElement('td');
                     
-                    // Para eventos abono/pagar_hora/compensar em períodos, colorir as células correspondentes
+                    // Para eventos abono/pagar_hora/compensar, colorir as células correspondentes ao período
                     if (isCompensar && ev) {
                         const periodoEv = ev.periodo || 'dia_todo';
                         // Determinar se esta linha está no período do evento
@@ -3520,6 +3516,9 @@ function gerarTimesheetAcordo() {
                             linhaNoEvento = true;
                         } else if (periodoEv === 'vespertino' && rowIndex >= 3 && rowIndex <= 5) {
                             linhaNoEvento = true;
+                        } else if (periodoEv === 'dia_todo') {
+                            // Para dia_todo, colorir todas as linhas de horário (0-5)
+                            linhaNoEvento = (rowIndex >= 0 && rowIndex <= 5);
                         }
                         
                         if (linhaNoEvento) {
