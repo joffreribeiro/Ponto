@@ -660,7 +660,17 @@ header h1 {
     font-size: 18px;
     font-weight: 700;
     color: var(--text-main);
-}.card {
+}
+
+/* Small line for the Acordo name under the acquisition period */
+.ferias-vertical-grid .acordo-line {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+.card {
     background: var(--bg-card);
     border-radius: 16px;
     border: 1px solid var(--border-soft);

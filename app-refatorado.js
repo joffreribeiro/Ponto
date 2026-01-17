@@ -2571,8 +2571,13 @@ function atualizarDashboard() {
             if (acqInfo) {
                 const start = overview.acquisitionStart ? DateUtils.formatBR(overview.acquisitionStart) : '-';
                 const end = overview.acquisitionEnd ? DateUtils.formatBR(overview.acquisitionEnd) : '-';
-                const acordName = overview.acquisitionAcordo ? ` (Acordo: ${overview.acquisitionAcordo.nome || '—'})` : '';
-                acqInfo.textContent = `${start} → ${end}${acordName}`;
+                const acordText = overview.acquisitionAcordo ? `Acordo: ${overview.acquisitionAcordo.nome || '—'}` : '';
+                if (acordText) {
+                    // two-line display: period on first line, acordo on second line
+                    acqInfo.innerHTML = `${start} → ${end}<div class="acordo-line">(${acordText})</div>`;
+                } else {
+                    acqInfo.textContent = `${start} → ${end}`;
+                }
             }
 
             if (remInfo) {
