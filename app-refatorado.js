@@ -2551,15 +2551,15 @@ function atualizarDashboard() {
                     const startStr = DateUtils.formatBR(overview.next.start);
                     const endStr = DateUtils.formatBR(overview.next.end);
                     const days = overview.next.days;
-                    const untilText = overview.daysUntilNext === 0 ? 'começa hoje' : `${overview.daysUntilNext} dia(s)`;
-                    nextInfo.textContent = `${startStr} → ${endStr} (${days} dia(s)) — em ${untilText}`;
+                    // Show only the period + quantity here. The attention line goes to `warningEl`.
+                    nextInfo.textContent = `${startStr} → ${endStr} (${days} dia(s))`;
                 } else {
                     nextInfo.textContent = 'Nenhuma férias agendada';
                 }
             }
 
             if (warningEl) {
-                if (overview.daysUntilNext !== null && overview.daysUntilNext <= 14) {
+                if (overview.next && overview.daysUntilNext !== null) {
                     warningEl.style.display = 'block';
                     warningEl.textContent = `Atenção: próxima férias em ${overview.daysUntilNext} dia(s)`;
                 } else {
