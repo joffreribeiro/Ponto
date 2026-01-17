@@ -505,9 +505,9 @@ function ensureTiposEventoDefault() {
         { id: 'ferias', nome: 'Férias', cor: '#d97706' },
         { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
         { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
-        { id: 'abono_acordo', nome: 'Abono acordo', cor: '#059669' },
+        { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
         { id: 'abono', nome: 'Abono', cor: '#10b981' },
-        { id: 'compensar_acordo', nome: 'Compensar acordo', cor: '#db2777' },
+        { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
         { id: 'pagar_hora', nome: 'Pagar Hora', cor: '#f59e0b' },
         { id: 'outro', nome: 'Outro', cor: '#64748b' },
         { id: 'evento_registro', nome: 'Registro (ponto)', cor: '#06b6d4', corTexto: '#ffffff' }
