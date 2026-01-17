@@ -3349,30 +3349,32 @@ function gerarTimesheetAcordo() {
                 const reg = mapaReg[d.dataStr];
                 const evFromData = Calculations.getEventoByData(AppState.dados.eventos, d.dataStr);
 
-                // Se existe um registro com periodo marcado e o usuário permitiu a marcação (ou não definiu a preferência),
-                // criamos/mesclamos um evento sintético que prioriza o periodo do evento persistente quando disponível,
-                // caso contrário usa o periodo vindo do registro.
-                if (reg && reg.periodoEvento && (typeof reg.createLinkedEvent === 'undefined' || reg.createLinkedEvent)) {
-                    const periodoFinal = (evFromData && evFromData.periodo) ? evFromData.periodo : reg.periodoEvento;
+                // Se existe um evento persistente, ele tem prioridade sobre o registro
+                if (evFromData) {
+                    return evFromData;
+                }
 
+                // Se existe um registro com periodo marcado e o usuário permitiu a marcação (ou não definiu a preferência),
+                // criamos um evento sintético baseado no registro
+                if (reg && reg.periodoEvento && (typeof reg.createLinkedEvent === 'undefined' || reg.createLinkedEvent)) {
                     const tipoEscolhido = (reg.tipoEventoRegistro && (AppState.dados.tiposEvento || []).some(t => t.id === reg.tipoEventoRegistro))
                         ? reg.tipoEventoRegistro
-                        : (evFromData && evFromData.tipoEvento) ? evFromData.tipoEvento : 'outro';
+                        : 'outro';
 
                     const tipoInfo = (AppState.dados.tiposEvento || []).find(t => t.id === tipoEscolhido) || null;
 
-                        return {
-                            tipoEvento: tipoEscolhido,
-                            descricaoEvento: reg.observacoes || (evFromData && evFromData.descricaoEvento) || 'Evento (registro)',
-                            periodo: periodoFinal,
-                            impactoEvento: (evFromData && evFromData.impactoEvento) ? evFromData.impactoEvento : 'trabalho',
-                            corFundo: (evFromData && evFromData.corFundo) ? evFromData.corFundo : (tipoInfo ? tipoInfo.cor : undefined),
-                            corTexto: (evFromData && evFromData.corTexto) ? evFromData.corTexto : (tipoInfo ? (tipoInfo.corTexto || '#ffffff') : undefined)
-                        };
+                    return {
+                        tipoEvento: tipoEscolhido,
+                        descricaoEvento: reg.observacoes || 'Evento (registro)',
+                        periodo: reg.periodoEvento,
+                        impactoEvento: 'trabalho',
+                        corFundo: tipoInfo ? tipoInfo.cor : undefined,
+                        corTexto: tipoInfo ? (tipoInfo.corTexto || '#ffffff') : undefined
+                    };
                 }
 
-                // Se não houver registro com marcação, retorna o evento persistente (se houver)
-                return evFromData;
+                // Se não houver nada, retorna null
+                return null;
             });
             const eventoSpanCriado = new Array(dias.length).fill(false);
             const fimSemanaSpanCriado = new Array(dias.length).fill(false);
