@@ -3426,6 +3426,11 @@ function gerarTimesheetAcordo() {
                         tiposNaoMesclar.includes(ev.tipoEvento) && 
                         (ev.periodo === 'matutino' || ev.periodo === 'vespertino')
                     );
+                    
+                    // DEBUG: Log para eventos de interesse
+                    if (ev && tiposNaoMesclar.includes(ev.tipoEvento) && rowIndex === 0) {
+                        console.log('DEBUG EVENTO:', dia.dataStr, 'tipo:', ev.tipoEvento, 'periodo:', ev.periodo, 'isCompensar:', isCompensar);
+                    }
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
                     if (ev && !isCompensar) {
