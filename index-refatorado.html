@@ -503,6 +503,20 @@
                             <label for="filtroAcordoEventos">Acordo:</label>
                             <select id="filtroAcordoEventos"></select>
                         </div>
+                        <div>
+                            <label for="filtroTipoEventos">Tipo:</label>
+                            <select id="filtroTipoEventos">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filtroDataInicioEventos">De:</label>
+                            <input type="date" id="filtroDataInicioEventos" />
+                        </div>
+                        <div>
+                            <label for="filtroDataFimEventos">Até:</label>
+                            <input type="date" id="filtroDataFimEventos" />
+                        </div>
                         <button type="button" class="btn-primary" data-action="abrirModalEvento">+ Novo Evento</button>
                         <button type="button" class="btn-secondary" onclick="exportarEventosExcel()" title="Exportar em formato Excel">📥 Exportar Excel</button>
                         <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;" title="Importar de arquivo Excel">

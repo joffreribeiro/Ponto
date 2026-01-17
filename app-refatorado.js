@@ -435,8 +435,15 @@ function inicializar() {
             } catch(e) { console.warn('Erro ao renderizar períodos aquisitivos:', e); }
         } catch(e){ console.warn('Não foi possível anexar listeners aos controles de períodos aquisitivos:', e); }
         atualizarSelectTiposEventos();
+        atualizarSelectTiposEventosFiltro();
         const filtroEventos = document.getElementById('filtroAcordoEventos');
         if (filtroEventos) filtroEventos.addEventListener('change', renderizarEventos);
+        const filtroTipo = document.getElementById('filtroTipoEventos');
+        if (filtroTipo) filtroTipo.addEventListener('change', renderizarEventos);
+        const filtroDataInicio = document.getElementById('filtroDataInicioEventos');
+        if (filtroDataInicio) filtroDataInicio.addEventListener('change', renderizarEventos);
+        const filtroDataFim = document.getElementById('filtroDataFimEventos');
+        if (filtroDataFim) filtroDataFim.addEventListener('change', renderizarEventos);
         const filtroRegistros = document.getElementById('filtroAcordoRegistros');
         if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
         // iniciar verificação de lembretes a cada 30 minutos
@@ -3920,14 +3927,38 @@ function renderizarEventos() {
             (a.dataInicioEvento || '').localeCompare(b.dataInicioEvento || '')
         );
 
-        // Filtrar por acordo selecionado (se houver filtro)
-        const filtroEl = document.getElementById('filtroAcordoEventos');
-        const filtroVal = filtroEl ? filtroEl.value : '';
-        const filtroIdx = filtroVal === '' ? null : Number(filtroVal);
+        // Aplicar filtros
+        const filtroAcordoEl = document.getElementById('filtroAcordoEventos');
+        const filtroTipoEl = document.getElementById('filtroTipoEventos');
+        const filtroDataInicioEl = document.getElementById('filtroDataInicioEventos');
+        const filtroDataFimEl = document.getElementById('filtroDataFimEventos');
+        
+        const filtroAcordoVal = filtroAcordoEl ? filtroAcordoEl.value : '';
+        const filtroTipoVal = filtroTipoEl ? filtroTipoEl.value : '';
+        const filtroDataInicio = filtroDataInicioEl ? filtroDataInicioEl.value : '';
+        const filtroDataFim = filtroDataFimEl ? filtroDataFimEl.value : '';
+        
+        const filtroAcordoIdx = filtroAcordoVal === '' ? null : Number(filtroAcordoVal);
 
-        const eventosFiltrados = (filtroIdx === null)
-            ? eventosOrdenados
-            : eventosOrdenados.filter(ev => ev.acordoIndex === filtroIdx);
+        const eventosFiltrados = eventosOrdenados.filter(ev => {
+            // Filtro por acordo
+            if (filtroAcordoIdx !== null && ev.acordoIndex !== filtroAcordoIdx) {
+                return false;
+            }
+            // Filtro por tipo
+            if (filtroTipoVal !== '' && ev.tipoEvento !== filtroTipoVal) {
+                return false;
+            }
+            // Filtro por data inicial
+            if (filtroDataInicio !== '' && (ev.dataInicioEvento || '').localeCompare(filtroDataInicio) < 0) {
+                return false;
+            }
+            // Filtro por data final
+            if (filtroDataFim !== '' && (ev.dataFimEvento || ev.dataInicioEvento || '').localeCompare(filtroDataFim) > 0) {
+                return false;
+            }
+            return true;
+        });
 
         console.log('Eventos filtrados:', eventosFiltrados.length);
 
@@ -4777,6 +4808,32 @@ function atualizarSelectAcordosEventos() {
     if (selectFiltro) {
         const existe = filtroValorAtual === '' || AppState.dados.acordos[filtroValorAtual];
         selectFiltro.value = existe ? filtroValorAtual : '';
+    }
+}
+
+function atualizarSelectTiposEventosFiltro() {
+    const selectFiltro = document.getElementById('filtroTipoEventos');
+    if (!selectFiltro) return;
+
+    const filtroValorAtual = selectFiltro.value;
+    selectFiltro.innerHTML = '';
+
+    const optTodos = document.createElement('option');
+    optTodos.value = '';
+    optTodos.textContent = 'Todos os tipos';
+    selectFiltro.appendChild(optTodos);
+
+    const tipos = AppState.dados.tiposEvento || [];
+    tipos.filter(tipo => tipo.id !== 'ferias').forEach(tipo => {
+        const opt = document.createElement('option');
+        opt.value = tipo.id;
+        opt.textContent = tipo.nome;
+        selectFiltro.appendChild(opt);
+    });
+
+    const tiposValidos = tipos.map(t => t.id);
+    if (filtroValorAtual === '' || tiposValidos.includes(filtroValorAtual)) {
+        selectFiltro.value = filtroValorAtual;
     }
 }
 
@@ -6301,6 +6358,7 @@ function adicionarNovoTipoEvento() {
     AppState.save();
     
     renderizarListaTiposEventos();
+    atualizarSelectTiposEventosFiltro();
     document.getElementById('novoTipoNome').value = '';
     document.getElementById('novoTipoCor').value = '#f3f4f6';
     
@@ -6323,6 +6381,7 @@ function abrirEditarTipoEvento(index) {
     AppState.save();
     
     renderizarListaTiposEventos();
+    atualizarSelectTiposEventosFiltro();
     mostrarAlertaGlobal('Tipo atualizado com sucesso', 'success');
 }
 
@@ -6342,6 +6401,7 @@ function deletarTipoEvento(index) {
     AppState.save();
     
     renderizarListaTiposEventos();
+    atualizarSelectTiposEventosFiltro();
     mostrarAlertaGlobal('Tipo deletado com sucesso', 'success');
 }
 
