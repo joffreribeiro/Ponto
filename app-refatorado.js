@@ -3464,7 +3464,13 @@ function gerarTimesheetAcordo() {
                             // Para eventos de férias, exibir apenas "Férias"
                             if (ev.tipoEvento === 'ferias') {
                                 td.textContent = 'Férias';
-                            } else {
+                            } 
+                            // Para abono/compensar em períodos específicos, não mostrar descrição
+                            else if ((ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'compensar_acordo') && 
+                                     (periodoEv === 'matutino' || periodoEv === 'vespertino')) {
+                                td.textContent = ''; // Deixar vazio para períodos
+                            }
+                            else {
                                 td.textContent = ev.descricaoEvento || ev.tipoEvento;
                             }
 
