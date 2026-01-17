@@ -4980,20 +4980,50 @@ function atualizarAcordosEventosExistentes() {
                 const currentIdx = (ev && (ev.acordoIndex != null)) ? Number(ev.acordoIndex) : null;
                 const validCurrent = Number.isInteger(currentIdx) && currentIdx >= 0 && currentIdx < acordos.length;
 
-                // Tentar inferir acordo pela data de início do evento
-                const dataRef = ev && (ev.dataInicioEvento || ev.dataFimEvento);
-                if (!dataRef) return;
+                // Determinar intervalo do evento
+                const startStr = ev && (ev.dataInicioEvento || ev.dataFimEvento);
+                const endStr = ev && (ev.dataFimEvento || ev.dataInicioEvento);
+                const startDate = DateUtils.parse(startStr);
+                const endDate = DateUtils.parse(endStr);
+                if (!startDate || !endDate) return;
 
-                const acordoObj = Calculations.getAcordoByData(acordos, dataRef);
-                if (!acordoObj) return;
+                // Função que calcula sobreposição de dias entre dois intervalos (inclusivo)
+                function overlapDays(aStart, aEnd, bStart, bEnd) {
+                    const msPerDay = 24 * 60 * 60 * 1000;
+                    const s = aStart > bStart ? aStart : bStart;
+                    const e = aEnd < bEnd ? aEnd : bEnd;
+                    if (e < s) return 0;
+                    // +1 para contar dias inclusivos
+                    return Math.floor((e - s) / msPerDay) + 1;
+                }
 
-                const inferredIdx = acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
-                if (inferredIdx < 0) return;
+                // Para cada acordo, somar sobreposição entre o intervalo do evento e todos os períodos do acordo
+                let bestIdx = -1;
+                let bestOverlap = 0;
+                acordos.forEach((ac, ai) => {
+                    try {
+                        if (!ac || !Array.isArray(ac.periodos)) return;
+                        let totalOverlap = 0;
+                        ac.periodos.forEach(p => {
+                            try {
+                                const pStart = DateUtils.parse(p.inicio);
+                                const pEnd = DateUtils.parse(p.fim || p.termino);
+                                if (!pStart || !pEnd) return;
+                                totalOverlap += overlapDays(startDate, endDate, pStart, pEnd);
+                            } catch(e) { /* per-period ignore */ }
+                        });
+                        if (totalOverlap > bestOverlap) {
+                            bestOverlap = totalOverlap;
+                            bestIdx = ai;
+                        }
+                    } catch(e) { /* per-acordo ignore */ }
+                });
 
-                // Atualizar somente se atual inválido ou diferente
-                if (!validCurrent || currentIdx !== inferredIdx) {
-                    ev.acordoIndex = inferredIdx;
-                    changed = true;
+                if (bestIdx >= 0 && bestOverlap > 0) {
+                    if (!validCurrent || currentIdx !== bestIdx) {
+                        ev.acordoIndex = bestIdx;
+                        changed = true;
+                    }
                 }
             } catch(e) { /* per-item ignore */ }
         });
