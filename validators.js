@@ -7,9 +7,36 @@ const Validators = {
     /**
      * Valida formato de data (YYYY-MM-DD)
      */
+    // Aceita "YYYY-MM-DD" ou "DD/MM/YYYY" e valida
     isValidDate(dateStr) {
         if (!dateStr || typeof dateStr !== 'string') return false;
-        return /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+        // ISO format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return !isNaN(Date.parse(dateStr));
+        }
+        // BR format dd/mm/yyyy
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+            const parts = dateStr.split('/');
+            const day = Number(parts[0]);
+            const month = Number(parts[1]);
+            const year = Number(parts[2]);
+            const d = new Date(year, month - 1, day);
+            return d && d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+        }
+        return false;
+    },
+
+    // Converte uma data em formato ISO ou BR para string ISO (YYYY-MM-DD). Retorna null se inválida.
+    normalizeDateToISO(dateStr) {
+        if (!dateStr || typeof dateStr !== 'string') return null;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            return dateStr;
+        }
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+            const [d, m, y] = dateStr.split('/');
+            return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+        }
+        return null;
     },
 
     /**
@@ -92,7 +119,9 @@ const Validators = {
         }
 
         if (this.isValidDate(periodo.inicio) && this.isValidDate(periodo.fim)) {
-            if (periodo.fim < periodo.inicio) {
+            const isoInicio = this.normalizeDateToISO(periodo.inicio);
+            const isoFim = this.normalizeDateToISO(periodo.fim);
+            if (isoInicio && isoFim && isoFim < isoInicio) {
                 errors.push('Data de fim não pode ser anterior à de início');
             }
         }
@@ -125,7 +154,9 @@ const Validators = {
         }
 
         if (this.isValidDate(regra.inicio) && this.isValidDate(regra.fim)) {
-            if (regra.fim < regra.inicio) {
+            const isoInicio = this.normalizeDateToISO(regra.inicio);
+            const isoFim = this.normalizeDateToISO(regra.fim);
+            if (isoInicio && isoFim && isoFim < isoInicio) {
                 errors.push('Data de fim não pode ser anterior à de início');
             }
         }
@@ -182,7 +213,9 @@ const Validators = {
         }
 
         if (this.isValidDate(evento.dataInicioEvento) && this.isValidDate(evento.dataFimEvento)) {
-            if (evento.dataFimEvento < evento.dataInicioEvento) {
+            const isoInicio = this.normalizeDateToISO(evento.dataInicioEvento);
+            const isoFim = this.normalizeDateToISO(evento.dataFimEvento);
+            if (isoInicio && isoFim && isoFim < isoInicio) {
                 errors.push('Data de fim não pode ser anterior à de início');
             }
         }

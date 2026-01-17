@@ -4077,8 +4077,15 @@ function salvarEvento() {
         }
 
         const descricaoEvento = document.getElementById('descricaoEvento').value;
-        const dataInicioEvento = document.getElementById('dataInicioEvento').value;
-        const dataFimEvento = document.getElementById('dataFimEvento').value;
+        const dataInicioEventoRaw = document.getElementById('dataInicioEvento').value;
+        const dataFimEventoRaw = document.getElementById('dataFimEvento').value;
+        // Normalizar datas (aceitar DD/MM/YYYY ou YYYY-MM-DD)
+        const dataInicioEvento = (typeof Validators.normalizeDateToISO === 'function')
+            ? (Validators.normalizeDateToISO(dataInicioEventoRaw) || dataInicioEventoRaw)
+            : dataInicioEventoRaw;
+        const dataFimEvento = (typeof Validators.normalizeDateToISO === 'function')
+            ? (Validators.normalizeDateToISO(dataFimEventoRaw) || dataFimEventoRaw)
+            : dataFimEventoRaw;
         const impactoEvento = document.getElementById('impactoEvento').value;
         const periodoEvento = document.getElementById('eventoPeriodo') ? document.getElementById('eventoPeriodo').value : 'dia_todo';
         const corFundo = document.getElementById('eventoCorFundo').value;
