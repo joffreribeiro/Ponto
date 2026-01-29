@@ -5,6 +5,31 @@
 
 const STORAGE_KEY = 'controle_ponto_avancado_v1';
 
+// Atividade de teste padrão para diagnóstico
+const ATIVIDADE_TESTE = {
+    id: 'TESTE_001',
+    ordem: '1',
+    tedPtrab: 'TED-001',
+    objeto: 'Atividade de Teste',
+    processoPrincipal: 'PROC-2024-001',
+    assunto: 'Verificar se a tabela está funcionando',
+    processoSolicitacao: 'SOL-001',
+    dataDoc: '2025-01-15',
+    tipoDoc: 'MEMO',
+    numeroDoc: '001/2025',
+    remetente: 'Sistema',
+    destinatario: 'Usuário',
+    acaoRealizar: 'Testar renderização',
+    prazo: '2025-01-30',
+    dias: 15,
+    observacoes: 'Esta é uma atividade de teste para verificar se a tabela está sendo renderizada corretamente.',
+    finalizado: false,
+    status: 'pendente',
+    prioridade: 'alta',
+    progresso: 0,
+    criadoEm: new Date().toISOString()
+};
+
 const Storage = {
     _saveTimer: null,
 
