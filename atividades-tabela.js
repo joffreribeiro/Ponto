@@ -48,7 +48,21 @@
         }
         let rows = '';
         try {
-            rows = items.map(a => {
+            rows = items.map((a, idx) => {
+            // Compatibilidade: mapear campos antigos para novos se necessário
+            const ordem = a.ordem || String(idx + 1);
+            const tedPtrab = a.tedPtrab || '';
+            const objeto = a.objeto || a.titulo || ''; // fallback para titulo
+            const processoPrincipal = a.processoPrincipal || '';
+            const assunto = a.assunto || a.descricao || ''; // fallback para descricao
+            const processoSolicitacao = a.processoSolicitacao || '';
+            const tipoDoc = a.tipoDoc || '';
+            const numeroDoc = a.numeroDoc || '';
+            const remetente = a.remetente || a.responsavel || ''; // fallback para responsavel
+            const destinatario = a.destinatario || '';
+            const acaoRealizar = a.acaoRealizar || '';
+            const observacoes = a.observacoes || '';
+            
             // Formatar datas usando função local
             const prazo = formatarDataBR(a.prazo);
             const dataDoc = formatarDataBR(a.dataDoc);
@@ -56,28 +70,28 @@
             const diasNum = Number(rawDias);
             let corClasse = '';
             if (a.finalizado) corClasse = 'linha-cinza';
-            else if (!isNaN(diasNum)) {
+            else if (!isNaN(diasNum) && rawDias !== '') {
                 if (diasNum > 10) corClasse = 'linha-verde';
                 else if (diasNum <= 10 && diasNum >= 5) corClasse = 'linha-amarelo';
                 else if (diasNum < 5) corClasse = 'linha-vermelho';
             }
-            const diasDisplay = (rawDias === '' || rawDias === null) ? '' : (diasNum < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(diasNum)}</span>` : String(diasNum));
+            const diasDisplay = (rawDias === '' || rawDias === null || rawDias === undefined) ? '' : (diasNum < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(diasNum)}</span>` : String(diasNum));
             return `<tr${corClasse ? ` class="${corClasse}"` : ''}>
-                <td>${escapeHtml(a.ordem || '')}</td>
-                <td>${escapeHtml(a.tedPtrab || '')}</td>
-                <td>${escapeHtml(a.objeto || '')}</td>
-                <td>${escapeHtml(a.processoPrincipal || '')}</td>
-                <td>${escapeHtml(a.assunto || '')}</td>
-                <td>${escapeHtml(a.processoSolicitacao || '')}</td>
+                <td>${escapeHtml(ordem)}</td>
+                <td>${escapeHtml(tedPtrab)}</td>
+                <td>${escapeHtml(objeto)}</td>
+                <td>${escapeHtml(processoPrincipal)}</td>
+                <td>${escapeHtml(assunto)}</td>
+                <td>${escapeHtml(processoSolicitacao)}</td>
                 <td>${dataDoc}</td>
-                <td>${escapeHtml(a.tipoDoc || '')}</td>
-                <td>${escapeHtml(a.numeroDoc || '')}</td>
-                <td>${escapeHtml(a.remetente || '')}</td>
-                <td>${escapeHtml(a.destinatario || '')}</td>
-                <td>${escapeHtml(a.acaoRealizar || '')}</td>
+                <td>${escapeHtml(tipoDoc)}</td>
+                <td>${escapeHtml(numeroDoc)}</td>
+                <td>${escapeHtml(remetente)}</td>
+                <td>${escapeHtml(destinatario)}</td>
+                <td>${escapeHtml(acaoRealizar)}</td>
                 <td>${prazo}</td>
                 <td>${diasDisplay}</td>
-                <td>${escapeHtml(a.observacoes || '')}</td>
+                <td>${escapeHtml(observacoes)}</td>
                 <td>${a.finalizado ? 'Sim' : 'Não'}</td>
                 <td>${escapeHtml(a.status || '')}</td>
                 <td>

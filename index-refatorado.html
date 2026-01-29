@@ -1229,77 +1229,7 @@
     </div>
 </div>
 
-<script src="app-refatorado.js?v=1.2.0"></script>
-
-<script>
-// Diagnóstico de atividades
-(function(){
-    console.log('=== DIAGNÓSTICO ATIVIDADES ===');
-    console.log('AtividadesTabela existe?', !!window.AtividadesTabela);
-    console.log('AppState.dados.atividades:', window.AppState && window.AppState.dados && window.AppState.dados.atividades);
-    
-    // Verificar localStorage diretamente
-    try {
-        const raw = localStorage.getItem('controle_ponto_avancado_v1');
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            console.log('localStorage atividades:', parsed.atividades);
-            console.log('Quantidade em localStorage:', parsed.atividades ? parsed.atividades.length : 0);
-        } else {
-            console.log('localStorage está vazio');
-        }
-    } catch(e) {
-        console.error('Erro ao ler localStorage:', e);
-    }
-    
-    // Se não há atividades, criar uma de teste
-    setTimeout(function(){
-        const atividades = (window.AppState && window.AppState.dados && window.AppState.dados.atividades) || [];
-        if (atividades.length === 0) {
-            console.log('=== CRIANDO ATIVIDADE DE TESTE ===');
-            const atividadeTeste = {
-                id: 'teste_' + Date.now(),
-                ordem: '1',
-                tedPtrab: 'TED-001',
-                objeto: 'Objeto de Teste',
-                processoPrincipal: '12345.678901/2026-00',
-                assunto: 'Atividade de Teste',
-                processoSolicitacao: '',
-                dataDoc: '2026-01-29',
-                tipoDoc: 'Ofício',
-                numeroDoc: '001',
-                remetente: 'Teste',
-                destinatario: 'Teste',
-                acaoRealizar: 'Verificar funcionamento',
-                prioridade: 'alta',
-                prazo: '2026-02-28',
-                dias: 30,
-                status: 'pendente',
-                progresso: 0,
-                observacoes: 'Atividade criada automaticamente para teste',
-                finalizado: false,
-                criadoEm: new Date().toISOString(),
-                atualizadoEm: new Date().toISOString()
-            };
-            
-            if (window.AppState && window.AppState.dados) {
-                if (!Array.isArray(window.AppState.dados.atividades)) {
-                    window.AppState.dados.atividades = [];
-                }
-                window.AppState.dados.atividades.push(atividadeTeste);
-                window.AppState.save();
-                console.log('Atividade de teste criada e salva');
-                
-                // Renderizar
-                if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
-                    window.AtividadesTabela.renderizarTabelaAtividades(window.AppState.dados.atividades);
-                    console.log('Tabela renderizada com', window.AppState.dados.atividades.length, 'atividades');
-                }
-            }
-        }
-    }, 500);
-})();
-</script>
+<script src="app-refatorado.js?v=1.2.1"></script>
 
 <script>
 // Fallback delegado: garante execução de ações marcadas com data-action
