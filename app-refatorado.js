@@ -744,17 +744,10 @@ function renderizarAtividades() {
 
     container.innerHTML = rows;
 
-    // render kanban if view enabled
+    // Renderizar kanban se existir (não altera visibilidade - isso é controlado pelos botões de toggle)
     const kanban = document.getElementById('atividadesKanban');
-    if (!kanban) return;
-    if (kanbanVisible) {
-        document.getElementById('atividadesLista').style.display = 'none';
-        kanban.style.display = 'block';
+    if (kanban) {
         renderizarKanban(items);
-    } else {
-        document.getElementById('atividadesLista').style.display = 'block';
-        kanban.style.display = 'none';
-        kanban.innerHTML = '';
     }
 }
 
