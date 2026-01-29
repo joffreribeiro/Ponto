@@ -949,14 +949,15 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
    Atividades table: prevent header wrapping and ensure horizontal scroll
    ================================================ */
 #atividadesTableContainer .table-container { overflow-x: auto; }
-#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1500px; }
-#tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 8px 10px; font-size: 13px; vertical-align: middle; }
+#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px; }
+#tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 4px 6px; font-size: 11px; vertical-align: middle; }
 #tabelaAtividades thead th {
     background: var(--primary);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
-    padding: 10px 8px;
+    padding: 6px 4px;
+    font-size: 10px;
     line-height: 1.15;
     /* Allow header to wrap between words but avoid breaking words in the middle */
     white-space: normal;
@@ -965,7 +966,7 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
     hyphens: none;
     text-align: center;
 }
-#tabelaAtividades tbody td { white-space: normal; overflow-wrap: anywhere; }
+#tabelaAtividades tbody td { white-space: normal; overflow-wrap: anywhere; font-size: 11px; line-height: 1.3; }
 
 .form-group.valid input, .form-group.valid textarea, .form-group.valid select { border-color: var(--positive); }
 .form-group.valid .validation-feedback { color: var(--positive-dark); }
