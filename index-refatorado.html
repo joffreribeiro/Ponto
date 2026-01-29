@@ -1229,68 +1229,7 @@
     </div>
 </div>
 
-<script src="app-refatorado.js?v=1.2.2"></script>
-
-<script>
-// DIAGNÓSTICO COMPLETO - Executar após carregamento
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        console.log('========== DIAGNÓSTICO COMPLETO DE ATIVIDADES ==========');
-        
-        // 1. Verificar módulos
-        console.log('1. MÓDULOS:');
-        console.log('   - AtividadesTabela:', typeof window.AtividadesTabela);
-        console.log('   - AtividadesTabela.renderizarTabelaAtividades:', window.AtividadesTabela ? typeof window.AtividadesTabela.renderizarTabelaAtividades : 'N/A');
-        console.log('   - AppState:', typeof window.AppState);
-        
-        // 2. Verificar dados
-        console.log('2. DADOS:');
-        const atividades = (window.AppState && window.AppState.dados && window.AppState.dados.atividades) || [];
-        console.log('   - Quantidade de atividades:', atividades.length);
-        if (atividades.length > 0) {
-            console.log('   - Primeira atividade:', JSON.stringify(atividades[0], null, 2));
-        }
-        
-        // 3. Verificar elementos DOM
-        console.log('3. ELEMENTOS DOM:');
-        const tabelaAtividades = document.getElementById('tabelaAtividades');
-        const tbody = document.querySelector('#tabelaAtividades tbody');
-        const container = document.getElementById('atividadesTableContainer');
-        console.log('   - #tabelaAtividades:', tabelaAtividades ? 'EXISTE' : 'NÃO EXISTE');
-        console.log('   - #tabelaAtividades tbody:', tbody ? 'EXISTE' : 'NÃO EXISTE');
-        console.log('   - #atividadesTableContainer:', container ? 'EXISTE' : 'NÃO EXISTE');
-        console.log('   - Container display:', container ? getComputedStyle(container).display : 'N/A');
-        console.log('   - Tbody children:', tbody ? tbody.children.length : 0);
-        
-        // 4. Tentar renderizar manualmente
-        console.log('4. RENDERIZAÇÃO MANUAL:');
-        if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
-            console.log('   - Chamando renderizarTabelaAtividades com', atividades.length, 'atividades...');
-            window.AtividadesTabela.renderizarTabelaAtividades(atividades);
-            const tbodyAfter = document.querySelector('#tabelaAtividades tbody');
-            console.log('   - Tbody children após render:', tbodyAfter ? tbodyAfter.children.length : 0);
-            if (tbodyAfter && tbodyAfter.children.length > 0) {
-                console.log('   - Primeira linha HTML:', tbodyAfter.children[0].outerHTML.substring(0, 200) + '...');
-            }
-        } else {
-            console.error('   - ERRO: renderizarTabelaAtividades não existe!');
-        }
-        
-        // 5. Verificar visibilidade
-        console.log('5. VISIBILIDADE:');
-        if (tbody && tbody.children.length > 0) {
-            const firstRow = tbody.children[0];
-            const rect = firstRow.getBoundingClientRect();
-            console.log('   - Primeira linha rect:', rect);
-            console.log('   - Primeira linha display:', getComputedStyle(firstRow).display);
-            console.log('   - Primeira linha visibility:', getComputedStyle(firstRow).visibility);
-            console.log('   - Primeira linha height:', getComputedStyle(firstRow).height);
-        }
-        
-        console.log('========== FIM DIAGNÓSTICO ==========');
-    }, 2000);
-});
-</script>
+<script src="app-refatorado.js?v=1.2.3"></script>
 
 <script>
 // Fallback delegado: garante execução de ações marcadas com data-action

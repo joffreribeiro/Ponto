@@ -160,8 +160,8 @@ function atualizarTabelaFerias() {
  * Utiliza módulos: storage.js, calculations.js, dateUtils.js, validators.js
  */
 
-// Estado global - Encapsulado
-const AppState = {
+// Estado global - Exposto para acesso externo
+const AppState = window.AppState = {
     dados: null,
     eventoSelecionado: null,
     eventoEmEdicao: null,
