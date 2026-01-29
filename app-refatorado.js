@@ -550,6 +550,36 @@ function ensureAtividadesDefault() {
     if (!Array.isArray(AppState.dados.atividades)) AppState.dados.atividades = [];
     if (typeof AppState.dados.atividadesKanbanView === 'undefined') AppState.dados.atividadesKanbanView = false;
     if (!Array.isArray(AppState.dados.atividadesReminders)) AppState.dados.atividadesReminders = [];
+    
+    // Migrar atividades do formato antigo (titulo, descricao) para o novo (objeto, assunto)
+    let migrou = false;
+    AppState.dados.atividades.forEach((a, idx) => {
+        // Se tem titulo mas não tem objeto, migrar
+        if (a.titulo && !a.objeto) {
+            a.objeto = a.titulo;
+            migrou = true;
+        }
+        // Se tem descricao mas não tem assunto, migrar
+        if (a.descricao && !a.assunto) {
+            a.assunto = a.descricao;
+            migrou = true;
+        }
+        // Se tem responsavel mas não tem remetente, migrar
+        if (a.responsavel && !a.remetente) {
+            a.remetente = a.responsavel;
+            migrou = true;
+        }
+        // Garantir ordem
+        if (!a.ordem) {
+            a.ordem = String(idx + 1);
+            migrou = true;
+        }
+    });
+    
+    if (migrou) {
+        console.log('Atividades migradas do formato antigo para o novo');
+    }
+    
     AppState.save();
 }
 
@@ -618,13 +648,23 @@ function renderizarAtividades() {
 
     const items = (AppState.dados.atividades || []).filter(a => {
         if (statusFiltro && a.status !== statusFiltro) return false;
-        if (busca && !(String(a.titulo || '').toLowerCase().includes(busca) || String(a.descricao || '').toLowerCase().includes(busca))) return false;
+        // Busca nos campos do formato da tabela
+        if (busca && !(
+            String(a.objeto || '').toLowerCase().includes(busca) || 
+            String(a.assunto || '').toLowerCase().includes(busca) ||
+            String(a.tedPtrab || '').toLowerCase().includes(busca) ||
+            String(a.acaoRealizar || '').toLowerCase().includes(busca) ||
+            String(a.processoPrincipal || '').toLowerCase().includes(busca) ||
+            String(a.observacoes || '').toLowerCase().includes(busca)
+        )) return false;
         return true;
     });
 
     // Sempre atualizar a tabela, mesmo se items vazio
     const tabelaContainer = document.getElementById('atividadesTableContainer');
-    if (tabelaContainer && tabelaContainer.style.display !== 'none') {
+    console.debug('renderizarAtividades: tabelaContainer=', tabelaContainer, 'display=', tabelaContainer ? tabelaContainer.style.display : 'N/A');
+    if (tabelaContainer) {
+        // Forçar renderização da tabela sempre
         renderizarTabelaAtividades(AppState.dados.atividades || []);
     }
 
@@ -670,17 +710,25 @@ function renderizarAtividades() {
                 diasBadge = `<span class="badge badge--ok">${diasNum}d</span>`;
             }
         }
-        const ordemBadge = a.ordem ? `<span class="badge badge--order">${escapeHtml(a.ordem)}</span>` : '';
+        // Usar campos do formato da tabela (ordem, objeto, assunto, etc.)
+        const ordem = a.ordem || String(idx + 1);
+        const ordemBadge = `<span class="badge badge--order">${escapeHtml(ordem)}</span>`;
+        const objeto = a.objeto || '';
+        const assunto = a.assunto || '';
+        const tedPtrab = a.tedPtrab || '';
+        const acaoRealizar = a.acaoRealizar || '';
         const dueClass = (diasNum !== null && diasNum <= 3 && diasNum >= 0) ? 'due-soon' : '';
         return `
             <div class="atividade-item activity-card ${dueClass}" data-idx="${idx}">
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         ${ordemBadge}
-                        <strong>${escapeHtml(a.titulo)}</strong>
+                        ${tedPtrab ? `<span class="badge badge--ted">${escapeHtml(tedPtrab)}</span>` : ''}
+                        <strong>${escapeHtml(objeto)}</strong>
                     </div>
-                    <div class="small-text">${escapeHtml(a.descricao || '')}</div>
-                    <div class="meta small-text">Responsável: ${escapeHtml(a.responsavel || '')} • Prioridade: ${getPriorityBadge(a.prioridade)} • Prazo: ${prazo} ${diasBadge}</div>
+                    <div class="small-text">${escapeHtml(assunto)}</div>
+                    ${acaoRealizar ? `<div class="small-text" style="color:var(--info);"><strong>Ação:</strong> ${escapeHtml(acaoRealizar)}</div>` : ''}
+                    <div class="meta small-text">Prioridade: ${getPriorityBadge(a.prioridade)} • Prazo: ${prazo} ${diasBadge}</div>
                 </div>
                 <div class="actions" style="text-align:right; min-width:160px;">
                     <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>

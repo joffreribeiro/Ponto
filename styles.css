@@ -364,6 +364,7 @@ html[data-theme="dark"] {
 .badge--due { background: var(--warning-soft); color: var(--warning); }
 .badge--ok { background: var(--positive-soft); color: var(--positive); }
 .badge--order { background: var(--info-soft); color: var(--info); }
+.badge--ted { background: var(--primary-soft, #dbeafe); color: var(--primary); font-family: monospace; }
 
 /* Small adjustments to global corner radius for a tighter look */
 :root { --border-radius-base: 8px; }
