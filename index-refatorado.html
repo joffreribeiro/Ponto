@@ -1232,6 +1232,39 @@
 <script src="app-refatorado.js?v=1.2.0"></script>
 
 <script>
+// Diagnóstico de atividades
+(function(){
+    console.log('=== DIAGNÓSTICO ATIVIDADES ===');
+    console.log('AtividadesTabela existe?', !!window.AtividadesTabela);
+    console.log('AtividadesTabela.renderizarTabelaAtividades existe?', window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function');
+    console.log('AppState existe?', !!window.AppState);
+    console.log('AppState.dados existe?', window.AppState && !!window.AppState.dados);
+    console.log('AppState.dados.atividades existe?', window.AppState && window.AppState.dados && Array.isArray(window.AppState.dados.atividades));
+    console.log('Quantidade de atividades:', window.AppState && window.AppState.dados && Array.isArray(window.AppState.dados.atividades) ? window.AppState.dados.atividades.length : 0);
+    const tbody = document.querySelector('#tabelaAtividades tbody');
+    console.log('tbody existe?', !!tbody);
+    console.log('tbody.children.length:', tbody ? tbody.children.length : 0);
+    const container = document.getElementById('atividadesTableContainer');
+    console.log('atividadesTableContainer existe?', !!container);
+    console.log('atividadesTableContainer.style.display:', container ? container.style.display : 'N/A');
+    
+    // Forçar renderização manual
+    setTimeout(function(){
+        console.log('=== FORÇANDO RENDERIZAÇÃO ===');
+        if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
+            const atividades = (window.AppState && window.AppState.dados && window.AppState.dados.atividades) || [];
+            console.log('Chamando AtividadesTabela.renderizarTabelaAtividades com', atividades.length, 'atividades');
+            window.AtividadesTabela.renderizarTabelaAtividades(atividades);
+            const tbody2 = document.querySelector('#tabelaAtividades tbody');
+            console.log('Após renderização, tbody.children.length:', tbody2 ? tbody2.children.length : 0);
+        } else {
+            console.error('AtividadesTabela.renderizarTabelaAtividades NÃO EXISTE!');
+        }
+    }, 1000);
+})();
+</script>
+
+<script>
 // Fallback delegado: garante execução de ações marcadas com data-action
 (function(){
     try {
