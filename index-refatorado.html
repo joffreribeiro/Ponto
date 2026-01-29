@@ -1047,54 +1047,55 @@
         document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (kanbanVisible) b.classList.add('active'); else b.classList.remove('active'); });
     };
 
-    // Shim mínimo para funções de UI
+    // Funções para alternar visualização
     window.toggleAtividadesKanban = function(){
-        try {
-            const kanban = document.getElementById('atividadesKanban');
-            const tabela = document.getElementById('atividadesTableContainer');
-            const cards = document.getElementById('atividadesLista');
-            // Mostrar Kanban, esconder os outros
-            if (kanban) kanban.style.display = 'block';
-            if (tabela) tabela.style.display = 'none';
-            if (cards) cards.style.display = 'none';
-            if (typeof renderizarAtividades === 'function') renderizarAtividades();
-            updateToggleButtonsState();
-        } catch (e) { console.error('toggleAtividadesKanban error', e); }
+        console.log('[TOGGLE] Kanban clicado');
+        const kanban = document.getElementById('atividadesKanban');
+        const tabela = document.getElementById('atividadesTableContainer');
+        const cards = document.getElementById('atividadesLista');
+        // Mostrar Kanban, esconder os outros
+        if (kanban) kanban.style.display = 'block';
+        if (tabela) tabela.style.display = 'none';
+        if (cards) cards.style.display = 'none';
+        updateToggleButtonsState();
     };
     
     window.toggleAtividadesTable = function(){
-        try {
-            const kanban = document.getElementById('atividadesKanban');
-            const tabela = document.getElementById('atividadesTableContainer');
-            const cards = document.getElementById('atividadesLista');
-            // Mostrar Tabela, esconder os outros
-            if (tabela) tabela.style.display = 'block';
-            if (kanban) kanban.style.display = 'none';
-            if (cards) cards.style.display = 'none';
-            if (typeof renderizarAtividades === 'function') renderizarAtividades();
-            updateToggleButtonsState();
-        } catch (e) { console.error('toggleAtividadesTable error', e); }
+        console.log('[TOGGLE] Tabela clicado');
+        const kanban = document.getElementById('atividadesKanban');
+        const tabela = document.getElementById('atividadesTableContainer');
+        const cards = document.getElementById('atividadesLista');
+        // Mostrar Tabela, esconder os outros
+        if (tabela) tabela.style.display = 'block';
+        if (kanban) kanban.style.display = 'none';
+        if (cards) cards.style.display = 'none';
+        updateToggleButtonsState();
     };
     
     window.toggleAtividadesCards = function(){
-        try {
-            const kanban = document.getElementById('atividadesKanban');
-            const tabela = document.getElementById('atividadesTableContainer');
-            const cards = document.getElementById('atividadesLista');
-            // Mostrar Cards, esconder os outros
-            if (cards) cards.style.display = 'block';
-            if (tabela) tabela.style.display = 'none';
-            if (kanban) kanban.style.display = 'none';
-            if (typeof renderizarAtividades === 'function') renderizarAtividades();
-            updateToggleButtonsState();
-        } catch (e) { console.error('toggleAtividadesCards error', e); }
+        console.log('[TOGGLE] Cards clicado');
+        const kanban = document.getElementById('atividadesKanban');
+        const tabela = document.getElementById('atividadesTableContainer');
+        const cards = document.getElementById('atividadesLista');
+        // Mostrar Cards, esconder os outros
+        if (cards) cards.style.display = 'block';
+        if (tabela) tabela.style.display = 'none';
+        if (kanban) kanban.style.display = 'none';
+        updateToggleButtonsState();
     };
     
     // Event listeners para os botões de visualização
     document.addEventListener('DOMContentLoaded', function(){
-        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b => b.addEventListener('click', toggleAtividadesTable));
-        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b => b.addEventListener('click', toggleAtividadesCards));
-        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b => b.addEventListener('click', toggleAtividadesKanban));
+        console.log('[INIT] Anexando event listeners aos botões de visualização');
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b => {
+            b.addEventListener('click', function(e){ e.preventDefault(); toggleAtividadesTable(); });
+        });
+        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b => {
+            b.addEventListener('click', function(e){ e.preventDefault(); toggleAtividadesCards(); });
+        });
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b => {
+            b.addEventListener('click', function(e){ e.preventDefault(); toggleAtividadesKanban(); });
+        });
         document.querySelectorAll('[data-action="novaAtividade"]').forEach(b => b.addEventListener('click', function(){
             if (typeof abrirModalAtividade === 'function') abrirModalAtividade();
             else if (typeof abrirAbaNovaAtividade === 'function') abrirAbaNovaAtividade();
