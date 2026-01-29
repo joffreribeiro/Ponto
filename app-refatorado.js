@@ -551,12 +551,6 @@ function ensureAtividadesDefault() {
     if (typeof AppState.dados.atividadesKanbanView === 'undefined') AppState.dados.atividadesKanbanView = false;
     if (!Array.isArray(AppState.dados.atividadesReminders)) AppState.dados.atividadesReminders = [];
     
-    // Adicionar atividade de teste se o array estiver vazio (para diagnóstico)
-    if (AppState.dados.atividades.length === 0 && typeof ATIVIDADE_TESTE !== 'undefined') {
-        console.log('[DIAG] Adicionando atividade de teste porque o array está vazio');
-        AppState.dados.atividades.push(ATIVIDADE_TESTE);
-    }
-    
     // Migrar atividades do formato antigo (titulo, descricao) para o novo (objeto, assunto)
     let migrou = false;
     AppState.dados.atividades.forEach((a, idx) => {

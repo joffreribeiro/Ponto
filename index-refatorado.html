@@ -1229,34 +1229,7 @@
     </div>
 </div>
 
-<script src="app-refatorado.js?v=1.2.5"></script>
-
-<script>
-// Força renderização da tabela após carregamento completo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[INIT] DOMContentLoaded - verificando tabela de atividades');
-    setTimeout(function() {
-        console.log('[INIT] Verificando AppState...');
-        if (window.AppState && window.AppState.dados) {
-            const atividades = window.AppState.dados.atividades || [];
-            console.log('[INIT] Atividades encontradas:', atividades.length);
-            console.log('[INIT] Atividades:', atividades);
-            
-            const tbody = document.querySelector('#tabelaAtividades tbody');
-            console.log('[INIT] tbody existe:', !!tbody);
-            console.log('[INIT] tbody.children.length ANTES:', tbody ? tbody.children.length : 0);
-            
-            if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
-                console.log('[INIT] Chamando AtividadesTabela.renderizarTabelaAtividades...');
-                window.AtividadesTabela.renderizarTabelaAtividades(atividades);
-                console.log('[INIT] tbody.children.length DEPOIS:', tbody ? tbody.children.length : 0);
-            }
-        } else {
-            console.error('[INIT] AppState não disponível!');
-        }
-    }, 500);
-});
-</script>
+<script src="app-refatorado.js?v=1.2.6"></script>
 
 <script>
 // Fallback delegado: garante execução de ações marcadas com data-action
@@ -1306,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function aplicarFiltrosTabelaAtividades(){
         const tbody=document.querySelector('#tabelaAtividades tbody'); if (!tbody) return;
         const filtros={
-            ordem:(document.getElementById('topFiltroOrdem')||{}).value.trim().toLowerCase(),
+            ordemExtra:(document.getElementById('topFiltroOrdemExtra')||{}).value.trim().toLowerCase(),
             busca:(document.getElementById('topFiltroBusca')||{}).value.trim().toLowerCase(),
             ted:(document.getElementById('topFiltroTedPtrab')||{}).value.trim().toLowerCase(),
             objeto:(document.getElementById('topFiltroObjeto')||{}).value.trim().toLowerCase(),
@@ -1333,7 +1306,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const prazoAteDate=parseBrDate(filtros.prazoAte)||null;
         Array.from(tbody.rows).forEach(row=>{
             let match=true;
-            if (filtros.ordem && !getText(row,0).includes(filtros.ordem)) match=false;
+            if (filtros.ordemExtra && !getText(row,0).includes(filtros.ordemExtra)) match=false;
             if (filtros.ted && !getText(row,1).includes(filtros.ted)) match=false;
             if (filtros.objeto && !getText(row,2).includes(filtros.objeto)) match=false;
             if (filtros.procPrincipal && !getText(row,3).includes(filtros.procPrincipal)) match=false;
