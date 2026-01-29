@@ -275,11 +275,6 @@
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <h2>Atividades</h2>
-                    </div>
-
-                    <div class="stats-grid kpi-grid">
-                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M10 4H8l4 6-4 6h2l4-6zM20 7v4h-2V9.41l-3.29 3.3-1.42-1.42L16.59 8H14V6h6z"/></svg></span> Kanban</button>
-                    </div>
                 </div>
 
                 <div style="margin-top:12px;">
@@ -331,8 +326,12 @@
 
                 <div id="atividadesContainer" style="margin-top:12px;">
                     <div id="atividadesControls" style="margin-bottom:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                        <button class="btn-secondary" data-action="toggleAtividadesTable"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M16 4h-1.5l-.71-.71A1 1 0 0 0 12.9 3h-1.8a1 1 0 0 0-.89.29L9.5 4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM12 7a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/></svg></span> Tabela</button>
-                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M10 4H8l4 6-4 6h2l4-6zM20 7v4h-2V9.41l-3.29 3.3-1.42-1.42L16.59 8H14V6h6z"/></svg></span> Kanban</button>
+                        <button class="btn-primary" data-action="novaAtividade" title="Adicionar nova atividade">
+                            <span class="icon">➕</span> Nova Atividade
+                        </button>
+                        <button class="btn-secondary" data-action="toggleAtividadesTable"><span class="icon">📋</span> Tabela</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesCards"><span class="icon">🃏</span> Cards</button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon">📊</span> Kanban</button>
                         <span style="flex:1;"></span>
                         <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel" title="Exportar atividades para Excel (.xlsx)">
                             <span class="icon">📥</span> Exportar Excel
@@ -1041,22 +1040,56 @@
             try {
                 const kanban = document.getElementById('atividadesKanban');
                 const tabela = document.getElementById('atividadesTableContainer');
-                if (kanban) kanban.style.display = (kanban.style.display === 'none' || kanban.style.display === '') ? 'block' : 'none';
-                if (tabela) tabela.style.display = (tabela.style.display === 'none' || tabela.style.display === '') ? 'block' : 'none';
+                const cards = document.getElementById('atividadesLista');
+                // Mostrar Kanban, esconder os outros
+                if (kanban) kanban.style.display = 'block';
+                if (tabela) tabela.style.display = 'none';
+                if (cards) cards.style.display = 'none';
                 if (typeof renderizarAtividades === 'function') renderizarAtividades();
+                updateToggleButtonsState();
             } catch (e) { console.error('toggleAtividadesKanban shim error', e); }
         };
     }
     if (typeof window.toggleAtividadesTable === 'undefined') {
         window.toggleAtividadesTable = function(){
             try {
-                const cont = document.getElementById('atividadesTableContainer');
-                if (!cont) return;
-                cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
+                const kanban = document.getElementById('atividadesKanban');
+                const tabela = document.getElementById('atividadesTableContainer');
+                const cards = document.getElementById('atividadesLista');
+                // Mostrar Tabela, esconder os outros
+                if (tabela) tabela.style.display = 'block';
+                if (kanban) kanban.style.display = 'none';
+                if (cards) cards.style.display = 'none';
                 if (typeof renderizarAtividades === 'function') renderizarAtividades();
+                updateToggleButtonsState();
             } catch (e) { console.error('toggleAtividadesTable shim error', e); }
         };
     }
+    if (typeof window.toggleAtividadesCards === 'undefined') {
+        window.toggleAtividadesCards = function(){
+            try {
+                const kanban = document.getElementById('atividadesKanban');
+                const tabela = document.getElementById('atividadesTableContainer');
+                const cards = document.getElementById('atividadesLista');
+                // Mostrar Cards, esconder os outros
+                if (cards) cards.style.display = 'block';
+                if (tabela) tabela.style.display = 'none';
+                if (kanban) kanban.style.display = 'none';
+                if (typeof renderizarAtividades === 'function') renderizarAtividades();
+                updateToggleButtonsState();
+            } catch (e) { console.error('toggleAtividadesCards shim error', e); }
+        };
+    }
+    // Event listeners para os botões de visualização
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b => b.addEventListener('click', toggleAtividadesTable));
+        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b => b.addEventListener('click', toggleAtividadesCards));
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b => b.addEventListener('click', toggleAtividadesKanban));
+        document.querySelectorAll('[data-action="novaAtividade"]').forEach(b => b.addEventListener('click', function(){
+            if (typeof abrirModalAtividade === 'function') abrirModalAtividade();
+            else if (typeof abrirAbaNovaAtividade === 'function') abrirAbaNovaAtividade();
+        }));
+    });
 </script>
 
 <script>
@@ -1342,11 +1375,17 @@
         const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
     }
     function updateToggleButtonsState(){
-        const tableCont=document.getElementById('atividadesTableContainer'); const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
+        const tableCont=document.getElementById('atividadesTableContainer'); 
+        const cardsCont=document.getElementById('atividadesLista'); 
+        const kanbanCont=document.getElementById('atividadesKanban');
+        const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
+        const cardsVisible = cardsCont && window.getComputedStyle(cardsCont).display !== 'none';
+        const kanbanVisible = kanbanCont && window.getComputedStyle(kanbanCont).display !== 'none';
         document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
-        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (!tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b=>{ if (cardsVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (kanbanVisible) b.classList.add('active'); else b.classList.remove('active'); });
     }
-    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); updateToggleButtonsState(); document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120))); document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=> b.addEventListener('click', ()=> setTimeout(updateToggleButtonsState,120))); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
 })();
 </script>
 
