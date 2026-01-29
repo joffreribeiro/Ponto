@@ -1236,31 +1236,68 @@
 (function(){
     console.log('=== DIAGNÓSTICO ATIVIDADES ===');
     console.log('AtividadesTabela existe?', !!window.AtividadesTabela);
-    console.log('AtividadesTabela.renderizarTabelaAtividades existe?', window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function');
-    console.log('AppState existe?', !!window.AppState);
-    console.log('AppState.dados existe?', window.AppState && !!window.AppState.dados);
-    console.log('AppState.dados.atividades existe?', window.AppState && window.AppState.dados && Array.isArray(window.AppState.dados.atividades));
-    console.log('Quantidade de atividades:', window.AppState && window.AppState.dados && Array.isArray(window.AppState.dados.atividades) ? window.AppState.dados.atividades.length : 0);
-    const tbody = document.querySelector('#tabelaAtividades tbody');
-    console.log('tbody existe?', !!tbody);
-    console.log('tbody.children.length:', tbody ? tbody.children.length : 0);
-    const container = document.getElementById('atividadesTableContainer');
-    console.log('atividadesTableContainer existe?', !!container);
-    console.log('atividadesTableContainer.style.display:', container ? container.style.display : 'N/A');
+    console.log('AppState.dados.atividades:', window.AppState && window.AppState.dados && window.AppState.dados.atividades);
     
-    // Forçar renderização manual
-    setTimeout(function(){
-        console.log('=== FORÇANDO RENDERIZAÇÃO ===');
-        if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
-            const atividades = (window.AppState && window.AppState.dados && window.AppState.dados.atividades) || [];
-            console.log('Chamando AtividadesTabela.renderizarTabelaAtividades com', atividades.length, 'atividades');
-            window.AtividadesTabela.renderizarTabelaAtividades(atividades);
-            const tbody2 = document.querySelector('#tabelaAtividades tbody');
-            console.log('Após renderização, tbody.children.length:', tbody2 ? tbody2.children.length : 0);
+    // Verificar localStorage diretamente
+    try {
+        const raw = localStorage.getItem('controle_ponto_avancado_v1');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            console.log('localStorage atividades:', parsed.atividades);
+            console.log('Quantidade em localStorage:', parsed.atividades ? parsed.atividades.length : 0);
         } else {
-            console.error('AtividadesTabela.renderizarTabelaAtividades NÃO EXISTE!');
+            console.log('localStorage está vazio');
         }
-    }, 1000);
+    } catch(e) {
+        console.error('Erro ao ler localStorage:', e);
+    }
+    
+    // Se não há atividades, criar uma de teste
+    setTimeout(function(){
+        const atividades = (window.AppState && window.AppState.dados && window.AppState.dados.atividades) || [];
+        if (atividades.length === 0) {
+            console.log('=== CRIANDO ATIVIDADE DE TESTE ===');
+            const atividadeTeste = {
+                id: 'teste_' + Date.now(),
+                ordem: '1',
+                tedPtrab: 'TED-001',
+                objeto: 'Objeto de Teste',
+                processoPrincipal: '12345.678901/2026-00',
+                assunto: 'Atividade de Teste',
+                processoSolicitacao: '',
+                dataDoc: '2026-01-29',
+                tipoDoc: 'Ofício',
+                numeroDoc: '001',
+                remetente: 'Teste',
+                destinatario: 'Teste',
+                acaoRealizar: 'Verificar funcionamento',
+                prioridade: 'alta',
+                prazo: '2026-02-28',
+                dias: 30,
+                status: 'pendente',
+                progresso: 0,
+                observacoes: 'Atividade criada automaticamente para teste',
+                finalizado: false,
+                criadoEm: new Date().toISOString(),
+                atualizadoEm: new Date().toISOString()
+            };
+            
+            if (window.AppState && window.AppState.dados) {
+                if (!Array.isArray(window.AppState.dados.atividades)) {
+                    window.AppState.dados.atividades = [];
+                }
+                window.AppState.dados.atividades.push(atividadeTeste);
+                window.AppState.save();
+                console.log('Atividade de teste criada e salva');
+                
+                // Renderizar
+                if (window.AtividadesTabela && typeof window.AtividadesTabela.renderizarTabelaAtividades === 'function') {
+                    window.AtividadesTabela.renderizarTabelaAtividades(window.AppState.dados.atividades);
+                    console.log('Tabela renderizada com', window.AppState.dados.atividades.length, 'atividades');
+                }
+            }
+        }
+    }, 500);
 })();
 </script>
 
