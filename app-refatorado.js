@@ -245,6 +245,10 @@ function inicializar() {
         // Inicializar módulo de Atividades
         ensureAtividadesDefault();
         renderizarAtividades();
+        // Garantir que a tabela seja renderizada na inicialização
+        if (typeof renderizarTabelaAtividades === 'function') {
+            renderizarTabelaAtividades(AppState.dados.atividades || []);
+        }
         
         // fallback: garantir botão 'Nova Atividade' ligado mesmo que onclick inline falhe
             try {
@@ -594,7 +598,6 @@ window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
 
 function renderizarAtividades() {
     const container = document.getElementById('atividadesLista');
-    if (!container) return;
     try { console.debug('renderizarAtividades: AppState.dados.atividades length =', (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.length : 'no-data'); } catch(e){}
     // Acessos defensivos: aceitar os IDs antigos (filtroAtividades*) ou os novos topFiltro*
     const statusEl = document.getElementById('filtroAtividadesStatus') || document.getElementById('topFiltroStatusCol');
@@ -618,6 +621,14 @@ function renderizarAtividades() {
         if (busca && !(String(a.titulo || '').toLowerCase().includes(busca) || String(a.descricao || '').toLowerCase().includes(busca))) return false;
         return true;
     });
+
+    // Sempre atualizar a tabela, mesmo se items vazio
+    const tabelaContainer = document.getElementById('atividadesTableContainer');
+    if (tabelaContainer && tabelaContainer.style.display !== 'none') {
+        renderizarTabelaAtividades(AppState.dados.atividades || []);
+    }
+
+    if (!container) return;
 
     if (!items.length) {
         try { console.debug('renderizarAtividades: filtro resultou em 0 items. statusFiltro=', statusFiltro, 'busca=', busca); } catch(e){}
@@ -696,12 +707,6 @@ function renderizarAtividades() {
         document.getElementById('atividadesLista').style.display = 'block';
         kanban.style.display = 'none';
         kanban.innerHTML = '';
-    }
-
-    // sempre atualizar tabela se visível
-    const tabelaContainer = document.getElementById('atividadesTableContainer');
-    if (tabelaContainer && tabelaContainer.style.display !== 'none') {
-        renderizarTabelaAtividades(AppState.dados.atividades || []);
     }
 }
 
