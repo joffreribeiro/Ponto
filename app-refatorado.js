@@ -1805,18 +1805,39 @@ function removerAtividade(idOrIdx) {
 }
 
 function toggleAtividadesKanban() {
-    AppState.dados.atividadesKanbanView = !AppState.dados.atividadesKanbanView;
-    AppState.save();
-    AppState.atividadesKanbanView = AppState.dados.atividadesKanbanView;
-    renderizarAtividades();
-    Notifications.info('Visão Kanban ' + (AppState.dados.atividadesKanbanView ? 'ativada' : 'desativada'));
+    const kanban = document.getElementById('atividadesKanban');
+    const tabela = document.getElementById('atividadesTableContainer');
+    const cards = document.getElementById('atividadesLista');
+    // Mostrar Kanban, esconder os outros
+    if (kanban) kanban.style.display = 'block';
+    if (tabela) tabela.style.display = 'none';
+    if (cards) cards.style.display = 'none';
+    // Atualizar estado dos botões
+    if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
 
 function toggleAtividadesTable() {
-    const cont = document.getElementById('atividadesTableContainer');
-    if (!cont) return;
-    cont.style.display = cont.style.display === 'none' || cont.style.display === '' ? 'block' : 'none';
-    renderizarAtividades();
+    const kanban = document.getElementById('atividadesKanban');
+    const tabela = document.getElementById('atividadesTableContainer');
+    const cards = document.getElementById('atividadesLista');
+    // Mostrar Tabela, esconder os outros
+    if (tabela) tabela.style.display = 'block';
+    if (kanban) kanban.style.display = 'none';
+    if (cards) cards.style.display = 'none';
+    // Atualizar estado dos botões
+    if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
+}
+
+function toggleAtividadesCards() {
+    const kanban = document.getElementById('atividadesKanban');
+    const tabela = document.getElementById('atividadesTableContainer');
+    const cards = document.getElementById('atividadesLista');
+    // Mostrar Cards, esconder os outros
+    if (cards) cards.style.display = 'block';
+    if (tabela) tabela.style.display = 'none';
+    if (kanban) kanban.style.display = 'none';
+    // Atualizar estado dos botões
+    if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
 
 /**
