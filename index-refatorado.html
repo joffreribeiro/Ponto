@@ -1034,52 +1034,62 @@
 <script src="atividades-tabela.js?v=1.1.0"></script>
 <script src="atividades-kanban.js?v=1.0.0"></script>
 <script>
+    // Função para atualizar estado visual dos botões
+    window.updateToggleButtonsState = function(){
+        const tableCont=document.getElementById('atividadesTableContainer'); 
+        const cardsCont=document.getElementById('atividadesLista'); 
+        const kanbanCont=document.getElementById('atividadesKanban');
+        const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
+        const cardsVisible = cardsCont && window.getComputedStyle(cardsCont).display !== 'none';
+        const kanbanVisible = kanbanCont && window.getComputedStyle(kanbanCont).display !== 'none';
+        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b=>{ if (cardsVisible) b.classList.add('active'); else b.classList.remove('active'); });
+        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (kanbanVisible) b.classList.add('active'); else b.classList.remove('active'); });
+    };
+
     // Shim mínimo para funções de UI
-    if (typeof window.toggleAtividadesKanban === 'undefined') {
-        window.toggleAtividadesKanban = function(){
-            try {
-                const kanban = document.getElementById('atividadesKanban');
-                const tabela = document.getElementById('atividadesTableContainer');
-                const cards = document.getElementById('atividadesLista');
-                // Mostrar Kanban, esconder os outros
-                if (kanban) kanban.style.display = 'block';
-                if (tabela) tabela.style.display = 'none';
-                if (cards) cards.style.display = 'none';
-                if (typeof renderizarAtividades === 'function') renderizarAtividades();
-                updateToggleButtonsState();
-            } catch (e) { console.error('toggleAtividadesKanban shim error', e); }
-        };
-    }
-    if (typeof window.toggleAtividadesTable === 'undefined') {
-        window.toggleAtividadesTable = function(){
-            try {
-                const kanban = document.getElementById('atividadesKanban');
-                const tabela = document.getElementById('atividadesTableContainer');
-                const cards = document.getElementById('atividadesLista');
-                // Mostrar Tabela, esconder os outros
-                if (tabela) tabela.style.display = 'block';
-                if (kanban) kanban.style.display = 'none';
-                if (cards) cards.style.display = 'none';
-                if (typeof renderizarAtividades === 'function') renderizarAtividades();
-                updateToggleButtonsState();
-            } catch (e) { console.error('toggleAtividadesTable shim error', e); }
-        };
-    }
-    if (typeof window.toggleAtividadesCards === 'undefined') {
-        window.toggleAtividadesCards = function(){
-            try {
-                const kanban = document.getElementById('atividadesKanban');
-                const tabela = document.getElementById('atividadesTableContainer');
-                const cards = document.getElementById('atividadesLista');
-                // Mostrar Cards, esconder os outros
-                if (cards) cards.style.display = 'block';
-                if (tabela) tabela.style.display = 'none';
-                if (kanban) kanban.style.display = 'none';
-                if (typeof renderizarAtividades === 'function') renderizarAtividades();
-                updateToggleButtonsState();
-            } catch (e) { console.error('toggleAtividadesCards shim error', e); }
-        };
-    }
+    window.toggleAtividadesKanban = function(){
+        try {
+            const kanban = document.getElementById('atividadesKanban');
+            const tabela = document.getElementById('atividadesTableContainer');
+            const cards = document.getElementById('atividadesLista');
+            // Mostrar Kanban, esconder os outros
+            if (kanban) kanban.style.display = 'block';
+            if (tabela) tabela.style.display = 'none';
+            if (cards) cards.style.display = 'none';
+            if (typeof renderizarAtividades === 'function') renderizarAtividades();
+            updateToggleButtonsState();
+        } catch (e) { console.error('toggleAtividadesKanban error', e); }
+    };
+    
+    window.toggleAtividadesTable = function(){
+        try {
+            const kanban = document.getElementById('atividadesKanban');
+            const tabela = document.getElementById('atividadesTableContainer');
+            const cards = document.getElementById('atividadesLista');
+            // Mostrar Tabela, esconder os outros
+            if (tabela) tabela.style.display = 'block';
+            if (kanban) kanban.style.display = 'none';
+            if (cards) cards.style.display = 'none';
+            if (typeof renderizarAtividades === 'function') renderizarAtividades();
+            updateToggleButtonsState();
+        } catch (e) { console.error('toggleAtividadesTable error', e); }
+    };
+    
+    window.toggleAtividadesCards = function(){
+        try {
+            const kanban = document.getElementById('atividadesKanban');
+            const tabela = document.getElementById('atividadesTableContainer');
+            const cards = document.getElementById('atividadesLista');
+            // Mostrar Cards, esconder os outros
+            if (cards) cards.style.display = 'block';
+            if (tabela) tabela.style.display = 'none';
+            if (kanban) kanban.style.display = 'none';
+            if (typeof renderizarAtividades === 'function') renderizarAtividades();
+            updateToggleButtonsState();
+        } catch (e) { console.error('toggleAtividadesCards error', e); }
+    };
+    
     // Event listeners para os botões de visualização
     document.addEventListener('DOMContentLoaded', function(){
         document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b => b.addEventListener('click', toggleAtividadesTable));
@@ -1089,6 +1099,8 @@
             if (typeof abrirModalAtividade === 'function') abrirModalAtividade();
             else if (typeof abrirAbaNovaAtividade === 'function') abrirAbaNovaAtividade();
         }));
+        // Atualizar estado inicial dos botões
+        setTimeout(updateToggleButtonsState, 100);
     });
 </script>
 
@@ -1374,18 +1386,7 @@
         const clearBtn=document.getElementById('topBtnLimparFiltros'); if (clearBtn) clearBtn.addEventListener('click', function(){ ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.value=''; }); aplicarFiltrosTabelaAtividades(); });
         const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
     }
-    function updateToggleButtonsState(){
-        const tableCont=document.getElementById('atividadesTableContainer'); 
-        const cardsCont=document.getElementById('atividadesLista'); 
-        const kanbanCont=document.getElementById('atividadesKanban');
-        const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
-        const cardsVisible = cardsCont && window.getComputedStyle(cardsCont).display !== 'none';
-        const kanbanVisible = kanbanCont && window.getComputedStyle(kanbanCont).display !== 'none';
-        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
-        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b=>{ if (cardsVisible) b.classList.add('active'); else b.classList.remove('active'); });
-        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (kanbanVisible) b.classList.add('active'); else b.classList.remove('active'); });
-    }
-    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if(typeof updateToggleButtonsState==='function') updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
 })();
 </script>
 
