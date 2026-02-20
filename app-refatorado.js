@@ -7376,12 +7376,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (!present.has(s)) missingFound = true;
                             }
                         });
-                        if (missingFound) {
-                            const want = confirm('Foram detectados subperíodos faltantes em alguns Períodos. Deseja reconstruir apenas os subperíodos faltantes agora?');
-                            if (want) {
-                                try { reconstruirSubperiodosFaltantes(); } catch(e) { console.error('Erro ao reconstruir subperiodos:', e); }
-                            }
-                        }
+                        // Removido: não exibir confirm automático sobre subperíodos faltantes
+                        // Se necessário reconstruir, o usuário pode fazer manualmente
                     } catch(e) { /* ignore */ }
                 }
             }
