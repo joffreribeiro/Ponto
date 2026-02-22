@@ -496,6 +496,22 @@
                             <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display: none;">
                         </label>
                     </div>
+                    <!-- Filtros da tabela -->
+                    <div class="filtros-registros" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; padding:10px; background:var(--bg-secondary); border-radius:6px;">
+                        <input type="date" id="filtroRegDataDe" placeholder="Data De" title="Filtrar a partir de" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
+                        <input type="date" id="filtroRegDataAte" placeholder="Data Até" title="Filtrar até" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
+                        <select id="filtroRegPeriodo" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
+                            <option value="">Todos Períodos</option>
+                        </select>
+                        <select id="filtroRegSaldo" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
+                            <option value="">Todos Saldos</option>
+                            <option value="positivo">Saldo Positivo</option>
+                            <option value="negativo">Saldo Negativo</option>
+                            <option value="zero">Saldo Zero</option>
+                        </select>
+                        <input type="text" id="filtroRegObs" placeholder="Buscar observações..." style="padding:6px 8px; border:1px solid var(--border); border-radius:4px; min-width:150px;">
+                        <button type="button" class="btn-secondary" onclick="limparFiltrosRegistros()" style="padding:6px 12px;">Limpar</button>
+                    </div>
                     <div class="table-container">
                         <table id="tabelaRegistros">
                             <colgroup>
@@ -1361,38 +1377,94 @@
         const clearBtn=document.getElementById('topBtnLimparFiltros'); if (clearBtn) clearBtn.addEventListener('click', function(){ ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.value=''; }); aplicarFiltrosTabelaAtividades(); });
         const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
     }
-    document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if(typeof updateToggleButtonsState==='function') updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if(typeof updateToggleButtonsState==='function') updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+})();
+</script>
+
+<script>
+// Filtros da tabela de Registros
+(function(){
+    function aplicarFiltrosRegistros(){
+        const tbody = document.querySelector('#tabelaRegistros tbody');
+        if (!tbody) return;
+        
+        const dataDe = document.getElementById('filtroRegDataDe')?.value || '';
+        const dataAte = document.getElementById('filtroRegDataAte')?.value || '';
+        const periodo = document.getElementById('filtroRegPeriodo')?.value || '';
+        const saldo = document.getElementById('filtroRegSaldo')?.value || '';
+        const obs = (document.getElementById('filtroRegObs')?.value || '').toLowerCase();
+        
+        Array.from(tbody.rows).forEach(row => {
+            let match = true;
+            
+            // Filtro por data (coluna 0)
+            const dataCell = row.cells[0]?.innerText?.trim() || '';
+            if (dataDe || dataAte) {
+                const partes = dataCell.split('/');
+                if (partes.length === 3) {
+                    const dataRow = new Date(partes[2], partes[1]-1, partes[0]);
+                    if (dataDe) {
+                        const de = new Date(dataDe);
+                        if (dataRow < de) match = false;
+                    }
+                    if (dataAte) {
+                        const ate = new Date(dataAte);
+                        if (dataRow > ate) match = false;
+                    }
+                }
+            }
+            
+            // Filtro por período (coluna 5)
+            if (periodo && match) {
+                const periodoCell = row.cells[5]?.innerText?.trim() || '';
+                if (!periodoCell.includes(periodo)) match = false;
+            }
+            
+            // Filtro por saldo (coluna 7)
+            if (saldo && match) {
+                const saldoCell = row.cells[7]?.innerText?.trim() || '';
+                if (saldo === 'positivo' && !saldoCell.startsWith('+')) match = false;
+                if (saldo === 'negativo' && !saldoCell.startsWith('-')) match = false;
+                if (saldo === 'zero' && saldoCell !== '00:00' && saldoCell !== '0:00') match = false;
+            }
+            
+            // Filtro por observações (coluna 8)
+            if (obs && match) {
+                const obsCell = (row.cells[8]?.innerText || '').toLowerCase();
+                if (!obsCell.includes(obs)) match = false;
+            }
+            
+            row.style.display = match ? '' : 'none';
+        });
+    }
+    
+    window.limparFiltrosRegistros = function(){
+        document.getElementById('filtroRegDataDe').value = '';
+        document.getElementById('filtroRegDataAte').value = '';
+        document.getElementById('filtroRegPeriodo').value = '';
+        document.getElementById('filtroRegSaldo').value = '';
+        document.getElementById('filtroRegObs').value = '';
+        aplicarFiltrosRegistros();
+    };
+    
+    document.addEventListener('DOMContentLoaded', function(){
+        const ids = ['filtroRegDataDe', 'filtroRegDataAte', 'filtroRegPeriodo', 'filtroRegSaldo', 'filtroRegObs'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const ev = el.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+            el.addEventListener(ev, aplicarFiltrosRegistros);
+        });
+        
+        // Observar mudanças no tbody para reaplicar filtros
+        const tbody = document.querySelector('#tabelaRegistros tbody');
+        if (tbody) {
+            const mo = new MutationObserver(() => setTimeout(aplicarFiltrosRegistros, 50));
+            mo.observe(tbody, { childList: true });
+        }
+    });
 })();
 </script>
 
 </body>
 </html>
-
-<script>
-// Ensure Observações cells are wrapped with .obs-cell so CSS max-width applies
-(function(){
-    function wrapObsCells(){
-        try{
-            document.querySelectorAll('#tabelaRegistros tbody tr').forEach(tr=>{
-                const td = tr.children && tr.children[8]; // 9th column
-                if (!td) return;
-                if (td.querySelector && td.querySelector('.obs-cell')) return;
-                const html = td.innerHTML || '';
-                td.innerHTML = '<span class="obs-cell">' + html + '</span>';
-            });
-        } catch(e){ console.error('wrapObsCells error', e); }
-    }
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(wrapObsCells, 100);
-    } else {
-        document.addEventListener('DOMContentLoaded', ()=> setTimeout(wrapObsCells, 100));
-    }
-    // observe table body for changes
-    (function(){
-        const tbody = document.querySelector('#tabelaRegistros tbody');
-        if (!tbody) return;
-        const mo = new MutationObserver(()=> setTimeout(wrapObsCells, 50));
-        mo.observe(tbody, { childList: true, subtree: true });
-    })();
-})();
-</script>
