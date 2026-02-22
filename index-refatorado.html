@@ -489,12 +489,15 @@
                             <label for="filtroAcordoRegistros">Acordo:</label>
                             <select id="filtroAcordoRegistros"></select>
                         </div>
-                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro">+ Novo Registro</button>
-                        <button type="button" class="btn-secondary" onclick="exportarRegistrosCSV()" title="Exportar em formato CSV">📥 Exportar CSV</button>
-                        <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;" title="Importar de arquivo CSV">
-                            📤 Importar CSV
-                            <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display: none;">
-                        </label>
+                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro"><span class="icon">➕</span> Novo Registro</button>
+                        <span style="flex:1;"></span>
+                        <button type="button" class="btn-secondary btn-excel" onclick="exportarRegistrosCSV()" title="Exportar em formato CSV">
+                            <span class="icon">📥</span> Exportar CSV
+                        </button>
+                        <button type="button" class="btn-secondary btn-excel" onclick="document.getElementById('importarRegistrosInput').click()" title="Importar de arquivo CSV">
+                            <span class="icon">📤</span> Importar CSV
+                        </button>
+                        <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display:none;">
                     </div>
                     <!-- Filtros da tabela -->
                     <div class="filtros-registros" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; padding:10px; background:var(--bg-secondary); border-radius:6px;">
@@ -585,12 +588,15 @@
                             <label for="filtroDataFimEventos">Até:</label>
                             <input type="date" id="filtroDataFimEventos" />
                         </div>
-                        <button type="button" class="btn-primary" data-action="abrirModalEvento">+ Novo Evento</button>
-                        <button type="button" class="btn-secondary" onclick="exportarEventosExcel()" title="Exportar em formato Excel">📥 Exportar Excel</button>
-                        <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;" title="Importar de arquivo Excel">
-                            📤 Importar Excel
-                            <input type="file" id="importarEventosInput" accept=".xlsx,.xls" onchange="importarEventosExcel(event)" style="display: none;">
-                        </label>
+                        <button type="button" class="btn-primary" data-action="abrirModalEvento"><span class="icon">➕</span> Novo Evento</button>
+                        <span style="flex:1;"></span>
+                        <button type="button" class="btn-secondary btn-excel" onclick="exportarEventosExcel()" title="Exportar em formato Excel">
+                            <span class="icon">📥</span> Exportar Excel
+                        </button>
+                        <button type="button" class="btn-secondary btn-excel" onclick="document.getElementById('importarEventosInput').click()" title="Importar de arquivo Excel">
+                            <span class="icon">📤</span> Importar Excel
+                        </button>
+                        <input type="file" id="importarEventosInput" accept=".xlsx,.xls" onchange="importarEventosExcel(event)" style="display:none;">
                     </div>
                     <div class="table-container">
                         <table id="tabelaEventos">
