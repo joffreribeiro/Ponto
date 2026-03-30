@@ -1930,6 +1930,11 @@ function setupAuthUI() {
             window.FirebaseSync.onAuthStateChanged(async (user) => {
                 updateAuthDependentControls(user);
                 if (user) setAuthUI(user); else setUnauthUI();
+                // Also toggle the top logout button visibility (if present)
+                try {
+                    const logoutTop = document.getElementById('logoutTopBtn');
+                    if (logoutTop) logoutTop.style.display = user ? '' : 'none';
+                } catch (e) { /* ignore */ }
             });
             // Estado inicial
             (async () => {
@@ -1978,13 +1983,27 @@ function setupAuthUI() {
     if (loginToggleBtn) {
         loginToggleBtn.addEventListener('click', () => {
             try {
-                if (!loginForm) return;
-                if (loginForm.style.display === 'none' || loginForm.style.display === '') {
-                    loginForm.style.display = 'flex';
-                } else {
-                    loginForm.style.display = 'none';
-                }
-            } catch (e) { console.warn('Erro toggling login form:', e); }
+                const modal = document.getElementById('loginModal');
+                if (!modal) return;
+                modal.style.display = 'flex';
+                // foco no email
+                const em = document.getElementById('loginEmail');
+                if (em) em.focus();
+            } catch (e) { console.warn('Erro ao abrir modal de login:', e); }
+        });
+    }
+
+    // Fechar modal handlers
+    const loginModalClose = document.getElementById('loginModalClose');
+    const loginModal = document.getElementById('loginModal');
+    if (loginModalClose) {
+        loginModalClose.addEventListener('click', () => { try { if (loginModal) loginModal.style.display = 'none'; } catch(e){} });
+    }
+    if (loginModal) {
+        loginModal.addEventListener('click', (ev) => {
+            if (ev.target === loginModal) {
+                loginModal.style.display = 'none';
+            }
         });
     }
 
@@ -1995,6 +2014,19 @@ function setupAuthUI() {
                 await window.FirebaseSync.signOut();
             } catch (err) {
                 console.error('Erro ao deslogar:', err);
+                alert('Falha ao deslogar: ' + (err && err.message ? err.message : err));
+            }
+        });
+    }
+    // handler for header logout button if present
+    const logoutTopBtn = document.getElementById('logoutTopBtn');
+    if (logoutTopBtn) {
+        logoutTopBtn.addEventListener('click', async () => {
+            try {
+                if (!window.FirebaseSync || !window.FirebaseSync.signOut) throw new Error('FirebaseSync.signOut não disponível');
+                await window.FirebaseSync.signOut();
+            } catch (err) {
+                console.error('Erro ao deslogar (top):', err);
                 alert('Falha ao deslogar: ' + (err && err.message ? err.message : err));
             }
         });
