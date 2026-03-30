@@ -6291,7 +6291,7 @@ function renderizarAcordos() {
 
             div.appendChild(btnRow);
             container.appendChild(div);
-        });
+        }
 
         // Atualiza selects dependentes (timesheet/eventos já atualizados em salvar, aqui garantimos registros)
         atualizarSelectAcordosRegistros();
