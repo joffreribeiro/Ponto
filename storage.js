@@ -94,18 +94,35 @@ const Storage = {
      */
     save(dados) {
         try {
-            // Bloquear gravação se houver helper de auth síncrono e usuário não autenticado
+            // Bloquear gravação se usuário não for admin (exigimos backend claim 'admin')
             try {
-                if (window.FirebaseSync && typeof window.FirebaseSync.getCurrentUserSync === 'function') {
-                    const cur = window.FirebaseSync.getCurrentUserSync();
-                    if (!cur) {
-                        alert('É necessário estar autenticado para modificar os dados. Faça login para prosseguir.');
+                // se o objeto FirebaseSync não estiver presente, bloquear por segurança
+                if (!window.FirebaseSync) {
+                    alert('Serviço de autenticação indisponível. Faça login para editar os dados.');
+                    return false;
+                }
+                // preferimos a checagem síncrona requireAdminSync quando disponível
+                if (typeof window.FirebaseSync.requireAdminSync === 'function') {
+                    try {
+                        window.FirebaseSync.requireAdminSync();
+                    } catch (errAdmin) {
+                        alert('Permissão negada: ' + (errAdmin && errAdmin.message ? errAdmin.message : 'somente administradores podem modificar os dados.'));
                         return false;
                     }
+                } else if (typeof window.FirebaseSync.getIsAdminSync === 'function') {
+                    if (!window.FirebaseSync.getIsAdminSync()) {
+                        alert('Permissão negada: somente administradores podem modificar os dados.');
+                        return false;
+                    }
+                } else {
+                    // Se não houver nenhum helper síncrono, bloquear por segurança
+                    alert('Serviço de autenticação incompleto. Faça login para editar os dados.');
+                    return false;
                 }
             } catch (e) {
-                // se a checagem falhar, não bloquear por excesso de cautela
-                console.warn('Falha ao checar autenticação antes de salvar:', e);
+                console.warn('Falha ao checar permissões antes de salvar:', e);
+                alert('Erro ao verificar permissões de autenticação. Ação bloqueada.');
+                return false;
             }
             if (!this.isValidDataStructure(dados)) {
                 throw new Error('Estrutura de dados inválida');

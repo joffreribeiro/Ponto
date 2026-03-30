@@ -20,8 +20,27 @@ const auth = getAuth(app);
 
 // State interno para aguardar auth
 let _user = null;
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async (user) => {
   _user = user;
+  // atualizar estado síncrono exposto para permitir checagens rápidas
+  try {
+    if (!window.FirebaseSync) window.FirebaseSync = {};
+    window.FirebaseSync._currentUserSync = user || null;
+    if (user) {
+      // buscar claims
+      try {
+        const idRes = await getIdTokenResult(user);
+        const isAdmin = !!(idRes && idRes.claims && idRes.claims.admin);
+        window.FirebaseSync._isAdminSync = isAdmin;
+      } catch (e) {
+        window.FirebaseSync._isAdminSync = false;
+      }
+    } else {
+      window.FirebaseSync._isAdminSync = false;
+    }
+  } catch (e) {
+    console.warn('Erro ao atualizar estado síncrono FirebaseSync:', e);
+  }
 });
 
 // Tenta login anônimo (ignore erro se já estiver logado)
@@ -52,6 +71,21 @@ function requireAuthSync() {
   const u = getCurrentUserSync();
   if (!u) throw new Error('Usuário não autenticado');
   return u;
+}
+
+function getIsAdminSync() {
+  try {
+    if (window.FirebaseSync && typeof window.FirebaseSync._isAdminSync !== 'undefined') return !!window.FirebaseSync._isAdminSync;
+    // fallback: false
+    return false;
+  } catch (e) { return false; }
+}
+
+function requireAdminSync() {
+  const u = getCurrentUserSync();
+  if (!u) throw new Error('Usuário não autenticado');
+  if (!getIsAdminSync()) throw new Error('Ação restrita: usuário não é admin');
+  return true;
 }
 
 async function getClaims() {
@@ -137,6 +171,8 @@ window.FirebaseSync.getCurrentUser = getCurrentUser;
 window.FirebaseSync.getClaims = getClaims;
 window.FirebaseSync.getCurrentUserSync = getCurrentUserSync;
 window.FirebaseSync.requireAuthSync = requireAuthSync;
+window.FirebaseSync.getIsAdminSync = getIsAdminSync;
+window.FirebaseSync.requireAdminSync = requireAdminSync;
 
 console.info('Firebase init carregado');
 // Mostrar quais helpers foram expostos (ajuda a depurar no console do navegador)
