@@ -98,6 +98,19 @@ const Storage = {
                 throw new Error('Estrutura de dados inválida');
             }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+
+            // Tentativa assíncrona de sincronizar com Firestore (se disponível)
+            try {
+                if (window.FirebaseSync && typeof window.FirebaseSync.syncToCloud === 'function') {
+                    // Não aguardamos a promise aqui para não bloquear a UI
+                    window.FirebaseSync.syncToCloud(dados).then(res => {
+                        if (!res || !res.ok) console.warn('Sync cloud retornou erro', res && res.error ? res.error : res);
+                    }).catch(err => console.warn('Erro ao sincronizar com Firestore:', err));
+                }
+            } catch (e) {
+                console.warn('Erro ao iniciar syncToCloud:', e);
+            }
+
             return true;
         } catch (error) {
             console.error('Erro ao salvar dados:', error);
@@ -116,8 +129,20 @@ const Storage = {
         }
 
         this._saveTimer = setTimeout(() => {
-            this.save(dados);
+            const ok = this.save(dados);
             this._saveTimer = null;
+
+            // Em caso de não ter sincronizado automaticamente via save (ou se quiser forçar),
+            // tentamos novamente chamar syncToCloud se disponível.
+            try {
+                if (window.FirebaseSync && typeof window.FirebaseSync.syncToCloud === 'function') {
+                    window.FirebaseSync.syncToCloud(dados).then(res => {
+                        if (!res || !res.ok) console.warn('Sync cloud retornou erro (debounced)', res && res.error ? res.error : res);
+                    }).catch(err => console.warn('Erro ao sincronizar com Firestore (debounced):', err));
+                }
+            } catch (e) {
+                console.warn('Erro ao iniciar syncToCloud (debounced):', e);
+            }
         }, delay);
     },
 
