@@ -1929,7 +1929,23 @@ function setupAuthUI() {
         try {
             window.FirebaseSync.onAuthStateChanged(async (user) => {
                 updateAuthDependentControls(user);
-                if (user) setAuthUI(user); else setUnauthUI();
+                if (user) {
+                    setAuthUI(user);
+                    // Se estiver com modal de login aberto, feche-o automaticamente
+                    try {
+                        const loginModalEl = document.getElementById('loginModal');
+                        if (loginModalEl) {
+                            loginModalEl.style.display = 'none';
+                            // limpar campos
+                            const em = document.getElementById('loginEmail');
+                            const pw = document.getElementById('loginPassword');
+                            if (em) em.value = '';
+                            if (pw) pw.value = '';
+                        }
+                    } catch (e) { /* ignore */ }
+                } else {
+                    setUnauthUI();
+                }
                 // Also toggle the top logout button visibility (if present)
                 try {
                     const logoutTop = document.getElementById('logoutTopBtn');
