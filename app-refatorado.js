@@ -1909,7 +1909,9 @@ function setupAuthUI() {
 
     function setUnauthUI() {
         if (authStatus) authStatus.textContent = 'Não autenticado';
-        if (loginForm) loginForm.style.display = '';
+        if (loginForm) loginForm.style.display = 'none';
+        const loginToggle = document.getElementById('loginToggle');
+        if (loginToggle) loginToggle.style.display = '';
         if (logoutBtn) logoutBtn.style.display = 'none';
     }
 
@@ -1917,6 +1919,8 @@ function setupAuthUI() {
         if (!authStatus) return;
         authStatus.textContent = user.email || ('Anon: ' + (user.uid ? user.uid.substr(0,6) : '—'));
         if (loginForm) loginForm.style.display = 'none';
+        const loginToggle = document.getElementById('loginToggle');
+        if (loginToggle) loginToggle.style.display = 'none';
         if (logoutBtn) logoutBtn.style.display = '';
     }
 
@@ -1955,6 +1959,21 @@ function setupAuthUI() {
                 console.error('Erro ao fazer login:', err);
                 alert('Falha ao autenticar: ' + (err && err.message ? err.message : err));
             }
+        });
+    }
+
+    // Toggle para abrir/fechar o formulário de login
+    const loginToggleBtn = document.getElementById('loginToggle');
+    if (loginToggleBtn) {
+        loginToggleBtn.addEventListener('click', () => {
+            try {
+                if (!loginForm) return;
+                if (loginForm.style.display === 'none' || loginForm.style.display === '') {
+                    loginForm.style.display = 'flex';
+                } else {
+                    loginForm.style.display = 'none';
+                }
+            } catch (e) { console.warn('Erro toggling login form:', e); }
         });
     }
 

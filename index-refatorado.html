@@ -16,7 +16,8 @@
     <!-- Controles de autenticação (login/logout) -->
     <div id="authControls" style="display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);">
         <div id="authStatus" style="display:flex;align-items:center;gap:8px;"></div>
-        <form id="loginForm" style="display:flex;gap:8px;align-items:center;">
+        <button id="loginToggle" type="button" class="btn-secondary" style="display:none;">Login</button>
+        <form id="loginForm" style="display:none;gap:8px;align-items:center;">
             <input id="loginEmail" type="email" placeholder="email" style="padding:6px;border:1px solid var(--border);border-radius:4px;" />
             <input id="loginPassword" type="password" placeholder="senha" style="padding:6px;border:1px solid var(--border);border-radius:4px;" />
             <button id="loginBtn" type="button" class="btn-primary">Entrar</button>
