@@ -245,6 +245,8 @@ function inicializar() {
         // Inicializar módulo de Atividades
         ensureAtividadesDefault();
         renderizarAtividades();
+        // Inicializar UI de autenticação (login/logout) e proteção de ações
+        try { setupAuthUI(); } catch(e) { console.warn('setupAuthUI falhou:', e); }
         // Garantir que a tabela seja renderizada na inicialização
         if (typeof renderizarTabelaAtividades === 'function') {
             renderizarTabelaAtividades(AppState.dados.atividades || []);
@@ -1879,6 +1881,94 @@ function checkAtividadesDeadlines() {
 function escapeHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
+}
+
+// ===== Autenticação: UI e proteção de ações =====
+function updateAuthDependentControls(user) {
+    try {
+        const els = document.querySelectorAll('[data-auth]');
+        els.forEach(el => {
+            if (user) {
+                el.removeAttribute('disabled');
+                el.classList.remove('locked-by-auth');
+            } else {
+                el.setAttribute('disabled', 'disabled');
+                el.classList.add('locked-by-auth');
+            }
+        });
+    } catch (e) { console.warn('updateAuthDependentControls erro:', e); }
+}
+
+function setupAuthUI() {
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginForm = document.getElementById('loginForm');
+    const authStatus = document.getElementById('authStatus');
+
+    function setUnauthUI() {
+        if (authStatus) authStatus.textContent = 'Não autenticado';
+        if (loginForm) loginForm.style.display = '';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+
+    function setAuthUI(user) {
+        if (!authStatus) return;
+        authStatus.textContent = user.email || ('Anon: ' + (user.uid ? user.uid.substr(0,6) : '—'));
+        if (loginForm) loginForm.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = '';
+    }
+
+    // Se o helper FirebaseSync existir, usar onAuthStateChanged
+    if (window.FirebaseSync && typeof window.FirebaseSync.onAuthStateChanged === 'function') {
+        try {
+            window.FirebaseSync.onAuthStateChanged(async (user) => {
+                updateAuthDependentControls(user);
+                if (user) setAuthUI(user); else setUnauthUI();
+            });
+            // Estado inicial
+            (async () => {
+                try {
+                    const current = window.FirebaseSync.getCurrentUser ? await window.FirebaseSync.getCurrentUser() : null;
+                    updateAuthDependentControls(current);
+                    if (current) setAuthUI(current); else setUnauthUI();
+                } catch(e) { /* ignore */ }
+            })();
+        } catch(e) { console.warn('Erro ao anexar onAuthStateChanged:', e); }
+    } else {
+        // Se não existe, bloquear por padrão
+        updateAuthDependentControls(null);
+        setUnauthUI();
+    }
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmail && loginEmail.value ? loginEmail.value.trim() : '';
+            const pass = loginPassword && loginPassword.value ? loginPassword.value : '';
+            if (!email || !pass) return alert('Informe email e senha para entrar.');
+            try {
+                if (!window.FirebaseSync || !window.FirebaseSync.signIn) throw new Error('FirebaseSync.signIn não disponível');
+                await window.FirebaseSync.signIn(email, pass);
+                // onAuthStateChanged cuidará da UI
+            } catch (err) {
+                console.error('Erro ao fazer login:', err);
+                alert('Falha ao autenticar: ' + (err && err.message ? err.message : err));
+            }
+        });
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                if (!window.FirebaseSync || !window.FirebaseSync.signOut) throw new Error('FirebaseSync.signOut não disponível');
+                await window.FirebaseSync.signOut();
+            } catch (err) {
+                console.error('Erro ao deslogar:', err);
+                alert('Falha ao deslogar: ' + (err && err.message ? err.message : err));
+            }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -3,7 +3,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC3euGrayxErDKDJvHT5WN6ixkeqTwwp8M",
@@ -28,6 +28,25 @@ onAuthStateChanged(auth, user => {
 signInAnonymously(auth).catch(e => {
   console.warn('Firebase signInAnonymously falhou:', e && e.message ? e.message : e);
 });
+
+// Expor helpers adicionais de autenticação
+async function signIn(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+async function doSignOut() {
+  return signOut(auth);
+}
+
+async function getCurrentUser() {
+  return auth.currentUser || null;
+}
+
+async function getClaims() {
+  if (!auth.currentUser) return null;
+  const idRes = await getIdTokenResult(auth.currentUser);
+  return idRes ? idRes.claims : null;
+}
 
 // Helper: aguardar usuário autenticado (máx 8s)
 function waitForUser(timeoutMs = 8000) {
@@ -96,5 +115,13 @@ window.FirebaseSync = {
   saveToFirestore,
   syncToCloud
 };
+
+// adicionar helpers de auth ao global
+window.FirebaseSync.signIn = signIn;
+window.FirebaseSync.signOut = doSignOut;
+window.FirebaseSync.waitForUser = waitForUser;
+window.FirebaseSync.onAuthStateChanged = function(cb) { return onAuthStateChanged(auth, cb); };
+window.FirebaseSync.getCurrentUser = getCurrentUser;
+window.FirebaseSync.getClaims = getClaims;
 
 console.info('Firebase init carregado');
