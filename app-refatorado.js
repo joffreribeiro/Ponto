@@ -6008,7 +6008,16 @@ function salvarAcordo() {
         }
 
         if (AppState.acordoEmEdicaoIndex == null) {
-            AppState.dados.acordos.push(AppState.acordoEmEdicao);
+            // Inserir novo acordo no início do array para persistir 'mais recente primeiro'
+            // Ao inserir no índice 0, precisamos ajustar índices armazenados em eventos
+            if (Array.isArray(AppState.dados.eventos)) {
+                AppState.dados.eventos.forEach(ev => {
+                    if (ev && typeof ev.acordoIndex === 'number' && ev.acordoIndex >= 0) {
+                        ev.acordoIndex = ev.acordoIndex + 1;
+                    }
+                });
+            }
+            AppState.dados.acordos.unshift(AppState.acordoEmEdicao);
         } else {
             AppState.dados.acordos[AppState.acordoEmEdicaoIndex] = AppState.acordoEmEdicao;
         }
@@ -6182,10 +6191,9 @@ function renderizarAcordos() {
             return;
         }
 
-        // Exibir acordos do mais recente ao mais antigo: iterar de trás para frente
+        // Exibir acordos na ordem do array (agora o array mantém 'mais recente primeiro')
         const acordos = AppState.dados.acordos || [];
-        for (let idx = acordos.length - 1; idx >= 0; idx--) {
-            const a = acordos[idx];
+        acordos.forEach((a, idx) => {
             const div = document.createElement('div');
             div.className = 'acordo-card';
 
@@ -6203,7 +6211,9 @@ function renderizarAcordos() {
             ul1.className = 'acordo-lista';
             (a.periodos || []).forEach(p => {
                 const li = document.createElement('li');
-                li.textContent = `${p.inicio} a ${p.fim} (${p.minutosExtras} min/dia)`;
+                const inicioStr = dateIsoToBr(p.inicio) || p.inicio || '';
+                const fimStr = dateIsoToBr(p.fim) || p.fim || '';
+                li.textContent = `${inicioStr} a ${fimStr} (${p.minutosExtras} min/dia)`;
                 ul1.appendChild(li);
             });
             div.appendChild(ul1);
@@ -6264,10 +6274,11 @@ function renderizarAcordos() {
             } else {
                 eventosAcordo.forEach(ev => {
                     const li = document.createElement('li');
+                    const inicioEv = dateIsoToBr(ev.dataInicioEvento) || ev.dataInicioEvento || '';
                     const fim = ev.dataFimEvento && ev.dataFimEvento !== ev.dataInicioEvento
-                        ? ` a ${ev.dataFimEvento}`
+                        ? ` a ${dateIsoToBr(ev.dataFimEvento) || ev.dataFimEvento}`
                         : '';
-                    li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${ev.dataInicioEvento}${fim})`;
+                    li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${inicioEv}${fim})`;
                     ul3.appendChild(li);
                 });
             }
@@ -6291,7 +6302,7 @@ function renderizarAcordos() {
 
             div.appendChild(btnRow);
             container.appendChild(div);
-        }
+        });
 
         // Atualiza selects dependentes (timesheet/eventos já atualizados em salvar, aqui garantimos registros)
         atualizarSelectAcordosRegistros();
