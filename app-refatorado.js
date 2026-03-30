@@ -6182,7 +6182,10 @@ function renderizarAcordos() {
             return;
         }
 
-        AppState.dados.acordos.forEach((a, idx) => {
+        // Exibir acordos do mais recente ao mais antigo: iterar de trás para frente
+        const acordos = AppState.dados.acordos || [];
+        for (let idx = acordos.length - 1; idx >= 0; idx--) {
+            const a = acordos[idx];
             const div = document.createElement('div');
             div.className = 'acordo-card';
 
@@ -6252,7 +6255,7 @@ function renderizarAcordos() {
 
             const ul3 = document.createElement('ul');
             ul3.className = 'acordo-lista';
-            const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
+                const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
             if (!eventosAcordo.length) {
                 const li = document.createElement('li');
                 li.className = 'small-text';
