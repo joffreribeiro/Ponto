@@ -125,3 +125,7 @@ window.FirebaseSync.getCurrentUser = getCurrentUser;
 window.FirebaseSync.getClaims = getClaims;
 
 console.info('Firebase init carregado');
+// Mostrar quais helpers foram expostos (ajuda a depurar no console do navegador)
+try {
+  console.info('FirebaseSync helpers:', Object.keys(window.FirebaseSync || {}));
+} catch (e) { /* ignore */ }

@@ -1952,7 +1952,18 @@ function setupAuthUI() {
             const pass = loginPassword && loginPassword.value ? loginPassword.value : '';
             if (!email || !pass) return alert('Informe email e senha para entrar.');
             try {
-                if (!window.FirebaseSync || !window.FirebaseSync.signIn) throw new Error('FirebaseSync.signIn não disponível');
+                // Se o helper não existir, tentar importar o módulo dinamicamente (ajuda se o módulo não foi carregado automaticamente)
+                if (!window.FirebaseSync || !window.FirebaseSync.signIn) {
+                    try {
+                        await import('/firebase-init.js');
+                        console.info('Tentativa de import dinamico de /firebase-init.js executada');
+                    } catch (impErr) {
+                        console.warn('Falha ao importar /firebase-init.js dinamicamente:', impErr);
+                    }
+                }
+
+                if (!window.FirebaseSync || !window.FirebaseSync.signIn) throw new Error('FirebaseSync.signIn não disponível após tentativa de import; verifique se /firebase-init.js está acessível e atualizado.');
+
                 await window.FirebaseSync.signIn(email, pass);
                 // onAuthStateChanged cuidará da UI
             } catch (err) {
