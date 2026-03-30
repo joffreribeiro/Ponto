@@ -94,6 +94,19 @@ const Storage = {
      */
     save(dados) {
         try {
+            // Bloquear gravação se houver helper de auth síncrono e usuário não autenticado
+            try {
+                if (window.FirebaseSync && typeof window.FirebaseSync.getCurrentUserSync === 'function') {
+                    const cur = window.FirebaseSync.getCurrentUserSync();
+                    if (!cur) {
+                        alert('É necessário estar autenticado para modificar os dados. Faça login para prosseguir.');
+                        return false;
+                    }
+                }
+            } catch (e) {
+                // se a checagem falhar, não bloquear por excesso de cautela
+                console.warn('Falha ao checar autenticação antes de salvar:', e);
+            }
             if (!this.isValidDataStructure(dados)) {
                 throw new Error('Estrutura de dados inválida');
             }
@@ -124,6 +137,19 @@ const Storage = {
      * @param {number} delay - Delay em ms (padrão 1000ms)
      */
     saveDebounced(dados, delay = 1000) {
+        // Bloquear debounce se usuário não autenticado (evita agendar saves que serão indevidos)
+        try {
+            if (window.FirebaseSync && typeof window.FirebaseSync.getCurrentUserSync === 'function') {
+                const cur = window.FirebaseSync.getCurrentUserSync();
+                if (!cur) {
+                    console.warn('saveDebounced: usuário não autenticado — operação abortada');
+                    return false;
+                }
+            }
+        } catch (e) {
+            console.warn('Falha ao checar autenticação antes de saveDebounced:', e);
+        }
+
         if (this._saveTimer) {
             clearTimeout(this._saveTimer);
         }

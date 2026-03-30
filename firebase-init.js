@@ -42,6 +42,18 @@ async function getCurrentUser() {
   return auth.currentUser || null;
 }
 
+// Versão síncrona útil para checagens rápidas no código que não é async
+function getCurrentUserSync() {
+  return auth.currentUser || null;
+}
+
+// Lança erro se não houver usuário autenticado (síncrono)
+function requireAuthSync() {
+  const u = getCurrentUserSync();
+  if (!u) throw new Error('Usuário não autenticado');
+  return u;
+}
+
 async function getClaims() {
   if (!auth.currentUser) return null;
   const idRes = await getIdTokenResult(auth.currentUser);
@@ -123,6 +135,8 @@ window.FirebaseSync.waitForUser = waitForUser;
 window.FirebaseSync.onAuthStateChanged = function(cb) { return onAuthStateChanged(auth, cb); };
 window.FirebaseSync.getCurrentUser = getCurrentUser;
 window.FirebaseSync.getClaims = getClaims;
+window.FirebaseSync.getCurrentUserSync = getCurrentUserSync;
+window.FirebaseSync.requireAuthSync = requireAuthSync;
 
 console.info('Firebase init carregado');
 // Mostrar quais helpers foram expostos (ajuda a depurar no console do navegador)
