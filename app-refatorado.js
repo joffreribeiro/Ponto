@@ -234,6 +234,12 @@ function atualizarTabelaFerias() {
 // Estado global - Exposto para acesso externo
 const AppState = window.AppState = {
     dados: null,
+    _dadosRaw: null,
+    _proxyCache: null,
+    _autoSaveTimer: null,
+    _autoSaveDelay: 800,
+    _autoSaveSuspenso: 0,
+    _autoSaveInicializado: false,
     eventoSelecionado: null,
     eventoEmEdicao: null,
     eventoAcordoPreselected: null,
@@ -251,7 +257,76 @@ const AppState = window.AppState = {
      * Inicializa o estado
      */
     init() {
-        this.dados = Storage.load();
+        this._inicializarAutoSave();
+        this._comAutoSaveSuspenso(() => {
+            this.dados = Storage.load();
+        });
+    },
+
+    _inicializarAutoSave() {
+        if (this._autoSaveInicializado) return;
+        this._autoSaveInicializado = true;
+        this._proxyCache = new WeakMap();
+
+        const self = this;
+        Object.defineProperty(this, 'dados', {
+            configurable: true,
+            enumerable: true,
+            get() {
+                return self._dadosRaw;
+            },
+            set(value) {
+                self._dadosRaw = self._criarProxyObservavel(value);
+            }
+        });
+    },
+
+    _comAutoSaveSuspenso(callback) {
+        this._autoSaveSuspenso += 1;
+        try {
+            return callback();
+        } finally {
+            this._autoSaveSuspenso = Math.max(0, this._autoSaveSuspenso - 1);
+        }
+    },
+
+    _marcarAlteracaoDados() {
+        if (this._autoSaveSuspenso > 0) return;
+        this.saveDebounced();
+    },
+
+    _criarProxyObservavel(value) {
+        if (!value || typeof value !== 'object') return value;
+        if (this._proxyCache && this._proxyCache.has(value)) return this._proxyCache.get(value);
+
+        const self = this;
+        const proxy = new Proxy(value, {
+            get(target, prop, receiver) {
+                const current = Reflect.get(target, prop, receiver);
+                if (current && typeof current === 'object') {
+                    return self._criarProxyObservavel(current);
+                }
+                return current;
+            },
+            set(target, prop, newValue, receiver) {
+                const result = Reflect.set(target, prop, self._criarProxyObservavel(newValue), receiver);
+                self._marcarAlteracaoDados();
+                return result;
+            },
+            deleteProperty(target, prop) {
+                const result = Reflect.deleteProperty(target, prop);
+                self._marcarAlteracaoDados();
+                return result;
+            },
+            defineProperty(target, prop, descriptor) {
+                const result = Reflect.defineProperty(target, prop, descriptor);
+                self._marcarAlteracaoDados();
+                return result;
+            }
+        });
+
+        if (this._proxyCache) this._proxyCache.set(value, proxy);
+        return proxy;
     },
 
     /**
@@ -274,12 +349,15 @@ const AppState = window.AppState = {
      */
     save() {
         try {
+            const snapshot = JSON.parse(JSON.stringify(this.dados || {}));
             if (this.isAuthenticated()) {
-                return Storage.save(this.dados);
+                return this._comAutoSaveSuspenso(() => Storage.save(snapshot));
             } else {
                 // Apenas cache local — não envia ao Firestore
-                try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(this.dados)); } catch(_){}
-                return true;
+                return this._comAutoSaveSuspenso(() => {
+                    try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(snapshot)); } catch(_){ }
+                    return true;
+                });
             }
         } catch (e) {
             console.error('Erro ao salvar dados:', e);
@@ -287,11 +365,32 @@ const AppState = window.AppState = {
         }
     },
 
+    saveDebounced(delay = this._autoSaveDelay) {
+        try {
+            if (this._autoSaveTimer) clearTimeout(this._autoSaveTimer);
+            this._autoSaveTimer = setTimeout(() => {
+                this._autoSaveTimer = null;
+                this.save();
+            }, delay);
+        } catch (e) {
+            console.warn('Falha no auto-save debounce:', e);
+        }
+    },
+
+    flushAutoSave() {
+        if (!this._autoSaveTimer) return;
+        clearTimeout(this._autoSaveTimer);
+        this._autoSaveTimer = null;
+        this.save();
+    },
+
     /**
      * Reset do estado
      */
     reset() {
-        this.dados = Storage.getDefaultData();
+        this._comAutoSaveSuspenso(() => {
+            this.dados = Storage.getDefaultData();
+        });
         this.eventoSelecionado = null;
         this.eventoEmEdicao = null;
         this.eventoAcordoPreselected = null;
@@ -2441,6 +2540,16 @@ document.addEventListener('DOMContentLoaded', () => {
     migrarDatasParaISO(); // Migra dados antigos para formato ISO
     inicializar();
     initDateFieldsBR(); // Inicializa campos de data com formato brasileiro
+
+    // Garante flush de auto-save ao sair/trocar de aba
+    window.addEventListener('beforeunload', () => {
+        try { AppState.flushAutoSave(); } catch (e) { /* ignore */ }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            try { AppState.flushAutoSave(); } catch (e) { /* ignore */ }
+        }
+    });
 });
 
 /**
