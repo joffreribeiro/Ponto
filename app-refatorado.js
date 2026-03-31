@@ -5910,16 +5910,55 @@ function renderizarPeriodosAquisitivosTable(rows) {
         const fragment = document.createDocumentFragment();
         Object.keys(grupos).sort((a,b) => Number(a) - Number(b)).forEach(key => {
             const grupo = grupos[key];
+            const base = grupo[0];
             // Separar em: registros com férias (subIndex != null e feriasInicio preenchido) e registros sem férias
             const comFerias = grupo.filter(p => p.feriasInicio && p.feriasFim);
             const semFerias = grupo.filter(p => !p.feriasInicio || !p.feriasFim);
             
             // Ordenar por subIndex para garantir ordem 1º, 2º, 3º
             comFerias.sort((a, b) => (a.subIndex || 0) - (b.subIndex || 0));
+            semFerias.sort((a, b) => (Number(a.subIndex) || 99) - (Number(b.subIndex) || 99));
             
-            // Se não há nenhum período com férias, mostrar apenas 1 linha (registro base)
-            // Se há períodos com férias, mostrar uma linha para cada
-            const renderList = comFerias.length > 0 ? comFerias : [grupo[0]];
+            // Sempre exibir os 3 slots possíveis do período aquisitivo.
+            const porSub = new Map();
+            grupo.forEach(item => {
+                const sub = Number(item.subIndex);
+                if (Number.isInteger(sub) && sub >= 1 && sub <= MAX_FERIAS_SUBPERIODOS && !porSub.has(sub)) {
+                    porSub.set(sub, item);
+                }
+            });
+
+            const renderList = [];
+            for (let sub = 1; sub <= MAX_FERIAS_SUBPERIODOS; sub++) {
+                const existente = porSub.get(sub);
+                if (existente) {
+                    renderList.push(existente);
+                    continue;
+                }
+
+                const candidatoVazio = semFerias.find(item => !item.feriasInicio && !item.feriasFim && (!item.subIndex || Number(item.subIndex) === sub));
+                if (candidatoVazio) {
+                    candidatoVazio.subIndex = sub;
+                    candidatoVazio.subTotal = MAX_FERIAS_SUBPERIODOS;
+                    renderList.push(candidatoVazio);
+                    continue;
+                }
+
+                renderList.push({
+                    id: null,
+                    periodoIndex: Number(key),
+                    inicio: base.inicio,
+                    termino: base.termino,
+                    limite: base.limite,
+                    subIndex: sub,
+                    subTotal: MAX_FERIAS_SUBPERIODOS,
+                    feriasInicio: null,
+                    feriasFim: null,
+                    adto13: '',
+                    dias: null,
+                    documento: ''
+                });
+            }
             const rowspan = renderList.length;
 
             renderList.forEach((r, idx) => {
