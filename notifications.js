@@ -24,7 +24,7 @@ const Notifications = {
      * @param {string} type - Tipo: 'success', 'error', 'warning', 'info'
      * @param {number} duration - Duração em ms (0 = permanente)
      */
-    show(message, type = 'info', duration = 4000) {
+    show(message, type = 'info', duration = 4000, opts) {
         this.init();
 
         const toast = document.createElement('div');
@@ -38,11 +38,38 @@ const Notifications = {
             info: (typeof svgIcon === 'function') ? svgIcon('help', 'Informação') : 'i'
         };
 
-        toast.innerHTML = `
-            <span class="toast-icon">${icons[type] || icons.info}</span>
-            <span class="toast-message">${this.escapeHtml(message)}</span>
-            <button class="toast-close" onclick="Notifications.close(this.parentElement)">${(typeof svgIcon === 'function') ? svgIcon('close', 'Fechar notificação') : '×'}</button>
-        `;
+        // Build inner content, allow optional undo action via opts.onUndo
+        const iconHtml = icons[type] || icons.info;
+        toast.innerHTML = '';
+        const spanIcon = document.createElement('span');
+        spanIcon.className = 'toast-icon';
+        spanIcon.innerHTML = iconHtml;
+        toast.appendChild(spanIcon);
+
+        const spanMsg = document.createElement('span');
+        spanMsg.className = 'toast-message';
+        spanMsg.innerHTML = this.escapeHtml(message);
+        toast.appendChild(spanMsg);
+
+        // optional undo button
+        if (opts && typeof opts.onUndo === 'function') {
+            const btnUndo = document.createElement('button');
+            btnUndo.className = 'toast-undo';
+            btnUndo.type = 'button';
+            btnUndo.textContent = (opts.undoLabel) ? opts.undoLabel : 'Desfazer';
+            btnUndo.addEventListener('click', () => {
+                try { opts.onUndo(); } catch(e){ console.warn('undo failed', e); }
+                this.close(toast);
+            });
+            toast.appendChild(btnUndo);
+        }
+
+        const btnClose = document.createElement('button');
+        btnClose.className = 'toast-close';
+        btnClose.type = 'button';
+        btnClose.innerHTML = (typeof svgIcon === 'function') ? svgIcon('close', 'Fechar notificação') : '×';
+        btnClose.addEventListener('click', () => this.close(toast));
+        toast.appendChild(btnClose);
 
         this.container.appendChild(toast);
 

@@ -656,6 +656,74 @@ html[data-theme="dark"] .topbar-unified {
     box-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
+/* ========== Compact Mode (densidade reduzida) ========== */
+html[data-density="compact"] .table-container tbody td,
+html[data-density="compact"] #tabelaEventos tbody td {
+    padding: 6px 6px;
+    font-size: 12px;
+}
+html[data-density="compact"] .table-container thead th {
+    padding: 8px 6px;
+    font-size: 11px;
+}
+html[data-density="compact"] .btn-primary,
+html[data-density="compact"] .btn-secondary,
+html[data-density="compact"] .btn-cloud,
+html[data-density="compact"] .btn-header {
+    padding: 6px 8px;
+    font-size: 12px;
+}
+html[data-density="compact"] .toast {
+    padding: 8px 10px;
+}
+
+/* ========== Toast undo button ========== */
+.toast-undo {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-weight: 700;
+    margin-left: 12px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background .12s ease;
+}
+.toast-undo:hover { background: rgba(0,0,0,0.04); }
+
+/* ========== Skeleton Variants ========== */
+.skeleton.skeleton-card { height: 72px; border-radius: 8px; }
+.skeleton.skeleton-line { height: 16px; margin: 8px 0; border-radius: 4px; }
+.skeleton.skeleton-table-row { height: 40px; margin: 6px 0; border-radius: 6px; }
+
+/* Dark-mode adaptive skeleton */
+html[data-theme="dark"] .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.06), rgba(255,255,255,0.04)); }
+
+/* ========== Micro-interactions ========== */
+.card { transition: transform .16s ease, box-shadow .16s ease; }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
+#tabelaEventos tbody tr { transition: background .12s ease, transform .12s ease; }
+#tabelaEventos tbody tr:hover { transform: translateY(-2px); }
+
+/* focus-visible refinado */
+:where(button, a, input, select, textarea):focus-visible {
+    outline: 3px solid rgba(37,99,235,0.16);
+    outline-offset: 2px;
+}
+
+/* ========== Theme Palettes (alternativas) ========== */
+html[data-theme="pastel"] {
+    --primary: linear-gradient(135deg,#a78bfa 0%, #fbcfe8 100%);
+    --bg-main: #fffafc;
+    --text-main: #102a43;
+}
+
+html[data-theme="contrast"] {
+    --primary: linear-gradient(135deg,#000 0%, #222 100%);
+    --bg-main: #000;
+    --text-main: #fff;
+}
+
 @media (max-width: 600px) {
     .topbar-unified {
         flex-direction: column;

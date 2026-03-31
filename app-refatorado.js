@@ -305,6 +305,7 @@ const AppState = window.AppState = {
 function inicializar() {
     try {
         AppState.init();
+        initUiPreferences();
         ensureTiposEventoDefault();
         // Atualizar acordos de eventos já existentes com base nas datas
         try { atualizarAcordosEventosExistentes(); } catch(e) { console.warn('Erro ao atualizar acordos de eventos na inicialização:', e); }
@@ -643,6 +644,46 @@ function inicializar() {
         console.error('Erro na inicialização:', error);
         mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error');
     }
+}
+
+// ========== UI Preferences: compact mode + theme selector ==========
+function initUiPreferences() {
+    try {
+        // Compact mode: store key 'ui_density' = 'compact'|'normal'
+        const density = localStorage.getItem('ui_density') || 'normal';
+        if (density === 'compact') document.documentElement.setAttribute('data-density', 'compact');
+        else document.documentElement.removeAttribute('data-density');
+
+        const btn = document.getElementById('btnToggleCompact');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const cur = document.documentElement.getAttribute('data-density') === 'compact' ? 'compact' : 'normal';
+                const next = (cur === 'compact') ? 'normal' : 'compact';
+                if (next === 'compact') document.documentElement.setAttribute('data-density', 'compact');
+                else document.documentElement.removeAttribute('data-density');
+                localStorage.setItem('ui_density', next);
+                // small feedback
+                Notifications.info('Modo compacto: ' + (next === 'compact' ? 'Ativado' : 'Desativado'), 1500);
+            });
+        }
+
+        // Theme selector
+        const theme = localStorage.getItem('ui_theme') || 'default';
+        if (theme && theme !== 'default') document.documentElement.setAttribute('data-theme', theme);
+        else document.documentElement.removeAttribute('data-theme');
+
+        const sel = document.getElementById('selectTheme');
+        if (sel) {
+            sel.value = theme;
+            sel.addEventListener('change', () => {
+                const v = sel.value || 'default';
+                if (v === 'default') document.documentElement.removeAttribute('data-theme');
+                else document.documentElement.setAttribute('data-theme', v);
+                localStorage.setItem('ui_theme', v);
+                Notifications.info('Tema alterado: ' + (v === 'default' ? 'Padrão' : (v === 'pastel' ? 'Pastel' : 'Alto Contraste')), 1200);
+            });
+        }
+    } catch (e) { console.warn('initUiPreferences error:', e); }
 }
 
 /**
