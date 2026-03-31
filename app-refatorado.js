@@ -3946,13 +3946,44 @@ function atualizarSelectAcordosTimesheet() {
         select.appendChild(opt);
     });
 
-    // Seleciona automaticamente o primeiro (mais novo) e gera o timesheet
+    // Seleciona automaticamente o acordo que contém a data de hoje (se houver),
+    // caso contrário seleciona o primeiro (mais novo) e gera o timesheet
     try {
         if (sorted.length) {
-            select.value = String(sorted[0].i);
+            let chosenIndex = null;
+            try {
+                const hoje = DateUtils.parse(DateUtils.today());
+                if (hoje) {
+                    for (const item of sorted) {
+                        const acord = item.a;
+                        if (!acord || !Array.isArray(acord.periodos)) continue;
+                        for (const p of acord.periodos) {
+                            const ini = DateUtils.parse(p.inicio);
+                            const fim = DateUtils.parse(p.fim);
+                            if (ini && fim) {
+                                if (hoje.getTime() >= ini.getTime() && hoje.getTime() <= fim.getTime()) {
+                                    chosenIndex = item.i;
+                                    break;
+                                }
+                            } else if (ini && !fim) {
+                                if (hoje.getTime() >= ini.getTime()) {
+                                    chosenIndex = item.i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (chosenIndex !== null) break;
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro ao verificar períodos para hoje:', e);
+            }
+
+            if (chosenIndex === null) chosenIndex = sorted[0].i;
+            select.value = String(chosenIndex);
             if (typeof gerarTimesheetAcordo === 'function') gerarTimesheetAcordo();
         }
-    } catch (err) { console.warn('Erro ao selecionar acordo mais recente automaticamente:', err); }
+    } catch (err) { console.warn('Erro ao selecionar acordo automaticamente:', err); }
     
 }
 
@@ -4859,10 +4890,42 @@ function renderizarEventos() {
             return dataStr;
         };
 
-        // Ordenar eventos por data inicial (crescente)
-        const eventosOrdenados = [...AppState.dados.eventos].sort((a, b) => 
-            (a.dataInicioEvento || '').localeCompare(b.dataInicioEvento || '')
-        );
+        // Ordenar eventos por data inicial (crescente) por padrão
+        const eventosOrdenados = [...AppState.dados.eventos];
+
+        // Configurar ordenação clicável nos cabeçalhos (uma vez)
+        try {
+            const tabela = document.getElementById('tabelaEventos');
+            if (tabela && !tabela._eventosSortInit) {
+                const ths = tabela.querySelectorAll('thead th');
+                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','impactoEvento', null];
+                ths.forEach((th, i) => {
+                    // salvar label original
+                    if (!th.dataset._origLabel) th.dataset._origLabel = th.textContent || '';
+                    const key = keys[i] || null;
+                    if (!key) return;
+                    th.style.cursor = 'pointer';
+                    if (!th._sortAttached) {
+                        th.addEventListener('click', () => {
+                            try {
+                                const curKey = tabela.dataset.eventosSortKey || 'dataInicioEvento';
+                                const curDir = tabela.dataset.eventosSortDir || 'asc';
+                                if (curKey === key) {
+                                    tabela.dataset.eventosSortDir = (curDir === 'asc') ? 'desc' : 'asc';
+                                } else {
+                                    tabela.dataset.eventosSortKey = key;
+                                    tabela.dataset.eventosSortDir = 'asc';
+                                }
+                                // re-renderizar tabela com nova ordenação
+                                renderizarEventos();
+                            } catch (e) { console.warn('Erro ao alternar ordenação de eventos:', e); }
+                        });
+                        th._sortAttached = true;
+                    }
+                });
+                tabela._eventosSortInit = true;
+            }
+        } catch (e) { console.warn('Não foi possível inicializar ordenação de cabeçalhos de eventos:', e); }
 
         // Aplicar filtros
         const filtroAcordoEl = document.getElementById('filtroAcordoEventos');
@@ -4877,7 +4940,7 @@ function renderizarEventos() {
         
         const filtroAcordoIdx = filtroAcordoVal === '' ? null : Number(filtroAcordoVal);
 
-        const eventosFiltrados = eventosOrdenados.filter(ev => {
+        let eventosFiltrados = eventosOrdenados.filter(ev => {
             // Filtro por acordo
             if (filtroAcordoIdx !== null && ev.acordoIndex !== filtroAcordoIdx) {
                 return false;
@@ -4896,6 +4959,51 @@ function renderizarEventos() {
             }
             return true;
         });
+
+        // Aplicar ordenação definida pelo usuário (se houver)
+        try {
+            const tabela = document.getElementById('tabelaEventos');
+            let sortKey = tabela ? (tabela.dataset.eventosSortKey || 'dataInicioEvento') : 'dataInicioEvento';
+            let sortDir = tabela ? (tabela.dataset.eventosSortDir || 'asc') : 'asc';
+
+            const comparer = (a, b) => {
+                const va = (a[sortKey] == null) ? '' : a[sortKey];
+                const vb = (b[sortKey] == null) ? '' : b[sortKey];
+                // numeric sort for acordoIndex
+                if (sortKey === 'acordoIndex') {
+                    return (Number(va) || 0) - (Number(vb) || 0);
+                }
+                // dates (YYYY-MM-DD) compare lexicographically
+                if (/^\d{4}-\d{2}-\d{2}$/.test(String(va)) || /^\d{4}-\d{2}-\d{2}$/.test(String(vb))) {
+                    return String(va).localeCompare(String(vb));
+                }
+                return String(va).toLowerCase().localeCompare(String(vb).toLowerCase());
+            };
+
+            eventosFiltrados.sort((a, b) => {
+                const res = comparer(a, b);
+                return (sortDir === 'asc') ? res : -res;
+            });
+
+            // Atualizar indicadores de setas nos cabeçalhos
+            try {
+                const ths = document.querySelectorAll('#tabelaEventos thead th');
+                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','impactoEvento', null];
+                ths.forEach((th, i) => {
+                    const orig = th.dataset._origLabel || th.textContent || '';
+                    const k = keys[i] || null;
+                    if (!k) {
+                        th.textContent = orig;
+                        return;
+                    }
+                    if (k === sortKey) {
+                        th.textContent = orig + (sortDir === 'asc' ? ' ▲' : ' ▼');
+                    } else {
+                        th.textContent = orig;
+                    }
+                });
+            } catch (e) { /* ignore */ }
+        } catch (e) { console.warn('Erro aplicando ordenação em eventos:', e); }
 
         console.log('Eventos filtrados:', eventosFiltrados.length);
 
