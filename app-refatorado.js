@@ -1988,8 +1988,9 @@ function setupAuthUI() {
                 await window.FirebaseSync.signIn(email, pass);
                 // onAuthStateChanged cuidará da UI
             } catch (err) {
-                console.error('Erro ao fazer login:', err);
-                alert('Falha ao autenticar: ' + (err && err.message ? err.message : err));
+                // Mostrar mensagem amigável (traduzida em firebase-init.js signIn())
+                const msg = (err && err.message) ? err.message : String(err);
+                alert(msg);
             }
         });
     }

@@ -1,9 +1,9 @@
 // firebase-init.js
-// Inicializa Firebase, autenticação anônima e funções de load/save para Firestore
+// Inicializa Firebase, autenticação (Email/Password) e funções de load/save para Firestore
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC3euGrayxErDKDJvHT5WN6ixkeqTwwp8M",
@@ -47,15 +47,42 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Tenta login anônimo (ignore erro se já estiver logado)
-signInAnonymously(auth).catch(e => {
-  if (FIREBASE_DEBUG) console.warn('Firebase signInAnonymously falhou:', e && e.message ? e.message : e);
-  // swallow error silently when debug desativado (pode ser OPERATION_NOT_ALLOWED etc.)
-});
+// Login anônimo removido — o projeto exige login explícito (Email/Password).
+// O usuário deve efetuar login pelo modal para obter acesso de escrita.
 
 // Expor helpers adicionais de autenticação
 async function signIn(email, password) {
-  return signInWithEmailAndPassword(auth, email, password);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    // Após login, forçar refresh do token para obter claims atualizadas (ex.: admin)
+    if (cred && cred.user) {
+      try {
+        await cred.user.getIdToken(true);
+        const idRes = await getIdTokenResult(cred.user);
+        const isAdmin = !!(idRes && idRes.claims && idRes.claims.admin);
+        if (window.FirebaseSync) {
+          window.FirebaseSync._isAdminSync = isAdmin;
+          window.FirebaseSync._currentUserSync = cred.user;
+        }
+      } catch (_) { /* token refresh best-effort */ }
+    }
+    return cred;
+  } catch (e) {
+    // Traduzir erros comuns para mensagens amigáveis
+    if (e && e.code === 'auth/admin-restricted-operation') {
+      throw new Error('Cadastro de novos usuários está desabilitado. Peça ao administrador para criar sua conta.');
+    }
+    if (e && e.code === 'auth/wrong-password') {
+      throw new Error('Senha incorreta.');
+    }
+    if (e && e.code === 'auth/user-not-found') {
+      throw new Error('Usuário não encontrado. Verifique o email.');
+    }
+    if (e && e.code === 'auth/invalid-credential') {
+      throw new Error('Email ou senha inválidos.');
+    }
+    throw e;
+  }
 }
 
 async function doSignOut() {
