@@ -1568,6 +1568,7 @@ function atualizarListaAnexosModal() {
 
 // Estado do modal de férias
 let _modalFeriasPeriodoIndex = null;
+let _modalFeriasSubIndex = null;
 const MAX_FERIAS_SUBPERIODOS = 3;
 
 function exibirModalFerias(modal) {
@@ -1631,9 +1632,10 @@ function garantirTresSubperiodos(periodoIndex) {
     }
 }
 
-function abrirModalSolicitarFerias(periodoIndex) {
+function abrirModalSolicitarFerias(periodoIndex, subIndex) {
     try {
         _modalFeriasPeriodoIndex = Number(periodoIndex);
+        _modalFeriasSubIndex = subIndex ? Number(subIndex) : null;
         const modal = document.getElementById('modalSolicitarFerias');
         if (!modal) {
             console.error('Modal de solicitação de férias não encontrado');
@@ -1691,6 +1693,12 @@ function abrirModalSolicitarFerias(periodoIndex) {
         }
 
         const proximoPeriodo = comFerias.length + 1;
+        if (_modalFeriasSubIndex && _modalFeriasSubIndex !== proximoPeriodo) {
+            ocultarModalFerias(modal);
+            mostrarAlertaGlobal(`Libere primeiro o ${proximoPeriodo}º período deste período aquisitivo.`, 'warning');
+            return;
+        }
+        _modalFeriasSubIndex = proximoPeriodo;
         const elProximo = document.getElementById('modalFeriasProximoPeriodo');
         if (elProximo) elProximo.textContent = `${proximoPeriodo}º Período`;
 
@@ -1747,6 +1755,7 @@ function fecharModalSolicitarFerias() {
     const modal = document.getElementById('modalSolicitarFerias');
     ocultarModalFerias(modal);
     _modalFeriasPeriodoIndex = null;
+    _modalFeriasSubIndex = null;
 }
 
 function confirmarSolicitacaoFerias() {
@@ -1814,10 +1823,11 @@ function confirmarSolicitacaoFerias() {
         }
         
         // Verificar se há um registro vazio (sem férias) que pode ser preenchido
-        const registroVazio = grupo.find(p => !p.feriasInicio && !p.feriasFim);
+        const subIndexDesejado = _modalFeriasSubIndex || (subComFerias.length + 1);
+        const registroVazio = grupo.find(p => Number(p.subIndex) === Number(subIndexDesejado) && !p.feriasInicio && !p.feriasFim);
         
         let targetPeriodo;
-        const novoSubIndex = subComFerias.length + 1;
+        const novoSubIndex = subIndexDesejado;
         
         if (registroVazio) {
             // Preencher o registro vazio
@@ -1834,7 +1844,7 @@ function confirmarSolicitacaoFerias() {
                 termino: baseP.termino,
                 limite: baseP.limite,
                 subIndex: novoSubIndex,
-                subTotal: null,
+                subTotal: MAX_FERIAS_SUBPERIODOS,
                 feriasInicio: null,
                 feriasFim: null,
                 adto13: '',
@@ -5919,7 +5929,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
             comFerias.sort((a, b) => (a.subIndex || 0) - (b.subIndex || 0));
             semFerias.sort((a, b) => (Number(a.subIndex) || 99) - (Number(b.subIndex) || 99));
             
-            // Sempre exibir os 3 slots possíveis do período aquisitivo.
+            // Exibir apenas os períodos já marcados + o próximo disponível.
             const porSub = new Map();
             grupo.forEach(item => {
                 const sub = Number(item.subIndex);
@@ -5929,7 +5939,8 @@ function renderizarPeriodosAquisitivosTable(rows) {
             });
 
             const renderList = [];
-            for (let sub = 1; sub <= MAX_FERIAS_SUBPERIODOS; sub++) {
+            const proximoLiberado = Math.min(MAX_FERIAS_SUBPERIODOS, comFerias.length + 1);
+            for (let sub = 1; sub <= proximoLiberado; sub++) {
                 const existente = porSub.get(sub);
                 if (existente) {
                     renderList.push(existente);
@@ -5976,6 +5987,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     const linkPeriodo = document.createElement('a');
                     linkPeriodo.href = '#';
                     linkPeriodo.dataset.openFerias = String(r.periodoIndex);
+                    linkPeriodo.dataset.openFeriasSub = String(r.subIndex || 1);
                     linkPeriodo.textContent = periodoText;
                     linkPeriodo.style.color = '#2563eb';
                     linkPeriodo.style.textDecoration = 'underline';
@@ -5983,7 +5995,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     linkPeriodo.title = 'Clique para solicitar férias';
                     linkPeriodo.addEventListener('click', (e) => {
                         e.preventDefault();
-                        abrirModalSolicitarFerias(r.periodoIndex);
+                        abrirModalSolicitarFerias(r.periodoIndex, r.subIndex || 1);
                     });
                     tdPeriodoAq.appendChild(linkPeriodo);
                     tdPeriodoAq.rowSpan = rowspan;
@@ -6094,9 +6106,10 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnSolic.type = 'button';
                     btnSolic.className = 'btn-primary btn-icon';
                     btnSolic.dataset.openFerias = String(r.periodoIndex);
+                    btnSolic.dataset.openFeriasSub = String(r.subIndex || 1);
                     btnSolic.title = 'Solicitar férias';
                     btnSolic.innerHTML = (typeof svgIcon === 'function') ? svgIcon('plus', { title: 'Solicitar férias', color: 'currentColor' }) : '➕ Solicitar';
-                    btnSolic.addEventListener('click', () => abrirModalSolicitarFerias(r.periodoIndex));
+                    btnSolic.addEventListener('click', () => abrirModalSolicitarFerias(r.periodoIndex, r.subIndex || 1));
                     tdActions.appendChild(btnSolic);
                 }
                 tr.appendChild(tdActions);
@@ -6122,8 +6135,9 @@ function inicializarDelegacaoTabelaFerias() {
         event.preventDefault();
         event.stopPropagation();
         const periodoIndex = Number(trigger.dataset.openFerias);
+        const subIndex = Number(trigger.dataset.openFeriasSub);
         if (!Number.isNaN(periodoIndex)) {
-            abrirModalSolicitarFerias(periodoIndex);
+            abrirModalSolicitarFerias(periodoIndex, Number.isNaN(subIndex) ? null : subIndex);
         }
     });
 
