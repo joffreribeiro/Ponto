@@ -14,6 +14,23 @@ function parseDateBR(dataBR) {
 
 // ============= ATUALIZAÇÃO DE COMPONENTES =============
 
+// ── Skeleton Loading helpers ──
+function showSkeleton(containerId, count) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var html = '';
+    for (var i = 0; i < (count || 3); i++) {
+        html += '<div class="skeleton skeleton-card"></div>';
+    }
+    el.innerHTML = html;
+}
+function hideSkeleton(containerId) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var skeletons = el.querySelectorAll('.skeleton');
+    skeletons.forEach(function(s) { s.remove(); });
+}
+
 /**
  * Limpa períodos duplicados/antigos mantendo apenas os válidos
  * Mantém apenas períodos com índice sequencial (1-4) e sem saltos
@@ -513,6 +530,23 @@ function inicializar() {
             }
         } catch(e) { /* ignore */ }
 
+        // ── Sticky tabs: add shadow class on scroll ──
+        try {
+            var tabsEl = document.querySelector('.tabs');
+            if (tabsEl) {
+                var scrollTicking = false;
+                window.addEventListener('scroll', function() {
+                    if (!scrollTicking) {
+                        window.requestAnimationFrame(function() {
+                            tabsEl.classList.toggle('scrolled', window.scrollY > 80);
+                            scrollTicking = false;
+                        });
+                        scrollTicking = true;
+                    }
+                });
+            }
+        } catch(e) { /* ignore */ }
+
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -733,8 +767,9 @@ function renderizarAtividades() {
         const tedPtrab = a.tedPtrab || '';
         const acaoRealizar = a.acaoRealizar || '';
         const dueClass = (diasNum !== null && diasNum <= 3 && diasNum >= 0) ? 'due-soon' : '';
+        const prioClass = (a.prioridade || '').toLowerCase();
         return `
-            <div class="atividade-item activity-card ${dueClass}" data-idx="${idx}">
+            <div class="atividade-item activity-card ${dueClass} prio-${prioClass}" data-idx="${idx}">
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         ${ordemBadge}
@@ -1965,6 +2000,8 @@ function setupAuthUI() {
 
                     // ── SYNC: Buscar dados do Firestore e atualizar o app ──
                     try {
+                        // Show skeleton while loading from cloud
+                        try { showSkeleton('atividadesLista', 4); } catch(_){}
                         const cloudData = await Storage.loadAsync();
                         if (cloudData && Storage.isValidDataStructure(cloudData)) {
                             AppState.dados = cloudData;

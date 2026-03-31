@@ -8,12 +8,15 @@
         const statuses = ['pendente','em andamento','bloqueada','concluida'];
         const cols = statuses.map(s => ({ key:s, title: s === 'pendente' ? 'Pendente' : s === 'em andamento' ? 'Em andamento' : s === 'bloqueada' ? 'Bloqueada' : 'Concluída' }));
         const html = cols.map(col => {
-            const cards = items.filter(i => i.status === col.key).map(a => `
-                <div class="kanban-card activity-card" draggable="true" data-id="${a.id}">
+            const cards = items.filter(i => i.status === col.key).map(a => {
+                const prioClass = (a.prioridade || '').toLowerCase();
+                return `
+                <div class="kanban-card activity-card prio-${prioClass}" draggable="true" data-id="${a.id}">
                     <strong>${escapeHtml(a.titulo)}</strong>
                     <div class="small-text">${escapeHtml(a.responsavel||'')} • ${escapeHtml(a.prioridade||'')}</div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             return `
                 <div class="kanban-column" data-status="${col.key}">
                     <h4>${col.title}</h4>
