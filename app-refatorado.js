@@ -94,9 +94,6 @@ function limparPeriodosInvalidos() {
     try {
         if (!AppState.dados?.periodosAquisitivos) return;
         
-        const hoje = new Date();
-        const periodosValidos = [];
-        
         console.log(`[limparPeriodosInvalidos] Total de períodos antes: ${AppState.dados.periodosAquisitivos.length}`);
         
         // Agrupar períodos por periodoIndex
@@ -109,37 +106,60 @@ function limparPeriodosInvalidos() {
         
         console.log(`[limparPeriodosInvalidos] Índices únicos encontrados:`, Object.keys(porIndex).sort((a, b) => a - b));
         
-        // Manter apenas o período mais recente de cada índice
-        // E manter apenas índices 1-4 (períodos iniciais reais)
-        // Períodos futuros (5+) serão gerados automaticamente conforme necessário
+        const periodosValidos = [];
+        
         for (const [idxStr, periodos] of Object.entries(porIndex)) {
             const idx = parseInt(idxStr);
             
-            // Manter apenas índices 1-4 (os períodos iniciais reais)
-            // Índices 5+ são provavelmente gerados por bug e serão recriados automaticamente
-            if (idx > 4) {
-                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (mantém apenas 1-4)`);
+            // Manter apenas índices 1-10 (segurança contra bugs de geração infinita)
+            if (idx > 10) {
+                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (muito alto)`);
                 continue;
             }
             
-            // Se houver múltiplos períodos com mesmo índice, manter o mais recente
-            if (periodos.length > 1) {
-                console.log(`[limparPeriodosInvalidos] Índice ${idx} tem ${periodos.length} períodos - mantendo apenas 1`);
-                periodos.sort((a, b) => {
-                    const dtA = a.termino ? DateUtils.parse(a.termino) : new Date(0);
-                    const dtB = b.termino ? DateUtils.parse(b.termino) : new Date(0);
-                    return dtB - dtA;
-                });
+            // Para cada periodoIndex, manter até MAX_FERIAS_SUBPERIODOS subperíodos.
+            // Cada subperíodo tem um subIndex (1, 2 ou 3).
+            // Se existem duplicatas de mesmo subIndex, manter a que tem férias preenchidas (prioridade).
+            const porSub = new Map();
+            for (const p of periodos) {
+                const sub = Number(p.subIndex) || 1;
+                if (sub < 1 || sub > MAX_FERIAS_SUBPERIODOS) continue;
+                const existing = porSub.get(sub);
+                if (!existing) {
+                    porSub.set(sub, p);
+                } else {
+                    // Priorizar o que tem férias preenchidas
+                    const existingTemFerias = existing.feriasInicio && existing.feriasFim;
+                    const novoTemFerias = p.feriasInicio && p.feriasFim;
+                    if (novoTemFerias && !existingTemFerias) {
+                        porSub.set(sub, p);
+                    }
+                }
             }
             
-            periodosValidos.push(periodos[0]);
+            // Se nenhum subIndex foi mapeado mas temos períodos, manter ao menos o primeiro como subIndex=1
+            if (porSub.size === 0 && periodos.length > 0) {
+                const base = periodos[0];
+                base.subIndex = 1;
+                base.subTotal = MAX_FERIAS_SUBPERIODOS;
+                porSub.set(1, base);
+            }
+            
+            for (const p of porSub.values()) {
+                p.subTotal = MAX_FERIAS_SUBPERIODOS;
+                periodosValidos.push(p);
+            }
         }
         
-        // Ordenar por índice
-        periodosValidos.sort((a, b) => a.periodoIndex - b.periodoIndex);
+        // Ordenar por periodoIndex, depois subIndex
+        periodosValidos.sort((a, b) => {
+            const diff = (a.periodoIndex || 0) - (b.periodoIndex || 0);
+            if (diff !== 0) return diff;
+            return (Number(a.subIndex) || 1) - (Number(b.subIndex) || 1);
+        });
         
         console.log(`[limparPeriodosInvalidos] Total após limpeza: ${periodosValidos.length}`);
-        console.log(`[limparPeriodosInvalidos] Períodos mantidos:`, periodosValidos.map(p => `Idx${p.periodoIndex}(${p.inicio}→${p.termino})`).join(', '));
+        console.log(`[limparPeriodosInvalidos] Períodos mantidos:`, periodosValidos.map(p => `Idx${p.periodoIndex}/Sub${p.subIndex}(ferias:${p.feriasInicio || 'n'})`).join(', '));
         
         AppState.dados.periodosAquisitivos = periodosValidos;
         AppState.save();
