@@ -231,6 +231,48 @@ function atualizarTabelaFerias() {
  * Utiliza módulos: storage.js, calculations.js, dateUtils.js, validators.js
  */
 
+const LAST_CLOUD_SYNC_KEY = 'last_cloud_sync_at';
+
+function formatarUltimoSyncCloud(ts) {
+    const dt = ts ? new Date(Number(ts)) : null;
+    if (!dt || Number.isNaN(dt.getTime())) return '—';
+    return dt.toLocaleString('pt-BR');
+}
+
+function atualizarStatusSyncCloud(status, timestamp) {
+    const el = document.getElementById('syncStatus');
+    if (!el) return;
+
+    el.classList.remove('sync-status--ok', 'sync-status--pending', 'sync-status--error');
+
+    if (status === 'pending') {
+        el.classList.add('sync-status--pending');
+        el.textContent = 'Cloud: sincronizando...';
+        return;
+    }
+
+    if (status === 'error') {
+        el.classList.add('sync-status--error');
+        const textoErro = timestamp ? formatarUltimoSyncCloud(timestamp) : '—';
+        el.textContent = `Cloud: erro — último sync: ${textoErro}`;
+        return;
+    }
+
+    el.classList.add('sync-status--ok');
+    const texto = formatarUltimoSyncCloud(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
+    el.textContent = `Cloud: salvo — último sync: ${texto}`;
+}
+
+function registrarSyncCloud(timestamp = Date.now()) {
+    try { localStorage.setItem(LAST_CLOUD_SYNC_KEY, String(timestamp)); } catch (_) {}
+    atualizarStatusSyncCloud('ok', timestamp);
+}
+
+function restaurarStatusSyncCloud() {
+    const last = localStorage.getItem(LAST_CLOUD_SYNC_KEY);
+    atualizarStatusSyncCloud('ok', last);
+}
+
 // Estado global - Exposto para acesso externo
 const AppState = window.AppState = {
     dados: null,
@@ -351,7 +393,14 @@ const AppState = window.AppState = {
         try {
             const snapshot = JSON.parse(JSON.stringify(this.dados || {}));
             if (this.isAuthenticated()) {
-                return this._comAutoSaveSuspenso(() => Storage.save(snapshot));
+                atualizarStatusSyncCloud('pending');
+                const ok = this._comAutoSaveSuspenso(() => Storage.save(snapshot));
+                if (ok) {
+                    registrarSyncCloud(Date.now());
+                } else {
+                    atualizarStatusSyncCloud('error', localStorage.getItem(LAST_CLOUD_SYNC_KEY));
+                }
+                return ok;
             } else {
                 // Apenas cache local — não envia ao Firestore
                 return this._comAutoSaveSuspenso(() => {
@@ -2270,6 +2319,8 @@ function setupAuthUI() {
 
     function setUnauthUI() {
         if (authStatus) authStatus.textContent = 'Não autenticado';
+        const syncStatus = document.getElementById('syncStatus');
+        if (syncStatus) syncStatus.style.display = 'none';
         // Limpar nome dinâmico no header
         const headerName = document.getElementById('headerUserName');
         if (headerName) headerName.textContent = '';
@@ -2288,6 +2339,9 @@ function setupAuthUI() {
         if (!authStatus) return;
         const displayName = user.displayName || user.email || ('Anon: ' + (user.uid ? user.uid.substr(0,6) : '—'));
         authStatus.textContent = displayName;
+        const syncStatus = document.getElementById('syncStatus');
+        if (syncStatus) syncStatus.style.display = 'inline-flex';
+        restaurarStatusSyncCloud();
         // Atualizar nome dinâmico no header
         const headerName = document.getElementById('headerUserName');
         if (headerName) headerName.textContent = displayName;
@@ -2467,14 +2521,17 @@ function setupAuthUI() {
                 }
                 btnSalvarNuvem.disabled = true;
                 btnSalvarNuvem.innerHTML = '<span class="spinner-inline"></span> Salvando...';
+                atualizarStatusSyncCloud('pending');
                 // Marcar timestamp
                 if (AppState.dados) AppState.dados.updatedAt = Date.now();
                 await window.FirebaseSync.saveToFirestore(AppState.dados);
                 // Atualizar cache local também
                 try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(AppState.dados)); } catch(_){}
+                registrarSyncCloud(Date.now());
                 Notifications.success('☁️ Dados salvos na nuvem com sucesso!');
             } catch (err) {
                 console.error('Erro ao salvar na nuvem:', err);
+                atualizarStatusSyncCloud('error', localStorage.getItem(LAST_CLOUD_SYNC_KEY));
                 Notifications.error('Falha ao salvar na nuvem: ' + (err.message || err));
             } finally {
                 btnSalvarNuvem.disabled = false;
@@ -2492,8 +2549,10 @@ function setupAuthUI() {
                 }
                 btnCarregarNuvem.disabled = true;
                 btnCarregarNuvem.innerHTML = '<span class="spinner-inline"></span> Carregando...';
+                atualizarStatusSyncCloud('pending');
                 const cloudData = await window.FirebaseSync.loadFromFirestore();
                 if (!cloudData || !Storage.isValidDataStructure(cloudData)) {
+                    atualizarStatusSyncCloud('error', localStorage.getItem(LAST_CLOUD_SYNC_KEY));
                     Notifications.warning('Nenhum dado encontrado na nuvem para este usuário.');
                     return;
                 }
@@ -2510,9 +2569,11 @@ function setupAuthUI() {
                 try { atualizarSelectAcordosRegistros(); } catch(_){}
                 try { atualizarSelectAcordosEventos(); } catch(_){}
                 try { atualizarSelectAcordosFerias(); } catch(_){}
+                registrarSyncCloud(Date.now());
                 Notifications.success('☁️ Dados carregados da nuvem com sucesso!');
             } catch (err) {
                 console.error('Erro ao carregar da nuvem:', err);
+                atualizarStatusSyncCloud('error', localStorage.getItem(LAST_CLOUD_SYNC_KEY));
                 Notifications.error('Falha ao carregar da nuvem: ' + (err.message || err));
             } finally {
                 btnCarregarNuvem.disabled = false;

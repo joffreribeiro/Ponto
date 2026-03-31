@@ -612,6 +612,44 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     font-size: 12px;
 }
 
+.sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(2, 6, 23, 0.25);
+    color: rgba(255,255,255,0.95);
+}
+
+.sync-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+.sync-status--ok::before {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.sync-status--pending::before {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.sync-status--error::before {
+    background: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
 /* Spinner inline (dentro dos botões de nuvem) */
 .spinner-inline {
     display: inline-block;
@@ -648,6 +686,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .topbar-sync { gap: 4px; }
     .btn-cloud { padding: 4px 8px; font-size: 11px; }
     .btn-cloud-label { display: none; }
+    .sync-status { display: none !important; }
 }
 
 /* Dark mode: header */
