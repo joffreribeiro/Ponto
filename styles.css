@@ -561,6 +561,95 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     background: rgba(239,68,68,0.35);
 }
 
+/* ── Botões de Sincronização com Nuvem ── */
+.topbar-sync {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-cloud {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-cloud--save {
+    background: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.45);
+}
+.btn-cloud--save:hover {
+    background: rgba(34, 197, 94, 0.45);
+    transform: translateY(-1px);
+}
+
+.btn-cloud--load {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.45);
+}
+.btn-cloud--load:hover {
+    background: rgba(59, 130, 246, 0.45);
+    transform: translateY(-1px);
+}
+
+.btn-cloud:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none !important;
+}
+
+.btn-cloud-label {
+    font-size: 12px;
+}
+
+/* Spinner inline (dentro dos botões de nuvem) */
+.spinner-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin-inline 0.6s linear infinite;
+    vertical-align: middle;
+}
+@keyframes spin-inline {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Bloqueio visual: botões desabilitados por falta de auth ── */
+.locked-by-auth {
+    position: relative;
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+.locked-by-auth::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .topbar-sync { gap: 4px; }
+    .btn-cloud { padding: 4px 8px; font-size: 11px; }
+    .btn-cloud-label { display: none; }
+}
+
 /* Dark mode: header */
 html[data-theme="dark"] .topbar-unified {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);

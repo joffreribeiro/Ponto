@@ -255,13 +255,32 @@ const AppState = window.AppState = {
     },
 
     /**
-     * Salva dados com validação
+     * Verifica se o usuário está autenticado (Firebase)
+     */
+    isAuthenticated() {
+        try {
+            if (window.FirebaseSync && typeof window.FirebaseSync.getCurrentUserSync === 'function') {
+                return !!window.FirebaseSync.getCurrentUserSync();
+            }
+            // Se FirebaseSync não carregou ainda, considerar não autenticado
+            return false;
+        } catch (e) { return false; }
+    },
+
+    /**
+     * Salva dados com validação.
+     * Se autenticado: salva no Firestore + localStorage.
+     * Se NÃO autenticado: salva APENAS no localStorage (cache offline).
      */
     save() {
-        // Sempre salvar os dados - a validação de configurações não deve bloquear
-        // a persistência de outras informações (eventos, períodos, etc.)
         try {
-            return Storage.save(this.dados);
+            if (this.isAuthenticated()) {
+                return Storage.save(this.dados);
+            } else {
+                // Apenas cache local — não envia ao Firestore
+                try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(this.dados)); } catch(_){}
+                return true;
+            }
         } catch (e) {
             console.error('Erro ao salvar dados:', e);
             return false;
@@ -600,6 +619,24 @@ function inicializar() {
                 });
             }
         } catch(e) { /* ignore */ }
+
+        // ── Fix race condition: firebase-init.js é type="module" e carrega após os scripts normais.
+        // Se FirebaseSync ainda não existe, aguardar e re-executar setupAuthUI quando disponível.
+        if (!window.FirebaseSync || typeof window.FirebaseSync.onAuthStateChanged !== 'function') {
+            let _fbPollCount = 0;
+            const _fbPoll = setInterval(() => {
+                _fbPollCount++;
+                if (window.FirebaseSync && typeof window.FirebaseSync.onAuthStateChanged === 'function') {
+                    clearInterval(_fbPoll);
+                    console.info('[Auth] FirebaseSync detectado após ' + (_fbPollCount * 200) + 'ms — re-inicializando auth UI');
+                    try { setupAuthUI(); } catch(e) { console.warn('Re-setupAuthUI falhou:', e); }
+                }
+                if (_fbPollCount > 50) { // max 10s
+                    clearInterval(_fbPoll);
+                    console.warn('[Auth] FirebaseSync não foi detectado em 10s. Verifique se firebase-init.js está carregando.');
+                }
+            }, 200);
+        }
 
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
@@ -2018,6 +2055,11 @@ function setupAuthUI() {
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = '';
         if (logoutBtn) logoutBtn.style.display = 'none';
+        // Ocultar botões de nuvem
+        const syncControls = document.getElementById('syncControls');
+        if (syncControls) syncControls.style.display = 'none';
+        const logoutTop = document.getElementById('logoutTopBtn');
+        if (logoutTop) logoutTop.style.display = 'none';
     }
 
     function setAuthUI(user) {
@@ -2031,6 +2073,11 @@ function setupAuthUI() {
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = 'none';
         if (logoutBtn) logoutBtn.style.display = '';
+        // Mostrar botões de nuvem
+        const syncControls = document.getElementById('syncControls');
+        if (syncControls) syncControls.style.display = 'flex';
+        const logoutTop = document.getElementById('logoutTopBtn');
+        if (logoutTop) logoutTop.style.display = '';
     }
 
     // Se o helper FirebaseSync existir, usar onAuthStateChanged
@@ -2185,6 +2232,73 @@ function setupAuthUI() {
             }
         });
     }
+    // ── Botões de Sincronização Manual (Nuvem) ──
+    const btnSalvarNuvem = document.getElementById('btnSalvarNuvem');
+    const btnCarregarNuvem = document.getElementById('btnCarregarNuvem');
+
+    if (btnSalvarNuvem) {
+        btnSalvarNuvem.addEventListener('click', async () => {
+            try {
+                if (!window.FirebaseSync || !window.FirebaseSync.getCurrentUserSync || !window.FirebaseSync.getCurrentUserSync()) {
+                    Notifications.warning('Faça login antes de salvar na nuvem.');
+                    return;
+                }
+                btnSalvarNuvem.disabled = true;
+                btnSalvarNuvem.innerHTML = '<span class="spinner-inline"></span> Salvando...';
+                // Marcar timestamp
+                if (AppState.dados) AppState.dados.updatedAt = Date.now();
+                await window.FirebaseSync.saveToFirestore(AppState.dados);
+                // Atualizar cache local também
+                try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(AppState.dados)); } catch(_){}
+                Notifications.success('☁️ Dados salvos na nuvem com sucesso!');
+            } catch (err) {
+                console.error('Erro ao salvar na nuvem:', err);
+                Notifications.error('Falha ao salvar na nuvem: ' + (err.message || err));
+            } finally {
+                btnSalvarNuvem.disabled = false;
+                btnSalvarNuvem.innerHTML = '☁️ <span class="btn-cloud-label">Salvar</span>';
+            }
+        });
+    }
+
+    if (btnCarregarNuvem) {
+        btnCarregarNuvem.addEventListener('click', async () => {
+            try {
+                if (!window.FirebaseSync || !window.FirebaseSync.getCurrentUserSync || !window.FirebaseSync.getCurrentUserSync()) {
+                    Notifications.warning('Faça login antes de carregar da nuvem.');
+                    return;
+                }
+                btnCarregarNuvem.disabled = true;
+                btnCarregarNuvem.innerHTML = '<span class="spinner-inline"></span> Carregando...';
+                const cloudData = await window.FirebaseSync.loadFromFirestore();
+                if (!cloudData || !Storage.isValidDataStructure(cloudData)) {
+                    Notifications.warning('Nenhum dado encontrado na nuvem para este usuário.');
+                    return;
+                }
+                AppState.dados = Storage._ensureDefaults(cloudData);
+                // Atualizar cache local
+                try { localStorage.setItem('controle_ponto_avancado_v1', JSON.stringify(AppState.dados)); } catch(_){}
+                // Re-renderizar toda a interface
+                try { renderizarTabelaRegistros(); } catch(_){}
+                try { renderizarEventos(); } catch(_){}
+                try { renderizarAcordos(); } catch(_){}
+                try { atualizarDashboard(); } catch(_){}
+                try { renderizarAtividades(); } catch(_){}
+                try { atualizarSelectAcordosTimesheet(); } catch(_){}
+                try { atualizarSelectAcordosRegistros(); } catch(_){}
+                try { atualizarSelectAcordosEventos(); } catch(_){}
+                try { atualizarSelectAcordosFerias(); } catch(_){}
+                Notifications.success('☁️ Dados carregados da nuvem com sucesso!');
+            } catch (err) {
+                console.error('Erro ao carregar da nuvem:', err);
+                Notifications.error('Falha ao carregar da nuvem: ' + (err.message || err));
+            } finally {
+                btnCarregarNuvem.disabled = false;
+                btnCarregarNuvem.innerHTML = '☁️ <span class="btn-cloud-label">Carregar</span>';
+            }
+        });
+    }
+
     // handler for header logout button if present
     const logoutTopBtn = document.getElementById('logoutTopBtn');
     if (logoutTopBtn) {

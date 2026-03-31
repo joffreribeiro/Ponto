@@ -21,6 +21,10 @@
             </div>
         </div>
         <div id="authControls" class="topbar-right">
+            <div id="syncControls" class="topbar-sync" style="display:none;">
+                <button id="btnSalvarNuvem" type="button" class="btn-cloud btn-cloud--save" title="Salvar dados na nuvem">☁️ <span class="btn-cloud-label">Salvar</span></button>
+                <button id="btnCarregarNuvem" type="button" class="btn-cloud btn-cloud--load" title="Carregar dados da nuvem">☁️ <span class="btn-cloud-label">Carregar</span></button>
+            </div>
             <div id="authStatus" class="topbar-auth-status"></div>
             <button id="loginToggle" type="button" class="btn-header" style="display:none;">Login</button>
             <button id="logoutTopBtn" type="button" class="btn-header btn-header--danger" style="display:none;">Sair</button>
@@ -519,7 +523,7 @@
                             <label for="filtroAcordoRegistros">Acordo:</label>
                             <select id="filtroAcordoRegistros"></select>
                         </div>
-                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro"><span class="icon">➕</span> Novo Registro</button>
+                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro" data-auth="true"><span class="icon">➕</span> Novo Registro</button>
                         <span style="flex:1;"></span>
                         <button type="button" class="btn-secondary btn-excel" onclick="exportarRegistrosCSV()" title="Exportar em formato CSV">
                             <span class="icon">📥</span> Exportar CSV
@@ -584,7 +588,7 @@
                 <div class="card">
                     <h3>Acordos de Jornada</h3>
                     <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button type="button" class="btn-primary" data-action="novoAcordo">+ Novo Acordo</button>
+                        <button type="button" class="btn-primary" data-action="novoAcordo" data-auth="true">+ Novo Acordo</button>
                         <button type="button" class="btn-secondary" onclick="exportarAcordosJSON()">📥 Exportar Acordos</button>
                         <label class="btn-secondary" style="cursor: pointer; margin: 0; padding: 8px 16px;">
                             📤 Importar Acordos
@@ -618,7 +622,7 @@
                             <label for="filtroDataFimEventos">Até:</label>
                             <input type="date" id="filtroDataFimEventos" />
                         </div>
-                        <button type="button" class="btn-primary" data-action="abrirModalEvento"><span class="icon">➕</span> Novo Evento</button>
+                        <button type="button" class="btn-primary" data-action="abrirModalEvento" data-auth="true"><span class="icon">➕</span> Novo Evento</button>
                         <span style="flex:1;"></span>
                         <button type="button" class="btn-secondary btn-excel" onclick="exportarEventosExcel()" title="Exportar em formato Excel">
                             <span class="icon">📥</span> Exportar Excel
@@ -668,7 +672,7 @@
                         <h3 style="margin-top: 0; font-size: 16px;">Restaurar Backup</h3>
                         <p style="margin: 8px 0; font-size: 13px; color: var(--text-muted);">Restaurar dados a partir de um arquivo de backup anterior.</p>
                         <input type="file" id="inputRestaurarBackup" accept=".json" style="display: none;">
-                        <button type="button" class="btn-primary" data-action="selecionarArquivoRestaurar" style="width: 100%;">
+                        <button type="button" class="btn-primary" data-action="selecionarArquivoRestaurar" data-auth="true" style="width: 100%;">
                             <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="12 15 12 9" style="stroke:currentColor;stroke-width:1.3;stroke-linecap:round"/><polyline points="9 12 12 9 15 12" style="stroke:currentColor;stroke-width:1.3;stroke-linecap:round"/></svg></span>
                             Selecionar Arquivo
                         </button>
@@ -677,7 +681,7 @@
                     <div style="border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; border-color: var(--danger);">
                         <h3 style="margin-top: 0; font-size: 16px; color: var(--danger);">Limpar Todos os Dados</h3>
                         <p style="margin: 8px 0; font-size: 13px; color: var(--text-muted);">Remover permanentemente todos os registros, eventos e configurações. <strong>Esta ação não pode ser desfeita.</strong></p>
-                        <button type="button" class="btn-danger" data-action="confirmarLimpezaCompleta" style="width: 100%;">
+                        <button type="button" class="btn-danger" data-action="confirmarLimpezaCompleta" data-auth="true" style="width: 100%;">
                             <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/></svg></span>
                             Limpar Dados
                         </button>
@@ -760,7 +764,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn-secondary" data-action="fecharModalRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
-            <button type="button" class="btn-primary" data-action="salvarRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+            <button type="button" class="btn-primary" data-action="salvarRegistro" data-auth="true"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
         </div>
     </div>
 </div>
@@ -890,7 +894,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn-secondary" data-action="fecharModalAcordo">Cancelar</button>
-            <button type="button" class="btn-primary" data-action="salvarAcordo">Salvar Acordo</button>
+            <button type="button" class="btn-primary" data-action="salvarAcordo" data-auth="true">Salvar Acordo</button>
         </div>
     </div>
 </div>
@@ -972,7 +976,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn-secondary btn-cancelar-evento">Cancelar</button>
-                                <button type="button" class="btn-primary" data-action="salvarEvento">Salvar Evento</button>
+                                <button type="button" class="btn-primary" data-action="salvarEvento" data-auth="true">Salvar Evento</button>
                             </div>
                         </div>
                     </div>
@@ -1063,7 +1067,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="fecharModalSolicitarFerias()">Cancelar</button>
-                    <button type="button" class="btn-primary" onclick="confirmarSolicitacaoFerias()">Confirmar Solicitação</button>
+                    <button type="button" class="btn-primary" data-auth="true" onclick="confirmarSolicitacaoFerias()">Confirmar Solicitação</button>
                 </div>
             </div>
         </div>
@@ -1316,7 +1320,7 @@ window._loadXLSX = function() {
         </div>
         <div class="modal-footer">
             <button type="button" class="btn-secondary" data-action="fecharModalNovaAtividadeCompleta"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
-            <button type="button" class="btn-primary" data-action="salvarNovaAtividadeCompleta"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+            <button type="button" class="btn-primary" data-action="salvarNovaAtividadeCompleta" data-auth="true"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
         </div>
     </div>
 </div>
