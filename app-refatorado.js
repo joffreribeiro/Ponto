@@ -1936,13 +1936,39 @@ function setupAuthUI() {
                         const loginModalEl = document.getElementById('loginModal');
                         if (loginModalEl) {
                             loginModalEl.style.display = 'none';
-                            // limpar campos
                             const em = document.getElementById('loginEmail');
                             const pw = document.getElementById('loginPassword');
                             if (em) em.value = '';
                             if (pw) pw.value = '';
                         }
                     } catch (e) { /* ignore */ }
+
+                    // ── SYNC: Buscar dados do Firestore e atualizar o app ──
+                    try {
+                        if (typeof Storage !== 'undefined' && Storage.loadFromCloud) {
+                            const cloudData = await Storage.loadFromCloud();
+                            if (cloudData) {
+                                AppState.dados = cloudData;
+                                // Re-renderizar toda a interface com os dados da cloud
+                                try { renderizarTabelaRegistros(); } catch(_){}
+                                try { renderizarEventos(); } catch(_){}
+                                try { renderizarAcordos(); } catch(_){}
+                                try { atualizarDashboard(); } catch(_){}
+                                try { renderizarAtividades(); } catch(_){}
+                                try { atualizarSelectAcordosTimesheet(); } catch(_){}
+                                try { atualizarSelectAcordosRegistros(); } catch(_){}
+                                try { atualizarSelectAcordosEventos(); } catch(_){}
+                                try { atualizarSelectAcordosFerias(); } catch(_){}
+                            } else {
+                                // Cloud vazia: fazer upload dos dados locais para a cloud
+                                try {
+                                    if (window.FirebaseSync && window.FirebaseSync.syncToCloud && AppState.dados) {
+                                        window.FirebaseSync.syncToCloud(AppState.dados);
+                                    }
+                                } catch(_){}
+                            }
+                        }
+                    } catch (syncErr) { /* sync best-effort */ }
                 } else {
                     setUnauthUI();
                 }

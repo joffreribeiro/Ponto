@@ -90,6 +90,29 @@ const Storage = {
     },
 
     /**
+     * Carrega dados do Firestore (cloud) e faz merge com local.
+     * Cloud tem prioridade. Retorna os dados finais ou null se não houver cloud.
+     * Deve ser chamado quando o usuário fizer login.
+     */
+    async loadFromCloud() {
+        try {
+            if (!window.FirebaseSync || typeof window.FirebaseSync.loadFromFirestore !== 'function') {
+                return null; // sem Firebase disponível
+            }
+            const cloudData = await window.FirebaseSync.loadFromFirestore();
+            if (!cloudData || !this.isValidDataStructure(cloudData)) {
+                return null; // sem dados na cloud ou estrutura inválida
+            }
+            // Cloud tem prioridade: salvar no localStorage local (sem re-sync para cloud)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+            return cloudData;
+        } catch (e) {
+            // Se falhar (ex.: não autenticado, timeout), retornar null silenciosamente
+            return null;
+        }
+    },
+
+    /**
      * Salva dados no localStorage com validação
      */
     save(dados) {

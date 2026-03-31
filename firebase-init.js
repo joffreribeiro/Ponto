@@ -167,17 +167,8 @@ export async function saveToFirestore(dados) {
   await setDoc(docRef, { dados }, { merge: true });
 }
 
-// Utilitário para sincronizar (salva localmente e no Firestore)
+// Utilitário para sincronizar dados com o Firestore (apenas cloud, sem salvar local — evita loop)
 export async function syncToCloud(dados) {
-  try {
-    // chama Storage.save (se disponível) para salvar localmente antes
-    if (window.Storage && typeof window.Storage.save === 'function') {
-      window.Storage.save(dados);
-    }
-  } catch (e) {
-    if (FIREBASE_DEBUG) console.warn('Falha ao salvar localmente antes do sync:', e);
-  }
-
   try {
     await saveToFirestore(dados);
     return { ok: true };
