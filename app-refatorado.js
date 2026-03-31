@@ -2002,6 +2002,8 @@ function setupAuthUI() {
                 const modal = document.getElementById('loginModal');
                 if (!modal) return;
                 modal.style.display = 'flex';
+                // bloquear rolagem de fundo
+                try { document.body.style.overflow = 'hidden'; } catch(e) {}
                 // foco no email
                 const em = document.getElementById('loginEmail');
                 if (em) em.focus();
@@ -2012,14 +2014,25 @@ function setupAuthUI() {
     // Fechar modal handlers
     const loginModalClose = document.getElementById('loginModalClose');
     const loginModal = document.getElementById('loginModal');
+    function closeLoginModal() {
+        try {
+            if (loginModal) loginModal.style.display = 'none';
+            try { document.body.style.overflow = ''; } catch(e) {}
+        } catch(e) { /* ignore */ }
+    }
+
     if (loginModalClose) {
-        loginModalClose.addEventListener('click', () => { try { if (loginModal) loginModal.style.display = 'none'; } catch(e){} });
+        loginModalClose.addEventListener('click', closeLoginModal);
     }
     if (loginModal) {
         loginModal.addEventListener('click', (ev) => {
             if (ev.target === loginModal) {
-                loginModal.style.display = 'none';
+                closeLoginModal();
             }
+        });
+        // fechar com Esc
+        document.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape') closeLoginModal();
         });
     }
 
