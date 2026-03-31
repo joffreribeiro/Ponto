@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Atividades</title>
+    <title>Controle de Ponto</title>
     <link rel="stylesheet" href="styles.css">
     <style>
     /* Modal de login simples e centralizado */
@@ -29,9 +29,6 @@
     <!-- Controles de autenticação (login/logout) -->
     <div id="authControls" style="display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);">
         <div id="authStatus" style="display:flex;align-items:center;gap:8px;"></div>
-        <button id="loginToggle" type="button" class="btn-secondary" style="display:none;">Login</button>
-        <button id="logoutTopBtn" type="button" class="btn-secondary" style="display:none;">Sair</button>
-        <!-- login form será exibido em modal centralizado -->
         <button id="loginToggle" type="button" class="btn-secondary" style="display:none;">Login</button>
         <button id="logoutTopBtn" type="button" class="btn-secondary" style="display:none;">Sair</button>
     </div>
@@ -1510,11 +1507,7 @@ document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if
     });
 })();
 </script>
+    <!-- Firebase initialization (modular SDK) — deve carregar antes dos scripts que dependem de window.FirebaseSync -->
+    <script type="module" src="firebase-init.js"></script>
 </body>
 </html>
-
-    <!-- Firebase initialization (modular SDK) -->
-    <script type="module" src="firebase-init.js"></script>
-
- </body>
- </html>

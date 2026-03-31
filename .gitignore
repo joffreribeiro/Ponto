@@ -1,0 +1,18 @@
+# Service Account (NUNCA commitar)
+tools/serviceAccountKey.json
+serviceAccountKey.json
+
+# Node
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp
+*.swo
+*~
