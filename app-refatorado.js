@@ -31,6 +31,60 @@ function hideSkeleton(containerId) {
     skeletons.forEach(function(s) { s.remove(); });
 }
 
+// Retorna lista de acordos com índice original, ordenados do mais novo para o mais antigo
+function getAcordosSortedByNewest() {
+    const acordos = (AppState.dados && Array.isArray(AppState.dados.acordos)) ? AppState.dados.acordos : [];
+    const list = acordos.map((a, i) => ({ a, i }));
+
+    function parseDateLocal(s) {
+        if (!s) return null;
+        const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function score(ac) {
+        if (!ac) return -Infinity;
+        // Prefer the latest period end date
+        if (Array.isArray(ac.periodos) && ac.periodos.length) {
+            let maxEnd = null;
+            ac.periodos.forEach(p => {
+                try {
+                    const d = parseDateLocal(p.fim || p.inicio);
+                    if (d && (!maxEnd || d > maxEnd)) maxEnd = d;
+                } catch (e) { /* ignore */ }
+            });
+            if (maxEnd) return maxEnd.getTime();
+        }
+
+        // Fallback to explicit criadoEm or atualizadoEm timestamps
+        try {
+            if (ac.criadoEm) return new Date(ac.criadoEm).getTime();
+            if (ac.atualizadoEm) return new Date(ac.atualizadoEm).getTime();
+        } catch (e) { /* ignore */ }
+
+        // Fallback to year parse from name "YYYY - YYYY"
+        if (ac.nome) {
+            const m = String(ac.nome).match(/(\d{4})\s*[-\/]?\s*(\d{4})?/);
+            if (m) {
+                const y = Number(m[2] || m[1]);
+                if (!isNaN(y)) return y * 365 * 24 * 3600 * 1000;
+            }
+        }
+
+        return -Infinity;
+    }
+
+    list.sort((x, y) => {
+        const sx = score(x.a);
+        const sy = score(y.a);
+        return (sy === sx) ? (x.i - y.i) : (sy - sx);
+    });
+
+    return list;
+}
+
 /**
  * Limpa períodos duplicados/antigos mantendo apenas os válidos
  * Mantém apenas períodos com índice sequencial (1-4) e sem saltos
@@ -3883,57 +3937,22 @@ function atualizarSelectAcordosTimesheet() {
         select.appendChild(opt);
         return;
     }
-
-    AppState.dados.acordos.forEach((a, idx) => {
+    // montar lista ordenada do mais novo para o mais antigo, mantendo o índice original
+    const sorted = getAcordosSortedByNewest();
+    sorted.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = a.nome || `Acordo ${idx + 1}`;
+        opt.value = item.i; // índice original
+        opt.textContent = item.a.nome || `Acordo ${item.i + 1}`;
         select.appendChild(opt);
     });
 
-    // Seleciona automaticamente o acordo mais recente (por maior data de fim nos períodos
-    // ou por ano final no nome) e gera o timesheet
+    // Seleciona automaticamente o primeiro (mais novo) e gera o timesheet
     try {
-        if (AppState.dados.acordos.length) {
-            function _parseDateLocal(s) {
-                if (!s) return null;
-                const m = String(s).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-                if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-                const d = new Date(s);
-                return isNaN(d.getTime()) ? null : d;
-            }
-
-            let bestIdx = 0;
-            let bestScore = -Infinity;
-            AppState.dados.acordos.forEach((ac, i) => {
-                let score = -Infinity;
-                if (ac.periodos && ac.periodos.length) {
-                    let maxEnd = null;
-                    ac.periodos.forEach(p => {
-                        const d = _parseDateLocal(p.fim || p.inicio);
-                        if (d && (!maxEnd || d > maxEnd)) maxEnd = d;
-                    });
-                    if (maxEnd) score = Math.max(score, maxEnd.getTime());
-                }
-                if (!isFinite(score) && ac.nome) {
-                    const m = String(ac.nome).match(/(\d{4})\s*[-\/]\s*(\d{4})/);
-                    if (m) {
-                        const endYear = Number(m[2]) || Number(m[1]);
-                        if (!isNaN(endYear)) score = Math.max(score, endYear * 365 * 24 * 3600 * 1000);
-                    }
-                }
-                if (!isFinite(score)) score = i;
-                if (score > bestScore) {
-                    bestScore = score; bestIdx = i;
-                }
-            });
-
-            select.value = String(bestIdx);
+        if (sorted.length) {
+            select.value = String(sorted[0].i);
             if (typeof gerarTimesheetAcordo === 'function') gerarTimesheetAcordo();
         }
-    } catch (err) {
-        console.warn('Erro ao selecionar acordo mais recente automaticamente:', err);
-    }
+    } catch (err) { console.warn('Erro ao selecionar acordo mais recente automaticamente:', err); }
     
 }
 
@@ -3948,10 +3967,11 @@ function atualizarSelectAcordosRegistros() {
     optAll.textContent = 'Todos os acordos';
     select.appendChild(optAll);
 
-    AppState.dados.acordos.forEach((a, idx) => {
+    const sorted = getAcordosSortedByNewest();
+    sorted.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = a.nome || `Acordo ${idx + 1}`;
+        opt.value = item.i;
+        opt.textContent = item.a.nome || `Acordo ${item.i + 1}`;
         select.appendChild(opt);
     });
 }
@@ -5728,17 +5748,18 @@ function atualizarSelectAcordosEventos() {
         selectFiltro.appendChild(optTodos);
     }
 
-    AppState.dados.acordos.forEach((a, idx) => {
+    const sorted = getAcordosSortedByNewest();
+    sorted.forEach(item => {
         if (selectEvento) {
             const opt = document.createElement('option');
-            opt.value = idx;
-            opt.textContent = a.nome || `Acordo ${idx + 1}`;
+            opt.value = item.i;
+            opt.textContent = item.a.nome || `Acordo ${item.i + 1}`;
             selectEvento.appendChild(opt);
         }
         if (selectFiltro) {
             const optF = document.createElement('option');
-            optF.value = idx;
-            optF.textContent = a.nome || `Acordo ${idx + 1}`;
+            optF.value = item.i;
+            optF.textContent = item.a.nome || `Acordo ${item.i + 1}`;
             selectFiltro.appendChild(optF);
         }
     });
@@ -5798,6 +5819,20 @@ function atualizarSelectAcordosFerias() {
 
     // default to first acordo
     try { select.value = '0'; } catch(e){}
+    // Reorder options so newest is first visually: rebuild using sorted list
+    try {
+        const sorted = getAcordosSortedByNewest();
+        if (sorted && sorted.length) {
+            select.innerHTML = '';
+            sorted.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.i;
+                opt.textContent = item.a.nome || `Acordo ${item.i + 1}`;
+                select.appendChild(opt);
+            });
+            try { select.value = String(sorted[0].i); } catch(e){}
+        }
+    } catch(e) { /* ignore */ }
 }
 
 /**
@@ -6456,9 +6491,11 @@ function renderizarAcordos() {
             return;
         }
 
-        // Exibir acordos na ordem do array (agora o array mantém 'mais recente primeiro')
-        const acordos = AppState.dados.acordos || [];
-        acordos.forEach((a, idx) => {
+        // Exibir acordos ordenados do mais novo para o mais antigo
+        const sorted = getAcordosSortedByNewest();
+        sorted.forEach((item, displayIdx) => {
+            const a = item.a;
+            const idx = item.i; // original index in AppState.dados.acordos
             const div = document.createElement('div');
             div.className = 'acordo-card';
 
