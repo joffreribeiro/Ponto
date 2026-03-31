@@ -1421,105 +1421,140 @@ function atualizarListaAnexosModal() {
 // Estado do modal de férias
 let _modalFeriasPeriodoIndex = null;
 
+function exibirModalFerias(modal) {
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
+    try { document.body.style.overflow = 'hidden'; } catch (e) {}
+}
+
+function ocultarModalFerias(modal) {
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    modal.style.opacity = '';
+    modal.style.pointerEvents = '';
+    try { document.body.style.overflow = ''; } catch (e) {}
+}
+
 function abrirModalSolicitarFerias(periodoIndex) {
-    _modalFeriasPeriodoIndex = periodoIndex;
-    const modal = document.getElementById('modalSolicitarFerias');
-    if (!modal) {
-        console.error('Modal de solicitação de férias não encontrado');
-        return;
-    }
-    
-    // Buscar dados do período
-    const periodos = (AppState.dados && AppState.dados.periodosAquisitivos) || [];
-    const grupo = periodos.filter(p => p.periodoIndex === periodoIndex);
-    if (grupo.length === 0) {
-        mostrarAlertaGlobal('Período não encontrado.', 'error');
-        return;
-    }
-    
-    const first = grupo[0];
-    const msDay = 24 * 60 * 60 * 1000;
-    
-    // Preencher informações do período
-    const inicioText = first.inicio ? DateUtils.formatBR(first.inicio) : '';
-    const terminoText = first.termino ? DateUtils.formatBR(first.termino) : '';
-    const elPeriodoAq = document.getElementById('modalFeriasPeriodoAquisitivo');
-    if (elPeriodoAq) elPeriodoAq.textContent = `${inicioText} → ${terminoText}`;
-    const elLimite = document.getElementById('modalFeriasLimiteConcessao');
-    if (elLimite) elLimite.textContent = first.limite ? DateUtils.formatBR(first.limite) : '';
-    
-    // Calcular dias disponíveis
-    const comFerias = grupo.filter(p => p.feriasInicio && p.feriasFim);
-    let totalConcedidos = 0;
-    comFerias.forEach(sub => {
-        const d = sub.dias && typeof sub.dias === 'number' && sub.dias > 0 ? sub.dias : 0;
-        totalConcedidos += d;
-    });
-    const entitlement = (AppState.dados && AppState.dados.configuracoes && Number(AppState.dados.configuracoes.feriasDias) > 0) 
-        ? Number(AppState.dados.configuracoes.feriasDias) : 30;
-    const disponiveis = Math.max(0, entitlement - totalConcedidos);
-    const elDisponiveis = document.getElementById('modalFeriasDiasDisponiveis');
-    if (elDisponiveis) elDisponiveis.textContent = `${disponiveis} dias`;
-    
-    // Verificar limite de 3 períodos
-    if (comFerias.length >= 3) {
-        mostrarAlertaGlobal('Limite de 3 períodos de férias atingido para este período aquisitivo.', 'error');
-        return;
-    }
-    
-    // Informar qual período será (próximo número)
-    const proximoPeriodo = comFerias.length + 1;
-    const elProximo = document.getElementById('modalFeriasProximoPeriodo');
-    if (elProximo) elProximo.textContent = `${proximoPeriodo}º Período`;
-    
-    // Ocultar select de subperíodo (não mais necessário)
-    const selectPeriodo = document.getElementById('modalFeriasPeriodoSelect');
-    if (selectPeriodo) selectPeriodo.style.display = 'none';
-    
-    // Limpar campos
-    const elInicio = document.getElementById('modalFeriasInicio');
-    const elFim = document.getElementById('modalFeriasFim');
-    const elAdto13 = document.getElementById('modalFeriasAdto13');
-    if (elInicio) elInicio.value = '';
-    if (elFim) elFim.value = '';
-    if (elAdto13) elAdto13.value = '';
-    const elDiasCalc = document.getElementById('modalFeriasDiasCalculados');
-    if (elDiasCalc) elDiasCalc.textContent = '';
-    
-    // Calcular dias automaticamente quando as datas mudam
-    const inputInicio = document.getElementById('modalFeriasInicio');
-    const inputFim = document.getElementById('modalFeriasFim');
-    const calcularDiasModal = () => {
-        const inicio = inputInicio ? inputInicio.value : '';
-        const fim = inputFim ? inputFim.value : '';
-        if (inicio && fim) {
+    try {
+        _modalFeriasPeriodoIndex = Number(periodoIndex);
+        const modal = document.getElementById('modalSolicitarFerias');
+        if (!modal) {
+            console.error('Modal de solicitação de férias não encontrado');
+            mostrarAlertaGlobal('Não foi possível abrir o formulário de férias.', 'error');
+            return;
+        }
+
+        exibirModalFerias(modal);
+
+        const periodos = (AppState.dados && AppState.dados.periodosAquisitivos) || [];
+        const grupo = periodos.filter(p => Number(p.periodoIndex) === Number(periodoIndex));
+        if (grupo.length === 0) {
+            ocultarModalFerias(modal);
+            mostrarAlertaGlobal('Período não encontrado.', 'error');
+            return;
+        }
+
+        const first = grupo[0];
+        const msDay = 24 * 60 * 60 * 1000;
+
+        const inicioText = first.inicio ? DateUtils.formatBR(first.inicio) : '';
+        const terminoText = first.termino ? DateUtils.formatBR(first.termino) : '';
+        const elPeriodoAq = document.getElementById('modalFeriasPeriodoAquisitivo');
+        if (elPeriodoAq) elPeriodoAq.textContent = `${inicioText} → ${terminoText}`;
+        const elLimite = document.getElementById('modalFeriasLimiteConcessao');
+        if (elLimite) elLimite.textContent = first.limite ? DateUtils.formatBR(first.limite) : '';
+
+        const comFerias = grupo.filter(p => p.feriasInicio && p.feriasFim);
+        let totalConcedidos = 0;
+        comFerias.forEach(sub => {
+            const diasInformados = Number(sub.dias);
+            if (diasInformados > 0) {
+                totalConcedidos += diasInformados;
+                return;
+            }
+
+            if (sub.feriasInicio && sub.feriasFim) {
+                const dtInicio = DateUtils.parse(sub.feriasInicio);
+                const dtFim = DateUtils.parse(sub.feriasFim);
+                if (dtInicio && dtFim && dtFim >= dtInicio) {
+                    totalConcedidos += Math.floor((dtFim - dtInicio) / msDay) + 1;
+                }
+            }
+        });
+
+        const entitlement = (AppState.dados && AppState.dados.configuracoes && Number(AppState.dados.configuracoes.feriasDias) > 0)
+            ? Number(AppState.dados.configuracoes.feriasDias) : 30;
+        const disponiveis = Math.max(0, entitlement - totalConcedidos);
+        const elDisponiveis = document.getElementById('modalFeriasDiasDisponiveis');
+        if (elDisponiveis) elDisponiveis.textContent = `${disponiveis} dias`;
+
+        if (comFerias.length >= 3) {
+            ocultarModalFerias(modal);
+            mostrarAlertaGlobal('Limite de 3 períodos de férias atingido para este período aquisitivo.', 'error');
+            return;
+        }
+
+        const proximoPeriodo = comFerias.length + 1;
+        const elProximo = document.getElementById('modalFeriasProximoPeriodo');
+        if (elProximo) elProximo.textContent = `${proximoPeriodo}º Período`;
+
+        const selectPeriodo = document.getElementById('modalFeriasPeriodoSelect');
+        if (selectPeriodo) selectPeriodo.style.display = 'none';
+
+        const elInicio = document.getElementById('modalFeriasInicio');
+        const elFim = document.getElementById('modalFeriasFim');
+        const elAdto13 = document.getElementById('modalFeriasAdto13');
+        if (elInicio) elInicio.value = '';
+        if (elFim) elFim.value = '';
+        if (elAdto13) elAdto13.value = '';
+        const elDiasCalc = document.getElementById('modalFeriasDiasCalculados');
+        if (elDiasCalc) elDiasCalc.textContent = '';
+
+        const inputInicio = document.getElementById('modalFeriasInicio');
+        const inputFim = document.getElementById('modalFeriasFim');
+        const calcularDiasModal = () => {
+            const inicio = inputInicio ? inputInicio.value : '';
+            const fim = inputFim ? inputFim.value : '';
+            if (!inicio || !fim) {
+                if (elDiasCalc) elDiasCalc.textContent = '';
+                return;
+            }
+
             const dtI = DateUtils.parse(inicio);
             const dtF = DateUtils.parse(fim);
             if (dtI && dtF && dtF >= dtI) {
                 const dias = Math.floor((dtF - dtI) / msDay) + 1;
                 if (elDiasCalc) elDiasCalc.textContent = `Total: ${dias} dia(s)`;
-            } else {
-                if (elDiasCalc) elDiasCalc.textContent = '';
+            } else if (elDiasCalc) {
+                elDiasCalc.textContent = '';
             }
-        } else {
-            if (elDiasCalc) elDiasCalc.textContent = '';
+        };
+
+        if (inputInicio) {
+            inputInicio.onchange = calcularDiasModal;
+            inputInicio.oninput = calcularDiasModal;
+            try { inputInicio.focus(); } catch (e) {}
         }
-    };
-    if (inputInicio) inputInicio.onchange = calcularDiasModal;
-    if (inputFim) inputFim.onchange = calcularDiasModal;
-    inputFim.onchange = calcularDiasModal;
-    
-    // Use CSS class to show modal (matches .modal / .modal.active rules in styles.css)
-    modal.classList.add('active');
-    try { document.body.style.overflow = 'hidden'; } catch(e) {}
+        if (inputFim) {
+            inputFim.onchange = calcularDiasModal;
+            inputFim.oninput = calcularDiasModal;
+        }
+    } catch (e) {
+        console.error('Erro ao abrir modal de solicitação de férias:', e);
+        const modal = document.getElementById('modalSolicitarFerias');
+        exibirModalFerias(modal);
+        mostrarAlertaGlobal('O formulário abriu com pendências de dados. Veja o console.', 'warning');
+    }
 }
 
 function fecharModalSolicitarFerias() {
     const modal = document.getElementById('modalSolicitarFerias');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-    try { document.body.style.overflow = ''; } catch(e) {}
+    ocultarModalFerias(modal);
     _modalFeriasPeriodoIndex = null;
 }
 
@@ -5594,6 +5629,7 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 function renderizarPeriodosAquisitivosTable(rows) {
     try {
         const tb = document.querySelector('#tablePeriodosAquisitivos tbody');
+        inicializarDelegacaoTabelaFerias();
         console.debug('renderizarPeriodosAquisitivosTable called, tbody=', tb);
         if (!tb) {
             console.warn('Tabela de períodos aquisitivos não encontrada no DOM (#tablePeriodosAquisitivos tbody).');
@@ -5671,6 +5707,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     // Criar link clicável
                     const linkPeriodo = document.createElement('a');
                     linkPeriodo.href = '#';
+                    linkPeriodo.dataset.openFerias = String(r.periodoIndex);
                     linkPeriodo.textContent = periodoText;
                     linkPeriodo.style.color = '#2563eb';
                     linkPeriodo.style.textDecoration = 'underline';
@@ -5788,6 +5825,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     const btnSolic = document.createElement('button');
                     btnSolic.type = 'button';
                     btnSolic.className = 'btn-primary btn-icon';
+                    btnSolic.dataset.openFerias = String(r.periodoIndex);
                     btnSolic.title = 'Solicitar férias';
                     btnSolic.innerHTML = (typeof svgIcon === 'function') ? svgIcon('plus', { title: 'Solicitar férias', color: 'currentColor' }) : '➕ Solicitar';
                     btnSolic.addEventListener('click', () => abrirModalSolicitarFerias(r.periodoIndex));
@@ -5803,6 +5841,25 @@ function renderizarPeriodosAquisitivosTable(rows) {
     } catch (e) {
         console.error('Erro ao renderizar tabela de períodos aquisitivos:', e);
     }
+}
+
+function inicializarDelegacaoTabelaFerias() {
+    const tabela = document.getElementById('tablePeriodosAquisitivos');
+    if (!tabela || tabela.dataset.delegacaoFeriasInicializada === 'true') return;
+
+    tabela.addEventListener('click', (event) => {
+        const trigger = event.target && event.target.closest ? event.target.closest('[data-open-ferias]') : null;
+        if (!trigger) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        const periodoIndex = Number(trigger.dataset.openFerias);
+        if (!Number.isNaN(periodoIndex)) {
+            abrirModalSolicitarFerias(periodoIndex);
+        }
+    });
+
+    tabela.dataset.delegacaoFeriasInicializada = 'true';
 }
 
 function abrirAbaFeriasFromDashboard() {
