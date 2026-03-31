@@ -18,6 +18,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Controle de debug: por padrão falso. Para ativar em runtime, defina
+// `window.__FIREBASE_DEBUG__ = true` antes de carregar o módulo.
+const FIREBASE_DEBUG = (typeof window !== 'undefined' && !!window.__FIREBASE_DEBUG__) || false;
+
 // State interno para aguardar auth
 let _user = null;
 onAuthStateChanged(auth, async (user) => {
@@ -39,13 +43,14 @@ onAuthStateChanged(auth, async (user) => {
       window.FirebaseSync._isAdminSync = false;
     }
   } catch (e) {
-    console.warn('Erro ao atualizar estado síncrono FirebaseSync:', e);
+    if (FIREBASE_DEBUG) console.warn('Erro ao atualizar estado síncrono FirebaseSync:', e);
   }
 });
 
 // Tenta login anônimo (ignore erro se já estiver logado)
 signInAnonymously(auth).catch(e => {
-  console.warn('Firebase signInAnonymously falhou:', e && e.message ? e.message : e);
+  if (FIREBASE_DEBUG) console.warn('Firebase signInAnonymously falhou:', e && e.message ? e.message : e);
+  // swallow error silently when debug desativado (pode ser OPERATION_NOT_ALLOWED etc.)
 });
 
 // Expor helpers adicionais de autenticação
@@ -143,14 +148,14 @@ export async function syncToCloud(dados) {
       window.Storage.save(dados);
     }
   } catch (e) {
-    console.warn('Falha ao salvar localmente antes do sync:', e);
+    if (FIREBASE_DEBUG) console.warn('Falha ao salvar localmente antes do sync:', e);
   }
 
   try {
     await saveToFirestore(dados);
     return { ok: true };
   } catch (e) {
-    console.warn('Falha ao salvar no Firestore:', e);
+    if (FIREBASE_DEBUG) console.warn('Falha ao salvar no Firestore:', e);
     return { ok: false, error: e };
   }
 }
@@ -174,8 +179,9 @@ window.FirebaseSync.requireAuthSync = requireAuthSync;
 window.FirebaseSync.getIsAdminSync = getIsAdminSync;
 window.FirebaseSync.requireAdminSync = requireAdminSync;
 
-console.info('Firebase init carregado');
-// Mostrar quais helpers foram expostos (ajuda a depurar no console do navegador)
-try {
-  console.info('FirebaseSync helpers:', Object.keys(window.FirebaseSync || {}));
-} catch (e) { /* ignore */ }
+if (FIREBASE_DEBUG) {
+  try {
+    console.info('Firebase init carregado');
+    console.info('FirebaseSync helpers:', Object.keys(window.FirebaseSync || {}));
+  } catch (e) { /* ignore */ }
+}
