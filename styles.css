@@ -1848,6 +1848,54 @@ td {
     font-size: 12px;
 }
 
+/* Cabeçalhos ordenáveis (ícones CSS + tooltip) */
+#tabelaEventos thead th.sortable {
+    position: relative;
+    padding-right: 36px; /* espaço para os ícones */
+}
+
+/* Triângulos superior/inferior como pseudo-elementos
+   - ::after = triângulo superior
+   - ::before = triângulo inferior
+   Ambos com opacidade reduzida por padrão; a classe .sort-asc/.sort-desc destaca o relevante */
+#tabelaEventos thead th.sortable::after,
+#tabelaEventos thead th.sortable::before {
+    content: '';
+    position: absolute;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    transition: opacity .12s ease, transform .12s ease;
+    opacity: 0.25;
+}
+
+#tabelaEventos thead th.sortable::after {
+    top: 38%;
+    border-bottom: 6px solid rgba(255,255,255,0.95); /* seta para cima */
+}
+
+#tabelaEventos thead th.sortable::before {
+    top: 58%;
+    border-top: 6px solid rgba(255,255,255,0.95); /* seta para baixo */
+}
+
+/* Estado ativo: asc -> destacar seta superior, desc -> destacar inferior */
+#tabelaEventos thead th.sortable.sort-asc::after { opacity: 1; transform: translateY(-2px); }
+#tabelaEventos thead th.sortable.sort-asc::before { opacity: 0.15; }
+
+#tabelaEventos thead th.sortable.sort-desc::before { opacity: 1; transform: translateY(2px); }
+#tabelaEventos thead th.sortable.sort-desc::after { opacity: 0.15; }
+
+#tabelaEventos thead th.sortable:hover { text-decoration: underline; }
+
+/* foco acessível */
+#tabelaEventos thead th.sortable:focus {
+    outline: 3px solid rgba(255,255,255,0.12);
+    outline-offset: 2px;
+}
+
 #tabelaEventos tbody td {
     padding: 12px 8px;
     font-size: 13px;

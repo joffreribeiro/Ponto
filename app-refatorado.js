@@ -4904,9 +4904,14 @@ function renderizarEventos() {
                     if (!th.dataset._origLabel) th.dataset._origLabel = th.textContent || '';
                     const key = keys[i] || null;
                     if (!key) return;
+                    th.classList.add('sortable');
                     th.style.cursor = 'pointer';
+                    th.title = th.dataset._origLabel + ' — Clique para ordenar (enter/espaco alterna)';
+                    th.setAttribute('role', 'button');
+                    th.setAttribute('tabindex', '0');
+
                     if (!th._sortAttached) {
-                        th.addEventListener('click', () => {
+                        const activate = () => {
                             try {
                                 const curKey = tabela.dataset.eventosSortKey || 'dataInicioEvento';
                                 const curDir = tabela.dataset.eventosSortDir || 'asc';
@@ -4919,6 +4924,14 @@ function renderizarEventos() {
                                 // re-renderizar tabela com nova ordenação
                                 renderizarEventos();
                             } catch (e) { console.warn('Erro ao alternar ordenação de eventos:', e); }
+                        };
+
+                        th.addEventListener('click', activate);
+                        th.addEventListener('keydown', (ev) => {
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                                ev.preventDefault();
+                                activate();
+                            }
                         });
                         th._sortAttached = true;
                     }
@@ -4992,14 +5005,15 @@ function renderizarEventos() {
                 ths.forEach((th, i) => {
                     const orig = th.dataset._origLabel || th.textContent || '';
                     const k = keys[i] || null;
-                    if (!k) {
-                        th.textContent = orig;
-                        return;
-                    }
+                    // restaurar label original (sem setar ícone via textContent)
+                    th.textContent = orig;
+                    if (!k) return;
+                    th.classList.remove('sort-asc','sort-desc');
                     if (k === sortKey) {
-                        th.textContent = orig + (sortDir === 'asc' ? ' ▲' : ' ▼');
+                        th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+                        th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
                     } else {
-                        th.textContent = orig;
+                        th.setAttribute('aria-sort', 'none');
                     }
                 });
             } catch (e) { /* ignore */ }
