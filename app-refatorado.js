@@ -1509,12 +1509,17 @@ function abrirModalSolicitarFerias(periodoIndex) {
     if (inputFim) inputFim.onchange = calcularDiasModal;
     inputFim.onchange = calcularDiasModal;
     
-    modal.style.display = 'flex';
+    // Use CSS class to show modal (matches .modal / .modal.active rules in styles.css)
+    modal.classList.add('active');
+    try { document.body.style.overflow = 'hidden'; } catch(e) {}
 }
 
 function fecharModalSolicitarFerias() {
     const modal = document.getElementById('modalSolicitarFerias');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    try { document.body.style.overflow = ''; } catch(e) {}
     _modalFeriasPeriodoIndex = null;
 }
 
