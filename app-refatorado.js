@@ -5931,7 +5931,8 @@ function renderizarPeriodosAquisitivosTable(rows) {
             comFerias.sort((a, b) => (a.subIndex || 0) - (b.subIndex || 0));
             semFerias.sort((a, b) => (Number(a.subIndex) || 99) - (Number(b.subIndex) || 99));
             
-            // Exibir apenas os períodos já marcados + o próximo disponível.
+            // Exibir apenas períodos já marcados.
+            // Se não houver marcação ainda, exibir somente o 1º período vazio.
             const porSub = new Map();
             grupo.forEach(item => {
                 const sub = Number(item.subIndex);
@@ -5941,37 +5942,29 @@ function renderizarPeriodosAquisitivosTable(rows) {
             });
 
             const renderList = [];
-            const proximoLiberado = Math.min(MAX_FERIAS_SUBPERIODOS, comFerias.length + 1);
-            for (let sub = 1; sub <= proximoLiberado; sub++) {
-                const existente = porSub.get(sub);
-                if (existente) {
-                    renderList.push(existente);
-                    continue;
-                }
-
-                const candidatoVazio = semFerias.find(item => !item.feriasInicio && !item.feriasFim && (!item.subIndex || Number(item.subIndex) === sub));
-                if (candidatoVazio) {
-                    candidatoVazio.subIndex = sub;
-                    candidatoVazio.subTotal = MAX_FERIAS_SUBPERIODOS;
-                    renderList.push(candidatoVazio);
-                    continue;
-                }
-
-                renderList.push({
+            if (comFerias.length > 0) {
+                renderList.push(...comFerias);
+            } else {
+                const candidatoVazio = semFerias.find(item => !item.feriasInicio && !item.feriasFim) || {
                     id: null,
                     periodoIndex: Number(key),
                     inicio: base.inicio,
                     termino: base.termino,
                     limite: base.limite,
-                    subIndex: sub,
+                    subIndex: 1,
                     subTotal: MAX_FERIAS_SUBPERIODOS,
                     feriasInicio: null,
                     feriasFim: null,
                     adto13: '',
                     dias: null,
                     documento: ''
-                });
+                };
+                candidatoVazio.subIndex = 1;
+                candidatoVazio.subTotal = MAX_FERIAS_SUBPERIODOS;
+                renderList.push(candidatoVazio);
             }
+
+            const proximoSubIndex = Math.min(MAX_FERIAS_SUBPERIODOS, comFerias.length + 1);
             const rowspan = renderList.length;
 
             renderList.forEach((r, idx) => {
@@ -5989,7 +5982,6 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     const linkPeriodo = document.createElement('a');
                     linkPeriodo.href = '#';
                     linkPeriodo.dataset.openFerias = String(r.periodoIndex);
-                    linkPeriodo.dataset.openFeriasSub = String(r.subIndex || 1);
                     linkPeriodo.textContent = periodoText;
                     linkPeriodo.style.color = '#2563eb';
                     linkPeriodo.style.textDecoration = 'underline';
@@ -5997,7 +5989,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     linkPeriodo.title = 'Clique para solicitar férias';
                     linkPeriodo.addEventListener('click', (e) => {
                         e.preventDefault();
-                        abrirModalSolicitarFerias(r.periodoIndex, r.subIndex || 1);
+                        abrirModalSolicitarFerias(r.periodoIndex, proximoSubIndex);
                     });
                     tdPeriodoAq.appendChild(linkPeriodo);
                     tdPeriodoAq.rowSpan = rowspan;
@@ -6066,8 +6058,7 @@ function renderizarPeriodosAquisitivosTable(rows) {
                 } else if (r.subIndex === 3) {
                     tdPeriodo.textContent = '3º Período';
                 } else {
-                    // Sem férias ainda ou único período
-                    tdPeriodo.textContent = comFerias.length === 0 ? 'Único' : '';
+                    tdPeriodo.textContent = '1º Período';
                 }
                 tr.appendChild(tdPeriodo);
 
@@ -6103,16 +6094,8 @@ function renderizarPeriodosAquisitivosTable(rows) {
                     btnDel.addEventListener('click', () => removerPeriodo(r.id || r.idRaw));
                     tdActions.appendChild(btnDel);
                 } else {
-                    // Período sem férias: apenas solicitar
-                    const btnSolic = document.createElement('button');
-                    btnSolic.type = 'button';
-                    btnSolic.className = 'btn-primary btn-icon';
-                    btnSolic.dataset.openFerias = String(r.periodoIndex);
-                    btnSolic.dataset.openFeriasSub = String(r.subIndex || 1);
-                    btnSolic.title = 'Solicitar férias';
-                    btnSolic.innerHTML = (typeof svgIcon === 'function') ? svgIcon('plus', { title: 'Solicitar férias', color: 'currentColor' }) : '➕ Solicitar';
-                    btnSolic.addEventListener('click', () => abrirModalSolicitarFerias(r.periodoIndex, r.subIndex || 1));
-                    tdActions.appendChild(btnSolic);
+                    // Período sem férias: marcação ocorre pelo link em "Período Aquisitivo"
+                    tdActions.textContent = '';
                 }
                 tr.appendChild(tdActions);
 
