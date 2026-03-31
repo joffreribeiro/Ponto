@@ -1945,29 +1945,29 @@ function setupAuthUI() {
 
                     // ── SYNC: Buscar dados do Firestore e atualizar o app ──
                     try {
-                        if (typeof Storage !== 'undefined' && Storage.loadFromCloud) {
-                            const cloudData = await Storage.loadFromCloud();
-                            if (cloudData) {
-                                AppState.dados = cloudData;
-                                // Re-renderizar toda a interface com os dados da cloud
-                                try { renderizarTabelaRegistros(); } catch(_){}
-                                try { renderizarEventos(); } catch(_){}
-                                try { renderizarAcordos(); } catch(_){}
-                                try { atualizarDashboard(); } catch(_){}
-                                try { renderizarAtividades(); } catch(_){}
-                                try { atualizarSelectAcordosTimesheet(); } catch(_){}
-                                try { atualizarSelectAcordosRegistros(); } catch(_){}
-                                try { atualizarSelectAcordosEventos(); } catch(_){}
-                                try { atualizarSelectAcordosFerias(); } catch(_){}
-                            } else {
-                                // Cloud vazia: fazer upload dos dados locais para a cloud
-                                try {
-                                    if (window.FirebaseSync && window.FirebaseSync.syncToCloud && AppState.dados) {
-                                        window.FirebaseSync.syncToCloud(AppState.dados);
-                                    }
-                                } catch(_){}
-                            }
+                        const cloudData = await Storage.loadAsync();
+                        if (cloudData && Storage.isValidDataStructure(cloudData)) {
+                            AppState.dados = cloudData;
+                            // Re-renderizar toda a interface com os dados da cloud
+                            try { renderizarTabelaRegistros(); } catch(_){}
+                            try { renderizarEventos(); } catch(_){}
+                            try { renderizarAcordos(); } catch(_){}
+                            try { atualizarDashboard(); } catch(_){}
+                            try { renderizarAtividades(); } catch(_){}
+                            try { atualizarSelectAcordosTimesheet(); } catch(_){}
+                            try { atualizarSelectAcordosRegistros(); } catch(_){}
+                            try { atualizarSelectAcordosEventos(); } catch(_){}
+                            try { atualizarSelectAcordosFerias(); } catch(_){}
                         }
+                        // Se Firestore vazio, fazer upload dos dados locais
+                        try {
+                            if (window.FirebaseSync && window.FirebaseSync.saveToFirestore && AppState.dados) {
+                                const snap = await window.FirebaseSync.loadFromFirestore().catch(() => null);
+                                if (!snap) {
+                                    await window.FirebaseSync.saveToFirestore(AppState.dados);
+                                }
+                            }
+                        } catch(_){}
                     } catch (syncErr) { /* sync best-effort */ }
                 } else {
                     setUnauthUI();
