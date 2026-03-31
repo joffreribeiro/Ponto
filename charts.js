@@ -10,7 +10,10 @@ const Charts = {
      * Inicializa biblioteca Chart.js
      */
     async init() {
-        // Chart.js será carregado via CDN no HTML
+        // Lazy-load Chart.js sob demanda
+        if (typeof Chart === 'undefined' && typeof window._loadChartJS === 'function') {
+            await window._loadChartJS();
+        }
         if (typeof Chart === 'undefined') {
             console.warn('[Charts] Chart.js não carregado');
             return false;

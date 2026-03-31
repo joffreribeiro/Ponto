@@ -3,14 +3,13 @@
  * Permite funcionamento offline e cache inteligente
  */
 
-const CACHE_NAME = 'controle-ponto-v2';
+const CACHE_NAME = 'controle-ponto-v3';
 const CACHE_ASSETS = [
     'index-refatorado.html',
     'styles.css',
     'utils.js',
+    'icons.js',
     'notifications.js',
-    'loading.js',
-    'keyboard.js',
     'dateUtils.js',
     'validators.js',
     'storage.js',
@@ -18,6 +17,11 @@ const CACHE_ASSETS = [
     'pagination.js',
     'cache.js',
     'validation-realtime.js',
+    'charts.js',
+    'pwa.js',
+    'atividades-tabela.js',
+    'atividades-kanban.js',
+    'firebase-init.js',
     'app-refatorado.js'
 ];
 
@@ -164,15 +168,16 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// Função auxiliar de sincronização
+// Função auxiliar de sincronização — lê dados pendentes do localStorage e envia ao Firestore
 async function syncData() {
     try {
-        // Aqui você pode sincronizar dados pendentes com um servidor
-        console.log('[SW] Sincronizando dados...');
-        // Implementar lógica de sincronização conforme necessário
+        // Notificar todos os clientes (abas) para que tentem sincronizar via FirebaseSync
+        const allClients = await self.clients.matchAll({ type: 'window' });
+        for (const client of allClients) {
+            client.postMessage({ type: 'SYNC_REQUEST' });
+        }
         return Promise.resolve();
     } catch (error) {
-        console.error('[SW] Erro na sincronização:', error);
         return Promise.reject(error);
     }
 }

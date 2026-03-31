@@ -370,15 +370,30 @@ html[data-theme="dark"] {
 :root { --border-radius-base: 8px; }
 .card, .activity-card { border-radius: var(--border-radius-base); }
 
-/* Focus visible for accessibility */
+/* Screen reader only — oculto visualmente mas acessível */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus visible for accessibility — outline como fallback seguro */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: none;
+    outline: 2px solid var(--focus-ring-strong, rgba(99,102,241,0.5));
+    outline-offset: 2px;
     box-shadow: 0 0 0 3px var(--focus-ring);
     border-radius: 8px;
 }
 
 .btn-icon:focus-visible {
-    outline: none;
+    outline: 2px solid var(--focus-ring-strong, rgba(99,102,241,0.5));
+    outline-offset: 2px;
     box-shadow: 0 0 0 3px var(--focus-ring);
 }
 

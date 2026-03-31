@@ -1,6 +1,7 @@
 /**
  * storage.js - Persistência com Firestore como fonte primária
  * localStorage serve apenas como cache offline / fallback de leitura
+ * Inclui controle de conflitos via updatedAt e fila de saves
  */
 
 const STORAGE_KEY = 'controle_ponto_avancado_v1';
@@ -8,6 +9,7 @@ const STORAGE_KEY = 'controle_ponto_avancado_v1';
 const Storage = {
     _saveTimer: null,
     _saving: false,
+    _pendingSave: null,   // fila: guarda o último dado pendente enquanto um save está em curso
 
     /**
      * Dados padrão/esquema
@@ -33,7 +35,8 @@ const Storage = {
             { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
             { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
             { id: 'outro', nome: 'Outro', cor: '#64748b' }
-        ]
+        ],
+        updatedAt: 0
     },
 
     // ──────────────────────────────────────────────
@@ -49,8 +52,9 @@ const Storage = {
             if (window.FirebaseSync && typeof window.FirebaseSync.loadFromFirestore === 'function') {
                 const cloud = await window.FirebaseSync.loadFromFirestore();
                 if (cloud && this.isValidDataStructure(cloud)) {
+                    // Atualizar cache local
                     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cloud)); } catch(_){}
-                    return this._ensureTiposEvento(cloud);
+                    return this._ensureDefaults(cloud);
                 }
             }
         } catch (_) { /* Firestore indisponível — fallback local */ }
@@ -70,36 +74,41 @@ const Storage = {
             if (!raw) return this.getDefaultData();
             const parsed = JSON.parse(raw);
             if (!this.isValidDataStructure(parsed)) return this.getDefaultData();
-            return this._ensureTiposEvento(parsed);
+            return this._ensureDefaults(parsed);
         } catch (_) {
             return this.getDefaultData();
         }
     },
 
-    _ensureTiposEvento(dados) {
+    _ensureDefaults(dados) {
         if (!dados.tiposEvento || !Array.isArray(dados.tiposEvento)) {
             dados.tiposEvento = JSON.parse(JSON.stringify(this.DEFAULT_DATA.tiposEvento));
         }
+        if (!dados.updatedAt) dados.updatedAt = 0;
         return dados;
     },
 
     // ──────────────────────────────────────────────
     //  SAVE — Firestore (primário) + localStorage (cache)
+    //  Com controle de conflitos (updatedAt) e fila de saves
     // ──────────────────────────────────────────────
 
     /**
      * Salva dados no Firestore E no localStorage.
-     * Não exige checagem de admin aqui — Firestore rules cuidam disso.
+     * Adiciona timestamp updatedAt automaticamente.
      */
     save(dados) {
         try {
             if (!this.isValidDataStructure(dados)) return false;
 
+            // Marcar timestamp de atualização
+            dados.updatedAt = Date.now();
+
             // Cache local (síncrono)
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); } catch(_){}
 
-            // Firestore (assíncrono, não bloqueia UI)
-            this._saveToFirestoreAsync(dados);
+            // Firestore (assíncrono com fila)
+            this._enqueueFirestoreSave(dados);
 
             return true;
         } catch (_) {
@@ -107,13 +116,31 @@ const Storage = {
         }
     },
 
-    _saveToFirestoreAsync(dados) {
+    /**
+     * Fila de saves: se um save está em curso, guarda o mais recente
+     * e dispara quando o anterior terminar. Nunca descarta o último save.
+     */
+    _enqueueFirestoreSave(dados) {
         if (!window.FirebaseSync || typeof window.FirebaseSync.saveToFirestore !== 'function') return;
-        if (this._saving) return;
+
+        if (this._saving) {
+            // Já há um save em curso — guardar este como pendente (substitui anterior pendente)
+            this._pendingSave = JSON.parse(JSON.stringify(dados));
+            return;
+        }
+
         this._saving = true;
         window.FirebaseSync.saveToFirestore(dados)
             .catch(_ => {})
-            .finally(() => { this._saving = false; });
+            .finally(() => {
+                this._saving = false;
+                // Se acumulou um save pendente, disparar agora
+                if (this._pendingSave) {
+                    const pending = this._pendingSave;
+                    this._pendingSave = null;
+                    this._enqueueFirestoreSave(pending);
+                }
+            });
     },
 
     /**

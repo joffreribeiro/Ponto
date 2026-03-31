@@ -24,7 +24,7 @@
 <body>
     <header class="topbar" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px 12px;border-bottom:1px solid var(--border);">
         <div style="font-weight:700;font-size:22px;">Controle de Atividades</div>
-        <div style="font-weight:500;font-size:14px;color:#ffffff;">Joffre Mozart Parada Ribeiro</div>
+        <div id="headerUserName" style="font-weight:500;font-size:14px;color:#ffffff;"></div>
     </header>
     <!-- Controles de autenticação (login/logout) -->
     <div id="authControls" style="display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);">
@@ -41,8 +41,8 @@
             <h3>Acesso Administrador</h3>
             <p class="sub">Faça login para editar dados</p>
             <div style="margin-top:6px">
-                <div class="login-field"><input id="loginEmail" type="email" placeholder="Email" /></div>
-                <div class="login-field"><input id="loginPassword" type="password" placeholder="Senha" /></div>
+                <div class="login-field"><label for="loginEmail" class="sr-only">Email</label><input id="loginEmail" type="email" placeholder="Email" aria-label="Email" /></div>
+                <div class="login-field"><label for="loginPassword" class="sr-only">Senha</label><input id="loginPassword" type="password" placeholder="Senha" aria-label="Senha" /></div>
                 <div class="login-actions">
                     <button id="loginBtn" type="button" class="btn-primary login">Entrar</button>
                 </div>
@@ -315,45 +315,45 @@
 
                 <div style="margin-top:12px;">
                     <div class="advanced-filters-grid" style="width:100%;">
-                        <input id="topFiltroBusca" placeholder="Buscar (texto em qualquer coluna)">
-                        <select id="topFiltroStatusCol">
+                        <input id="topFiltroBusca" placeholder="Buscar (texto em qualquer coluna)" aria-label="Buscar texto em qualquer coluna">
+                        <select id="topFiltroStatusCol" aria-label="Filtrar por status">
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
                             <option value="em andamento">Em andamento</option>
                             <option value="concluida">Concluída</option>
                             <option value="bloqueada">Bloqueada</option>
                         </select>
-                        <select id="topFiltroPrioridade">
+                        <select id="topFiltroPrioridade" aria-label="Filtrar por prioridade">
                             <option value="">Todas prioridades</option>
                             <option value="baixa">Baixa</option>
                             <option value="media">Média</option>
                             <option value="alta">Alta</option>
                             <option value="critica">Crítica</option>
                         </select>
-                        <input id="topFiltroResponsavel" placeholder="Responsável">
-                        <select id="topFiltroOrdem">
+                        <input id="topFiltroResponsavel" placeholder="Responsável" aria-label="Filtrar por responsável">
+                        <select id="topFiltroOrdem" aria-label="Ordenar por">
                             <option value="prioridade">Prioridade</option>
                             <option value="prazo">Prazo</option>
                             <option value="criadoEm">Criado</option>
                         </select>
-                        <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)">
-                        <input id="topFiltroTedPtrab" placeholder="TED/Ptrab">
-                        <input id="topFiltroObjeto" placeholder="Objeto">
-                        <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal">
-                        <input id="topFiltroAssunto" placeholder="Assunto">
-                        <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação">
-                        <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)">
-                        <input id="topFiltroDataAte" placeholder="Data Até (DD/MM/AAAA)">
-                        <input id="topFiltroTipoDoc" placeholder="Tipo Doc">
-                        <input id="topFiltroNumeroDoc" placeholder="Nº Doc.">
-                        <input id="topFiltroRemetente" placeholder="Remetente">
-                        <input id="topFiltroDestinatario" placeholder="Destinatário">
-                        <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar">
-                        <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)">
-                        <input id="topFiltroPrazoAte" placeholder="Prazo Até (DD/MM/AAAA)">
-                        <input id="topFiltroDias" placeholder="Dias">
-                        <input id="topFiltroObservacoes" placeholder="Observações">
-                        <select id="topFiltroFinalizado"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+                        <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" aria-label="Ordem de referência">
+                        <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" aria-label="Filtrar por TED ou Ptrab">
+                        <input id="topFiltroObjeto" placeholder="Objeto" aria-label="Filtrar por objeto">
+                        <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal" aria-label="Filtrar por processo principal">
+                        <input id="topFiltroAssunto" placeholder="Assunto" aria-label="Filtrar por assunto">
+                        <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação" aria-label="Filtrar por processo de solicitação">
+                        <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)" aria-label="Data inicial do filtro">
+                        <input id="topFiltroDataAte" placeholder="Data Até (DD/MM/AAAA)" aria-label="Data final do filtro">
+                        <input id="topFiltroTipoDoc" placeholder="Tipo Doc" aria-label="Filtrar por tipo de documento">
+                        <input id="topFiltroNumeroDoc" placeholder="Nº Doc." aria-label="Filtrar por número do documento">
+                        <input id="topFiltroRemetente" placeholder="Remetente" aria-label="Filtrar por remetente">
+                        <input id="topFiltroDestinatario" placeholder="Destinatário" aria-label="Filtrar por destinatário">
+                        <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar" aria-label="Filtrar por ação a realizar">
+                        <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)" aria-label="Data inicial do prazo">
+                        <input id="topFiltroPrazoAte" placeholder="Prazo Até (DD/MM/AAAA)" aria-label="Data final do prazo">
+                        <input id="topFiltroDias" placeholder="Dias" aria-label="Filtrar por dias até prazo">
+                        <input id="topFiltroObservacoes" placeholder="Observações" aria-label="Filtrar por observações">
+                        <select id="topFiltroFinalizado" aria-label="Filtrar por finalizado"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
                         <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content:flex-end;">
                             <button id="topBtnLimparFiltros" class="btn btn-secondary">Limpar filtros</button>
                         </div>
@@ -1073,10 +1073,30 @@
                 </div>
             </div>
         </div>
-<!-- Chart.js CDN - carregar antes de charts.js local -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- SheetJS (XLSX) para exportar/importar Excel -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<!-- Chart.js e SheetJS carregados sob demanda para melhor performance -->
+<script>
+// Lazy-load CDNs: só carrega quando necessário
+window._loadChartJS = function() {
+    return new Promise(function(resolve) {
+        if (window.Chart) return resolve(window.Chart);
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        s.onload = function() { resolve(window.Chart); };
+        s.onerror = function() { resolve(null); };
+        document.head.appendChild(s);
+    });
+};
+window._loadXLSX = function() {
+    return new Promise(function(resolve) {
+        if (window.XLSX) return resolve(window.XLSX);
+        var s = document.createElement('script');
+        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+        s.onload = function() { resolve(window.XLSX); };
+        s.onerror = function() { resolve(null); };
+        document.head.appendChild(s);
+    });
+};
+</script>
 <script src="utils.js?v=1.2.0"></script>
 <script src="icons.js?v=1.0.0"></script>
 <script src="notifications.js?v=1.2.0"></script>

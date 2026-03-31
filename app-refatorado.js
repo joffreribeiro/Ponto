@@ -500,6 +500,19 @@ function inicializar() {
                 });
             }
         } catch (e) { console.error('Erro ao configurar delegação de ações:', e); }
+
+        // ── Listener para mensagem SYNC_REQUEST do Service Worker (background sync) ──
+        try {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.addEventListener('message', function(event) {
+                    if (event.data && event.data.type === 'SYNC_REQUEST') {
+                        console.info('[SW] SYNC_REQUEST recebido — salvando dados na nuvem');
+                        try { Storage.save(AppState.dados); } catch(_){}
+                    }
+                });
+            }
+        } catch(e) { /* ignore */ }
+
         console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
@@ -1909,6 +1922,9 @@ function setupAuthUI() {
 
     function setUnauthUI() {
         if (authStatus) authStatus.textContent = 'Não autenticado';
+        // Limpar nome dinâmico no header
+        const headerName = document.getElementById('headerUserName');
+        if (headerName) headerName.textContent = '';
         if (loginForm) loginForm.style.display = 'none';
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = '';
@@ -1917,7 +1933,11 @@ function setupAuthUI() {
 
     function setAuthUI(user) {
         if (!authStatus) return;
-        authStatus.textContent = user.email || ('Anon: ' + (user.uid ? user.uid.substr(0,6) : '—'));
+        const displayName = user.displayName || user.email || ('Anon: ' + (user.uid ? user.uid.substr(0,6) : '—'));
+        authStatus.textContent = displayName;
+        // Atualizar nome dinâmico no header
+        const headerName = document.getElementById('headerUserName');
+        if (headerName) headerName.textContent = displayName;
         if (loginForm) loginForm.style.display = 'none';
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = 'none';
@@ -6581,12 +6601,17 @@ function exportarRegistrosCSV() {
     }
 }
 
-function importarRegistrosCSV(event) {
+async function importarRegistrosCSV(event) {
     try {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
         console.log('Arquivo selecionado:', file.name, 'tipo:', file.type);
+
+        // Lazy-load SheetJS sob demanda para arquivos Excel
+        if ((file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) && typeof XLSX === 'undefined' && typeof window._loadXLSX === 'function') {
+            await window._loadXLSX();
+        }
 
         const reader = new FileReader();
         
@@ -7463,8 +7488,12 @@ function toggleAnalytics() {
     }
 }
 
-function renderAnalytics() {
+async function renderAnalytics() {
     try {
+        // Lazy-load Chart.js sob demanda
+        if (typeof Chart === 'undefined' && typeof window._loadChartJS === 'function') {
+            await window._loadChartJS();
+        }
         if (typeof Chart === 'undefined') {
             Notifications.warning('Chart.js não foi carregado. Recarregue a página.');
             return;
@@ -7818,9 +7847,14 @@ window.reconstruirSubperiodosFaltantes = reconstruirSubperiodosFaltantes;
 /**
  * Exportar atividades para Excel com TODOS os dados
  */
-function exportarAtividadesExcel() {
+async function exportarAtividadesExcel() {
     try {
         const atividades = AppState.dados.atividades || [];
+
+        // Lazy-load SheetJS sob demanda
+        if (typeof window.XLSX === 'undefined' && typeof window._loadXLSX === 'function') {
+            await window._loadXLSX();
+        }
 
         // If SheetJS (XLSX) is not available, fallback to CSV download
         if (typeof window.XLSX === 'undefined') {
@@ -8058,10 +8092,15 @@ function importarAtividadesExcel() {
 /**
  * Processar arquivo Excel importado
  */
-function procesarArquivoAtividadesExcel(event) {
+async function procesarArquivoAtividadesExcel(event) {
     try {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Lazy-load SheetJS sob demanda
+        if (typeof XLSX === 'undefined' && typeof window._loadXLSX === 'function') {
+            await window._loadXLSX();
+        }
         
         const reader = new FileReader();
         reader.onload = (e) => {
