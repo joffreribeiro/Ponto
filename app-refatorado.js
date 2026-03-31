@@ -1693,14 +1693,9 @@ function abrirModalSolicitarFerias(periodoIndex, subIndex) {
         }
 
         const proximoPeriodo = comFerias.length + 1;
-        if (_modalFeriasSubIndex && _modalFeriasSubIndex !== proximoPeriodo) {
-            ocultarModalFerias(modal);
-            mostrarAlertaGlobal(`Libere primeiro o ${proximoPeriodo}º período deste período aquisitivo.`, 'warning');
-            return;
-        }
-        _modalFeriasSubIndex = proximoPeriodo;
+        _modalFeriasSubIndex = _modalFeriasSubIndex || proximoPeriodo;
         const elProximo = document.getElementById('modalFeriasProximoPeriodo');
-        if (elProximo) elProximo.textContent = `${proximoPeriodo}º Período`;
+        if (elProximo) elProximo.textContent = `${_modalFeriasSubIndex}º Período`;
 
         const selectPeriodo = document.getElementById('modalFeriasPeriodoSelect');
         if (selectPeriodo) selectPeriodo.style.display = 'none';
@@ -1799,6 +1794,14 @@ function confirmarSolicitacaoFerias() {
         
         // Contar subperíodos já com férias preenchidas
         const subComFerias = grupo.filter(p => p.feriasInicio && p.feriasFim);
+        const subIndexDesejado = _modalFeriasSubIndex || (subComFerias.length + 1);
+        for (let esperado = 1; esperado < subIndexDesejado; esperado++) {
+            const anterior = grupo.find(p => Number(p.subIndex) === esperado && p.feriasInicio && p.feriasFim);
+            if (!anterior) {
+                mostrarAlertaGlobal(`Libere primeiro o ${esperado}º período deste período aquisitivo.`, 'warning');
+                return;
+            }
+        }
         const entitlement = (AppState.dados && AppState.dados.configuracoes && Number(AppState.dados.configuracoes.feriasDias) > 0) 
             ? Number(AppState.dados.configuracoes.feriasDias) : 30;
         
@@ -1823,7 +1826,6 @@ function confirmarSolicitacaoFerias() {
         }
         
         // Verificar se há um registro vazio (sem férias) que pode ser preenchido
-        const subIndexDesejado = _modalFeriasSubIndex || (subComFerias.length + 1);
         const registroVazio = grupo.find(p => Number(p.subIndex) === Number(subIndexDesejado) && !p.feriasInicio && !p.feriasFim);
         
         let targetPeriodo;
