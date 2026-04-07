@@ -5150,21 +5150,19 @@ function gerarTimesheetAcordo() {
             const tdSaldoAcumuladoMes = document.createElement('td');
             tdSaldoAcumuladoMes.className = 'col-saldo-acumulado';
 
-            // Vertical label
-            const saldoDivVert = document.createElement('div');
-            saldoDivVert.className = 'saldo-vertical-text';
-            const labelSpan = document.createElement('span');
-            labelSpan.textContent = 'Saldo Acumulado';
-            saldoDivVert.appendChild(labelSpan);
-            tdSaldoAcumuladoMes.appendChild(saldoDivVert);
-
-            // Numeric value centered below the vertical label
+            // Mostrar apenas o valor numérico aqui; o rótulo vertical já existe na coluna fixa.
             const valDiv = document.createElement('div');
             valDiv.className = 'saldo-acumulado-valor';
             valDiv.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
             if (saldoAcumuladoMes > 0) valDiv.classList.add('saldo-positivo');
             if (saldoAcumuladoMes < 0) valDiv.classList.add('saldo-negativo');
             tdSaldoAcumuladoMes.appendChild(valDiv);
+
+            // Rótulo acessível (visualmente oculto) para leitores de tela
+            const sr = document.createElement('span');
+            sr.className = 'sr-only';
+            sr.textContent = 'Saldo Acumulado: ' + DateUtils.minutesToTime(saldoAcumuladoMes);
+            tdSaldoAcumuladoMes.appendChild(sr);
 
             trSaldoMes.appendChild(tdSaldoAcumuladoMes);
 
