@@ -3062,11 +3062,20 @@ textarea {
 
 .saldo-acumulado-valor {
     display: block;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
     text-align: center;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 8px;
     width: 100%;
+}
+
+/* Na linha SALDO MÊS, a célula de saldo acumulado deve ser horizontal */
+.row-saldo-mes .col-saldo-acumulado {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    vertical-align: middle;
 }
 
 /* ================================================
