@@ -28,7 +28,7 @@ const Charts = {
     /**
      * Cria gráfico de horas trabalhadas (linha)
      */
-    createHoursChart(canvasId, registros) {
+    createHoursChart(canvasId, registros, opts = {}) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
 
@@ -169,10 +169,34 @@ const Charts = {
         if (!canvas) return null;
 
         // Contar por tipo
-        const counts = {};
-        eventos.forEach(evt => {
-            counts[evt.tipoEvento] = (counts[evt.tipoEvento] || 0) + 1;
+        const labels = Object.keys(byMonth).sort();
+        const data = labels.map(m => byMonth[m].toFixed(1));
+
+        // Calculate monthly target(s)
+        const horasDiarias = (opts && typeof opts.horasDiarias === 'number') ? opts.horasDiarias : 8;
+        const providedMeta = (opts && typeof opts.metaMensal === 'number') ? opts.metaMensal : null;
+        const monthlyTargets = labels.map(m => {
+            try {
+                if (providedMeta !== null) return providedMeta;
+                const [yy, mm] = m.split('-');
+                const y = Number(yy);
+                const mo = Number(mm) - 1;
+                const last = new Date(y, mo + 1, 0).getDate();
+                let businessDays = 0;
+                for (let d = 1; d <= last; d++) {
+                    const dt = new Date(y, mo, d);
+                    if (typeof DateUtils !== 'undefined' && typeof DateUtils.isBusinessDay === 'function') {
+                        if (DateUtils.isBusinessDay(dt)) businessDays++;
+                    } else {
+                        const dow = dt.getDay();
+                        if (dow !== 0 && dow !== 6) businessDays++;
+                    }
+                }
+                return horasDiarias * businessDays;
+            } catch (e) { return providedMeta || 176; }
         });
+
+        const cfg = {
 
         const labels = Object.keys(counts);
         const data = Object.values(counts);
@@ -216,53 +240,48 @@ const Charts = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Distribuição de Eventos',
-                        font: {
-                            size: 16,
-                            weight: 'bold'
-                        }
-                    },
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: {
-                                size: 13,
-                                weight: '600'
-                            },
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        borderColor: '#ffffff',
-                        borderWidth: 2,
-                        displayColors: true,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return ` ${context.label}: ${context.parsed} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                cutout: '65%'
-            }
-        });
-    },
+        };
 
+        // Add fallback 'Meta Mensal' dataset (dashed red). If an annotation plugin exists, try to add it too.
+        try {
+            // add second dataset for monthly target values
+            cfg.data.datasets.push({
+                label: 'Meta Mensal',
+                data: monthlyTargets.map(v => Number(v.toFixed(1))),
+                borderColor: '#ef4444',
+                borderDash: [6,6],
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                tension: 0,
+                yAxisID: 'y'
+            });
+
+            // Attempt to add an annotation if plugin is available
+            try {
+                if (typeof Chart !== 'undefined' && Chart.registry && typeof Chart.registry.get === 'function' && Chart.registry.get('annotation')) {
+                    // annotation plugin detected — add a simple horizontal annotation for the last computed target
+                    const lastTarget = monthlyTargets.length ? monthlyTargets[monthlyTargets.length - 1] : (providedMeta || 176);
+                    cfg.options.plugins.annotation = cfg.options.plugins.annotation || {};
+                    cfg.options.plugins.annotation.annotations = cfg.options.plugins.annotation.annotations || {};
+                    cfg.options.plugins.annotation.annotations.metaMensal = {
+                        type: 'line',
+                        yMin: lastTarget,
+                        yMax: lastTarget,
+                        borderColor: '#ef4444',
+                        borderDash: [6,6],
+                        borderWidth: 2,
+                        label: {
+                            content: 'Meta Mensal',
+                            enabled: true,
+                            position: 'end'
+                        }
+                    };
+                }
+            } catch (e) { /* ignore annotation errors */ }
+        } catch (e) { console.warn('Erro ao adicionar meta mensal ao gráfico:', e); }
+
+        return this.createChart(canvasId, cfg);
     /**
      * Cria gráfico de heatmap semanal
      */
@@ -391,14 +410,59 @@ const Charts = {
     /**
      * Exporta gráfico como imagem
      */
-    exportAsImage(canvasId, filename = 'grafico.png') {
+    exportAsImage(canvasId, filename) {
         const chart = this.instances[canvasId];
         if (!chart) return;
 
+        // Determine chart title (if any) to compose filename
+        let titleText = '';
+        try {
+            const t = chart.options && chart.options.plugins && chart.options.plugins.title;
+            if (t) {
+                if (typeof t.text === 'string') titleText = t.text;
+                else if (Array.isArray(t.text)) titleText = t.text.join(' ');
+                else if (typeof t.text === 'function') {
+                    try { titleText = t.text(); } catch(e) { titleText = ''; }
+                }
+            }
+            if (!titleText && chart.data && chart.data.datasets && chart.data.datasets[0]) {
+                titleText = chart.data.datasets[0].label || '';
+            }
+        } catch (e) { titleText = ''; }
+        titleText = String(titleText || '').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '');
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${d}`;
+        const defaultName = `grafico${titleText ? '_' + titleText : ''}_${dateStr}.png`;
+
+        const outName = filename || defaultName;
+
+        // Temporarily ensure title is displayed for export
+        let prevTitleDisplay;
+        try {
+            if (chart.options && chart.options.plugins && chart.options.plugins.title) {
+                prevTitleDisplay = chart.options.plugins.title.display;
+                chart.options.plugins.title.display = true;
+                try { chart.update(); } catch(e) { /* ignore */ }
+            }
+        } catch (e) { /* ignore */ }
+
         const url = chart.toBase64Image();
+
+        // restore title display state
+        try {
+            if (typeof prevTitleDisplay !== 'undefined' && chart.options && chart.options.plugins && chart.options.plugins.title) {
+                chart.options.plugins.title.display = prevTitleDisplay;
+                try { chart.update(); } catch(e) { /* ignore */ }
+            }
+        } catch (e) { /* ignore */ }
+
         const link = document.createElement('a');
         link.href = url;
-        link.download = filename;
+        link.download = outName;
         link.click();
     }
 };

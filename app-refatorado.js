@@ -817,21 +817,24 @@ function inicializar() {
 // ========== UI Preferences: compact mode + theme selector ==========
 function initUiPreferences() {
     try {
-        // Compact mode: store key 'ui_density' = 'compact'|'normal'
+        // Density modes: 'compact' | 'normal' | 'comfortable'
         const density = localStorage.getItem('ui_density') || 'normal';
-        if (density === 'compact') document.documentElement.setAttribute('data-density', 'compact');
-        else document.documentElement.removeAttribute('data-density');
+        // explicitly set attribute so CSS rules can target all three states
+        document.documentElement.setAttribute('data-density', density);
 
         const btn = document.getElementById('btnToggleCompact');
         if (btn) {
+            // reflect current label
+            btn.textContent = (density === 'compact') ? 'Compacto' : (density === 'comfortable' ? 'Confortável' : 'Normal');
             btn.addEventListener('click', () => {
-                const cur = document.documentElement.getAttribute('data-density') === 'compact' ? 'compact' : 'normal';
-                const next = (cur === 'compact') ? 'normal' : 'compact';
-                if (next === 'compact') document.documentElement.setAttribute('data-density', 'compact');
-                else document.documentElement.removeAttribute('data-density');
+                const states = ['compact', 'normal', 'comfortable'];
+                const cur = document.documentElement.getAttribute('data-density') || 'normal';
+                const idx = Math.max(0, states.indexOf(cur));
+                const next = states[(idx + 1) % states.length];
+                document.documentElement.setAttribute('data-density', next);
                 localStorage.setItem('ui_density', next);
-                // small feedback
-                Notifications.info('Modo compacto: ' + (next === 'compact' ? 'Ativado' : 'Desativado'), 1500);
+                btn.textContent = (next === 'compact') ? 'Compacto' : (next === 'comfortable' ? 'Confortável' : 'Normal');
+                Notifications.info('Densidade: ' + (next === 'compact' ? 'Compacto' : (next === 'comfortable' ? 'Confortável' : 'Normal')), 1400);
             });
         }
 
@@ -978,6 +981,7 @@ window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
 function renderizarAtividades() {
     const container = document.getElementById('atividadesLista');
     try { console.debug('renderizarAtividades: AppState.dados.atividades length =', (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.length : 'no-data'); } catch(e){}
+    try { showSkeleton('atividadesLista', 4); } catch(_){ }
     // Acessos defensivos: aceitar os IDs antigos (filtroAtividades*) ou os novos topFiltro*
     const statusEl = document.getElementById('filtroAtividadesStatus') || document.getElementById('topFiltroStatusCol');
     const statusFiltro = statusEl ? (statusEl.value || '') : '';
@@ -1092,6 +1096,7 @@ function renderizarAtividades() {
         `;
     }).join('');
 
+    try { hideSkeleton('atividadesLista'); } catch(_){ }
     container.innerHTML = rows;
 
     // Renderizar kanban se existir (não altera visibilidade - isso é controlado pelos botões de toggle)
@@ -2256,6 +2261,8 @@ function toggleAtividadesKanban() {
     if (kanban) kanban.style.display = 'block';
     if (tabela) tabela.style.display = 'none';
     if (cards) cards.style.display = 'none';
+    try { showSkeleton('atividadesLista', 4); } catch(_){ }
+    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2268,6 +2275,8 @@ function toggleAtividadesTable() {
     if (tabela) tabela.style.display = 'block';
     if (kanban) kanban.style.display = 'none';
     if (cards) cards.style.display = 'none';
+    try { showSkeleton('atividadesLista', 4); } catch(_){ }
+    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2280,6 +2289,8 @@ function toggleAtividadesCards() {
     if (cards) cards.style.display = 'block';
     if (tabela) tabela.style.display = 'none';
     if (kanban) kanban.style.display = 'none';
+    try { showSkeleton('atividadesLista', 4); } catch(_){ }
+    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2734,12 +2745,30 @@ function configurarAbas() {
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const alvo = btn.dataset.tab;
+            // If navigating away from dashboard, destroy charts to free memory
+            try {
+                const prevBtn = document.querySelector('.tab-btn.active');
+                const prevTab = prevBtn ? prevBtn.dataset.tab : null;
+                if (prevTab === 'dashboard' && alvo !== 'dashboard' && window.Charts && typeof Charts.destroyAll === 'function') {
+                    try { Charts.destroyAll(); } catch (ee) { /* ignore */ }
+                }
+            } catch (e) { /* ignore */ }
+
             tabBtns.forEach(b => b.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
 
             btn.classList.add('active');
             const sec = document.getElementById(alvo);
             if (sec) sec.classList.add('active');
+            // If we opened the dashboard, (re)render analytics only if the section is visible
+            if (alvo === 'dashboard') {
+                try {
+                    const analyticsSection = document.getElementById('analyticsSection');
+                    if (!analyticsSection || analyticsSection.style.display !== 'none') {
+                        if (typeof renderAnalytics === 'function') renderAnalytics();
+                    }
+                } catch (err) { console.warn('Erro ao renderizar analytics ao abrir dashboard:', err); }
+            }
         });
     });
 }
@@ -2830,6 +2859,8 @@ function configurarModalEvento() {
             try {
                 if (!valorData) return;
                 if (!Array.isArray(AppState.dados.acordos) || AppState.dados.acordos.length === 0) return;
+                // respect manual override: if user already selected an acordo, do not overwrite
+                if (acordoSelect && acordoSelect._userSelected) return;
                 const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, valorData);
                 if (!acordoObj) return;
                 const idx = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
@@ -2844,6 +2875,12 @@ function configurarModalEvento() {
         if (fimEl && !fimEl._acordoListener) {
             fimEl.addEventListener('change', function(ev){ aplicarAcordoPorData(this.value); });
             fimEl._acordoListener = true;
+        }
+
+        // allow manual override: mark when user explicitly selects an acordo
+        if (acordoSelect && !acordoSelect._userListener) {
+            acordoSelect.addEventListener('change', function() { this._userSelected = true; });
+            acordoSelect._userListener = true;
         }
     } catch(e) { console.warn('Não foi possível anexar auto-fill de acordo no modalEvento:', e); }
 }
@@ -5112,9 +5149,23 @@ function gerarTimesheetAcordo() {
 
             const tdSaldoAcumuladoMes = document.createElement('td');
             tdSaldoAcumuladoMes.className = 'col-saldo-acumulado';
-            tdSaldoAcumuladoMes.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
-            if (saldoAcumuladoMes > 0) tdSaldoAcumuladoMes.classList.add('saldo-positivo');
-            if (saldoAcumuladoMes < 0) tdSaldoAcumuladoMes.classList.add('saldo-negativo');
+
+            // Vertical label
+            const saldoDivVert = document.createElement('div');
+            saldoDivVert.className = 'saldo-vertical-text';
+            const labelSpan = document.createElement('span');
+            labelSpan.textContent = 'Saldo Acumulado';
+            saldoDivVert.appendChild(labelSpan);
+            tdSaldoAcumuladoMes.appendChild(saldoDivVert);
+
+            // Numeric value centered below the vertical label
+            const valDiv = document.createElement('div');
+            valDiv.className = 'saldo-acumulado-valor';
+            valDiv.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
+            if (saldoAcumuladoMes > 0) valDiv.classList.add('saldo-positivo');
+            if (saldoAcumuladoMes < 0) valDiv.classList.add('saldo-negativo');
+            tdSaldoAcumuladoMes.appendChild(valDiv);
+
             trSaldoMes.appendChild(tdSaldoAcumuladoMes);
 
             tbody.appendChild(trSaldoMes);

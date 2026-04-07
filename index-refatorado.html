@@ -26,17 +26,19 @@
                 <button id="btnCarregarNuvem" type="button" class="btn-cloud btn-cloud--load" title="Carregar dados da nuvem">☁️ <span class="btn-cloud-label">Carregar</span></button>
             </div>
             <div id="syncStatus" class="sync-status" style="display:none;">Cloud: sem sync</div>
-            <div id="uiControls" class="topbar-ui-controls">
-                <button id="btnToggleCompact" type="button" class="btn-header" title="Modo compacto">Compacto</button>
-                <select id="selectTheme" class="btn-header" title="Tema visual">
-                    <option value="default">Tema</option>
-                    <option value="pastel">Pastel</option>
-                    <option value="contrast">Alto Contraste</option>
-                </select>
+            <div class="topbar-actions">
+                <div id="uiControls" class="topbar-ui-controls">
+                    <button id="btnToggleCompact" type="button" class="btn-header" title="Modo compacto">Compacto</button>
+                    <select id="selectTheme" class="btn-header" title="Tema visual">
+                        <option value="default">Tema</option>
+                        <option value="pastel">Pastel</option>
+                        <option value="contrast">Alto Contraste</option>
+                    </select>
+                </div>
+                <div id="authStatus" class="topbar-auth-status"></div>
+                <button id="loginToggle" type="button" class="btn-header" style="display:none;">Login</button>
+                <button id="logoutTopBtn" type="button" class="btn-header btn-header--danger" style="display:none;">Sair</button>
             </div>
-            <div id="authStatus" class="topbar-auth-status"></div>
-            <button id="loginToggle" type="button" class="btn-header" style="display:none;">Login</button>
-            <button id="logoutTopBtn" type="button" class="btn-header btn-header--danger" style="display:none;">Sair</button>
         </div>
     </header>
 

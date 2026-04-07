@@ -1,16 +1,20 @@
 /* Cores para linhas da tabela de atividades conforme prazo/status
    Usamos as mesmas tonalidades/token do Timesheet para consistência */
-.linha-verde {
-    background: var(--positive-soft, #dcfce7) !important;
-    color: var(--text-main) !important;
+.linha-verde > td:first-child {
+    border-left: 4px solid var(--positive-soft, #dcfce7);
+    padding-left: 8px;
 }
-.linha-amarelo {
-    background: var(--warning-soft, #fed7aa) !important;
-    color: var(--text-main) !important;
+.linha-amarelo > td:first-child {
+    border-left: 4px solid var(--warning-soft, #fed7aa);
+    padding-left: 8px;
 }
-.linha-vermelho {
-    background: var(--negative-soft, #fee2e2) !important;
-    color: var(--text-main) !important;
+.linha-vermelho > td:first-child {
+    border-left: 4px solid var(--negative-soft, #fee2e2);
+    padding-left: 8px;
+}
+.linha-cinza > td:first-child {
+    border-left: 4px solid #BFBFBF;
+    padding-left: 8px;
 }
 .linha-cinza {
     /* Use o mesmo tom de fim-de-semana/tabela do timesheet para consistência visual */
@@ -275,7 +279,8 @@ html[data-theme="dark"] {
     --secondary: #94a3b8;
     --secondary-soft: #0b1220;
     --text-main: #e6eef8;
-    --text-muted: #94a3b8;
+    --text-muted: #a8bdd4;
+    --text-light: #8fa8be;
     --border-soft: #0f1724;
     --border-table: #0b1220;
     --positive: #34d399;
@@ -515,6 +520,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     font-size: 28px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.topbar-actions::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,0.2);
+    margin: 0 6px;
+}
 .topbar-title {
     font-weight: 700;
     font-size: 20px;
@@ -714,6 +732,27 @@ html[data-density="compact"] .btn-header {
 }
 html[data-density="compact"] .toast {
     padding: 8px 10px;
+}
+
+/* ========== Comfortable Mode (densidade espaçosa) ========== */
+html[data-density="comfortable"] .table-container tbody td,
+html[data-density="comfortable"] #tabelaEventos tbody td {
+    padding: 10px 12px;
+    font-size: 14px;
+}
+html[data-density="comfortable"] .table-container thead th {
+    padding: 12px 12px;
+    font-size: 14px;
+}
+html[data-density="comfortable"] .table-container tbody tr {
+    min-height: 42px;
+}
+html[data-density="comfortable"] .btn-primary,
+html[data-density="comfortable"] .btn-secondary,
+html[data-density="comfortable"] .btn-cloud,
+html[data-density="comfortable"] .btn-header {
+    padding: 10px 14px;
+    font-size: 14px;
 }
 
 /* ========== Toast undo button ========== */
@@ -2675,6 +2714,23 @@ textarea {
     margin-top: 6px;
 }
 
+/* Mobile adjustments for registro modal (<= 600px) */
+@media (max-width: 600px) {
+    #modalRegistro .modal-body {
+        grid-template-columns: 1fr !important;
+        gap: 8px 8px;
+        padding: 10px 12px;
+    }
+    #modalRegistro .modal-content { max-width: 98vw !important; }
+    #modalRegistro input[type="time"],
+    #modalRegistro input[type="date"] {
+        font-size: 14px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+    }
+    #modalRegistro .modal-body .form-group.full-row { grid-column: 1 / -1; }
+}
+
 .form-row .form-group {
     flex: 1;
     min-width: 140px;
@@ -3001,6 +3057,15 @@ textarea {
     letter-spacing: 0.05em;
     padding: 1px 2px !important;
     height: auto !important;
+    width: 100%;
+}
+
+.saldo-acumulado-valor {
+    display: block;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 8px;
     width: 100%;
 }
 
@@ -3661,6 +3726,15 @@ select.field-invalid:focus {
 @keyframes modalSlideIn {
     from { transform: translateY(20px) scale(0.96); opacity: 0; }
     to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Sober animation for confirmation modals (less bouncy) */
+.modal-confirm .modal-content {
+    animation: modalSlideInSober 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+@keyframes modalSlideInSober {
+    from { transform: translateY(8px) scale(0.996); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ================================================
