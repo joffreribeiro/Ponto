@@ -6703,7 +6703,8 @@ function novoAcordo() {
     AppState.acordoEmEdicao = {
         nome: '',
         periodos: [],
-        regrasHorario: []
+        regrasHorario: [],
+        valeRefeicao: []
     };
     AppState.acordoEmEdicaoIndex = null;
     preencherModalAcordo();
@@ -6715,6 +6716,8 @@ function editarAcordo(index) {
         const acordo = AppState.dados.acordos[index];
         if (!acordo) throw new Error('Acordo não encontrado');
         AppState.acordoEmEdicao = JSON.parse(JSON.stringify(acordo));
+        // Compatibilidade retroativa: garantir que o campo exista
+        AppState.acordoEmEdicao.valeRefeicao = AppState.acordoEmEdicao.valeRefeicao ?? [];
         AppState.acordoEmEdicaoIndex = index;
         preencherModalAcordo();
         document.getElementById('modalAcordo').classList.add('active');
@@ -6976,6 +6979,9 @@ function salvarAcordo() {
         if (erros.length > 0) {
             throw new Error(erros.join('; '));
         }
+
+        // Garantir compatibilidade: inicializar valeRefeicao se ausente
+        AppState.acordoEmEdicao.valeRefeicao = AppState.acordoEmEdicao.valeRefeicao ?? [];
 
         if (AppState.acordoEmEdicaoIndex == null) {
             // Inserir novo acordo no início do array para persistir 'mais recente primeiro'
@@ -7642,10 +7648,10 @@ function restaurarBackupLocal(event) {
                             console.log('Restaurando backup versão:', backup.versao);
                         }
 
-                        // Restaurar dados
-                        AppState.dados = backup.dados;
-                        
-                        // Garantir que tiposEvento existe
+                        // Restaurar dados (garantir defaults e compatibilidade retroativa)
+                        AppState.dados = Storage._ensureDefaults(backup.dados);
+
+                        // Garantir que tiposEvento existe (Storage._ensureDefaults já cuida disso na maioria dos casos)
                         if (!AppState.dados.tiposEvento || !Array.isArray(AppState.dados.tiposEvento)) {
                             AppState.dados.tiposEvento = [
                                 { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
@@ -7945,7 +7951,7 @@ function importarAcordosJSON(event) {
                         return;
                     }
 
-                    // Adicionar novo acordo
+                    // Adicionar novo acordo (garantir compatibilidade com campos novos)
                     AppState.dados.acordos.push({
                         id: acordo.id || gerarIdUnico(),
                         nome: acordo.nome,
@@ -7953,7 +7959,8 @@ function importarAcordosJSON(event) {
                         diaInicio: acordo.diaInicio || 1,
                         diaFim: acordo.diaFim || 28,
                         descricao: acordo.descricao || '',
-                        ativo: acordo.ativo !== false
+                        ativo: acordo.ativo !== false,
+                        valeRefeicao: acordo.valeRefeicao ?? []
                     });
 
                     importados++;

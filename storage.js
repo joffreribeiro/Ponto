@@ -85,6 +85,14 @@ const Storage = {
             dados.tiposEvento = JSON.parse(JSON.stringify(this.DEFAULT_DATA.tiposEvento));
         }
         if (!dados.updatedAt) dados.updatedAt = 0;
+        // Garantir compatibilidade retroativa: inicializar campos novos em acordos
+        if (Array.isArray(dados.acordos)) {
+            dados.acordos.forEach(ac => {
+                if (!ac || typeof ac !== 'object') return;
+                ac.valeRefeicao = ac.valeRefeicao ?? [];
+            });
+        }
+
         return dados;
     },
 
@@ -185,7 +193,7 @@ const Storage = {
         try {
             const parsed = JSON.parse(jsonStr);
             if (!this.isValidDataStructure(parsed)) throw new Error('Estrutura inválida');
-            return parsed;
+            return this._ensureDefaults(parsed);
         } catch (_) { return null; }
     }
 };
