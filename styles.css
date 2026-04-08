@@ -1053,7 +1053,7 @@ header h1 {
 
 /* ===== Mini Linha do Tempo de Férias ===== */
 .ferias-timeline {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     padding: 12px 16px;
     background: var(--bg-card-alt, #f8fafc);
     border-radius: 12px;
@@ -1062,11 +1062,12 @@ header h1 {
 
 .timeline-bar {
     position: relative;
-    height: 24px;
+    height: 10px;
     background: var(--border-soft, #e5e7eb);
-    border-radius: 12px;
+    border-radius: 5px;
     overflow: visible;
     display: flex;
+    margin: 8px 0 4px;
 }
 
 .timeline-segment {
@@ -1096,13 +1097,13 @@ header h1 {
 
 .timeline-marker {
     position: absolute;
-    width: 4px;
-    height: 32px;
-    top: -4px;
-    background: var(--negative, #ef4444);
+    width: 3px;
+    height: 22px;
+    top: -6px;
+    background: #1d4ed8;
     border-radius: 2px;
     z-index: 10;
-    box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 5px rgba(29, 78, 216, 0.5);
 }
 
 .timeline-labels {
@@ -1117,15 +1118,15 @@ header h1 {
 /* Legenda da timeline */
 .timeline-legend {
     display: flex;
-    gap: 16px;
-    margin-top: 8px;
+    gap: 14px;
+    margin-top: 6px;
     flex-wrap: wrap;
 }
 
 .timeline-legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-size: 11px;
     color: var(--text-muted, #64748b);
 }
@@ -1134,6 +1135,13 @@ header h1 {
     width: 12px;
     height: 12px;
     border-radius: 3px;
+}
+
+.timeline-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 .timeline-legend-color.aquisitivo { background: #3b82f6; }
@@ -4044,6 +4052,205 @@ html[data-theme="dark"] .skeleton {
         -webkit-overflow-scrolling: touch;
         padding-bottom: 4px;
     }
+}
+
+/* ================================================
+   CSS variable aliases for cross-compatibility
+   ================================================ */
+:root {
+    --danger: var(--negative);
+    --success: var(--positive);
+}
+html[data-theme="dark"] {
+    --danger: var(--negative);
+    --success: var(--positive);
+}
+
+/* ================================================
+   Dashboard Visual Improvements
+   ================================================ */
+
+/* 1. Stats section labels (group dividers) */
+.stats-section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin: 14px 0 8px;
+}
+.stats-section-label::before,
+.stats-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
+}
+
+/* 2. Mini progress bars inside stat cards */
+.stat-progress-bar {
+    height: 3px;
+    background: var(--border-soft);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+.stat-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--primary);
+    transition: width 0.6s ease;
+}
+
+/* 3. Exit card layout (hora de saída estimada) */
+.exit-card-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 14px;
+}
+.exit-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, 0.15);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.exit-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* 6. Férias progress bars */
+.ferias-progress-bar {
+    height: 3px;
+    background: var(--border-soft);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+.ferias-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--warning);
+    transition: width 0.5s ease;
+}
+.ferias-progress-fill.esgotado {
+    background: var(--negative);
+}
+
+/* 7. Férias status chip */
+.ferias-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-top: 4px;
+}
+.ferias-status-chip.sem-dias {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+.ferias-status-chip.ok {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #86efac;
+}
+.ferias-status-chip.atencao {
+    background: #fff7ed;
+    color: #d97706;
+    border: 1px solid #fcd34d;
+}
+
+/* 8. Filter chips */
+.filter-chips-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.filter-chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 100px;
+    background: var(--bg-soft);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.filter-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.filter-chip.active {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* 9. Stat card fade-in animation */
+@keyframes statFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.stats-grid .stat {
+    animation: statFadeUp 0.3s ease both;
+}
+.stats-grid .stat:nth-child(1) { animation-delay: 0.00s; }
+.stats-grid .stat:nth-child(2) { animation-delay: 0.05s; }
+.stats-grid .stat:nth-child(3) { animation-delay: 0.10s; }
+.stats-grid .stat:nth-child(4) { animation-delay: 0.15s; }
+
+/* Dark mode overrides for new components */
+html[data-theme="dark"] .exit-icon-box {
+    background: rgba(96, 165, 250, 0.2);
+}
+html[data-theme="dark"] .stat-highlight {
+    background: linear-gradient(135deg, rgba(30,58,138,0.25) 0%, rgba(30,64,175,0.3) 100%);
+    border-color: var(--primary);
+}
+html[data-theme="dark"] .ferias-status-chip.sem-dias {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+}
+html[data-theme="dark"] .ferias-status-chip.ok {
+    background: rgba(22, 163, 74, 0.15);
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+}
+html[data-theme="dark"] .ferias-status-chip.atencao {
+    background: rgba(217, 119, 6, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+html[data-theme="dark"] .filter-chip.active {
+    background: rgba(29, 78, 216, 0.2);
+    border-color: rgba(147, 197, 253, 0.4);
+    color: #93c5fd;
+}
+html[data-theme="dark"] .filter-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 

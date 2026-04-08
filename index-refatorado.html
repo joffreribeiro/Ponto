@@ -101,7 +101,7 @@
                                 <span class="filter-icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M16 2v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M8 2v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M7 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
                                 Período:
                             </label>
-                            <select id="dashboardFilterPeriodo" onchange="aplicarFiltrosDashboard()">
+                            <select id="dashboardFilterPeriodo" onchange="aplicarFiltrosDashboard(); sincronizarChipsPeriodo()" style="display:none;">
                                 <option value="todos">Todos os registros</option>
                                 <option value="mesAtual" selected>Mês atual</option>
                                 <option value="mesAnterior">Mês anterior</option>
@@ -110,6 +110,14 @@
                                 <option value="anoAtual">Ano atual</option>
                                 <option value="customizado">Período customizado</option>
                             </select>
+                            <div class="filter-chips-row" id="periodoChipsRow">
+                                <span class="filter-chip" data-value="todos" onclick="selecionarChipPeriodo(this)">Todos</span>
+                                <span class="filter-chip active" data-value="mesAtual" onclick="selecionarChipPeriodo(this)">Mês atual</span>
+                                <span class="filter-chip" data-value="mesAnterior" onclick="selecionarChipPeriodo(this)">Mês anterior</span>
+                                <span class="filter-chip" data-value="ultimosTresMeses" onclick="selecionarChipPeriodo(this)">Últimos 3 meses</span>
+                                <span class="filter-chip" data-value="ultimosSeisMeses" onclick="selecionarChipPeriodo(this)">Últimos 6 meses</span>
+                                <span class="filter-chip" data-value="anoAtual" onclick="selecionarChipPeriodo(this)">Ano atual</span>
+                            </div>
                         </div>
                         <div class="filter-group">
                             <button type="button" class="btn-outline" data-action="limparFiltrosDashboard" title="Limpar filtros">
@@ -119,10 +127,15 @@
                         </div>
                     </div>
                     <div id="filtroInfo" class="filter-info" style="margin-bottom:8px;"></div>
+
+                    <div class="stats-section-label">Horas</div>
                     <div class="stats-grid">
                         <div class="stat">
                             <span class="stat-label">Horas Trabalhadas (período)</span>
                             <span id="horasPeriodo" class="stat-value">00:00</span>
+                            <div class="stat-progress-bar">
+                                <div class="stat-progress-fill" id="progressHorasPeriodo" style="width: 0%"></div>
+                            </div>
                         </div>
                         <div class="stat">
                             <span class="stat-label">Saldo de Banco de Horas</span>
@@ -137,12 +150,15 @@
                             <span id="horasAcordo" class="stat-value">00:00</span>
                         </div>
                     </div>
-                    
-                    <!-- KPIs secundários dentro do mesmo card -->
-                    <div class="stats-grid kpi-grid" style="margin-top: 16px;">
+
+                    <div class="stats-section-label">Médias e saldo</div>
+                    <div class="stats-grid">
                         <div class="stat">
                             <span class="stat-label">Média diária</span>
                             <span id="mediaHorasDia" class="stat-value">00:00</span>
+                            <div class="stat-progress-bar">
+                                <div class="stat-progress-fill" id="progressMediaDiaria" style="width: 0%"></div>
+                            </div>
                         </div>
                         <div class="stat">
                             <span class="stat-label">Dias com registro</span>
@@ -157,13 +173,21 @@
                             <span id="tendenciaSaldo" class="stat-value">-</span>
                         </div>
                     </div>
-                    
-                    <!-- NOVOS KPIs: Hora de saída, Faltas, Alertas -->
-                    <div class="stats-grid kpi-grid kpi-highlight" style="margin-top: 16px;">
-                        <div class="stat stat-highlight">
-                            <span class="stat-label">🕐 Hora de Saída Estimada (Hoje)</span>
-                            <span id="horaSaidaEstimada" class="stat-value stat-value-large">--:--</span>
-                            <span id="horaSaidaInfo" class="stat-subtext"></span>
+
+                    <div class="stats-section-label">Hoje</div>
+                    <div class="stats-grid kpi-highlight">
+                        <div class="stat stat-highlight exit-card-layout">
+                            <div class="exit-icon-box">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M12 7v5.5L14.5 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div class="exit-card-info">
+                                <span class="stat-label">Hora de saída estimada (hoje)</span>
+                                <span id="horaSaidaEstimada" class="stat-value stat-value-large">--:--</span>
+                                <span id="horaSaidaInfo" class="stat-subtext"></span>
+                            </div>
                         </div>
                         <div class="stat">
                             <span class="stat-label">📋 Faltas/Ausências (período)</span>
@@ -198,6 +222,24 @@
                             <span id="timelineLabelStart">-</span>
                             <span id="timelineLabelEnd">-</span>
                         </div>
+                        <div class="timeline-legend">
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-dot" style="background: #3b82f6;"></div>
+                                Período aquisitivo
+                            </div>
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-dot" style="background: #f59e0b;"></div>
+                                Período concessivo
+                            </div>
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-dot" style="background: #10b981;"></div>
+                                Férias agendadas
+                            </div>
+                            <div class="timeline-legend-item">
+                                <div class="timeline-legend-dot" style="width:3px; border-radius:1px; background: #1d4ed8;"></div>
+                                Hoje
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="ferias-vertical-grid">
@@ -231,8 +273,8 @@
                         <div class="stat-card">
                             <div class="stat-label">DIAS RESTANTES</div>
                             <div id="remainingVacationDays" class="stat-value" style="color: var(--primary);">-</div>
-                            <div class="progress-bar-container">
-                                <div id="remainingProgressBar" class="progress-bar progress-remaining"></div>
+                            <div class="ferias-progress-bar">
+                                <div id="remainingProgressBar" class="ferias-progress-fill" style="width: 0%"></div>
                             </div>
                         </div>
 
@@ -240,8 +282,8 @@
                         <div class="stat-card">
                             <div class="stat-label">DIAS UTILIZADOS</div>
                             <div id="usedVacationDays" class="stat-value" style="color: var(--info);">-</div>
-                            <div class="progress-bar-container">
-                                <div id="usedProgressBar" class="progress-bar progress-used"></div>
+                            <div class="ferias-progress-bar">
+                                <div id="usedProgressBar" class="ferias-progress-fill" style="width: 0%"></div>
                             </div>
                         </div>
 
@@ -1603,5 +1645,30 @@ document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if
 
     <!-- Firebase initialization (modular SDK) — deve carregar antes dos scripts que dependem de window.FirebaseSync -->
     <script type="module" src="firebase-init.js"></script>
+
+    <script>
+    // Período filter chips logic
+    function selecionarChipPeriodo(chip) {
+        var row = document.getElementById('periodoChipsRow');
+        if (row) {
+            row.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+        }
+        chip.classList.add('active');
+        var sel = document.getElementById('dashboardFilterPeriodo');
+        if (sel) {
+            sel.value = chip.getAttribute('data-value');
+            if (typeof aplicarFiltrosDashboard === 'function') aplicarFiltrosDashboard();
+        }
+    }
+    function sincronizarChipsPeriodo() {
+        var sel = document.getElementById('dashboardFilterPeriodo');
+        var row = document.getElementById('periodoChipsRow');
+        if (!sel || !row) return;
+        var val = sel.value;
+        row.querySelectorAll('.filter-chip').forEach(function(c) {
+            c.classList.toggle('active', c.getAttribute('data-value') === val);
+        });
+    }
+    </script>
 </body>
 </html>

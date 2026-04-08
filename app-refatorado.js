@@ -3209,6 +3209,26 @@ function atualizarDashboard() {
         const diasTrabalhadosEl = document.getElementById('diasTrabalhados');
         if (diasTrabalhadosEl) diasTrabalhadosEl.textContent = diasTrabalhados.toString();
 
+        // Mini progress bars
+        try {
+            const acordoAtualPB = Calculations.getAcordoByData ? Calculations.getAcordoByData(AppState.dados.acordos, hoje) : null;
+            let jornadaDiariaMinPB = 480; // default 8h
+            if (acordoAtualPB && acordoAtualPB.jornadaDiaria) {
+                const parts = String(acordoAtualPB.jornadaDiaria).split(':');
+                jornadaDiariaMinPB = parseInt(parts[0] || 8, 10) * 60 + parseInt(parts[1] || 0, 10);
+            }
+            const metaMensalMin = diasTrabalhados * jornadaDiariaMinPB;
+            const pctHoras = metaMensalMin > 0 ? Math.min((totais.totalTrabalhadas / metaMensalMin) * 100, 100) : 0;
+            const pbHoras = document.getElementById('progressHorasPeriodo');
+            if (pbHoras) pbHoras.style.width = pctHoras.toFixed(1) + '%';
+
+            const pctMedia = jornadaDiariaMinPB > 0 ? Math.min((mediaDiariaMin / jornadaDiariaMinPB) * 100, 100) : 0;
+            const pbMedia = document.getElementById('progressMediaDiaria');
+            if (pbMedia) pbMedia.style.width = pctMedia.toFixed(1) + '%';
+        } catch (pbErr) {
+            // ignore progress bar errors
+        }
+
         // Tendência 30d
         const start30 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 29);
         const start60 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 59);
@@ -3403,7 +3423,7 @@ function atualizarDashboard() {
                 }
                 
                 faltasEl.textContent = faltas.toString();
-                faltasEl.style.color = faltas > 0 ? 'var(--warning)' : 'var(--positive)';
+                faltasEl.style.color = faltas > 5 ? 'var(--negative)' : (faltas > 0 ? 'var(--warning)' : 'var(--positive)');
                 
                 if (faltasInfoEl) {
                     if (faltas === 0) {
@@ -3759,22 +3779,14 @@ function atualizarDashboard() {
             }
 
             if (statusEl) {
-                let status = '✅ OK';
-                let statusColor = 'var(--positive)';
-                
-                if (overview.remaining <= 0) {
-                    status = '⚠️ Sem dias';
-                    statusColor = 'var(--negative)';
-                } else if (overview.remaining <= 5) {
-                    status = '⚡ Poucos dias';
-                    statusColor = 'var(--warning)';
-                } else if (overview.daysUntilNext !== null && overview.daysUntilNext <= 7) {
-                    status = '📅 Férias próximas';
-                    statusColor = 'var(--info)';
+                const diasRestantes = overview.remaining;
+                if (diasRestantes === 0) {
+                    statusEl.innerHTML = '<span class="ferias-status-chip sem-dias">⚠ Sem dias disponíveis</span>';
+                } else if (diasRestantes <= 5) {
+                    statusEl.innerHTML = `<span class="ferias-status-chip atencao">⚡ ${diasRestantes} dia(s) restantes</span>`;
+                } else {
+                    statusEl.innerHTML = `<span class="ferias-status-chip ok">✓ ${diasRestantes} dia(s) disponíveis</span>`;
                 }
-                
-                statusEl.textContent = status;
-                statusEl.style.color = statusColor;
             }
 
             // ===== NOVOS CAMPOS: Período Concessivo, Saldo Acumulado, Data Permitida, Barras, Timeline =====
@@ -3885,27 +3897,23 @@ function atualizarDashboard() {
                 }
             }
             
-            // 4. Barras de progresso
+            // 4. Barras de progresso (ferias-progress-fill)
             const remainingProgressBar = document.getElementById('remainingProgressBar');
             const usedProgressBar = document.getElementById('usedProgressBar');
-            
+            const usedDaysFerias = overview.entitlement - overview.remaining;
+            const pctUsed = overview.entitlement > 0 ? Math.min((usedDaysFerias / overview.entitlement) * 100, 100) : 0;
+            const pctRemaining = overview.entitlement > 0 ? Math.min((overview.remaining / overview.entitlement) * 100, 100) : 0;
+
             if (remainingProgressBar) {
-                const percentRemaining = (overview.remaining / overview.entitlement) * 100;
-                remainingProgressBar.style.width = `${percentRemaining}%`;
-                
-                // Adicionar classe de alerta se poucos dias
-                remainingProgressBar.classList.remove('progress-low', 'progress-critical');
-                if (percentRemaining <= 15) {
-                    remainingProgressBar.classList.add('progress-critical');
-                } else if (percentRemaining <= 30) {
-                    remainingProgressBar.classList.add('progress-low');
-                }
+                remainingProgressBar.style.width = `${pctRemaining}%`;
+                remainingProgressBar.classList.remove('esgotado');
+                if (overview.remaining === 0) remainingProgressBar.classList.add('esgotado');
             }
-            
+
             if (usedProgressBar) {
-                const usedDays = overview.entitlement - overview.remaining;
-                const percentUsed = (usedDays / overview.entitlement) * 100;
-                usedProgressBar.style.width = `${percentUsed}%`;
+                usedProgressBar.style.width = `${pctUsed}%`;
+                usedProgressBar.classList.remove('esgotado');
+                if (overview.remaining === 0) usedProgressBar.classList.add('esgotado');
             }
             
             // 5. Mini linha do tempo visual
