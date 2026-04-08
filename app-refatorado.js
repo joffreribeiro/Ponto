@@ -252,6 +252,21 @@ function formatarUltimoSyncCloud(ts) {
     return dt.toLocaleString('pt-BR');
 }
 
+function formatarSyncCurto(ts) {
+    try {
+        const dt = ts ? new Date(Number(ts)) : (ts ? new Date(ts) : null);
+        if (!dt || Number.isNaN(dt.getTime())) return { short: '—', full: '—' };
+        const now = new Date();
+        const mesmaData = dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() && dt.getDate() === now.getDate();
+        const short = mesmaData
+            ? dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return { short: short, full: dt.toLocaleString('pt-BR') };
+    } catch (e) {
+        return { short: '—', full: '—' };
+    }
+}
+
 function atualizarStatusSyncCloud(status, timestamp) {
     const el = document.getElementById('syncStatus');
     if (!el) return;
@@ -260,20 +275,58 @@ function atualizarStatusSyncCloud(status, timestamp) {
 
     if (status === 'pending') {
         el.classList.add('sync-status--pending');
-        el.textContent = 'Cloud: sincronizando...';
+        el.textContent = 'Sincronizando…';
+        el.title = '';
         return;
     }
 
     if (status === 'error') {
         el.classList.add('sync-status--error');
-        const textoErro = timestamp ? formatarUltimoSyncCloud(timestamp) : '—';
-        el.textContent = `Cloud: erro — último sync: ${textoErro}`;
+        const fmt = formatarSyncCurto(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
+        el.textContent = `Erro · último: ${fmt.short}`;
+        el.title = fmt.full;
         return;
     }
 
     el.classList.add('sync-status--ok');
-    const texto = formatarUltimoSyncCloud(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
-    el.textContent = `Cloud: salvo — último sync: ${texto}`;
+    const fmt = formatarSyncCurto(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
+    el.textContent = `Sincronizado · ${fmt.short}`;
+    el.title = fmt.full;
+}
+
+// Aplica classes semânticas (`stat-value--positive|negative|neutral|warning`) a um elemento
+function applyStatClassFromNumber(elOrId, num) {
+    try {
+        const el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : elOrId;
+        if (!el) return;
+        el.classList.remove('stat-value--positive', 'stat-value--negative', 'stat-value--neutral', 'stat-value--warning');
+        if (typeof num !== 'number' || Number.isNaN(num)) { el.classList.add('stat-value--neutral'); return; }
+        if (num > 0) el.classList.add('stat-value--positive');
+        else if (num < 0) el.classList.add('stat-value--negative');
+        else el.classList.add('stat-value--neutral');
+    } catch (e) { /* defensivo */ }
+}
+
+function applyStatClassFromText(elOrId) {
+    try {
+        const el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : elOrId;
+        if (!el) return;
+        el.classList.remove('stat-value--positive', 'stat-value--negative', 'stat-value--neutral', 'stat-value--warning');
+        const txt = (el.textContent || '').trim();
+        if (!txt || txt === '—' || txt === '-') { el.classList.add('stat-value--neutral'); return; }
+        if (/vencido|vence hoje|vence/i.test(txt)) { el.classList.add('stat-value--warning'); return; }
+        if (/^\-/.test(txt)) { el.classList.add('stat-value--negative'); return; }
+        if (/^\+/.test(txt)) { el.classList.add('stat-value--positive'); return; }
+        if (/^\d{1,2}:\d{2}$/.test(txt)) { el.classList.add('stat-value--neutral'); return; }
+        const n = Number(txt.replace(/[^0-9\-,.]/g, '').replace(',', '.'));
+        if (!Number.isNaN(n)) {
+            if (n > 0) el.classList.add('stat-value--positive');
+            else if (n < 0) el.classList.add('stat-value--negative');
+            else el.classList.add('stat-value--neutral');
+            return;
+        }
+        el.classList.add('stat-value--neutral');
+    } catch (e) { /* defensivo */ }
 }
 
 function registrarSyncCloud(timestamp = Date.now()) {
@@ -3156,7 +3209,8 @@ function atualizarDashboard() {
             AppState.dados.acordos
         );
 
-        document.getElementById('horasPeriodo').textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
+        const horasPeriodoEl = document.getElementById('horasPeriodo');
+        if (horasPeriodoEl) horasPeriodoEl.textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
         
         // MODIFICAÇÃO: Saldo de Banco de Horas = saldo acumulado do último registro do mês atual
         const hoje = DateUtils.parse(DateUtils.today());
@@ -3186,18 +3240,37 @@ function atualizarDashboard() {
             saldoMes = calcUltimo.saldo || 0;
         }
         
-        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(saldoMes);
-        
-        document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
-        document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
+        const saldoEl = document.getElementById('saldoBancoHoras');
+        if (saldoEl) {
+            saldoEl.textContent = DateUtils.minutesToTime(saldoMes);
+            applyStatClassFromNumber(saldoEl, saldoMes);
+        }
+
+        const horasExtrasEl = document.getElementById('horasExtras');
+        if (horasExtrasEl) {
+            horasExtrasEl.textContent = DateUtils.minutesToTime(totais.horasExtras);
+            applyStatClassFromNumber(horasExtrasEl, totais.horasExtras);
+        }
+
+        const horasAcordoEl = document.getElementById('horasAcordo');
+        if (horasAcordoEl) {
+            horasAcordoEl.textContent = DateUtils.minutesToTime(totais.horasAcordo);
+            applyStatClassFromNumber(horasAcordoEl, totais.horasAcordo);
+        }
 
         // KPIs essenciais
         const diasTrabalhados = new Set(registrosFiltrados.map(r => r.data || r.dataRegistro || r.dataStr)).size;
         const mediaDiariaMin = diasTrabalhados > 0 ? Math.round(totais.totalTrabalhadas / diasTrabalhados) : 0;
         const mediaHorasDiaEl = document.getElementById('mediaHorasDia');
-        if (mediaHorasDiaEl) mediaHorasDiaEl.textContent = DateUtils.minutesToTime(mediaDiariaMin);
+        if (mediaHorasDiaEl) {
+            mediaHorasDiaEl.textContent = DateUtils.minutesToTime(mediaDiariaMin);
+            applyStatClassFromNumber(mediaHorasDiaEl, mediaDiariaMin);
+        }
         const diasTrabalhadosEl = document.getElementById('diasTrabalhados');
-        if (diasTrabalhadosEl) diasTrabalhadosEl.textContent = diasTrabalhados.toString();
+        if (diasTrabalhadosEl) {
+            diasTrabalhadosEl.textContent = diasTrabalhados.toString();
+            applyStatClassFromNumber(diasTrabalhadosEl, Number(diasTrabalhados));
+        }
 
         // Mini progress bars
         try {
@@ -3237,14 +3310,17 @@ function atualizarDashboard() {
         const totalsPrev30 = Calculations.calculatePeriodTotals(registrosPrev30, AppState.dados.eventos, AppState.dados.acordos);
 
         const saldo30El = document.getElementById('saldo30d');
-        if (saldo30El) saldo30El.textContent = DateUtils.minutesToTime(totals30.totalSaldo);
+        if (saldo30El) {
+            saldo30El.textContent = DateUtils.minutesToTime(totals30.totalSaldo);
+            applyStatClassFromNumber(saldo30El, totals30.totalSaldo);
+        }
 
         const diff = totals30.totalSaldo - totalsPrev30.totalSaldo;
         const tendenciaEl = document.getElementById('tendenciaSaldo');
         if (tendenciaEl) {
             const sign = diff > 0 ? '+' : '';
             tendenciaEl.textContent = `${sign}${DateUtils.minutesToTime(diff)} vs 30d ant.`;
-            tendenciaEl.style.color = diff >= 0 ? 'var(--positive)' : 'var(--negative)';
+            applyStatClassFromNumber(tendenciaEl, diff);
         }
         
         // ===== NOVOS KPIs: Hora de Saída Estimada, Faltas, Alertas =====
