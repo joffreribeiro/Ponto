@@ -1,6 +1,6 @@
 (function(){
     // Módulo responsável por renderizar a tabela de atividades
-    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+    var escapeHtml = Utils.escapeHtml.bind(Utils);
 
     /**
      * Formata data para DD/MM/AAAA

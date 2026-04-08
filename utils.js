@@ -53,6 +53,18 @@ const Utils = {
     },
 
     /**
+     * Escapa caracteres especiais HTML para uso em template literals (XSS-safe).
+     * Centralizado aqui para evitar duplicação em múltiplos módulos.
+     * @param {string} s - Valor a escapar
+     */
+    escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    },
+
+    /**
      * Formata número com padding
      * @param {number} num - Número
      * @param {number} size - Tamanho mínimo

@@ -63,17 +63,13 @@
         if (title) {
             svg = svg.replace('<svg ', '<svg role="img" ');
             // inject title after opening tag
-            svg = svg.replace('>', `><title>${escapeHtml(title)}</title>`);
+            svg = svg.replace('>', `><title>${Utils.escapeHtml(title)}</title>`);
             return svg;
         }
 
         // Otherwise mark decorative icons as hidden from assistive tech
         svg = svg.replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
         return svg;
-    }
-
-    function escapeHtml(str) {
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
     }
 
     function getPriorityBadge(priority) {
@@ -86,9 +82,7 @@
             'baixa': 'badge badge--ok'
         };
         const cls = map[p] || 'badge badge--order';
-        // escapeHtml may not be available yet; do a safe minimal escape here
-        const txt = String(priority).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
-        return `<span class="${cls}">${txt}</span>`;
+        return `<span class="${cls}">${Utils.escapeHtml(priority)}</span>`;
     }
 
     const exports = { svgIcon, getPriorityBadge };

@@ -668,14 +668,22 @@
   /* Integração com troca de abas                                        */
   /* ------------------------------------------------------------------ */
   function hookTabSwitching() {
-    // Observa mudança de classe `active` nas seções
+    // Debounce para evitar renderização dupla quando o MutationObserver e o
+    // clique na aba disparam em sequência no mesmo ciclo de eventos.
+    var _vrRenderTimer = null;
+    function scheduleVRRender(fn) {
+      clearTimeout(_vrRenderTimer);
+      _vrRenderTimer = setTimeout(fn, 80);
+    }
+
+    // Observa mudança de classe `active` nas seções — única fonte de verdade
     function onClassChange(mutations) {
       mutations.forEach(function (m) {
         if (m.type === 'attributes' && m.attributeName === 'class') {
           var el = m.target;
           if (!el.classList.contains('active')) return;
-          if (el.id === 'dashboard')    renderDashboardVR();
-          if (el.id === 'configuracoes') renderVRConfigUI();
+          if (el.id === 'dashboard')    scheduleVRRender(renderDashboardVR);
+          if (el.id === 'configuracoes') scheduleVRRender(renderVRConfigUI);
         }
       });
     }
@@ -685,15 +693,8 @@
       var el = document.getElementById(id);
       if (el) new MutationObserver(onClassChange).observe(el, { attributes: true, attributeFilter: ['class'] });
     });
-
-    // Também captura cliques em botões/links de navegação com data-tab
-    document.addEventListener('click', function (e) {
-      var tab = e.target.closest ? e.target.closest('[data-tab]') : null;
-      if (!tab) return;
-      var target = tab.getAttribute('data-tab');
-      if (target === 'dashboard')    setTimeout(renderDashboardVR, 80);
-      if (target === 'configuracoes') setTimeout(renderVRConfigUI, 80);
-    });
+    // O click listener foi removido pois o MutationObserver já cobre a transição
+    // de aba (o app principal adiciona .active à seção ao trocar de aba).
   }
 
   /* ------------------------------------------------------------------ */

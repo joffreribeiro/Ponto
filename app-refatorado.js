@@ -3,14 +3,7 @@ function gerarIdUnico() {
     return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
 }
 
-// Converte data de DD/MM/AAAA para YYYY-MM-DD
-function parseDateBR(dataBR) {
-    if (!dataBR) return null;
-    const partes = dataBR.split('/');
-    if (partes.length !== 3) return null;
-    const [dia, mes, ano] = partes;
-    return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-}
+// parseDateBR removido — usar DateUtils.normalize() para converter DD/MM/AAAA → YYYY-MM-DD
 
 // ============= ATUALIZAÇÃO DE COMPONENTES =============
 
@@ -622,7 +615,7 @@ function inicializar() {
             try {
                 if (inputAdmissao && AppState.dados && AppState.dados.admissao) {
                     // armazenamos como ISO (YYYY-MM-DD)
-                    inputAdmissao.value = dateIsoToBr(AppState.dados.admissao || '');
+                    inputAdmissao.value = DateUtils.formatBR(AppState.dados.admissao || '');
                     // desabilitar edição se já existe data salva
                     inputAdmissao.disabled = true;
                     // esconder botão salvar
@@ -1065,7 +1058,7 @@ function renderizarAtividades() {
         }
         // Usar campos do formato da tabela (ordem, objeto, assunto, etc.)
         const ordem = a.ordem || String(idx + 1);
-        const ordemBadge = `<span class="badge badge--order">${escapeHtml(ordem)}</span>`;
+        const ordemBadge = `<span class="badge badge--order">${Utils.escapeHtml(ordem)}</span>`;
         const objeto = a.objeto || '';
         const assunto = a.assunto || '';
         const tedPtrab = a.tedPtrab || '';
@@ -1077,15 +1070,15 @@ function renderizarAtividades() {
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         ${ordemBadge}
-                        ${tedPtrab ? `<span class="badge badge--ted">${escapeHtml(tedPtrab)}</span>` : ''}
-                        <strong>${escapeHtml(objeto)}</strong>
+                        ${tedPtrab ? `<span class="badge badge--ted">${Utils.escapeHtml(tedPtrab)}</span>` : ''}
+                        <strong>${Utils.escapeHtml(objeto)}</strong>
                     </div>
-                    <div class="small-text">${escapeHtml(assunto)}</div>
-                    ${acaoRealizar ? `<div class="small-text" style="color:var(--info);"><strong>Ação:</strong> ${escapeHtml(acaoRealizar)}</div>` : ''}
+                    <div class="small-text">${Utils.escapeHtml(assunto)}</div>
+                    ${acaoRealizar ? `<div class="small-text" style="color:var(--info);"><strong>Ação:</strong> ${Utils.escapeHtml(acaoRealizar)}</div>` : ''}
                     <div class="meta small-text">Prioridade: ${getPriorityBadge(a.prioridade)} • Prazo: ${prazo} ${diasBadge}</div>
                 </div>
                 <div class="actions" style="text-align:right; min-width:160px;">
-                    <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
+                    <div style="margin-bottom:6px;">Status: <strong>${Utils.escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
                         <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('edit', { title: 'Editar atividade', color: 'currentColor' })}</button>
@@ -1190,14 +1183,14 @@ function abrirModalAtividade(editId) {
         if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = a.processoPrincipal || '';
         if (document.getElementById('atividadeAssuntoCompleta')) document.getElementById('atividadeAssuntoCompleta').value = a.assunto || '';
         if (document.getElementById('atividadeProcessoSolicitacaoCompleta')) document.getElementById('atividadeProcessoSolicitacaoCompleta').value = a.processoSolicitacao || '';
-        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = dateIsoToBr(a.dataDoc) || '';
+        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = DateUtils.formatBR(a.dataDoc) || '';
         if (document.getElementById('atividadeTipoDocCompleta')) document.getElementById('atividadeTipoDocCompleta').value = a.tipoDoc || '';
         if (document.getElementById('atividadeNumeroDocCompleta')) document.getElementById('atividadeNumeroDocCompleta').value = a.numeroDoc || '';
         if (document.getElementById('atividadeRemetenteCompleta')) document.getElementById('atividadeRemetenteCompleta').value = a.remetente || '';
         if (document.getElementById('atividadeDestinatarioCompleta')) document.getElementById('atividadeDestinatarioCompleta').value = a.destinatario || '';
         if (document.getElementById('atividadeAcaoRealizarCompleta')) document.getElementById('atividadeAcaoRealizarCompleta').value = a.acaoRealizar || '';
         if (document.getElementById('atividadePrioridadeCompleta')) document.getElementById('atividadePrioridadeCompleta').value = a.prioridade || 'media';
-        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = dateIsoToBr(a.prazo) || '';
+        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = DateUtils.formatBR(a.prazo) || '';
         if (document.getElementById('atividadeDiasCompleta')) document.getElementById('atividadeDiasCompleta').value = typeof a.dias !== 'undefined' ? a.dias : '';
         if (document.getElementById('atividadeStatusCompleta')) document.getElementById('atividadeStatusCompleta').value = a.status || 'pendente';
         if (document.getElementById('atividadeProgressoCompleta')) document.getElementById('atividadeProgressoCompleta').value = a.progresso || 0;
@@ -1229,14 +1222,14 @@ function salvarNovaAtividadeCompleta() {
         processoPrincipal: get('atividadeProcessoPrincipalCompleta'),
         assunto: get('atividadeAssuntoCompleta'),
         processoSolicitacao: get('atividadeProcessoSolicitacaoCompleta'),
-        dataDoc: dateBrToIso(get('atividadeDataDocCompleta')),
+        dataDoc: DateUtils.normalize(get('atividadeDataDocCompleta')),
         tipoDoc: get('atividadeTipoDocCompleta'),
         numeroDoc: get('atividadeNumeroDocCompleta'),
         remetente: get('atividadeRemetenteCompleta'),
         destinatario: get('atividadeDestinatarioCompleta'),
         acaoRealizar: get('atividadeAcaoRealizarCompleta'),
         prioridade: get('atividadePrioridadeCompleta'),
-        prazo: dateBrToIso(get('atividadePrazoCompleta')),
+        prazo: DateUtils.normalize(get('atividadePrazoCompleta')),
         dias: get('atividadeDiasCompleta'),
         status: get('atividadeStatusCompleta'),
         progresso: get('atividadeProgressoCompleta'),
@@ -1295,8 +1288,8 @@ function salvarAtividade() {
         descricao: document.getElementById('atividadeDescricao').value.trim(),
         responsavel: document.getElementById('atividadeResponsavel').value.trim(),
         prioridade: document.getElementById('atividadePrioridade').value,
-        prazo: dateBrToIso(document.getElementById('atividadePrazo').value) || null,
-        dataDoc: dateBrToIso(document.getElementById('atividadeDataDoc').value) || null,
+        prazo: DateUtils.normalize(document.getElementById('atividadePrazo').value) || null,
+        dataDoc: DateUtils.normalize(document.getElementById('atividadeDataDoc').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDoc').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDoc').value || '',
         remetente: document.getElementById('atividadeRemetente').value || '',
@@ -1312,7 +1305,7 @@ function salvarAtividade() {
         observacoes: observacoes,
         finalizado: finalizadoVal,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazo').value) || null),
+        dias: calcularDiasAtePrazo(DateUtils.normalize(document.getElementById('atividadePrazo').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrab').value || '',
         objeto: document.getElementById('atividadeObjeto').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipal').value || '',
@@ -1423,7 +1416,7 @@ function salvarAtividadeInline() {
         descricao: '',
         responsavel: '',
         prioridade: 'media',
-        dataDoc: dateBrToIso(document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value) || null,
+        dataDoc: DateUtils.normalize(document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDocInline') && document.getElementById('atividadeTipoDocInline').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDocInline') && document.getElementById('atividadeNumeroDocInline').value || '',
         remetente: document.getElementById('atividadeRemetenteInline') && document.getElementById('atividadeRemetenteInline').value || '',
@@ -1438,9 +1431,9 @@ function salvarAtividadeInline() {
         lembreteHorario: null,
         observacoes: document.getElementById('atividadeObservacoesInline') && document.getElementById('atividadeObservacoesInline').value || '',
         finalizado: (document.getElementById('atividadeFinalizadoInline') && document.getElementById('atividadeFinalizadoInline').value === 'true') || false,
-        prazo: dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null,
+        prazo: DateUtils.normalize(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null),
+        dias: calcularDiasAtePrazo(DateUtils.normalize(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrabInline') && document.getElementById('atividadeTedPtrabInline').value || '',
         objeto: document.getElementById('atividadeObjetoInline') && document.getElementById('atividadeObjetoInline').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipalInline') && document.getElementById('atividadeProcessoPrincipalInline').value || '',
@@ -1496,7 +1489,7 @@ function adicionarSubtaskModal() {
     const ul = document.getElementById('subtasksList');
     const li = document.createElement('li');
     li.classList.add('activity-card');
-    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover item', color: 'currentColor' }) : '🗑️'}</button>`;
+    li.innerHTML = `<label><input type="checkbox" /> ${Utils.escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover item', color: 'currentColor' }) : '🗑️'}</button>`;
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
@@ -1584,7 +1577,7 @@ function atualizarListaAnexosModal() {
     const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary btn-icon" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover anexo', color: 'currentColor' }) : '🗑️'}</button>`;
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${Utils.escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary btn-icon" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover anexo', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -1780,8 +1773,8 @@ function fecharModalSolicitarFerias() {
 
 function confirmarSolicitacaoFerias() {
     try {
-        const inicio = dateBrToIso(document.getElementById('modalFeriasInicio').value);
-        const fim = dateBrToIso(document.getElementById('modalFeriasFim').value);
+        const inicio = DateUtils.normalize(document.getElementById('modalFeriasInicio').value);
+        const fim = DateUtils.normalize(document.getElementById('modalFeriasFim').value);
         const adto13 = document.getElementById('modalFeriasAdto13').value;
         
         if (!inicio || !fim) {
@@ -2010,12 +2003,12 @@ function solicitarFeriasFromRow(id) {
             inicioDisplay = prompt('Data de início das férias (DD/MM/AAAA):', inicioDisplay || '');
             if (inicioDisplay === null) return;
             // Converter de DD/MM/AAAA para ISO
-            inicioISO = parseDateBR(inicioDisplay);
+            inicioISO = DateUtils.normalize(inicioDisplay);
         }
         if (!fimISO) {
             fimDisplay = prompt('Data de término das férias (DD/MM/AAAA):', fimDisplay || inicioDisplay || '');
             if (fimDisplay === null) return;
-            fimISO = parseDateBR(fimDisplay);
+            fimISO = DateUtils.normalize(fimDisplay);
         }
 
         if (!inicioISO || !fimISO) {
@@ -2090,8 +2083,8 @@ function solicitarFeriasGroup(periodoIndex) {
         if (fimDisplay === null) return;
         
         // Converter para ISO
-        const inicioISO = parseDateBR(inicioDisplay);
-        const fimISO = parseDateBR(fimDisplay);
+        const inicioISO = DateUtils.normalize(inicioDisplay);
+        const fimISO = DateUtils.normalize(fimDisplay);
         
         if (!inicioISO || !fimISO) {
             mostrarAlertaGlobal('Datas inválidas. Use o formato DD/MM/AAAA.', 'error');
@@ -2199,7 +2192,7 @@ function atualizarListaComentariosModal() {
     const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary btn-icon" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover comentário', color: 'currentColor' }) : '🗑️'}</button>`;
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${Utils.escapeHtml(c.texto)}</div><button class="btn-secondary btn-icon" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover comentário', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -2331,10 +2324,7 @@ function checkAtividadesDeadlines() {
     }
 }
 
-function escapeHtml(s) {
-    if (!s) return '';
-    return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
-}
+// escapeHtml centralizado em Utils.escapeHtml (utils.js)
 
 // ===== Autenticação: UI e proteção de ações =====
 function updateAuthDependentControls(user) {
@@ -2990,8 +2980,8 @@ function calcularIntervaloPeriodo(periodo) {
             const dataInicioInput = document.getElementById('dashboardDataInicio');
             const dataFimInput = document.getElementById('dashboardDataFim');
             if (dataInicioInput && dataInicioInput.value && dataFimInput && dataFimInput.value) {
-                inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
-                fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
+                inicio = DateUtils.parse(DateUtils.normalize(dataInicioInput.value));
+                fim = DateUtils.parse(DateUtils.normalize(dataFimInput.value));
             }
             break;
         
@@ -3066,8 +3056,8 @@ function aplicarFiltrosDashboard() {
             return;
         }
 
-        const inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
-        const fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
+        const inicio = DateUtils.parse(DateUtils.normalize(dataInicioInput.value));
+        const fim = DateUtils.parse(DateUtils.normalize(dataFimInput.value));
 
         if (inicio > fim) {
             Notifications.warning('A data inicial deve ser anterior à data final');
@@ -4224,7 +4214,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         const r = AppState.dados.registros.find(x => x.data === dataStr) || null;
 
         // Preencher/limpar campos
-        document.getElementById('dataRegistro').value = dateIsoToBr(dataStr);
+        document.getElementById('dataRegistro').value = DateUtils.formatBR(dataStr);
         document.getElementById('entradaRegistro').value = (r && r.entrada) || '';
         document.getElementById('saidaAlmocoRegistro').value = (r && r.saidaAlmoco) || '';
         document.getElementById('retornoAlmocoRegistro').value = (r && r.retornoAlmoco) || '';
@@ -4258,7 +4248,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
 }
 function salvarRegistro() {
     try {
-        const data = dateBrToIso(document.getElementById('dataRegistro').value);
+        const data = DateUtils.normalize(document.getElementById('dataRegistro').value);
         const entrada = document.getElementById('entradaRegistro').value;
         const saidaAlmoco = document.getElementById('saidaAlmocoRegistro').value;
         const retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
@@ -4364,7 +4354,7 @@ function editarRegistro(index) {
         const r = AppState.dados.registros[index];
         if (!r) throw new Error('Registro não encontrado');
 
-        document.getElementById('dataRegistro').value = dateIsoToBr(r.data);
+        document.getElementById('dataRegistro').value = DateUtils.formatBR(r.data);
         document.getElementById('entradaRegistro').value = r.entrada || '';
         document.getElementById('saidaAlmocoRegistro').value = r.saidaAlmoco || '';
         document.getElementById('retornoAlmocoRegistro').value = r.retornoAlmoco || '';
@@ -5878,7 +5868,7 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 
         const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
         const rawVal = (dataAd.value || '').trim();
-        const isoVal = dateBrToIso(rawVal);
+        const isoVal = DateUtils.normalize(rawVal);
         const dt = DateUtils.parse(isoVal);
         if (!dt) {
             mostrarAlertaGlobal('Data de admissão inválida. Use o formato DD/MM/AAAA.', 'error');
@@ -6832,8 +6822,8 @@ function editarPeriodoAcordo(index) {
     try {
         const p = AppState.acordoEmEdicao.periodos[index];
         if (!p) throw new Error('Período não encontrado');
-        document.getElementById('periodoInicio').value = dateIsoToBr(p.inicio);
-        document.getElementById('periodoFim').value = dateIsoToBr(p.fim);
+        document.getElementById('periodoInicio').value = DateUtils.formatBR(p.inicio);
+        document.getElementById('periodoFim').value = DateUtils.formatBR(p.fim);
         document.getElementById('periodoMinutosExtras').value = p.minutosExtras || 0;
         AppState.acordoEmEdicao.editingPeriodoIndex = index;
         const btn = document.getElementById('btnAdicionarPeriodo');
@@ -6846,8 +6836,8 @@ function editarPeriodoAcordo(index) {
 
 function adicionarPeriodoAcordo() {
     try {
-        const inicio = dateBrToIso(document.getElementById('periodoInicio').value);
-        const fim = dateBrToIso(document.getElementById('periodoFim').value);
+        const inicio = DateUtils.normalize(document.getElementById('periodoInicio').value);
+        const fim = DateUtils.normalize(document.getElementById('periodoFim').value);
         const minutosExtras = Number(document.getElementById('periodoMinutosExtras').value || 0);
 
         const periodo = { inicio, fim, minutosExtras };
@@ -7191,8 +7181,8 @@ function renderizarAcordos() {
             ul1.className = 'acordo-lista';
             (a.periodos || []).forEach(p => {
                 const li = document.createElement('li');
-                const inicioStr = dateIsoToBr(p.inicio) || p.inicio || '';
-                const fimStr = dateIsoToBr(p.fim) || p.fim || '';
+                const inicioStr = DateUtils.formatBR(p.inicio) || p.inicio || '';
+                const fimStr = DateUtils.formatBR(p.fim) || p.fim || '';
                 li.textContent = `${inicioStr} a ${fimStr} (${p.minutosExtras} min/dia)`;
                 ul1.appendChild(li);
             });
@@ -7254,9 +7244,9 @@ function renderizarAcordos() {
             } else {
                 eventosAcordo.forEach(ev => {
                     const li = document.createElement('li');
-                    const inicioEv = dateIsoToBr(ev.dataInicioEvento) || ev.dataInicioEvento || '';
+                    const inicioEv = DateUtils.formatBR(ev.dataInicioEvento) || ev.dataInicioEvento || '';
                     const fim = ev.dataFimEvento && ev.dataFimEvento !== ev.dataInicioEvento
-                        ? ` a ${dateIsoToBr(ev.dataFimEvento) || ev.dataFimEvento}`
+                        ? ` a ${DateUtils.formatBR(ev.dataFimEvento) || ev.dataFimEvento}`
                         : '';
                     li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${inicioEv}${fim})`;
                     ul3.appendChild(li);
@@ -9115,27 +9105,7 @@ function initDateFieldsBR() {
     });
 }
 
-/**
- * Converte data DD/MM/AAAA para YYYY-MM-DD (formato ISO)
- */
-function dateBrToIso(dataBr) {
-    if (!dataBr) return '';
-    const match = dataBr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!match) return dataBr;
-    const [, dia, mes, ano] = match;
-    return `${ano}-${mes}-${dia}`;
-}
-
-/**
- * Converte data YYYY-MM-DD (formato ISO) para DD/MM/AAAA
- */
-function dateIsoToBr(dataIso) {
-    if (!dataIso) return '';
-    const match = dataIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!match) return dataIso;
-    const [, ano, mes, dia] = match;
-    return `${dia}/${mes}/${ano}`;
-}
+// dateBrToIso e dateIsoToBr removidos — usar DateUtils.normalize() e DateUtils.formatBR()
 
 // ============= BACKUP E RESTORE =============
 

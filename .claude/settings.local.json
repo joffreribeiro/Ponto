@@ -7,7 +7,10 @@
       "Bash(python -c \"import PIL; print\\('PIL ok'\\)\")",
       "Bash(python -c \"import numpy; print\\('numpy ok'\\)\")",
       "Bash(pip install:*)",
-      "Bash(python canvas_render.py)"
+      "Bash(python canvas_render.py)",
+      "Bash(grep -n \"escapeHtml\\\\|escHtml\\\\|formatarData\\\\|formatarDataBR\" \"/e/MEUS DOCUMENTOS/OneDrive/Documentos/Ponto\"/*.js)",
+      "Bash(grep -rn \"escapeHtml\" \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\"/*.js)",
+      "Bash(ls \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\"/*.js)"
     ]
   }
 }

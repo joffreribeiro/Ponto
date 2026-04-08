@@ -1,6 +1,6 @@
 (function(){
     // Módulo responsável pelo Kanban de atividades
-    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; }); }
+    var escapeHtml = Utils.escapeHtml.bind(Utils);
 
     function renderizarKanban(items) {
         const kanban = document.getElementById('atividadesKanban');
