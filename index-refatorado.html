@@ -1684,5 +1684,35 @@ document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if
         });
     }
     </script>
+    <script>
+    // Empty-state helper: insere UI amigável quando #listaAvisos estiver vazio
+    (function(){
+        function renderEmptyIfNeeded(lista){
+            if (!lista) return;
+            const hasItems = Array.from(lista.children).some(ch => {
+                if (ch.nodeType === Node.ELEMENT_NODE && ch.classList && ch.classList.contains('empty-state')) return false;
+                if (ch.nodeType === Node.ELEMENT_NODE) return true;
+                if (ch.nodeType === Node.TEXT_NODE && ch.textContent.trim()) return true;
+                return false;
+            });
+            if (!hasItems) {
+                if (!lista.querySelector('.empty-state')){
+                    lista.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">Nenhum aviso</div><div class="empty-state-sub">Nenhum aviso ou pendência no momento.</div></div>';
+                }
+            } else {
+                const es = lista.querySelector('.empty-state');
+                if (es) es.remove();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const lista = document.getElementById('listaAvisos');
+            if (!lista) return;
+            renderEmptyIfNeeded(lista);
+            const mo = new MutationObserver(function(){ renderEmptyIfNeeded(lista); });
+            mo.observe(lista, { childList: true });
+        });
+    })();
+    </script>
 </body>
 </html>
