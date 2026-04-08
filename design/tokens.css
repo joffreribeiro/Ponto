@@ -12,6 +12,12 @@
   --accent: #00b4a6;
   --neutral: #d3d3d3;
   --bg-page: #f0f2f8;
+
+  /* Theme aliases — usados pelo stylesheet principal (mapeamento central) */
+  --theme-primary: #5750d4;
+  --theme-accent: #00b4a6;
+  --theme-neutral: #d3d3d3;
+  --theme-bg-page: #f0f2f8;
 }
 
 /* arctic-frost */
@@ -20,6 +26,10 @@ html[data-theme="arctic-frost"]{
   --accent:  #4a6fa5;
   --neutral: #c0c0c0;
   --bg-page: #fafafa;
+  --theme-primary: #d4e4f7;
+  --theme-accent: #4a6fa5;
+  --theme-neutral: #c0c0c0;
+  --theme-bg-page: #fafafa;
 }
 
 /* botanical-garden */
@@ -28,6 +38,10 @@ html[data-theme="botanical-garden"]{
   --accent:  #f9a620;
   --neutral: #b7472a;
   --bg-page: #f5f3ed;
+  --theme-primary: #4a7c59;
+  --theme-accent: #f9a620;
+  --theme-neutral: #b7472a;
+  --theme-bg-page: #f5f3ed;
 }
 
 /* desert-rose */
@@ -36,6 +50,10 @@ html[data-theme="desert-rose"]{
   --accent:  #b87d6d;
   --neutral: #e8d5c4;
   --bg-page: #5d2e46;
+  --theme-primary: #d4a5a5;
+  --theme-accent: #b87d6d;
+  --theme-neutral: #e8d5c4;
+  --theme-bg-page: #5d2e46;
 }
 
 /* forest-canopy */
@@ -44,6 +62,10 @@ html[data-theme="forest-canopy"]{
   --accent:  #7d8471;
   --neutral: #a4ac86;
   --bg-page: #faf9f6;
+  --theme-primary: #2d4a2b;
+  --theme-accent: #7d8471;
+  --theme-neutral: #a4ac86;
+  --theme-bg-page: #faf9f6;
 }
 
 /* golden-hour */
@@ -52,6 +74,10 @@ html[data-theme="golden-hour"]{
   --accent:  #c1666b;
   --neutral: #d4b896;
   --bg-page: #4a403a;
+  --theme-primary: #f4a900;
+  --theme-accent: #c1666b;
+  --theme-neutral: #d4b896;
+  --theme-bg-page: #4a403a;
 }
 
 /* midnight-galaxy */
@@ -60,6 +86,10 @@ html[data-theme="midnight-galaxy"]{
   --accent:  #4a4e8f;
   --neutral: #a490c2;
   --bg-page: #e6e6fa;
+  --theme-primary: #2b1e3e;
+  --theme-accent: #4a4e8f;
+  --theme-neutral: #a490c2;
+  --theme-bg-page: #e6e6fa;
 }
 
 /* modern-minimalist */
@@ -68,6 +98,10 @@ html[data-theme="modern-minimalist"]{
   --accent:  #708090;
   --neutral: #d3d3d3;
   --bg-page: #ffffff;
+  --theme-primary: #36454f;
+  --theme-accent: #708090;
+  --theme-neutral: #d3d3d3;
+  --theme-bg-page: #ffffff;
 }
 
 /* ocean-depths */
@@ -76,6 +110,10 @@ html[data-theme="ocean-depths"]{
   --accent:  #2d8b8b;
   --neutral: #a8dadc;
   --bg-page: #f1faee;
+  --theme-primary: #1a2332;
+  --theme-accent: #2d8b8b;
+  --theme-neutral: #a8dadc;
+  --theme-bg-page: #f1faee;
 }
 
 /* sunset-boulevard */
@@ -84,6 +122,10 @@ html[data-theme="sunset-boulevard"]{
   --accent:  #f4a261;
   --neutral: #e9c46a;
   --bg-page: #264653;
+  --theme-primary: #e76f51;
+  --theme-accent: #f4a261;
+  --theme-neutral: #e9c46a;
+  --theme-bg-page: #264653;
 }
 
 /* tech-innovation */
@@ -92,6 +134,10 @@ html[data-theme="tech-innovation"]{
   --accent:  #00ffff;
   --neutral: #1e1e1e;
   --bg-page: #ffffff;
+  --theme-primary: #0066ff;
+  --theme-accent: #00ffff;
+  --theme-neutral: #1e1e1e;
+  --theme-bg-page: #ffffff;
 }
 
 /* Nota: este arquivo define os tokens centrais (--primary, --accent, --neutral, --bg-page).

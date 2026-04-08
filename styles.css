@@ -96,41 +96,42 @@
    Paleta de cores — alinhada com theme-redesign.css (tema NEXUS)
    ================================================ */
 :root {
-    --bg-page: #f0f2f8;
-    --bg-header: #ffffff;
-    --bg-card: #ffffff;
-    --bg-soft: #f5f6fb;
+    /* Use theme aliases when available (defined in design/tokens.css) */
+    --bg-page: var(--theme-bg-page, #f0f2f8);
+    --bg-header: var(--theme-bg-header, #ffffff);
+    --bg-card: var(--theme-bg-card, #ffffff);
+    --bg-soft: var(--theme-bg-soft, #f5f6fb);
 
-    /* Core colors — Violeta royal (NEXUS) */
-    --primary: #5750d4;
-    --primary-soft: #ebe9fb;
-    --primary-dark: #3e38b0;
-    --primary-hover: #4840c2;
+    /* Core colors — mapped to theme tokens with sensible fallbacks */
+    --primary: var(--theme-primary, #5750d4);
+    --primary-soft: var(--theme-primary-soft, #ebe9fb);
+    --primary-dark: var(--theme-primary-dark, #3e38b0);
+    --primary-hover: var(--theme-primary-hover, #4840c2);
 
-    --secondary: #6b7280;
-    --secondary-soft: #f3f4f8;
-    --secondary-dark: #374151;
+    --secondary: var(--theme-secondary, #6b7280);
+    --secondary-soft: var(--theme-secondary-soft, #f3f4f8);
+    --secondary-dark: var(--theme-secondary-dark, #374151);
 
-    --accent: #00b4a6;
-    --accent-soft: #d9f5f3;
+    --accent: var(--theme-accent, #00b4a6);
+    --accent-soft: var(--theme-accent-soft, #d9f5f3);
 
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --text-light: #9ca3af;
+    --text-main: var(--theme-text-main, #111827);
+    --text-muted: var(--theme-text-muted, #6b7280);
+    --text-light: var(--theme-text-light, #9ca3af);
 
-    --border-soft: #e5e7ef;
-    --border-table: #eaecf2;
+    --border-soft: var(--theme-border-soft, #e5e7ef);
+    --border-table: var(--theme-border-table, #eaecf2);
 
-    --positive: #059669;
-    --positive-soft: #d1fae5;
-    --positive-dark: #065f46;
-    --negative: #dc2626;
-    --negative-soft: #fee2e2;
-    --negative-dark: #991b1b;
-    --warning: #d97706;
-    --warning-soft: #fef3c7;
-    --info: #2563eb;
-    --info-soft: #dbeafe;
+    --positive: var(--theme-positive, #059669);
+    --positive-soft: var(--theme-positive-soft, #d1fae5);
+    --positive-dark: var(--theme-positive-dark, #065f46);
+    --negative: var(--theme-negative, #dc2626);
+    --negative-soft: var(--theme-negative-soft, #fee2e2);
+    --negative-dark: var(--theme-negative-dark, #991b1b);
+    --warning: var(--theme-warning, #d97706);
+    --warning-soft: var(--theme-warning-soft, #fef3c7);
+    --info: var(--theme-info, #2563eb);
+    --info-soft: var(--theme-info-soft, #dbeafe);
 
     --shadow-soft:   0 1px 3px rgba(17, 24, 39, 0.06), 0 1px 2px rgba(17, 24, 39, 0.04);
     --shadow-medium: 0 4px 12px rgba(17, 24, 39, 0.08), 0 2px 6px rgba(17, 24, 39, 0.05);
