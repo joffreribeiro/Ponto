@@ -4,124 +4,67 @@
  */
 
 const Charts = {
-    instances: {},
-
     /**
-     * Inicializa biblioteca Chart.js
+     * Cria gráfico pizza de tipos de evento (doughnut)
      */
-    async init() {
-        // Lazy-load Chart.js sob demanda
-        if (typeof Chart === 'undefined' && typeof window._loadChartJS === 'function') {
-            await window._loadChartJS();
-        }
-        if (typeof Chart === 'undefined') {
-            console.warn('[Charts] Chart.js não carregado');
-            return false;
-        }
-        
-        // Configuração global
-        Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
-        Chart.defaults.color = '#1f2933';
-        return true;
-    },
-
-    /**
-     * Cria gráfico de horas trabalhadas (linha)
-     */
-    createHoursChart(canvasId, registros, opts = {}) {
+    createEventTypesChart(canvasId, eventos = [], tiposEvento = []) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
 
-        // Agrupar por mês
-        const byMonth = {};
-        registros.forEach(reg => {
-            const month = reg.data.substring(0, 7); // YYYY-MM
-            if (!byMonth[month]) byMonth[month] = 0;
-            
-            // Calcular horas do dia
-            const entrada = DateUtils.timeToMinutes(reg.entrada);
-            const saida = DateUtils.timeToMinutes(reg.saida);
-            const almoco = reg.saidaAlmoco && reg.retornoAlmoco
-                ? DateUtils.timeToMinutes(reg.retornoAlmoco) - DateUtils.timeToMinutes(reg.saidaAlmoco)
-                : 0;
-            
-            byMonth[month] += (saida - entrada - almoco) / 60; // converter para horas
+        const counts = {};
+        eventos.forEach(ev => {
+            const tipo = ev.tipo || ev.tipoId || ev.tipo_evento || ev.tipoEvento || ev.type || ev.tipo_id || 'outro';
+            const key = (typeof tipo === 'object' && tipo !== null) ? (tipo.id || tipo.nome || 'outro') : (tipo || 'outro');
+            counts[String(key)] = (counts[String(key)] || 0) + 1;
         });
 
-        const labels = Object.keys(byMonth).sort();
-        const data = labels.map(m => byMonth[m].toFixed(1));
+        const labels = Object.keys(counts);
+        const data = labels.map(l => counts[l]);
+
+        const defaultColors = [
+            '#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706',
+            '#dc2626', '#db2777', '#6366f1', '#0d9488', '#ea580c'
+        ];
+
+        const colors = labels.map((tipo, index) => {
+            const tipoInfo = tiposEvento.find(t => t.id === tipo || String(t.id) === tipo || t.nome === tipo);
+            return tipoInfo && tipoInfo.cor ? tipoInfo.cor : defaultColors[index % defaultColors.length];
+        });
 
         return this.createChart(canvasId, {
-            type: 'line',
+            type: 'doughnut',
             data: {
-                labels: labels.map(m => {
-                    const [year, month] = m.split('-');
-                    return `${month}/${year}`;
+                labels: labels.map(l => {
+                    const tipoInfo = tiposEvento.find(t => t.id === l || String(t.id) === l || t.nome === l);
+                    return tipoInfo ? (tipoInfo.nome || String(l)) : String(l);
                 }),
                 datasets: [{
-                    label: 'Horas Trabalhadas',
                     data: data,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#2563eb',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
+                    backgroundColor: colors,
+                    borderWidth: 4,
+                    borderColor: '#ffffff',
+                    hoverOffset: 8,
+                    hoverBorderWidth: 5
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Horas Trabalhadas por Mês'
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Horas'
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const val = ctx.raw;
+                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 0;
+                                const pct = total ? ((val/total)*100).toFixed(1) : 0;
+                                return `${ctx.label}: ${val} (${pct}%)`;
+                            }
                         }
                     }
                 }
             }
         });
-    },
-
-    /**
-     * Cria gráfico de saldo (barras)
-     */
-    createBalanceChart(canvasId, registros, acordos) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return null;
-
-        // Calcular saldo por mês
-        const byMonth = {};
-        registros.forEach(reg => {
-            const month = reg.data.substring(0, 7);
-            if (!byMonth[month]) byMonth[month] = 0;
-            
-            // Simplificado - calcular saldo do dia
-            const calc = Calculations.calculateDayWithContext(
-                registros, [], acordos, reg.data, reg
-            );
-            byMonth[month] += calc.saldo || 0;
-        });
-
-        const labels = Object.keys(byMonth).sort();
-        const data = labels.map(m => (byMonth[m] / 60).toFixed(1));
-
-        return this.createChart(canvasId, {
             type: 'bar',
             data: {
                 labels: labels.map(m => {
@@ -466,3 +409,7 @@ const Charts = {
         link.click();
     }
 };
+// Expor globalmente para compatibilidade com outras partes do app
+if (typeof window !== 'undefined') {
+    window.Charts = Charts;
+}
