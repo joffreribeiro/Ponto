@@ -94,8 +94,6 @@ function limparPeriodosInvalidos() {
     try {
         if (!AppState.dados?.periodosAquisitivos) return;
         
-        console.log(`[limparPeriodosInvalidos] Total de períodos antes: ${AppState.dados.periodosAquisitivos.length}`);
-        
         // Agrupar períodos por periodoIndex
         const porIndex = {};
         for (const p of AppState.dados.periodosAquisitivos) {
@@ -104,8 +102,6 @@ function limparPeriodosInvalidos() {
             porIndex[idx].push(p);
         }
         
-        console.log(`[limparPeriodosInvalidos] Índices únicos encontrados:`, Object.keys(porIndex).sort((a, b) => a - b));
-        
         const periodosValidos = [];
         
         for (const [idxStr, periodos] of Object.entries(porIndex)) {
@@ -113,7 +109,6 @@ function limparPeriodosInvalidos() {
             
             // Manter apenas índices 1-10 (segurança contra bugs de geração infinita)
             if (idx > 10) {
-                console.log(`[limparPeriodosInvalidos] Descartando períodos com índice ${idx} (muito alto)`);
                 continue;
             }
             
@@ -158,9 +153,6 @@ function limparPeriodosInvalidos() {
             return (Number(a.subIndex) || 1) - (Number(b.subIndex) || 1);
         });
         
-        console.log(`[limparPeriodosInvalidos] Total após limpeza: ${periodosValidos.length}`);
-        console.log(`[limparPeriodosInvalidos] Períodos mantidos:`, periodosValidos.map(p => `Idx${p.periodoIndex}/Sub${p.subIndex}(ferias:${p.feriasInicio || 'n'})`).join(', '));
-        
         AppState.dados.periodosAquisitivos = periodosValidos;
         AppState.save();
         
@@ -178,14 +170,10 @@ function limparPeriodosInvalidos() {
  */
 function atualizarTabelaFerias() {
     try {
-        console.log('[atualizarTabelaFerias] Iniciando...');
-        console.log('[atualizarTabelaFerias] AppState antes:', AppState.dados?.periodosAquisitivos?.length || 0);
-        
         // 1. Garantir que a aba de férias está visível
         const feriaTab = document.getElementById('ponto-ferias');
         if (feriaTab) {
             feriaTab.style.display = 'block';
-            console.log('[atualizarTabelaFerias] Aba de férias exibida');
         }
         
         // 2. Recarregar dados do localStorage (sem resetar a tudo padrão)
@@ -196,38 +184,21 @@ function atualizarTabelaFerias() {
         let periodosAfter = periodosBefore;
         
         if (periodosBefore > 10) {
-            console.log(`[atualizarTabelaFerias] Detectados ${periodosBefore} períodos - limpando duplicatas...`);
             periodosAfter = limparPeriodosInvalidos() || periodosAfter;
             
             // Recarregar AppState após limpeza
             AppState.init();
         }
         
-        console.log('[atualizarTabelaFerias] AppState depois de limpeza:', AppState.dados?.periodosAquisitivos?.length || 0);
-        console.log('[atualizarTabelaFerias] Dados localStorage após processamento:', JSON.stringify({
-            periodosCount: AppState.dados?.periodosAquisitivos?.length || 0,
-            periodos: AppState.dados?.periodosAquisitivos?.map(p => ({
-                index: p.periodoIndex,
-                inicio: p.inicio,
-                termino: p.termino
-            })) || []
-        }));
-        
         // 4. Renderizar tabela
         if (typeof renderizarPeriodosAquisitivosTable === 'function') {
-            console.log('[atualizarTabelaFerias] Chamando renderizarPeriodosAquisitivosTable()');
             renderizarPeriodosAquisitivosTable();
-            console.log('[atualizarTabelaFerias] Tabela renderizada com sucesso');
         } else {
             console.error('[atualizarTabelaFerias] Função renderizarPeriodosAquisitivosTable não encontrada!');
         }
         
         // 5. Feedback ao usuário com contagem correta
         const periodos = AppState.dados?.periodosAquisitivos?.length || 0;
-        console.log(`[atualizarTabelaFerias] Finalizando. Total final: ${periodos} períodos`);
-        
-        if (periodosBefore !== periodos) {
-            console.log(`[atualizarTabelaFerias] Limpeza executada: ${periodosBefore} → ${periodos} períodos`);
         }
         
         if (typeof Notifications !== 'undefined' && Notifications.success) {
@@ -806,8 +777,6 @@ function inicializar() {
                 }
             }, 200);
         }
-
-        console.log('Aplicação inicializada com sucesso');
     } catch (error) {
         console.error('Erro na inicialização:', error);
         mostrarAlertaGlobal('Erro ao inicializar. Verifique o console.', 'error');
@@ -926,7 +895,6 @@ function ensureAtividadesDefault() {
     });
     
     if (migrou) {
-        console.log('Atividades migradas do formato antigo para o novo');
     }
     
     AppState.save();
@@ -2699,7 +2667,6 @@ function migrarDatasParaISO() {
         
         if (modificado) {
             AppState.save();
-            console.log('Datas migradas para formato ISO com sucesso');
         }
     } catch (e) {
         console.error('Erro ao migrar datas:', e);
@@ -3998,35 +3965,7 @@ function atualizarDashboard() {
         } catch (err) {
             console.warn('Erro ao calcular abono/horas no dashboard:', err);
         }
-        
-        // Debug: log detalhado dos cálculos de novembro
-        console.log('=== CÁLCULO DE HORAS TRABALHADAS ===');
-        console.log('Total de registros:', AppState.dados.registros.length);
-        console.log('Acordos configurados:', AppState.dados.acordos.length);
-        console.log('Eventos:', AppState.dados.eventos.length);
-        console.log('Totais:', totais);
-        
-        // Detalhar novembro
-        const novembroRegs = AppState.dados.registros.filter(r => r.data.startsWith('2024-11'));
-        if (novembroRegs.length > 0) {
-            console.log('\n=== NOVEMBRO 2024 - DETALHES DE CÁLCULO ===');
-            novembroRegs.slice(0, 5).forEach(r => {
-                const calc = Calculations.calculateDayWithContext(
-                    AppState.dados.registros, AppState.dados.eventos, AppState.dados.acordos, r.data, r
-                );
-                const regra = Calculations.getRegraHorarioForDay(calc.acordo, r.data);
-                console.log(`
-${r.data}: ${r.entrada}-${r.saida}
-  ├─ Trabalhou: ${DateUtils.minutesToTime(calc.trabalhadas)}
-  ├─ Carga esperada: ${DateUtils.minutesToTime(480 + (regra.minutosExtras || 0))} (8h + ${regra.minutosExtras || 0}min)
-  ├─ Saldo: ${DateUtils.minutesToTime(calc.saldo)}
-  ├─ Acordo: ${calc.acordo?.nome || 'PADRÃO'}
-  ├─ Regra período: ${regra.inicio} até ${regra.fim}
-  └─ MinutosExtras regra: ${regra.minutosExtras || 0}
-                `);
-            });
-            console.log(`Total registros novembro: ${novembroRegs.length}`);
-        }
+
 
         // Avisos
         const listaAvisos = document.getElementById('listaAvisos');
@@ -4575,15 +4514,9 @@ function gerarTimesheetAcordo() {
             });
         });
 
-        console.log('=== CÁLCULO SALDO ANTERIOR ===');
-        console.log('Início do acordo:', inicio.toDateString());
-        console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
-        console.log('Acordo anterior identificado:', acordoAnterior ? acordoAnterior.nome : 'nenhum');
-
         let saldoAcumuladoGeral = 0;
 
         if (!acordoAnterior) {
-            console.log('Não há acordo anterior. Saldo anterior = 0');
             saldoAcumuladoGeral = 0;
         } else {
             // Limitar cálculo ao intervalo do acordo anterior até o último dia antes do novo acordo
@@ -4636,8 +4569,6 @@ function gerarTimesheetAcordo() {
                 cursor.setDate(cursor.getDate() + 1);
             }
         }
-
-        console.log('Saldo acumulado até', ultimoDiaMesAnteriorStr + ':', saldoAcumuladoGeral);
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
 
@@ -4798,11 +4729,6 @@ function gerarTimesheetAcordo() {
                     // NUNCA devem criar células mescladas - sempre células normais coloridas
                     const tiposNaoMesclar = ['compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
                     const isCompensar = ev && tiposNaoMesclar.includes(ev.tipoEvento);
-                    
-                    // DEBUG: Log para eventos de interesse
-                    if (ev && tiposNaoMesclar.includes(ev.tipoEvento) && rowIndex === 0) {
-                        console.log('DEBUG EVENTO:', dia.dataStr, 'tipo:', ev.tipoEvento, 'periodo:', ev.periodo, 'isCompensar:', isCompensar);
-                    }
 
                     // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
                     if (ev && !isCompensar) {
@@ -5317,9 +5243,6 @@ function renderizarEventos() {
 
         tbody.innerHTML = '';
 
-        console.log('Renderizando eventos:', AppState.dados.eventos.length, 'eventos');
-        console.log('Tipos de evento disponíveis:', AppState.dados.tiposEvento);
-
         // Garantir que tiposEvento existe
         if (!AppState.dados.tiposEvento || !Array.isArray(AppState.dados.tiposEvento)) {
             console.warn('tiposEvento não existe, criando padrão');
@@ -5474,8 +5397,6 @@ function renderizarEventos() {
                 });
             } catch (e) { /* ignore */ }
         } catch (e) { console.warn('Erro aplicando ordenação em eventos:', e); }
-
-        console.log('Eventos filtrados:', eventosFiltrados.length);
 
         if (eventosFiltrados.length === 0) {
             const tr = document.createElement('tr');
@@ -5801,8 +5722,6 @@ function gerarProximoPeriodoSeNecessario() {
         // Salvar e atualizar UI
         AppState.save();
         renderizarPeriodosAquisitivosTable();
-
-        console.log(`Período aquisitivo ${proximoIndex} gerado automaticamente: ${DateUtils.formatBR(DateUtils.getIsoDate(inicio))} → ${DateUtils.formatBR(DateUtils.getIsoDate(termino))}`);
     } catch (e) {
         console.warn('Erro ao gerar próximo período automaticamente:', e);
     }
