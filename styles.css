@@ -498,7 +498,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     color: #fff;
     cursor: pointer;
     backdrop-filter: blur(4px);
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease, color 0.2s ease;
 }
 .btn-header:hover {
     background: rgba(255,255,255,0.22);
@@ -532,7 +532,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     color: #fff;
     cursor: pointer;
     backdrop-filter: blur(4px);
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease, color 0.2s ease;
     white-space: nowrap;
 }
 
@@ -787,7 +787,7 @@ header {
     top: 0;
     z-index: 1000;
     margin-bottom: 0;
-    transition: all 0.3s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 header h1 {
@@ -1024,7 +1024,7 @@ header h1 {
     position: absolute;
     height: 100%;
     border-radius: 6px;
-    transition: all 0.3s ease;
+    transition: width 0.3s ease, left 0.3s ease, transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
 }
 
 .timeline-aquisitivo {
@@ -1185,7 +1185,7 @@ header h1 {
     font-weight: 500;
     background: var(--bg-card);
     color: var(--text-main);
-    transition: all 0.2s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
     box-shadow: var(--shadow-soft);
 }
 
@@ -1582,7 +1582,7 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease, color 0.2s ease;
     white-space: nowrap;
     box-shadow: var(--shadow-soft);
 }
@@ -1780,7 +1780,7 @@ html[data-theme="dark"] .alertas-jornada.alertas-critical {
     cursor: pointer;
     background: var(--bg-soft);
     color: var(--text-muted);
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -1922,7 +1922,7 @@ button {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
 }
 
 .btn-outline:hover {
@@ -1942,7 +1942,7 @@ button {
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease;
 }
 
 .btn-error:hover {
@@ -2106,7 +2106,7 @@ td {
    Tabela de Eventos - Badges coloridos
    ================================================ */
 #tabelaEventos tbody tr {
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
 }
 
 #tabelaEventos tbody tr:hover {
@@ -2191,13 +2191,13 @@ td {
     border-top: none;
 }
 
-.timesheet-table thead th {
+.#ponto-timesheet .timesheet-table thead th {
     background: var(--primary);
     color: #ffffff;
     font-weight: 600;
-    font-size: 11px !important;
-    padding: 1px 2px !important;
-    line-height: 0.9 !important;
+    font-size: 11px;
+    padding: 1px 2px;
+    line-height: 0.9;
 }
 
 /* altura consistente para todas as linhas do timesheet */
@@ -2207,16 +2207,16 @@ td {
     vertical-align: middle;
 }
 
-.timesheet-table tbody td {
-    padding: 1px 2px !important;
-    line-height: 0.9 !important;
-    font-size: 11px !important;
+.#ponto-timesheet .timesheet-table tbody td {
+    padding: 1px 2px;
+    line-height: 0.9;
+    font-size: 11px;
 }
 
-.timesheet-table td.feriado-cell,
-.timesheet-table td.evento-vertical {
-    padding: 1px 2px !important;
-    line-height: 0.9 !important;
+.#ponto-timesheet .timesheet-table td.feriado-cell,
+.#ponto-timesheet .timesheet-table td.evento-vertical {
+    padding: 1px 2px;
+    line-height: 0.9;
 }
 
 /* Timesheet: make regular cells clearly readable */
@@ -2232,18 +2232,19 @@ td {
 }
 
 /* Aggressive overrides to ensure times are readable in the timesheet */
-.timesheet-table td {
-    color: var(--text-main) !important;
-    opacity: 1 !important;
+.#ponto-timesheet .timesheet-table td {
+    color: var(--text-main);
+    opacity: 1;
     font-weight: 600;
 }
-.timesheet-table td.ts-clickable { cursor: pointer; }
-.timesheet-table .th-dia-semana, .timesheet-table .th-dia-num { color: #ffffff !important; }
-.timesheet-table .evento-vertical { color: var(--text-main); }
+.#ponto-timesheet .timesheet-table td.ts-clickable { cursor: pointer; }
+.#ponto-timesheet .timesheet-table .th-dia-semana,
+.#ponto-timesheet .timesheet-table .th-dia-num { color: #ffffff; }
+.#ponto-timesheet .timesheet-table .evento-vertical { color: var(--text-main); }
 
 /* Reduce overly-light gradients that make text hard to read */
-.timesheet-table td[style*="linear-gradient"] {
-    background: transparent !important;
+.#ponto-timesheet .timesheet-table td[style*="linear-gradient"] {
+    background: transparent;
 }
 
 /* Fins de semana no timesheet (coluna em azul bem claro) */
@@ -2259,12 +2260,12 @@ td {
 
 
 /* dia da semana em cima, número embaixo */
-.th-dia {
+.#ponto-timesheet .th-dia {
     display: flex;
     flex-direction: column;
     align-items: center;
-    line-height: 0.9 !important;
-    padding: 1px 2px !important;
+    line-height: 0.9;
+    padding: 1px 2px;
 }
 .th-dia-semana {
     font-size: 10px;
@@ -2973,7 +2974,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     font-weight: bold;
     font-size: 16px;
     flex-shrink: 0;
-    transition: all 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }
 
 .scroll-btn:hover {
@@ -3080,7 +3081,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-left: 4px solid #3b82f6;
     animation: slideIn 0.3s ease;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .toast-enter {
@@ -3118,7 +3119,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     align-items: center;
     justify-content: center;
     border-radius: 4px;
-    transition: all 0.15s;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
 .toast-close:hover {
@@ -3242,7 +3243,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     z-index: 9999;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
 }
 
 .loading-overlay.loading-visible {
@@ -3441,7 +3442,7 @@ kbd {
     color: var(--text-main);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
 }
 
 .btn-pagination:hover:not(:disabled) {
@@ -4212,7 +4213,7 @@ html[data-theme="dark"] {
     background: var(--bg-soft);
     color: var(--text-muted);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
     user-select: none;
     display: flex;
     align-items: center;
