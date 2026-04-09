@@ -1,415 +1,236 @@
-/**
- * charts.js - Sistema de gráficos e analytics
- * Visualização de dados com Chart.js
+﻿/**
+ * charts.js - Sistema de graficos e analytics
+ * Visualizacao de dados com Chart.js
  */
 
 const Charts = {
-    /**
-     * Cria gráfico pizza de tipos de evento (doughnut)
-     */
-    createEventTypesChart(canvasId, eventos = [], tiposEvento = []) {
+
+    /** Instancias ativas dos graficos */
+    instances: {},
+
+    createHoursChart(canvasId, registros, opts) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
-
-        const counts = {};
-        eventos.forEach(ev => {
-            const tipo = ev.tipo || ev.tipoId || ev.tipo_evento || ev.tipoEvento || ev.type || ev.tipo_id || 'outro';
-            const key = (typeof tipo === 'object' && tipo !== null) ? (tipo.id || tipo.nome || 'outro') : (tipo || 'outro');
-            counts[String(key)] = (counts[String(key)] || 0) + 1;
+        const byMonth = {};
+        registros.forEach(reg => {
+            if (!reg.data || !reg.entrada || !reg.saida) return;
+            const month = reg.data.substring(0, 7);
+            const entrada = (typeof DateUtils !== 'undefined') ? DateUtils.timeToMinutes(reg.entrada) : 0;
+            const saida   = (typeof DateUtils !== 'undefined') ? DateUtils.timeToMinutes(reg.saida)   : 0;
+            const almoco  = (reg.saidaAlmoco && reg.retornoAlmoco && typeof DateUtils !== 'undefined')
+                ? (DateUtils.timeToMinutes(reg.retornoAlmoco) - DateUtils.timeToMinutes(reg.saidaAlmoco))
+                : 0;
+            const horas = Math.max(0, (saida - entrada - almoco) / 60);
+            byMonth[month] = (byMonth[month] || 0) + horas;
         });
-
-        const labels = Object.keys(counts);
-        const data = labels.map(l => counts[l]);
-
-        const defaultColors = [
-            '#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706',
-            '#dc2626', '#db2777', '#6366f1', '#0d9488', '#ea580c'
-        ];
-
-        const colors = labels.map((tipo, index) => {
-            const tipoInfo = tiposEvento.find(t => t.id === tipo || String(t.id) === tipo || t.nome === tipo);
-            return tipoInfo && tipoInfo.cor ? tipoInfo.cor : defaultColors[index % defaultColors.length];
-        });
-
-        return this.createChart(canvasId, {
-            type: 'doughnut',
-            data: {
-                labels: labels.map(l => {
-                    const tipoInfo = tiposEvento.find(t => t.id === l || String(t.id) === l || t.nome === l);
-                    return tipoInfo ? (tipoInfo.nome || String(l)) : String(l);
-                }),
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: 4,
-                    borderColor: '#ffffff',
-                    hoverOffset: 8,
-                    hoverBorderWidth: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'right' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(ctx) {
-                                const val = ctx.raw;
-                                const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 0;
-                                const pct = total ? ((val/total)*100).toFixed(1) : 0;
-                                return `${ctx.label}: ${val} (${pct}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-            type: 'bar',
-            data: {
-                labels: labels.map(m => {
-                    const [year, month] = m.split('-');
-                    return `${month}/${year}`;
-                }),
-                datasets: [{
-                    label: 'Saldo (horas)',
-                    data: data,
-                    backgroundColor: data.map(v => v >= 0 ? '#059669' : '#dc2626'),
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Saldo de Horas por Mês'
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Horas'
-                        }
-                    }
-                }
-            }
-        });
-    },
-
-    /**
-     * Cria gráfico pizza de tipos de evento
-     */
-    createEventTypesChart(canvasId, eventos, tiposEvento) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return null;
-
-        // Contar por tipo
         const labels = Object.keys(byMonth).sort();
-        const data = labels.map(m => byMonth[m].toFixed(1));
-
-        // Calculate monthly target(s)
+        const data = labels.map(m => Number(byMonth[m].toFixed(1)));
         const horasDiarias = (opts && typeof opts.horasDiarias === 'number') ? opts.horasDiarias : 8;
         const providedMeta = (opts && typeof opts.metaMensal === 'number') ? opts.metaMensal : null;
         const monthlyTargets = labels.map(m => {
             try {
                 if (providedMeta !== null) return providedMeta;
                 const [yy, mm] = m.split('-');
-                const y = Number(yy);
-                const mo = Number(mm) - 1;
+                const y = Number(yy); const mo = Number(mm) - 1;
                 const last = new Date(y, mo + 1, 0).getDate();
-                let businessDays = 0;
+                let bd = 0;
                 for (let d = 1; d <= last; d++) {
                     const dt = new Date(y, mo, d);
                     if (typeof DateUtils !== 'undefined' && typeof DateUtils.isBusinessDay === 'function') {
-                        if (DateUtils.isBusinessDay(dt)) businessDays++;
-                    } else {
-                        const dow = dt.getDay();
-                        if (dow !== 0 && dow !== 6) businessDays++;
-                    }
+                        if (DateUtils.isBusinessDay(dt)) bd++;
+                    } else { const dow = dt.getDay(); if (dow !== 0 && dow !== 6) bd++; }
                 }
-                return horasDiarias * businessDays;
+                return horasDiarias * bd;
             } catch (e) { return providedMeta || 176; }
         });
-
         const cfg = {
-
-        const labels = Object.keys(counts);
-        const data = Object.values(counts);
-
-        // Cores dos tipos - paleta profissional com alto contraste
-        const defaultColors = [
-            '#2563eb', // Azul
-            '#7c3aed', // Roxo
-            '#0891b2', // Ciano
-            '#059669', // Verde
-            '#d97706', // Laranja
-            '#dc2626', // Vermelho
-            '#db2777', // Rosa
-            '#6366f1', // Índigo
-            '#0d9488', // Teal
-            '#ea580c'  // Laranja escuro
-        ];
-        
-        const colors = labels.map((tipo, index) => {
-            const tipoInfo = tiposEvento.find(t => t.id === tipo);
-            return tipoInfo?.cor || defaultColors[index % defaultColors.length];
-        });
-
-        return this.createChart(canvasId, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
-                labels: labels.map(l => {
-                    const tipo = tiposEvento.find(t => t.id === l);
-                    return tipo?.nome || l;
-                }),
+                labels: labels.map(m => { const [y, mo] = m.split('-'); return `${mo}/${y}`; }),
                 datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: 4,
-                    borderColor: '#ffffff',
-                    hoverOffset: 8,
-                    hoverBorderWidth: 5
+                    label: 'Horas Trabalhadas', data: data,
+                    backgroundColor: '#2563eb', borderWidth: 0, borderRadius: 6, borderSkipped: false, yAxisID: 'y'
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Horas Trabalhadas por Mes' }, legend: { display: true, position: 'top' } },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Horas' } } }
+            }
         };
-
-        // Add fallback 'Meta Mensal' dataset (dashed red). If an annotation plugin exists, try to add it too.
         try {
-            // add second dataset for monthly target values
             cfg.data.datasets.push({
-                label: 'Meta Mensal',
-                data: monthlyTargets.map(v => Number(v.toFixed(1))),
-                borderColor: '#ef4444',
-                borderDash: [6,6],
-                borderWidth: 2,
-                fill: false,
-                pointRadius: 0,
-                tension: 0,
-                yAxisID: 'y'
+                label: 'Meta Mensal', data: monthlyTargets.map(v => Number(v.toFixed(1))),
+                type: 'line', borderColor: '#ef4444', borderDash: [6,6], borderWidth: 2,
+                fill: false, pointRadius: 0, tension: 0, yAxisID: 'y'
             });
-
-            // Attempt to add an annotation if plugin is available
-            try {
-                if (typeof Chart !== 'undefined' && Chart.registry && typeof Chart.registry.get === 'function' && Chart.registry.get('annotation')) {
-                    // annotation plugin detected — add a simple horizontal annotation for the last computed target
-                    const lastTarget = monthlyTargets.length ? monthlyTargets[monthlyTargets.length - 1] : (providedMeta || 176);
-                    cfg.options.plugins.annotation = cfg.options.plugins.annotation || {};
-                    cfg.options.plugins.annotation.annotations = cfg.options.plugins.annotation.annotations || {};
-                    cfg.options.plugins.annotation.annotations.metaMensal = {
-                        type: 'line',
-                        yMin: lastTarget,
-                        yMax: lastTarget,
-                        borderColor: '#ef4444',
-                        borderDash: [6,6],
-                        borderWidth: 2,
-                        label: {
-                            content: 'Meta Mensal',
-                            enabled: true,
-                            position: 'end'
-                        }
-                    };
-                }
-            } catch (e) { /* ignore annotation errors */ }
-        } catch (e) { console.warn('Erro ao adicionar meta mensal ao gráfico:', e); }
-
+        } catch (e) { console.warn('Erro ao adicionar meta mensal:', e); }
         return this.createChart(canvasId, cfg);
-    /**
-     * Cria gráfico de heatmap semanal
-     */
-    createWeeklyHeatmap(canvasId, registros) {
+    },
+
+    createBalanceChart(canvasId, registros, acordos) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
-
-        // Agrupar por dia da semana
-        const byWeekday = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-        const counts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-
+        const byMonth = {};
         registros.forEach(reg => {
-            const date = new Date(reg.data + 'T00:00:00');
-            const weekday = date.getDay();
-            
-            const entrada = DateUtils.timeToMinutes(reg.entrada);
-            const saida = DateUtils.timeToMinutes(reg.saida);
-            const almoco = reg.saidaAlmoco && reg.retornoAlmoco
-                ? DateUtils.timeToMinutes(reg.retornoAlmoco) - DateUtils.timeToMinutes(reg.saidaAlmoco)
-                : 0;
-            
-            byWeekday[weekday] += (saida - entrada - almoco) / 60;
-            counts[weekday]++;
+            if (!reg.data || !reg.entrada || !reg.saida) return;
+            const month = reg.data.substring(0, 7);
+            const saldo = typeof reg.saldo === 'number' ? reg.saldo
+                : (typeof reg.saldoDia === 'number' ? reg.saldoDia : 0);
+            byMonth[month] = (byMonth[month] || 0) + saldo;
         });
-
-        const labels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        const data = Object.keys(byWeekday).map(day => 
-            counts[day] > 0 ? (byWeekday[day] / counts[day]).toFixed(1) : 0
-        );
-
+        const labels = Object.keys(byMonth).sort();
+        const data = labels.map(m => Number((byMonth[m] / 60).toFixed(2)));
         return this.createChart(canvasId, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: labels.map(m => { const [y, mo] = m.split('-'); return `${mo}/${y}`; }),
                 datasets: [{
-                    label: 'Média de Horas',
-                    data: data,
-                    backgroundColor: [
-                        '#94a3b8',  // Domingo - cinza mais claro
-                        '#2563eb',  // Segunda - azul
-                        '#7c3aed',  // Terça - roxo
-                        '#0891b2',  // Quarta - ciano
-                        '#059669',  // Quinta - verde
-                        '#d97706',  // Sexta - laranja
-                        '#94a3b8'   // Sábado - cinza mais claro
-                    ],
-                    borderWidth: 0,
-                    borderRadius: 6,
-                    borderSkipped: false
+                    label: 'Saldo (horas)', data: data,
+                    backgroundColor: data.map(v => v >= 0 ? '#059669' : '#dc2626'),
+                    borderWidth: 0, borderRadius: 6, borderSkipped: false
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Saldo de Horas por Mes' }, legend: { display: false } },
+                scales: { y: { title: { display: true, text: 'Horas' } } }
+            }
+        });
+    },
+
+    createEventTypesChart(canvasId, eventos, tiposEvento) {
+        if (!eventos) eventos = [];
+        if (!tiposEvento) tiposEvento = [];
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
+        const counts = {};
+        eventos.forEach(ev => {
+            const tipo = ev.tipo || ev.tipoId || ev.tipo_evento || ev.tipoEvento || ev.type || ev.tipo_id || 'outro';
+            const key = (typeof tipo === 'object' && tipo !== null) ? (tipo.id || tipo.nome || 'outro') : (tipo || 'outro');
+            counts[String(key)] = (counts[String(key)] || 0) + 1;
+        });
+        const labels = Object.keys(counts);
+        const data = labels.map(l => counts[l]);
+        const defaultColors = ['#2563eb','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#db2777','#6366f1','#0d9488','#ea580c'];
+        const colors = labels.map((tipo, i) => {
+            const t = tiposEvento.find(t => t.id === tipo || String(t.id) === tipo || t.nome === tipo);
+            return (t && t.cor) ? t.cor : defaultColors[i % defaultColors.length];
+        });
+        return this.createChart(canvasId, {
+            type: 'doughnut',
+            data: {
+                labels: labels.map(l => { const t = tiposEvento.find(t => t.id === l || String(t.id) === l || t.nome === l); return t ? (t.nome || String(l)) : String(l); }),
+                datasets: [{ data: data, backgroundColor: colors, borderWidth: 4, borderColor: '#ffffff', hoverOffset: 8, hoverBorderWidth: 5 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Média de Horas por Dia da Semana'
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Horas'
-                        }
-                    }
+                    legend: { position: 'right' },
+                    tooltip: { callbacks: { label: function(ctx) { const v = ctx.raw; const tot = ctx.dataset.data.reduce((a,b)=>a+b,0)||0; return `${ctx.label}: ${v} (${tot?((v/tot)*100).toFixed(1):0}%)`; } } }
                 }
             }
         });
     },
 
-    /**
-     * Cria gráfico genérico
-     */
-    createChart(canvasId, config) {
-        // Destruir instância anterior se existir
-        if (this.instances[canvasId]) {
-            this.instances[canvasId].destroy();
-        }
-
+    createWeeklyHeatmap(canvasId, registros) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
+        const byWeekday = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+        const counts    = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+        registros.forEach(reg => {
+            if (!reg.data || !reg.entrada || !reg.saida) return;
+            const weekday = new Date(reg.data + 'T00:00:00').getDay();
+            const entrada = (typeof DateUtils !== 'undefined') ? DateUtils.timeToMinutes(reg.entrada) : 0;
+            const saida   = (typeof DateUtils !== 'undefined') ? DateUtils.timeToMinutes(reg.saida)   : 0;
+            const almoco  = (reg.saidaAlmoco && reg.retornoAlmoco && typeof DateUtils !== 'undefined')
+                ? (DateUtils.timeToMinutes(reg.retornoAlmoco) - DateUtils.timeToMinutes(reg.saidaAlmoco)) : 0;
+            byWeekday[weekday] += (saida - entrada - almoco) / 60;
+            counts[weekday]++;
+        });
+        const labelNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+        const data = Object.keys(byWeekday).map(d => counts[d] > 0 ? Number((byWeekday[d]/counts[d]).toFixed(1)) : 0);
+        return this.createChart(canvasId, {
+            type: 'bar',
+            data: {
+                labels: labelNames,
+                datasets: [{
+                    label: 'Media de Horas', data: data,
+                    backgroundColor: ['#94a3b8','#2563eb','#7c3aed','#0891b2','#059669','#d97706','#94a3b8'],
+                    borderWidth: 0, borderRadius: 6, borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Media de Horas por Dia da Semana' }, legend: { display: false } },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Horas' } } }
+            }
+        });
+    },
 
+    createChart(canvasId, config) {
+        if (this.instances[canvasId]) {
+            try { this.instances[canvasId].destroy(); } catch(e) {}
+            delete this.instances[canvasId];
+        }
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
         const ctx = canvas.getContext('2d');
         this.instances[canvasId] = new Chart(ctx, config);
-        
         return this.instances[canvasId];
     },
 
-    /**
-     * Atualiza dados de um gráfico
-     */
     updateChart(canvasId, newData) {
         const chart = this.instances[canvasId];
         if (!chart) return;
-
         chart.data = newData;
         chart.update();
     },
 
-    /**
-     * Destrói um gráfico
-     */
     destroyChart(canvasId) {
         const chart = this.instances[canvasId];
         if (chart) {
-            chart.destroy();
+            try { chart.destroy(); } catch(e) {}
             delete this.instances[canvasId];
         }
     },
 
-    /**
-     * Destrói todos os gráficos
-     */
     destroyAll() {
-        Object.keys(this.instances).forEach(id => {
-            this.destroyChart(id);
-        });
+        Object.keys(this.instances).forEach(id => this.destroyChart(id));
     },
 
-    /**
-     * Exporta gráfico como imagem
-     */
     exportAsImage(canvasId, filename) {
         const chart = this.instances[canvasId];
         if (!chart) return;
-
-        // Determine chart title (if any) to compose filename
         let titleText = '';
         try {
             const t = chart.options && chart.options.plugins && chart.options.plugins.title;
-            if (t) {
-                if (typeof t.text === 'string') titleText = t.text;
-                else if (Array.isArray(t.text)) titleText = t.text.join(' ');
-                else if (typeof t.text === 'function') {
-                    try { titleText = t.text(); } catch(e) { titleText = ''; }
-                }
-            }
-            if (!titleText && chart.data && chart.data.datasets && chart.data.datasets[0]) {
-                titleText = chart.data.datasets[0].label || '';
-            }
-        } catch (e) { titleText = ''; }
-        titleText = String(titleText || '').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '');
-
+            if (t) { titleText = Array.isArray(t.text) ? t.text.join(' ') : (typeof t.text === 'string' ? t.text : ''); }
+            if (!titleText && chart.data && chart.data.datasets && chart.data.datasets[0]) titleText = chart.data.datasets[0].label || '';
+        } catch(e) {}
+        titleText = String(titleText||'').trim().replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\-]/g,'');
         const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        const dateStr = `${y}-${m}-${d}`;
-        const defaultName = `grafico${titleText ? '_' + titleText : ''}_${dateStr}.png`;
-
-        const outName = filename || defaultName;
-
-        // Temporarily ensure title is displayed for export
-        let prevTitleDisplay;
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const outName = filename || `grafico${titleText?'_'+titleText:''}_${dateStr}.png`;
         try {
             if (chart.options && chart.options.plugins && chart.options.plugins.title) {
-                prevTitleDisplay = chart.options.plugins.title.display;
+                const prev = chart.options.plugins.title.display;
                 chart.options.plugins.title.display = true;
-                try { chart.update(); } catch(e) { /* ignore */ }
+                try { chart.update(); } catch(e) {}
+                const url = chart.toBase64Image();
+                chart.options.plugins.title.display = prev;
+                try { chart.update(); } catch(e) {}
+                const link = document.createElement('a');
+                link.href = url; link.download = outName; link.click();
+                return;
             }
-        } catch (e) { /* ignore */ }
-
+        } catch(e) {}
         const url = chart.toBase64Image();
-
-        // restore title display state
-        try {
-            if (typeof prevTitleDisplay !== 'undefined' && chart.options && chart.options.plugins && chart.options.plugins.title) {
-                chart.options.plugins.title.display = prevTitleDisplay;
-                try { chart.update(); } catch(e) { /* ignore */ }
-            }
-        } catch (e) { /* ignore */ }
-
         const link = document.createElement('a');
-        link.href = url;
-        link.download = outName;
-        link.click();
+        link.href = url; link.download = outName; link.click();
     }
 };
-// Expor globalmente para compatibilidade com outras partes do app
+
 if (typeof window !== 'undefined') {
     window.Charts = Charts;
 }
