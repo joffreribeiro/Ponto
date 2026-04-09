@@ -363,7 +363,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 #tablePeriodosAquisitivos thead th { 
     background: var(--primary); 
     color: #ffffff; 
-    font-weight: 700; 
+    font-weight: 600; 
     font-size: 13px;
     padding: 8px 6px;                 /* reduzido de 12px 8px */
     text-transform: uppercase;
@@ -716,7 +716,7 @@ html[data-density="comfortable"] .btn-header {
     background: none;
     border: none;
     color: var(--text-main);
-    font-weight: 700;
+    font-weight: 600;
     margin-left: 12px;
     cursor: pointer;
     padding: 6px;
@@ -947,7 +947,7 @@ header h1 {
 
 .ferias-vertical-grid .stat-label {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1307,7 +1307,7 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
 html[data-theme="dark"] .form-group input,
 html[data-theme="dark"] .form-group select,
 html[data-theme="dark"] .form-group textarea {
-    background: #071428;
+    background: var(--bg-card);
     color: var(--text-main);
     border: 1px solid var(--border-soft);
 }
@@ -1326,7 +1326,7 @@ html[data-theme="dark"] .form-group textarea {
     padding: 4px 8px;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
 }
 .badge--order { background: var(--primary); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); }
 .badge--due { background: #92400e; color: #ffffff; }
@@ -1543,7 +1543,7 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
 }
 .atividade-item { margin-bottom: 8px; }
 .atividade-item .small-text { color: var(--text-muted); font-size: 13px; }
-.atividade-item strong { font-size: 15px; font-weight: 700; }
+.atividade-item strong { font-size: 15px; font-weight: 600; }
 .atividade-item .meta { font-size: 13px; color: var(--text-muted); }
 .atividade-item .actions { display:flex; gap:8px; }
 
@@ -1555,7 +1555,7 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
 .due-soon { background: linear-gradient(90deg, rgba(255,250,240,0.6), transparent); }
 
 /* Sidebar links active */
-.nova-sidebar a.active { font-weight:700; color: var(--primary); }
+.nova-sidebar a.active { font-weight:600; color: var(--primary); }
 
 /* Melhor contraste para small-text */
 .small-text { color: var(--text-muted); opacity: 0.95; }
@@ -1627,7 +1627,7 @@ html[data-theme="dark"] .modal-inline-card .modal-body { background: transparent
 
 .filter-info strong {
     color: var(--primary);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .stats-grid {
@@ -2022,7 +2022,7 @@ td {
 .table-container thead th {
     background: var(--primary);
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 13px;
     padding: 12px 8px;
     text-transform: uppercase;
@@ -3736,13 +3736,13 @@ html[data-theme="dark"] .empty-state-icon {
 /* Tabela de Atividades: deixar texto em negrito para melhor leitura */
 #tabelaAtividades th,
 #tabelaAtividades td {
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     color: var(--text-main) !important;
 }
 
 /* Garantir que badges e elementos pequenos dentro da tabela também fiquem legíveis */
 #tabelaAtividades td * {
-    font-weight: 700 !important;
+    font-weight: 600 !important;
 }
 
 /* ================================================
@@ -3752,11 +3752,11 @@ html[data-theme="dark"] .empty-state-icon {
 /* Tabela de Atividades: deixar texto em negrito para melhor leitura */
 #tabelaAtividades th,
 #tabelaAtividades td {
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     color: var(--text-main) !important;
 }
 #tabelaAtividades td * {
-    font-weight: 700 !important;
+    font-weight: 600 !important;
 }
 
 .modal {
@@ -3851,7 +3851,7 @@ html[data-theme="dark"] .table-container tbody tr:nth-child(odd) {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #ffffff;
     font-size: 22px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(30, 58, 138, 0.35);
     display: flex;
@@ -3998,8 +3998,8 @@ html[data-theme="dark"] .login-card {
     box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06) inset;
 }
 html[data-theme="dark"] .login-field input {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.1);
+    background: var(--bg-card);
+    border-color: var(--border-soft);
     color: var(--text-main);
 }
 html[data-theme="dark"] .login-icon {
