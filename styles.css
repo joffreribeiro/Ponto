@@ -55,50 +55,44 @@
     box-shadow: var(--shadow-soft);
     margin-right: 0;
     height: fit-content;
-}
-.nova-sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.nova-sidebar li {
-    margin-bottom: 8px;
-}
-.nova-sidebar a {
-    display: block;
-    color: var(--primary-dark);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 15px;
-    padding: 7px 10px;
-    border-radius: 6px;
-    transition: background 0.2s, color 0.2s;
-}
-.nova-sidebar a:hover, .nova-sidebar a.active {
-    background: var(--primary-soft);
-    color: var(--primary);
-}
 
-@media (max-width: 900px) {
-    .modal-content.modal-medium .modal-body {
-        flex-direction: column;
+    /* ICON BUTTONS — theme-aware */
+    .btn-icon {
+        background: transparent;
+        color: var(--text-muted);
+        border: none;
+        padding: 4px 6px;
+        border-radius: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: color 120ms ease, background 120ms ease;
     }
-    .nova-sidebar {
-        min-width: 100%;
-        max-width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-soft);
-        margin-bottom: 12px;
-        height: auto;
+    .btn-icon .icon, .btn-icon > svg {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        fill: currentColor;
+        stroke: currentColor;
     }
-}
-/* ================================================
-   Paleta de cores — alinhada com theme-redesign.css (tema NEXUS)
-   ================================================ */
-:root {
-    /* Use theme aliases when available (defined in design/tokens.css) */
-    --bg-page: var(--theme-bg-page, #f0f2f8);
-    --bg-header: var(--theme-bg-header, #ffffff);
+    .btn-icon:hover {
+        color: var(--text-main);
+        background: var(--bg-soft);
+    }
+    .btn-icon.btn-primary,
+    .btn-icon.btn-secondary,
+    .btn-icon.btn-outline {
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    .btn-icon.btn-primary:hover,
+    .btn-icon.btn-secondary:hover {
+        color: var(--primary);
+        background: var(--primary-soft);
+    }
     --bg-card: var(--theme-bg-card, #ffffff);
     --bg-soft: var(--theme-bg-soft, #f5f6fb);
 
@@ -242,48 +236,42 @@ html[data-theme="dark"] {
     cursor: pointer;
 }
 
-/* ===== UNIFIED ICON BUTTON STYLE: Flat black icons across entire system ===== */
+/* ICON BUTTONS — theme-aware */
 .btn-icon {
     background: transparent;
-    color: #000;
+    color: var(--text-muted);
     border: none;
-    width: auto;
-    height: auto;
     padding: 4px 6px;
-    margin: 0 4px;
+    border-radius: 5px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    box-shadow: none;
     cursor: pointer;
-    transition: color .08s ease;
+    transition: color 120ms ease, background 120ms ease;
 }
-
-.btn-icon .icon, .btn-icon > svg { 
-    width: 16px; 
-    height: 16px; 
-    display: inline-block; 
+.btn-icon .icon, .btn-icon > svg {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
     fill: currentColor;
     stroke: currentColor;
 }
-
 .btn-icon:hover {
-    color: #333;
+    color: var(--text-main);
+    background: var(--bg-soft);
 }
-
-/* Variantes (anuladas para manter estilo flat) */
 .btn-icon.btn-primary,
 .btn-icon.btn-secondary,
 .btn-icon.btn-outline {
+    color: var(--text-muted);
     background: transparent;
-    color: #000;
     border: none;
+    box-shadow: none;
 }
-
 .btn-icon.btn-primary:hover,
 .btn-icon.btn-secondary:hover {
-    color: #333;
+    color: var(--primary);
+    background: var(--primary-soft);
 }
 
 .icon { 
@@ -322,31 +310,29 @@ html[data-theme="dark"] {
     border: 0;
 }
 
-/* Focus visible for accessibility — outline como fallback seguro */
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: 2px solid var(--focus-ring-strong, rgba(99,102,241,0.5));
-    outline-offset: 2px;
-    box-shadow: 0 0 0 3px var(--focus-ring);
-    border-radius: 8px;
+/* Canonical focus-visible styles for accessibility (Melhoria 28) */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring-strong);
+    border-radius: var(--btn-radius, 8px);
 }
-
 .btn-icon:focus-visible {
-    outline: 2px solid var(--focus-ring-strong, rgba(99,102,241,0.5));
-    outline-offset: 2px;
-    box-shadow: 0 0 0 3px var(--focus-ring);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring-strong);
+    border-radius: 5px;
 }
 
-/* Variante btn-error com btn-icon (manter ícone preto) */
+/* btn-error + icon theme-aware */
 .btn-error.btn-icon {
+    color: var(--negative);
     background: transparent;
-    color: #000;
     border: none;
     padding: 4px 6px;
 }
 
 .btn-error.btn-icon:hover {
-    color: #333;
-    background: transparent;
+    color: var(--negative-dark);
+    background: var(--negative-soft);
 }
 
 /* Periodos aquisitivos table adjustments */
@@ -711,6 +697,20 @@ html[data-density="comfortable"] .btn-header {
     font-size: 14px;
 }
 
+/* Spacing token overrides per density (bonus tokens) */
+html[data-density="compact"] {
+    --space-sm: 6px;
+    --space-md: 8px;
+    --space-lg: 12px;
+    --space-xl: 18px;
+}
+html[data-density="comfortable"] {
+    --space-sm: 10px;
+    --space-md: 16px;
+    --space-lg: 20px;
+    --space-xl: 28px;
+}
+
 /* ========== Toast undo button ========== */
 .toast-undo {
     background: none;
@@ -726,23 +726,14 @@ html[data-density="comfortable"] .btn-header {
 .toast-undo:hover { background: rgba(0,0,0,0.04); }
 
 /* ========== Skeleton Variants ========== */
-.skeleton.skeleton-card { height: 72px; border-radius: 8px; }
-.skeleton.skeleton-line { height: 16px; margin: 8px 0; border-radius: 4px; }
-.skeleton.skeleton-table-row { height: 40px; margin: 6px 0; border-radius: 6px; }
-
-/* Dark-mode adaptive skeleton */
-html[data-theme="dark"] .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.06), rgba(255,255,255,0.04)); }
+/* Skeleton variants consolidated later in the file to a single canonical definition */
 
 /* ========== Micro-interactions ========== */
 .card { transition: transform .16s ease, box-shadow .16s ease; }
 #tabelaEventos tbody tr { transition: background .12s ease, transform .12s ease; }
 #tabelaEventos tbody tr:hover { transform: translateY(-2px); }
 
-/* focus-visible refinado */
-:where(button, a, input, select, textarea):focus-visible {
-    outline: 3px solid var(--focus-ring);
-    outline-offset: 2px;
-}
+/* focus-visible refinado — consolidado na seção canônica acima */
 
 /* ========== Theme Palettes (alternativas) ========== */
 html[data-theme="pastel"] {
@@ -1366,8 +1357,7 @@ html[data-theme="dark"] .form-group textarea {
 
 .vicon { display: inline-flex; align-items: center; justify-content: center; margin-right: 6px; }
 
-/* Focus styles that are visible and high contrast */
-:where(a,button,input,select,textarea):focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); border-radius: 8px; }
+/* Focus styles consolidated earlier (canônico) */
 
 /* Respect user preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -1381,8 +1371,7 @@ html[data-theme="dark"] .form-group textarea {
 .card[tabindex], .activity-card[tabindex] { cursor: pointer; }
 .card:focus-visible, .activity-card:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--focus-ring-strong); transform: translateY(-2px); }
 
-/* Icon button focus */
-.btn-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring-strong); }
+/* Icon button focus consolidated above */
 
 /* Small hover/active states for actionable elements */
 .btn-primary:hover, .btn-outline:hover, .btn-secondary:hover { transform: translateY(-1px); }
@@ -1773,17 +1762,17 @@ html[data-theme="dark"] .alertas-jornada.alertas-critical {
 
 .subtab-btn {
     border-radius: 8px;
-    border: 2px solid var(--border-soft);
-    padding: 8px 18px;
-    font-size: 14px;
-    font-weight: 600;
+    border: 1px solid var(--border-soft);
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     background: var(--bg-soft);
     color: var(--text-muted);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.15s ease, transform 0.12s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .subtab-btn:hover {
@@ -1793,10 +1782,11 @@ html[data-theme="dark"] .alertas-jornada.alertas-critical {
 }
 
 .subtab-btn.active {
-    background: var(--primary);
-    color: #ffffff;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
     border-color: var(--primary);
     box-shadow: var(--shadow-soft);
+    font-weight: 600;
 }
 
 .subtab-content {
@@ -2168,14 +2158,27 @@ td {
 }
 
 .timesheet-header {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     margin: 0;
-    color: var(--primary-dark);
-    background: linear-gradient(135deg, var(--primary-soft) 0%, #e0f2fe 100%);
+    color: var(--text-main);
+    background: var(--bg-soft);
     padding: 10px 14px;
     border-radius: 8px 8px 0 0;
-    border-bottom: 2px solid var(--primary);
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.timesheet-header-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--positive-soft);
+    color: var(--positive-dark);
+    border: 1px solid rgba(0,0,0,0.06);
 }
 
 /* Destaque sutil para o mês atual no timesheet */
@@ -2227,8 +2230,8 @@ td {
 
 /* Weekend column: use subtle pale gray but keep text readable */
 .timesheet-table td.col-fimsemana {
-    background: #e9ecef; /* subtle, not too bright */
-    color: var(--text-main);
+    background: var(--bg-soft);
+    color: var(--text-muted);
 }
 
 /* Aggressive overrides to ensure times are readable in the timesheet */
@@ -2247,10 +2250,7 @@ td {
     background: transparent;
 }
 
-/* Fins de semana no timesheet (coluna em azul bem claro) */
-.timesheet-table td.col-fimsemana {
-    background: #BFBFBF;     /* azul clarinho, diferente do cinza padrão */
-}
+/* Duplicate weekend rule removed — consolidated above */
 
 
 
@@ -2370,59 +2370,71 @@ td.evento-vertical {
 }
 
 /* Header saldo cells were removed in the reverted version */
-/* Feriado */
+/* Eventos — cores semânticas usando tokens (Melhoria 22) */
 .feriado-cell,
 .evento-feriado {
-    background: #ffe4e6;
-    color: #9f1239;
+    background: var(--negative-soft);
+    color: var(--negative-dark, #991b1b);
 }
 
-/* Férias */
 .evento-ferias {
-    background: #fef9c3; /* amarelo clarinho */
-    color: #854d0e;
+    background: var(--warning-soft);
+    color: var(--warning, #d97706);
 }
 
-/* Afastamento */
 .evento-afastamento {
-    background: #e0f2fe; /* azul clarinho */
-    color: #075985;
+    background: var(--info-soft);
+    color: var(--info, #2563eb);
 }
 
-/* Viagem a serviço */
 .evento-viagem {
-    background: #ede9fe; /* lilás clarinho */
-    color: #5b21b6;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
 }
 
-/* Outros tipos (se você criar depois) */
-.evento-outro {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-/* Abono - Acordo (não conta como falta) */
-.evento-abono-acordo {
-    background: #dcfce7; /* verde clarinho */
-    color: #166534;
-}
-
-/* Compensar - Acordo (gera hora negativa se não trabalhado) */
-.evento-compensar-acordo {
-    background: #fef3c7; /* laranja claro */
-    color: #92400e;
-}
-
-/* Células de período para Abono */
+.evento-abono-acordo,
 .evento-abono-periodo {
-    background: #dcfce7 !important; /* verde clarinho */
-    color: #166534 !important;
+    background: var(--positive-soft);
+    color: var(--positive-dark, #065f46);
 }
 
-/* Células de período para Pagar Hora */
+.evento-compensar-acordo,
 .evento-pagar-hora-periodo {
-    background: #fce7f3 !important; /* rosa clarinho */
-    color: #9d174d !important;
+    background: var(--warning-soft);
+    color: var(--warning, #d97706);
+}
+
+.evento-outro {
+    background: var(--secondary-soft);
+    color: var(--secondary-dark);
+}
+
+/* Dark-mode specific overrides for events */
+html[data-theme="dark"] .feriado-cell,
+html[data-theme="dark"] .evento-feriado {
+    background: rgba(248,113,113,0.12);
+    color: var(--negative);
+}
+html[data-theme="dark"] .evento-ferias {
+    background: rgba(251,191,36,0.12);
+    color: var(--warning);
+}
+html[data-theme="dark"] .evento-afastamento {
+    background: rgba(96,165,250,0.12);
+    color: var(--info);
+}
+html[data-theme="dark"] .evento-viagem {
+    background: rgba(123,116,232,0.15);
+    color: var(--primary);
+}
+html[data-theme="dark"] .evento-abono-acordo,
+html[data-theme="dark"] .evento-abono-periodo {
+    background: rgba(52,211,153,0.12);
+    color: var(--positive);
+}
+html[data-theme="dark"] .evento-outro {
+    background: rgba(156,163,175,0.12);
+    color: var(--secondary);
 }
 
 /* Eventos parciais: matutino (alinhado ao topo) e vespertino (alinhado ao rodapé) */
@@ -2573,7 +2585,9 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.35);
+    background: var(--bg-overlay);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -2752,7 +2766,9 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.35);
+    background: var(--bg-overlay);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -3074,14 +3090,14 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
 .toast {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: var(--bg-card);
-    padding: 14px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-left: 4px solid #3b82f6;
-    animation: slideIn 0.3s ease;
-    transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 1px solid var(--border-soft);
+    padding: 12px 14px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-medium);
+    animation: slideIn 0.25s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .toast-enter {
@@ -3109,39 +3125,32 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
 .toast-close {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 0;
-    width: 24px;
-    height: 24px;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+    border-radius: 6px;
+    transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 
 .toast-close:hover {
-    background: #f3f4f6;
+    background: var(--bg-soft);
     color: var(--text-main);
 }
 
-.toast-success {
-    border-left-color: #10b981;
-}
-
-.toast-error {
-    border-left-color: #ef4444;
-}
-
-.toast-warning {
-    border-left-color: #f59e0b;
-}
-
-.toast-info {
-    border-left-color: #3b82f6;
-}
+.toast-success { border-left: 3px solid var(--positive); background: var(--positive-soft); }
+.toast-success .toast-icon { background: var(--positive-soft); color: var(--positive-dark); }
+.toast-error { border-left: 3px solid var(--negative); background: var(--negative-soft); }
+.toast-error .toast-icon { background: var(--negative-soft); color: var(--negative-dark); }
+.toast-warning { border-left: 3px solid var(--warning); background: var(--warning-soft); }
+.toast-warning .toast-icon { background: var(--warning-soft); color: var(--warning); }
+.toast-info { border-left: 3px solid var(--info); background: var(--info-soft); }
+.toast-info .toast-icon { background: var(--info-soft); color: var(--info); }
 
 @keyframes slideIn {
     from {
@@ -3236,7 +3245,9 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
 .loading-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-overlay);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4035,10 +4046,18 @@ html[data-theme="dark"] .login-icon {
    10. SKELETON LOADING placeholders
    ================================================ */
 .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 37%, #f0f0f0 63%);
-    background-size: 400% 100%;
-    animation: skeletonShimmer 1.4s ease infinite;
+    background: var(--bg-soft);
     border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.6s ease infinite;
 }
 .skeleton-text {
     height: 14px;
@@ -4057,12 +4076,11 @@ html[data-theme="dark"] .login-icon {
     border-radius: 12px;
 }
 @keyframes skeletonShimmer {
-    0%   { background-position: 100% 50%; }
-    100% { background-position: 0 50%; }
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
-html[data-theme="dark"] .skeleton {
-    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 37%, rgba(255,255,255,0.04) 63%);
-    background-size: 400% 100%;
+html[data-theme="dark"] .skeleton::after {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
 }
 
 /* ================================================
@@ -4083,10 +4101,22 @@ html[data-theme="dark"] .skeleton {
 :root {
     --danger: var(--negative);
     --success: var(--positive);
+    /* Overlay used for modals/loading/backdrops */
+    --bg-overlay: rgba(255, 255, 255, 0.90);
+
+    /* Spacing scale (bonus tokens) */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
 }
 html[data-theme="dark"] {
     --danger: var(--negative);
     --success: var(--positive);
+
+    /* Dark overlay counterpart */
+    --bg-overlay: rgba(15, 17, 23, 0.88);
 }
 
 /* ================================================
