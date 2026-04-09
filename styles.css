@@ -1455,12 +1455,12 @@ html[data-theme="dark"] .modal-inline-card {
     box-shadow: var(--shadow-medium);
 }
 html[data-theme="dark"] .modal-inline-card .modal-header {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    background: transparent;
+    border-bottom: 1px solid var(--border-soft);
 }
 html[data-theme="dark"] .modal-inline-card .modal-footer {
-    background: transparent;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    background: var(--bg-soft);
+    border-top: 1px solid var(--border-soft);
 }
 html[data-theme="dark"] .modal-inline-card .modal-header .modal-close {
     color: var(--text-main);
@@ -4274,6 +4274,77 @@ html[data-theme="dark"] .filter-chip.active {
 html[data-theme="dark"] .filter-chip:hover {
     border-color: var(--primary);
     color: var(--primary);
+}
+/* ================================================
+   Consolidated Media Queries (Melhoria 19)
+   Grouped responsive overrides moved to file end
+   ================================================ */
+@media (max-width: 900px) {
+    /* Modal medium -> stack */
+    .modal-content.modal-medium .modal-body { flex-direction: column; }
+    /* Sidebar becomes full-width in stacked modals */
+    .nova-sidebar {
+        min-width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 12px;
+        height: auto;
+    }
+    /* Dashboard / stats stack */
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .advanced-filters-grid { grid-template-columns: 1fr; }
+    #atividadesLista { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 800px) {
+    .acordo-modal-grid { grid-template-columns: 1fr; }
+    .acordo-sidebar { flex-direction: row; overflow-x: auto; }
+    .acordo-side-btn { white-space: nowrap; }
+}
+
+@media (max-width: 780px) {
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar-actions, .flex-group { width: 100%; justify-content: flex-start; }
+    .toolbar-actions { gap: 8px; }
+    .table-container table { font-size: 11px; }
+    th, td { padding: 0.5px 2px; }
+}
+
+@media (max-width: 768px) {
+    .pagination-container { flex-direction: column; align-items: stretch; }
+    .pagination-buttons { justify-content: center; flex-wrap: wrap; }
+    .pagination-jump { flex-direction: column; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-container { height: 250px; }
+    .pwa-install { bottom: 10px; right: 10px; left: 10px; width: auto; }
+    .toast-container { top: auto; bottom: 20px; left: 10px; right: 10px; max-width: none; }
+}
+
+@media (max-width: 700px) {
+    .modal-inline-card { border-radius: 10px; }
+    #novaAtividadeInline .modal-body { display: block; }
+    .nova-sidebar { display: none; }
+}
+
+@media (max-width: 600px) {
+    .topbar-sync { gap: 4px; }
+    .btn-cloud { padding: 4px 8px; font-size: 11px; }
+    .btn-cloud-label { display: none; }
+    .sync-status { display: none !important; }
+    .topbar-unified { flex-direction: column; gap: 8px; padding: 10px 14px; border-radius: 0 0 12px 12px; }
+    .topbar-right { width: 100%; justify-content: center; }
+    .tabs { top: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar-actions, .flex-group { width: 100%; justify-content: flex-start; }
+    .toolbar-actions { gap: 8px; }
+    .table-container table { font-size: 11px; }
+    th, td { padding: 0.5px 2px; }
+    #modalRegistro .modal-body { grid-template-columns: 1fr !important; gap: 8px 8px; padding: 10px 12px; }
+    #modalRegistro .modal-content { max-width: 98vw !important; }
+    #modalRegistro input[type="time"], #modalRegistro input[type="date"] { font-size: 14px !important; height: 40px !important; min-height: 40px !important; }
+    .pagination-select { width: 100%; }
 }
 
 
