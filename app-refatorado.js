@@ -3,7 +3,14 @@ function gerarIdUnico() {
     return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
 }
 
-// parseDateBR removido — usar DateUtils.normalize() para converter DD/MM/AAAA → YYYY-MM-DD
+// Converte data de DD/MM/AAAA para YYYY-MM-DD
+function parseDateBR(dataBR) {
+    if (!dataBR) return null;
+    const partes = dataBR.split('/');
+    if (partes.length !== 3) return null;
+    const [dia, mes, ano] = partes;
+    return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+}
 
 // ============= ATUALIZAÇÃO DE COMPONENTES =============
 
@@ -252,21 +259,6 @@ function formatarUltimoSyncCloud(ts) {
     return dt.toLocaleString('pt-BR');
 }
 
-function formatarSyncCurto(ts) {
-    try {
-        const dt = ts ? new Date(Number(ts)) : (ts ? new Date(ts) : null);
-        if (!dt || Number.isNaN(dt.getTime())) return { short: '—', full: '—' };
-        const now = new Date();
-        const mesmaData = dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth() && dt.getDate() === now.getDate();
-        const short = mesmaData
-            ? dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            : dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        return { short: short, full: dt.toLocaleString('pt-BR') };
-    } catch (e) {
-        return { short: '—', full: '—' };
-    }
-}
-
 function atualizarStatusSyncCloud(status, timestamp) {
     const el = document.getElementById('syncStatus');
     if (!el) return;
@@ -275,58 +267,20 @@ function atualizarStatusSyncCloud(status, timestamp) {
 
     if (status === 'pending') {
         el.classList.add('sync-status--pending');
-        el.textContent = 'Sincronizando…';
-        el.title = '';
+        el.textContent = 'Cloud: sincronizando...';
         return;
     }
 
     if (status === 'error') {
         el.classList.add('sync-status--error');
-        const fmt = formatarSyncCurto(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
-        el.textContent = `Erro · último: ${fmt.short}`;
-        el.title = fmt.full;
+        const textoErro = timestamp ? formatarUltimoSyncCloud(timestamp) : '—';
+        el.textContent = `Cloud: erro — último sync: ${textoErro}`;
         return;
     }
 
     el.classList.add('sync-status--ok');
-    const fmt = formatarSyncCurto(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
-    el.textContent = `Sincronizado · ${fmt.short}`;
-    el.title = fmt.full;
-}
-
-// Aplica classes semânticas (`stat-value--positive|negative|neutral|warning`) a um elemento
-function applyStatClassFromNumber(elOrId, num) {
-    try {
-        const el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : elOrId;
-        if (!el) return;
-        el.classList.remove('stat-value--positive', 'stat-value--negative', 'stat-value--neutral', 'stat-value--warning');
-        if (typeof num !== 'number' || Number.isNaN(num)) { el.classList.add('stat-value--neutral'); return; }
-        if (num > 0) el.classList.add('stat-value--positive');
-        else if (num < 0) el.classList.add('stat-value--negative');
-        else el.classList.add('stat-value--neutral');
-    } catch (e) { /* defensivo */ }
-}
-
-function applyStatClassFromText(elOrId) {
-    try {
-        const el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : elOrId;
-        if (!el) return;
-        el.classList.remove('stat-value--positive', 'stat-value--negative', 'stat-value--neutral', 'stat-value--warning');
-        const txt = (el.textContent || '').trim();
-        if (!txt || txt === '—' || txt === '-') { el.classList.add('stat-value--neutral'); return; }
-        if (/vencido|vence hoje|vence/i.test(txt)) { el.classList.add('stat-value--warning'); return; }
-        if (/^\-/.test(txt)) { el.classList.add('stat-value--negative'); return; }
-        if (/^\+/.test(txt)) { el.classList.add('stat-value--positive'); return; }
-        if (/^\d{1,2}:\d{2}$/.test(txt)) { el.classList.add('stat-value--neutral'); return; }
-        const n = Number(txt.replace(/[^0-9\-,.]/g, '').replace(',', '.'));
-        if (!Number.isNaN(n)) {
-            if (n > 0) el.classList.add('stat-value--positive');
-            else if (n < 0) el.classList.add('stat-value--negative');
-            else el.classList.add('stat-value--neutral');
-            return;
-        }
-        el.classList.add('stat-value--neutral');
-    } catch (e) { /* defensivo */ }
+    const texto = formatarUltimoSyncCloud(timestamp || localStorage.getItem(LAST_CLOUD_SYNC_KEY));
+    el.textContent = `Cloud: salvo — último sync: ${texto}`;
 }
 
 function registrarSyncCloud(timestamp = Date.now()) {
@@ -668,7 +622,7 @@ function inicializar() {
             try {
                 if (inputAdmissao && AppState.dados && AppState.dados.admissao) {
                     // armazenamos como ISO (YYYY-MM-DD)
-                    inputAdmissao.value = DateUtils.formatBR(AppState.dados.admissao || '');
+                    inputAdmissao.value = dateIsoToBr(AppState.dados.admissao || '');
                     // desabilitar edição se já existe data salva
                     inputAdmissao.disabled = true;
                     // esconder botão salvar
@@ -863,24 +817,21 @@ function inicializar() {
 // ========== UI Preferences: compact mode + theme selector ==========
 function initUiPreferences() {
     try {
-        // Density modes: 'compact' | 'normal' | 'comfortable'
+        // Compact mode: store key 'ui_density' = 'compact'|'normal'
         const density = localStorage.getItem('ui_density') || 'normal';
-        // explicitly set attribute so CSS rules can target all three states
-        document.documentElement.setAttribute('data-density', density);
+        if (density === 'compact') document.documentElement.setAttribute('data-density', 'compact');
+        else document.documentElement.removeAttribute('data-density');
 
         const btn = document.getElementById('btnToggleCompact');
         if (btn) {
-            // reflect current label
-            btn.textContent = (density === 'compact') ? 'Compacto' : (density === 'comfortable' ? 'Confortável' : 'Normal');
             btn.addEventListener('click', () => {
-                const states = ['compact', 'normal', 'comfortable'];
-                const cur = document.documentElement.getAttribute('data-density') || 'normal';
-                const idx = Math.max(0, states.indexOf(cur));
-                const next = states[(idx + 1) % states.length];
-                document.documentElement.setAttribute('data-density', next);
+                const cur = document.documentElement.getAttribute('data-density') === 'compact' ? 'compact' : 'normal';
+                const next = (cur === 'compact') ? 'normal' : 'compact';
+                if (next === 'compact') document.documentElement.setAttribute('data-density', 'compact');
+                else document.documentElement.removeAttribute('data-density');
                 localStorage.setItem('ui_density', next);
-                btn.textContent = (next === 'compact') ? 'Compacto' : (next === 'comfortable' ? 'Confortável' : 'Normal');
-                Notifications.info('Densidade: ' + (next === 'compact' ? 'Compacto' : (next === 'comfortable' ? 'Confortável' : 'Normal')), 1400);
+                // small feedback
+                Notifications.info('Modo compacto: ' + (next === 'compact' ? 'Ativado' : 'Desativado'), 1500);
             });
         }
 
@@ -1027,7 +978,6 @@ window.atualizarDiasFromPrazo = atualizarDiasFromPrazo;
 function renderizarAtividades() {
     const container = document.getElementById('atividadesLista');
     try { console.debug('renderizarAtividades: AppState.dados.atividades length =', (AppState.dados && Array.isArray(AppState.dados.atividades)) ? AppState.dados.atividades.length : 'no-data'); } catch(e){}
-    try { showSkeleton('atividadesLista', 4); } catch(_){ }
     // Acessos defensivos: aceitar os IDs antigos (filtroAtividades*) ou os novos topFiltro*
     const statusEl = document.getElementById('filtroAtividadesStatus') || document.getElementById('topFiltroStatusCol');
     const statusFiltro = statusEl ? (statusEl.value || '') : '';
@@ -1111,7 +1061,7 @@ function renderizarAtividades() {
         }
         // Usar campos do formato da tabela (ordem, objeto, assunto, etc.)
         const ordem = a.ordem || String(idx + 1);
-        const ordemBadge = `<span class="badge badge--order">${Utils.escapeHtml(ordem)}</span>`;
+        const ordemBadge = `<span class="badge badge--order">${escapeHtml(ordem)}</span>`;
         const objeto = a.objeto || '';
         const assunto = a.assunto || '';
         const tedPtrab = a.tedPtrab || '';
@@ -1123,15 +1073,15 @@ function renderizarAtividades() {
                 <div style="flex:1;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         ${ordemBadge}
-                        ${tedPtrab ? `<span class="badge badge--ted">${Utils.escapeHtml(tedPtrab)}</span>` : ''}
-                        <strong>${Utils.escapeHtml(objeto)}</strong>
+                        ${tedPtrab ? `<span class="badge badge--ted">${escapeHtml(tedPtrab)}</span>` : ''}
+                        <strong>${escapeHtml(objeto)}</strong>
                     </div>
-                    <div class="small-text">${Utils.escapeHtml(assunto)}</div>
-                    ${acaoRealizar ? `<div class="small-text" style="color:var(--info);"><strong>Ação:</strong> ${Utils.escapeHtml(acaoRealizar)}</div>` : ''}
+                    <div class="small-text">${escapeHtml(assunto)}</div>
+                    ${acaoRealizar ? `<div class="small-text" style="color:var(--info);"><strong>Ação:</strong> ${escapeHtml(acaoRealizar)}</div>` : ''}
                     <div class="meta small-text">Prioridade: ${getPriorityBadge(a.prioridade)} • Prazo: ${prazo} ${diasBadge}</div>
                 </div>
                 <div class="actions" style="text-align:right; min-width:160px;">
-                    <div style="margin-bottom:6px;">Status: <strong>${Utils.escapeHtml(a.status || '')}</strong></div>
+                    <div style="margin-bottom:6px;">Status: <strong>${escapeHtml(a.status || '')}</strong></div>
                     <div style="margin-bottom:6px;">Progresso: ${Number(a.progresso || 0)}%</div>
                     <div>
                         <button class="btn-secondary btn-icon" onclick="editarAtividade(${a.id ? `'${a.id}'` : idx})">${svgIcon('edit', { title: 'Editar atividade', color: 'currentColor' })}</button>
@@ -1142,7 +1092,6 @@ function renderizarAtividades() {
         `;
     }).join('');
 
-    try { hideSkeleton('atividadesLista'); } catch(_){ }
     container.innerHTML = rows;
 
     // Renderizar kanban se existir (não altera visibilidade - isso é controlado pelos botões de toggle)
@@ -1236,14 +1185,14 @@ function abrirModalAtividade(editId) {
         if (document.getElementById('atividadeProcessoPrincipalCompleta')) document.getElementById('atividadeProcessoPrincipalCompleta').value = a.processoPrincipal || '';
         if (document.getElementById('atividadeAssuntoCompleta')) document.getElementById('atividadeAssuntoCompleta').value = a.assunto || '';
         if (document.getElementById('atividadeProcessoSolicitacaoCompleta')) document.getElementById('atividadeProcessoSolicitacaoCompleta').value = a.processoSolicitacao || '';
-        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = DateUtils.formatBR(a.dataDoc) || '';
+        if (document.getElementById('atividadeDataDocCompleta')) document.getElementById('atividadeDataDocCompleta').value = dateIsoToBr(a.dataDoc) || '';
         if (document.getElementById('atividadeTipoDocCompleta')) document.getElementById('atividadeTipoDocCompleta').value = a.tipoDoc || '';
         if (document.getElementById('atividadeNumeroDocCompleta')) document.getElementById('atividadeNumeroDocCompleta').value = a.numeroDoc || '';
         if (document.getElementById('atividadeRemetenteCompleta')) document.getElementById('atividadeRemetenteCompleta').value = a.remetente || '';
         if (document.getElementById('atividadeDestinatarioCompleta')) document.getElementById('atividadeDestinatarioCompleta').value = a.destinatario || '';
         if (document.getElementById('atividadeAcaoRealizarCompleta')) document.getElementById('atividadeAcaoRealizarCompleta').value = a.acaoRealizar || '';
         if (document.getElementById('atividadePrioridadeCompleta')) document.getElementById('atividadePrioridadeCompleta').value = a.prioridade || 'media';
-        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = DateUtils.formatBR(a.prazo) || '';
+        if (document.getElementById('atividadePrazoCompleta')) document.getElementById('atividadePrazoCompleta').value = dateIsoToBr(a.prazo) || '';
         if (document.getElementById('atividadeDiasCompleta')) document.getElementById('atividadeDiasCompleta').value = typeof a.dias !== 'undefined' ? a.dias : '';
         if (document.getElementById('atividadeStatusCompleta')) document.getElementById('atividadeStatusCompleta').value = a.status || 'pendente';
         if (document.getElementById('atividadeProgressoCompleta')) document.getElementById('atividadeProgressoCompleta').value = a.progresso || 0;
@@ -1275,14 +1224,14 @@ function salvarNovaAtividadeCompleta() {
         processoPrincipal: get('atividadeProcessoPrincipalCompleta'),
         assunto: get('atividadeAssuntoCompleta'),
         processoSolicitacao: get('atividadeProcessoSolicitacaoCompleta'),
-        dataDoc: DateUtils.normalize(get('atividadeDataDocCompleta')),
+        dataDoc: dateBrToIso(get('atividadeDataDocCompleta')),
         tipoDoc: get('atividadeTipoDocCompleta'),
         numeroDoc: get('atividadeNumeroDocCompleta'),
         remetente: get('atividadeRemetenteCompleta'),
         destinatario: get('atividadeDestinatarioCompleta'),
         acaoRealizar: get('atividadeAcaoRealizarCompleta'),
         prioridade: get('atividadePrioridadeCompleta'),
-        prazo: DateUtils.normalize(get('atividadePrazoCompleta')),
+        prazo: dateBrToIso(get('atividadePrazoCompleta')),
         dias: get('atividadeDiasCompleta'),
         status: get('atividadeStatusCompleta'),
         progresso: get('atividadeProgressoCompleta'),
@@ -1341,8 +1290,8 @@ function salvarAtividade() {
         descricao: document.getElementById('atividadeDescricao').value.trim(),
         responsavel: document.getElementById('atividadeResponsavel').value.trim(),
         prioridade: document.getElementById('atividadePrioridade').value,
-        prazo: DateUtils.normalize(document.getElementById('atividadePrazo').value) || null,
-        dataDoc: DateUtils.normalize(document.getElementById('atividadeDataDoc').value) || null,
+        prazo: dateBrToIso(document.getElementById('atividadePrazo').value) || null,
+        dataDoc: dateBrToIso(document.getElementById('atividadeDataDoc').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDoc').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDoc').value || '',
         remetente: document.getElementById('atividadeRemetente').value || '',
@@ -1358,7 +1307,7 @@ function salvarAtividade() {
         observacoes: observacoes,
         finalizado: finalizadoVal,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(DateUtils.normalize(document.getElementById('atividadePrazo').value) || null),
+        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazo').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrab').value || '',
         objeto: document.getElementById('atividadeObjeto').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipal').value || '',
@@ -1469,7 +1418,7 @@ function salvarAtividadeInline() {
         descricao: '',
         responsavel: '',
         prioridade: 'media',
-        dataDoc: DateUtils.normalize(document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value) || null,
+        dataDoc: dateBrToIso(document.getElementById('atividadeDataDocInline') && document.getElementById('atividadeDataDocInline').value) || null,
         tipoDoc: document.getElementById('atividadeTipoDocInline') && document.getElementById('atividadeTipoDocInline').value || '',
         numeroDoc: document.getElementById('atividadeNumeroDocInline') && document.getElementById('atividadeNumeroDocInline').value || '',
         remetente: document.getElementById('atividadeRemetenteInline') && document.getElementById('atividadeRemetenteInline').value || '',
@@ -1484,9 +1433,9 @@ function salvarAtividadeInline() {
         lembreteHorario: null,
         observacoes: document.getElementById('atividadeObservacoesInline') && document.getElementById('atividadeObservacoesInline').value || '',
         finalizado: (document.getElementById('atividadeFinalizadoInline') && document.getElementById('atividadeFinalizadoInline').value === 'true') || false,
-        prazo: DateUtils.normalize(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null,
+        prazo: dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null,
         // calcular dias automaticamente a partir do prazo
-        dias: calcularDiasAtePrazo(DateUtils.normalize(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null),
+        dias: calcularDiasAtePrazo(dateBrToIso(document.getElementById('atividadePrazoInline') && document.getElementById('atividadePrazoInline').value) || null),
         tedPtrab: document.getElementById('atividadeTedPtrabInline') && document.getElementById('atividadeTedPtrabInline').value || '',
         objeto: document.getElementById('atividadeObjetoInline') && document.getElementById('atividadeObjetoInline').value || '',
         processoPrincipal: document.getElementById('atividadeProcessoPrincipalInline') && document.getElementById('atividadeProcessoPrincipalInline').value || '',
@@ -1542,7 +1491,7 @@ function adicionarSubtaskModal() {
     const ul = document.getElementById('subtasksList');
     const li = document.createElement('li');
     li.classList.add('activity-card');
-    li.innerHTML = `<label><input type="checkbox" /> ${Utils.escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover item', color: 'currentColor' }) : '🗑️'}</button>`;
+    li.innerHTML = `<label><input type="checkbox" /> ${escapeHtml(txt)}</label><button class="btn-secondary btn-icon" onclick="this.parentElement.remove()">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover item', color: 'currentColor' }) : '🗑️'}</button>`;
     ul.appendChild(li);
     document.getElementById('subtaskInput').value = '';
     // persist in temporary modal store so it will be saved on create
@@ -1630,7 +1579,7 @@ function atualizarListaAnexosModal() {
     const items = (window.__modalAnexos && window.__modalAnexos['new']) || [];
     items.forEach((ax, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${ax.data}" target="_blank">${Utils.escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary btn-icon" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover anexo', color: 'currentColor' }) : '🗑️'}</button>`;
+        li.innerHTML = `<a href="${ax.data}" target="_blank">${escapeHtml(ax.name)}</a> <small>(${Math.round((ax.size||0)/1024)} KB)</small> <button class="btn-secondary btn-icon" onclick="removerAnexo(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover anexo', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -1826,8 +1775,8 @@ function fecharModalSolicitarFerias() {
 
 function confirmarSolicitacaoFerias() {
     try {
-        const inicio = DateUtils.normalize(document.getElementById('modalFeriasInicio').value);
-        const fim = DateUtils.normalize(document.getElementById('modalFeriasFim').value);
+        const inicio = dateBrToIso(document.getElementById('modalFeriasInicio').value);
+        const fim = dateBrToIso(document.getElementById('modalFeriasFim').value);
         const adto13 = document.getElementById('modalFeriasAdto13').value;
         
         if (!inicio || !fim) {
@@ -2056,12 +2005,12 @@ function solicitarFeriasFromRow(id) {
             inicioDisplay = prompt('Data de início das férias (DD/MM/AAAA):', inicioDisplay || '');
             if (inicioDisplay === null) return;
             // Converter de DD/MM/AAAA para ISO
-            inicioISO = DateUtils.normalize(inicioDisplay);
+            inicioISO = parseDateBR(inicioDisplay);
         }
         if (!fimISO) {
             fimDisplay = prompt('Data de término das férias (DD/MM/AAAA):', fimDisplay || inicioDisplay || '');
             if (fimDisplay === null) return;
-            fimISO = DateUtils.normalize(fimDisplay);
+            fimISO = parseDateBR(fimDisplay);
         }
 
         if (!inicioISO || !fimISO) {
@@ -2136,8 +2085,8 @@ function solicitarFeriasGroup(periodoIndex) {
         if (fimDisplay === null) return;
         
         // Converter para ISO
-        const inicioISO = DateUtils.normalize(inicioDisplay);
-        const fimISO = DateUtils.normalize(fimDisplay);
+        const inicioISO = parseDateBR(inicioDisplay);
+        const fimISO = parseDateBR(fimDisplay);
         
         if (!inicioISO || !fimISO) {
             mostrarAlertaGlobal('Datas inválidas. Use o formato DD/MM/AAAA.', 'error');
@@ -2245,7 +2194,7 @@ function atualizarListaComentariosModal() {
     const items = (window.__modalComentarios && window.__modalComentarios['new']) || [];
     items.forEach((c, i) => {
         const li = document.createElement('li');
-        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${Utils.escapeHtml(c.texto)}</div><button class="btn-secondary btn-icon" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover comentário', color: 'currentColor' }) : '🗑️'}</button>`;
+        li.innerHTML = `<div><small>${DateUtils.formatDateTime(c.criadoEm)}</small></div><div>${escapeHtml(c.texto)}</div><button class="btn-secondary btn-icon" onclick="removerComentario(null,${i})">${(typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover comentário', color: 'currentColor' }) : '🗑️'}</button>`;
         ul.appendChild(li);
     });
 }
@@ -2307,8 +2256,6 @@ function toggleAtividadesKanban() {
     if (kanban) kanban.style.display = 'block';
     if (tabela) tabela.style.display = 'none';
     if (cards) cards.style.display = 'none';
-    try { showSkeleton('atividadesLista', 4); } catch(_){ }
-    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2321,8 +2268,6 @@ function toggleAtividadesTable() {
     if (tabela) tabela.style.display = 'block';
     if (kanban) kanban.style.display = 'none';
     if (cards) cards.style.display = 'none';
-    try { showSkeleton('atividadesLista', 4); } catch(_){ }
-    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2335,8 +2280,6 @@ function toggleAtividadesCards() {
     if (cards) cards.style.display = 'block';
     if (tabela) tabela.style.display = 'none';
     if (kanban) kanban.style.display = 'none';
-    try { showSkeleton('atividadesLista', 4); } catch(_){ }
-    try { renderizarAtividades(); } catch(_){ }
     // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
@@ -2377,7 +2320,10 @@ function checkAtividadesDeadlines() {
     }
 }
 
-// escapeHtml centralizado em Utils.escapeHtml (utils.js)
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>\"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]; });
+}
 
 // ===== Autenticação: UI e proteção de ações =====
 function updateAuthDependentControls(user) {
@@ -2788,30 +2734,12 @@ function configurarAbas() {
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const alvo = btn.dataset.tab;
-            // If navigating away from dashboard, destroy charts to free memory
-            try {
-                const prevBtn = document.querySelector('.tab-btn.active');
-                const prevTab = prevBtn ? prevBtn.dataset.tab : null;
-                if (prevTab === 'dashboard' && alvo !== 'dashboard' && window.Charts && typeof Charts.destroyAll === 'function') {
-                    try { Charts.destroyAll(); } catch (ee) { /* ignore */ }
-                }
-            } catch (e) { /* ignore */ }
-
             tabBtns.forEach(b => b.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
 
             btn.classList.add('active');
             const sec = document.getElementById(alvo);
             if (sec) sec.classList.add('active');
-            // If we opened the dashboard, (re)render analytics only if the section is visible
-            if (alvo === 'dashboard') {
-                try {
-                    const analyticsSection = document.getElementById('analyticsSection');
-                    if (!analyticsSection || analyticsSection.style.display !== 'none') {
-                        if (typeof renderAnalytics === 'function') renderAnalytics();
-                    }
-                } catch (err) { console.warn('Erro ao renderizar analytics ao abrir dashboard:', err); }
-            }
         });
     });
 }
@@ -2902,8 +2830,6 @@ function configurarModalEvento() {
             try {
                 if (!valorData) return;
                 if (!Array.isArray(AppState.dados.acordos) || AppState.dados.acordos.length === 0) return;
-                // respect manual override: if user already selected an acordo, do not overwrite
-                if (acordoSelect && acordoSelect._userSelected) return;
                 const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, valorData);
                 if (!acordoObj) return;
                 const idx = AppState.dados.acordos.findIndex(a => a === acordoObj || a.id === acordoObj.id || a.nome === acordoObj.nome);
@@ -2918,12 +2844,6 @@ function configurarModalEvento() {
         if (fimEl && !fimEl._acordoListener) {
             fimEl.addEventListener('change', function(ev){ aplicarAcordoPorData(this.value); });
             fimEl._acordoListener = true;
-        }
-
-        // allow manual override: mark when user explicitly selects an acordo
-        if (acordoSelect && !acordoSelect._userListener) {
-            acordoSelect.addEventListener('change', function() { this._userSelected = true; });
-            acordoSelect._userListener = true;
         }
     } catch(e) { console.warn('Não foi possível anexar auto-fill de acordo no modalEvento:', e); }
 }
@@ -3033,8 +2953,8 @@ function calcularIntervaloPeriodo(periodo) {
             const dataInicioInput = document.getElementById('dashboardDataInicio');
             const dataFimInput = document.getElementById('dashboardDataFim');
             if (dataInicioInput && dataInicioInput.value && dataFimInput && dataFimInput.value) {
-                inicio = DateUtils.parse(DateUtils.normalize(dataInicioInput.value));
-                fim = DateUtils.parse(DateUtils.normalize(dataFimInput.value));
+                inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
+                fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
             }
             break;
         
@@ -3109,8 +3029,8 @@ function aplicarFiltrosDashboard() {
             return;
         }
 
-        const inicio = DateUtils.parse(DateUtils.normalize(dataInicioInput.value));
-        const fim = DateUtils.parse(DateUtils.normalize(dataFimInput.value));
+        const inicio = DateUtils.parse(dateBrToIso(dataInicioInput.value));
+        const fim = DateUtils.parse(dateBrToIso(dataFimInput.value));
 
         if (inicio > fim) {
             Notifications.warning('A data inicial deve ser anterior à data final');
@@ -3209,8 +3129,7 @@ function atualizarDashboard() {
             AppState.dados.acordos
         );
 
-        const horasPeriodoEl = document.getElementById('horasPeriodo');
-        if (horasPeriodoEl) horasPeriodoEl.textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
+        document.getElementById('horasPeriodo').textContent = DateUtils.minutesToTime(totais.totalTrabalhadas);
         
         // MODIFICAÇÃO: Saldo de Banco de Horas = saldo acumulado do último registro do mês atual
         const hoje = DateUtils.parse(DateUtils.today());
@@ -3240,57 +3159,18 @@ function atualizarDashboard() {
             saldoMes = calcUltimo.saldo || 0;
         }
         
-        const saldoEl = document.getElementById('saldoBancoHoras');
-        if (saldoEl) {
-            saldoEl.textContent = DateUtils.minutesToTime(saldoMes);
-            applyStatClassFromNumber(saldoEl, saldoMes);
-        }
-
-        const horasExtrasEl = document.getElementById('horasExtras');
-        if (horasExtrasEl) {
-            horasExtrasEl.textContent = DateUtils.minutesToTime(totais.horasExtras);
-            applyStatClassFromNumber(horasExtrasEl, totais.horasExtras);
-        }
-
-        const horasAcordoEl = document.getElementById('horasAcordo');
-        if (horasAcordoEl) {
-            horasAcordoEl.textContent = DateUtils.minutesToTime(totais.horasAcordo);
-            applyStatClassFromNumber(horasAcordoEl, totais.horasAcordo);
-        }
+        document.getElementById('saldoBancoHoras').textContent = DateUtils.minutesToTime(saldoMes);
+        
+        document.getElementById('horasExtras').textContent = DateUtils.minutesToTime(totais.horasExtras);
+        document.getElementById('horasAcordo').textContent = DateUtils.minutesToTime(totais.horasAcordo);
 
         // KPIs essenciais
         const diasTrabalhados = new Set(registrosFiltrados.map(r => r.data || r.dataRegistro || r.dataStr)).size;
         const mediaDiariaMin = diasTrabalhados > 0 ? Math.round(totais.totalTrabalhadas / diasTrabalhados) : 0;
         const mediaHorasDiaEl = document.getElementById('mediaHorasDia');
-        if (mediaHorasDiaEl) {
-            mediaHorasDiaEl.textContent = DateUtils.minutesToTime(mediaDiariaMin);
-            applyStatClassFromNumber(mediaHorasDiaEl, mediaDiariaMin);
-        }
+        if (mediaHorasDiaEl) mediaHorasDiaEl.textContent = DateUtils.minutesToTime(mediaDiariaMin);
         const diasTrabalhadosEl = document.getElementById('diasTrabalhados');
-        if (diasTrabalhadosEl) {
-            diasTrabalhadosEl.textContent = diasTrabalhados.toString();
-            applyStatClassFromNumber(diasTrabalhadosEl, Number(diasTrabalhados));
-        }
-
-        // Mini progress bars
-        try {
-            const acordoAtualPB = Calculations.getAcordoByData ? Calculations.getAcordoByData(AppState.dados.acordos, hoje) : null;
-            let jornadaDiariaMinPB = 480; // default 8h
-            if (acordoAtualPB && acordoAtualPB.jornadaDiaria) {
-                const parts = String(acordoAtualPB.jornadaDiaria).split(':');
-                jornadaDiariaMinPB = parseInt(parts[0] || 8, 10) * 60 + parseInt(parts[1] || 0, 10);
-            }
-            const metaMensalMin = diasTrabalhados * jornadaDiariaMinPB;
-            const pctHoras = metaMensalMin > 0 ? Math.min((totais.totalTrabalhadas / metaMensalMin) * 100, 100) : 0;
-            const pbHoras = document.getElementById('progressHorasPeriodo');
-            if (pbHoras) pbHoras.style.width = pctHoras.toFixed(1) + '%';
-
-            const pctMedia = jornadaDiariaMinPB > 0 ? Math.min((mediaDiariaMin / jornadaDiariaMinPB) * 100, 100) : 0;
-            const pbMedia = document.getElementById('progressMediaDiaria');
-            if (pbMedia) pbMedia.style.width = pctMedia.toFixed(1) + '%';
-        } catch (pbErr) {
-            // ignore progress bar errors
-        }
+        if (diasTrabalhadosEl) diasTrabalhadosEl.textContent = diasTrabalhados.toString();
 
         // Tendência 30d
         const start30 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 29);
@@ -3310,17 +3190,14 @@ function atualizarDashboard() {
         const totalsPrev30 = Calculations.calculatePeriodTotals(registrosPrev30, AppState.dados.eventos, AppState.dados.acordos);
 
         const saldo30El = document.getElementById('saldo30d');
-        if (saldo30El) {
-            saldo30El.textContent = DateUtils.minutesToTime(totals30.totalSaldo);
-            applyStatClassFromNumber(saldo30El, totals30.totalSaldo);
-        }
+        if (saldo30El) saldo30El.textContent = DateUtils.minutesToTime(totals30.totalSaldo);
 
         const diff = totals30.totalSaldo - totalsPrev30.totalSaldo;
         const tendenciaEl = document.getElementById('tendenciaSaldo');
         if (tendenciaEl) {
             const sign = diff > 0 ? '+' : '';
             tendenciaEl.textContent = `${sign}${DateUtils.minutesToTime(diff)} vs 30d ant.`;
-            applyStatClassFromNumber(tendenciaEl, diff);
+            tendenciaEl.style.color = diff >= 0 ? 'var(--positive)' : 'var(--negative)';
         }
         
         // ===== NOVOS KPIs: Hora de Saída Estimada, Faltas, Alertas =====
@@ -3489,7 +3366,7 @@ function atualizarDashboard() {
                 }
                 
                 faltasEl.textContent = faltas.toString();
-                faltasEl.style.color = faltas > 5 ? 'var(--negative)' : (faltas > 0 ? 'var(--warning)' : 'var(--positive)');
+                faltasEl.style.color = faltas > 0 ? 'var(--warning)' : 'var(--positive)';
                 
                 if (faltasInfoEl) {
                     if (faltas === 0) {
@@ -3845,14 +3722,22 @@ function atualizarDashboard() {
             }
 
             if (statusEl) {
-                const diasRestantes = overview.remaining;
-                if (diasRestantes === 0) {
-                    statusEl.innerHTML = '<span class="ferias-status-chip sem-dias">⚠ Sem dias disponíveis</span>';
-                } else if (diasRestantes <= 5) {
-                    statusEl.innerHTML = `<span class="ferias-status-chip atencao">⚡ ${diasRestantes} dia(s) restantes</span>`;
-                } else {
-                    statusEl.innerHTML = `<span class="ferias-status-chip ok">✓ ${diasRestantes} dia(s) disponíveis</span>`;
+                let status = '✅ OK';
+                let statusColor = 'var(--positive)';
+                
+                if (overview.remaining <= 0) {
+                    status = '⚠️ Sem dias';
+                    statusColor = 'var(--negative)';
+                } else if (overview.remaining <= 5) {
+                    status = '⚡ Poucos dias';
+                    statusColor = 'var(--warning)';
+                } else if (overview.daysUntilNext !== null && overview.daysUntilNext <= 7) {
+                    status = '📅 Férias próximas';
+                    statusColor = 'var(--info)';
                 }
+                
+                statusEl.textContent = status;
+                statusEl.style.color = statusColor;
             }
 
             // ===== NOVOS CAMPOS: Período Concessivo, Saldo Acumulado, Data Permitida, Barras, Timeline =====
@@ -3963,23 +3848,27 @@ function atualizarDashboard() {
                 }
             }
             
-            // 4. Barras de progresso (ferias-progress-fill)
+            // 4. Barras de progresso
             const remainingProgressBar = document.getElementById('remainingProgressBar');
             const usedProgressBar = document.getElementById('usedProgressBar');
-            const usedDaysFerias = overview.entitlement - overview.remaining;
-            const pctUsed = overview.entitlement > 0 ? Math.min((usedDaysFerias / overview.entitlement) * 100, 100) : 0;
-            const pctRemaining = overview.entitlement > 0 ? Math.min((overview.remaining / overview.entitlement) * 100, 100) : 0;
-
+            
             if (remainingProgressBar) {
-                remainingProgressBar.style.width = `${pctRemaining}%`;
-                remainingProgressBar.classList.remove('esgotado');
-                if (overview.remaining === 0) remainingProgressBar.classList.add('esgotado');
+                const percentRemaining = (overview.remaining / overview.entitlement) * 100;
+                remainingProgressBar.style.width = `${percentRemaining}%`;
+                
+                // Adicionar classe de alerta se poucos dias
+                remainingProgressBar.classList.remove('progress-low', 'progress-critical');
+                if (percentRemaining <= 15) {
+                    remainingProgressBar.classList.add('progress-critical');
+                } else if (percentRemaining <= 30) {
+                    remainingProgressBar.classList.add('progress-low');
+                }
             }
-
+            
             if (usedProgressBar) {
-                usedProgressBar.style.width = `${pctUsed}%`;
-                usedProgressBar.classList.remove('esgotado');
-                if (overview.remaining === 0) usedProgressBar.classList.add('esgotado');
+                const usedDays = overview.entitlement - overview.remaining;
+                const percentUsed = (usedDays / overview.entitlement) * 100;
+                usedProgressBar.style.width = `${percentUsed}%`;
             }
             
             // 5. Mini linha do tempo visual
@@ -4290,7 +4179,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         const r = AppState.dados.registros.find(x => x.data === dataStr) || null;
 
         // Preencher/limpar campos
-        document.getElementById('dataRegistro').value = DateUtils.formatBR(dataStr);
+        document.getElementById('dataRegistro').value = dateIsoToBr(dataStr);
         document.getElementById('entradaRegistro').value = (r && r.entrada) || '';
         document.getElementById('saidaAlmocoRegistro').value = (r && r.saidaAlmoco) || '';
         document.getElementById('retornoAlmocoRegistro').value = (r && r.retornoAlmoco) || '';
@@ -4324,7 +4213,7 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
 }
 function salvarRegistro() {
     try {
-        const data = DateUtils.normalize(document.getElementById('dataRegistro').value);
+        const data = dateBrToIso(document.getElementById('dataRegistro').value);
         const entrada = document.getElementById('entradaRegistro').value;
         const saidaAlmoco = document.getElementById('saidaAlmocoRegistro').value;
         const retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
@@ -4430,7 +4319,7 @@ function editarRegistro(index) {
         const r = AppState.dados.registros[index];
         if (!r) throw new Error('Registro não encontrado');
 
-        document.getElementById('dataRegistro').value = DateUtils.formatBR(r.data);
+        document.getElementById('dataRegistro').value = dateIsoToBr(r.data);
         document.getElementById('entradaRegistro').value = r.entrada || '';
         document.getElementById('saidaAlmocoRegistro').value = r.saidaAlmoco || '';
         document.getElementById('retornoAlmocoRegistro').value = r.retornoAlmoco || '';
@@ -4663,19 +4552,25 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior acumulando TODOS os acordos anteriores (não só o imediatamente anterior)
+        // Calcular saldo anterior apenas dentro do acordo anterior (maior fim < início atual)
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
 
-        // Coletar TODOS os períodos de acordos anteriores ao atual (fim < início do acordo atual)
-        const periodosAnteriores = [];
+        // Detectar acordo anterior (maior fim < início atual) e seu intervalo total
+        let acordoAnterior = null;
+        let inicioAcordoAnterior = null;
+        let fimAcordoAnterior = null;
         AppState.dados.acordos.forEach(ac => {
             (ac.periodos || []).forEach(p => {
                 const ini = DateUtils.parse(p.inicio);
                 const fim = DateUtils.parse(p.fim);
                 if (!ini || !fim) return;
                 if (fim.getTime() < inicio.getTime()) {
-                    periodosAnteriores.push({ acordo: ac, inicio: ini, fim: fim });
+                    if (!fimAcordoAnterior || fim > fimAcordoAnterior) {
+                        fimAcordoAnterior = fim;
+                        inicioAcordoAnterior = ini;
+                        acordoAnterior = ac;
+                    }
                 }
             });
         });
@@ -4683,20 +4578,19 @@ function gerarTimesheetAcordo() {
         console.log('=== CÁLCULO SALDO ANTERIOR ===');
         console.log('Início do acordo:', inicio.toDateString());
         console.log('Último dia do mês anterior:', ultimoDiaMesAnterior.toDateString(), `(${ultimoDiaMesAnteriorStr})`);
-        console.log('Períodos anteriores encontrados:', periodosAnteriores.length);
+        console.log('Acordo anterior identificado:', acordoAnterior ? acordoAnterior.nome : 'nenhum');
 
         let saldoAcumuladoGeral = 0;
 
-        if (periodosAnteriores.length === 0) {
+        if (!acordoAnterior) {
             console.log('Não há acordo anterior. Saldo anterior = 0');
             saldoAcumuladoGeral = 0;
         } else {
-            // Ordenar cronologicamente e determinar intervalo total
-            periodosAnteriores.sort((a, b) => a.inicio.getTime() - b.inicio.getTime());
-            const inicioCalc = periodosAnteriores[0].inicio;
-            const fimCalc = ultimoDiaMesAnterior; // até o último dia antes do acordo atual
-
-            console.log('Intervalo de cálculo:', inicioCalc.toDateString(), '→', fimCalc.toDateString());
+            // Limitar cálculo ao intervalo do acordo anterior até o último dia antes do novo acordo
+            const inicioCalc = inicioAcordoAnterior;
+            const fimCalc = fimAcordoAnterior.getTime() > ultimoDiaMesAnterior.getTime()
+                ? ultimoDiaMesAnterior
+                : fimAcordoAnterior;
 
             // Mapa de registros dentro do intervalo
             const mapaRegistros = {};
@@ -4734,9 +4628,9 @@ function gerarTimesheetAcordo() {
                     reg
                 );
 
-                // Acumula o saldo de qualquer acordo anterior (não filtra por nome)
-                if (calc && calc.saldo) {
-                    saldoAcumuladoGeral += calc.saldo;
+                // Só acumula se o dia pertence ao acordo anterior
+                if (calc.acordo && calc.acordo.nome === acordoAnterior.nome) {
+                    saldoAcumuladoGeral += calc.saldo || 0;
                 }
 
                 cursor.setDate(cursor.getDate() + 1);
@@ -5218,21 +5112,9 @@ function gerarTimesheetAcordo() {
 
             const tdSaldoAcumuladoMes = document.createElement('td');
             tdSaldoAcumuladoMes.className = 'col-saldo-acumulado';
-
-            // Mostrar apenas o valor numérico aqui; o rótulo vertical já existe na coluna fixa.
-            const valDiv = document.createElement('div');
-            valDiv.className = 'saldo-acumulado-valor';
-            valDiv.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
-            if (saldoAcumuladoMes > 0) valDiv.classList.add('saldo-positivo');
-            if (saldoAcumuladoMes < 0) valDiv.classList.add('saldo-negativo');
-            tdSaldoAcumuladoMes.appendChild(valDiv);
-
-            // Rótulo acessível (visualmente oculto) para leitores de tela
-            const sr = document.createElement('span');
-            sr.className = 'sr-only';
-            sr.textContent = 'Saldo Acumulado: ' + DateUtils.minutesToTime(saldoAcumuladoMes);
-            tdSaldoAcumuladoMes.appendChild(sr);
-
+            tdSaldoAcumuladoMes.textContent = DateUtils.minutesToTime(saldoAcumuladoMes);
+            if (saldoAcumuladoMes > 0) tdSaldoAcumuladoMes.classList.add('saldo-positivo');
+            if (saldoAcumuladoMes < 0) tdSaldoAcumuladoMes.classList.add('saldo-negativo');
             trSaldoMes.appendChild(tdSaldoAcumuladoMes);
 
             tbody.appendChild(trSaldoMes);
@@ -5944,7 +5826,7 @@ function gerarPeriodosAquisitivosFromAdmissao() {
 
         const divis = divSel && divSel.value ? Math.max(1, Math.min(3, Number(divSel.value))) : 3;
         const rawVal = (dataAd.value || '').trim();
-        const isoVal = DateUtils.normalize(rawVal);
+        const isoVal = dateBrToIso(rawVal);
         const dt = DateUtils.parse(isoVal);
         if (!dt) {
             mostrarAlertaGlobal('Data de admissão inválida. Use o formato DD/MM/AAAA.', 'error');
@@ -6898,8 +6780,8 @@ function editarPeriodoAcordo(index) {
     try {
         const p = AppState.acordoEmEdicao.periodos[index];
         if (!p) throw new Error('Período não encontrado');
-        document.getElementById('periodoInicio').value = DateUtils.formatBR(p.inicio);
-        document.getElementById('periodoFim').value = DateUtils.formatBR(p.fim);
+        document.getElementById('periodoInicio').value = dateIsoToBr(p.inicio);
+        document.getElementById('periodoFim').value = dateIsoToBr(p.fim);
         document.getElementById('periodoMinutosExtras').value = p.minutosExtras || 0;
         AppState.acordoEmEdicao.editingPeriodoIndex = index;
         const btn = document.getElementById('btnAdicionarPeriodo');
@@ -6912,8 +6794,8 @@ function editarPeriodoAcordo(index) {
 
 function adicionarPeriodoAcordo() {
     try {
-        const inicio = DateUtils.normalize(document.getElementById('periodoInicio').value);
-        const fim = DateUtils.normalize(document.getElementById('periodoFim').value);
+        const inicio = dateBrToIso(document.getElementById('periodoInicio').value);
+        const fim = dateBrToIso(document.getElementById('periodoFim').value);
         const minutosExtras = Number(document.getElementById('periodoMinutosExtras').value || 0);
 
         const periodo = { inicio, fim, minutosExtras };
@@ -7257,8 +7139,8 @@ function renderizarAcordos() {
             ul1.className = 'acordo-lista';
             (a.periodos || []).forEach(p => {
                 const li = document.createElement('li');
-                const inicioStr = DateUtils.formatBR(p.inicio) || p.inicio || '';
-                const fimStr = DateUtils.formatBR(p.fim) || p.fim || '';
+                const inicioStr = dateIsoToBr(p.inicio) || p.inicio || '';
+                const fimStr = dateIsoToBr(p.fim) || p.fim || '';
                 li.textContent = `${inicioStr} a ${fimStr} (${p.minutosExtras} min/dia)`;
                 ul1.appendChild(li);
             });
@@ -7320,9 +7202,9 @@ function renderizarAcordos() {
             } else {
                 eventosAcordo.forEach(ev => {
                     const li = document.createElement('li');
-                    const inicioEv = DateUtils.formatBR(ev.dataInicioEvento) || ev.dataInicioEvento || '';
+                    const inicioEv = dateIsoToBr(ev.dataInicioEvento) || ev.dataInicioEvento || '';
                     const fim = ev.dataFimEvento && ev.dataFimEvento !== ev.dataInicioEvento
-                        ? ` a ${DateUtils.formatBR(ev.dataFimEvento) || ev.dataFimEvento}`
+                        ? ` a ${dateIsoToBr(ev.dataFimEvento) || ev.dataFimEvento}`
                         : '';
                     li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${inicioEv}${fim})`;
                     ul3.appendChild(li);
@@ -9181,7 +9063,27 @@ function initDateFieldsBR() {
     });
 }
 
-// dateBrToIso e dateIsoToBr removidos — usar DateUtils.normalize() e DateUtils.formatBR()
+/**
+ * Converte data DD/MM/AAAA para YYYY-MM-DD (formato ISO)
+ */
+function dateBrToIso(dataBr) {
+    if (!dataBr) return '';
+    const match = dataBr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) return dataBr;
+    const [, dia, mes, ano] = match;
+    return `${ano}-${mes}-${dia}`;
+}
+
+/**
+ * Converte data YYYY-MM-DD (formato ISO) para DD/MM/AAAA
+ */
+function dateIsoToBr(dataIso) {
+    if (!dataIso) return '';
+    const match = dataIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return dataIso;
+    const [, ano, mes, dia] = match;
+    return `${dia}/${mes}/${ano}`;
+}
 
 // ============= BACKUP E RESTORE =============
 
