@@ -199,7 +199,6 @@ function atualizarTabelaFerias() {
         
         // 5. Feedback ao usuário com contagem correta
         const periodos = AppState.dados?.periodosAquisitivos?.length || 0;
-        }
         
         if (typeof Notifications !== 'undefined' && Notifications.success) {
             Notifications.success(`✅ Tabela de férias atualizada! (${periodos} períodos)`);
