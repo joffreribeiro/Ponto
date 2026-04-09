@@ -4,6 +4,74 @@
     border-left: 4px solid var(--positive-soft, #dcfce7);
     padding-left: 8px;
 }
+
+
+/* ================================================
+   Print styles (Melhoria 34)
+   ================================================ */
+@media print {
+    /* Ocultar elementos de navegação e controle */
+    .topbar-unified,
+    .tabs,
+    .subtabs,
+    .toolbar,
+    .btn-primary,
+    .btn-secondary,
+    .btn-outline,
+    .btn-cloud,
+    .dashboard-filters,
+    .filtros-registros,
+    #analyticsSection,
+    #alertasJornada,
+    #vrDashboardCard,
+    .ferias-timeline,
+    .timeline-legend,
+    [data-action],
+    .modal { display: none !important; }
+
+    /* Layout limpo para impressão */
+    body {
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+    }
+    .container { max-width: 100%; padding: 0; }
+    .card {
+        border: 1px solid #ccc;
+        border-radius: 0;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Timesheet: otimizado para impressão */
+    .timesheet-table {
+        font-size: 9pt;
+        width: 100%;
+    }
+    .timesheet-table thead th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .timesheet-table td.col-fimsemana {
+        background: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .timesheet-header {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #ccc;
+    }
+
+    /* Mostrar apenas aba ativa */
+    .tab-content { display: none !important; }
+    .tab-content.active { display: block !important; }
+}
 .linha-amarelo > td:first-child {
     border-left: 4px solid var(--warning-soft, #fed7aa);
     padding-left: 8px;
@@ -17,17 +85,41 @@
     padding-left: 8px;
 }
 .linha-cinza {
-    /* Use o mesmo tom de fim-de-semana/tabela do timesheet para consistência visual */
-    background: #BFBFBF !important;
-    color: #1e293b !important; /* var(--text-main) */
+    /* Mantenha classe para usos menores; tabela específica abaixo usa maior especificidade */
+}
+
+/* Removendo !important: aplicar especificidade via #tabelaAtividades */
+#tabelaAtividades tr.linha-cinza {
+    background: #BFBFBF;
+    color: var(--text-main);
 }
 .modal-content.modal-medium {
-    max-width: 900px !important;
-    min-width: 650px !important;
-    max-height: 90vh !important;
-    overflow: hidden !important;
+    /* Mantido para compatibilidade; substituído por seletor de instância específica sem !important abaixo */
+}
+
+/* Melhoria 32 BLOCO 2: usar id específico do modal para evitar !important */
+#modalNovaAtividadeCompleta .modal-content {
+    max-width: 900px;
+    min-width: 650px;
+    max-height: 90vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+}
+#modalNovaAtividadeCompleta .modal-content .modal-body {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+    overflow-y: auto;
+    max-height: 65vh;
+    padding-bottom: 8px;
+}
+#modalNovaAtividadeCompleta .modal-content .modal-body > div[style*="flex:1"] {
+    flex: 1 1 0%;
+    min-width: 0;
+    padding-left: 12px;
+}
 }
 .modal-content.modal-medium .modal-body {
     display: flex !important;
@@ -294,7 +386,21 @@ html[data-theme="dark"] {
 .badge--ted { background: var(--primary-soft, #dbeafe); color: var(--primary); font-family: monospace; }
 
 /* Small adjustments to global corner radius for a tighter look */
-:root { --border-radius-base: 8px; }
+:root {
+    --border-radius-base: 8px;
+    /* Aliases usados por HTML e componentes — mantidos no topo */
+    --danger: var(--negative);
+    --success: var(--positive);
+
+    /* Sistema de camadas (z-index) */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-modal: 400;
+    --z-login: 500;
+    --z-loading: 600;
+    --z-toast: 700;
+}
 .card, .activity-card { border-radius: var(--border-radius-base); }
 
 /* Screen reader only — oculto visualmente mas acessível */
@@ -426,7 +532,7 @@ html[data-theme="dark"] {
     color: white;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: var(--z-sticky);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
     border-radius: 0 0 16px 16px;
     transition: box-shadow 0.3s ease;
@@ -776,7 +882,7 @@ header {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: var(--z-sticky);
     margin-bottom: 0;
     transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
@@ -851,7 +957,7 @@ header h1 {
     margin: 8px 0 16px;
     position: sticky;
     top: 60px;
-    z-index: 990;
+    z-index: calc(var(--z-sticky) - 10);
     background: var(--bg-page);
     border-bottom: 1px solid var(--border-soft);
     padding: 0;
@@ -1993,7 +2099,7 @@ td {
     padding: 1px 2px;
     border: 1px solid var(--border-table);
     text-align: center;
-    line-height: 0.9;
+    line-height: 1.2;
     font-size: 11px;
 }
 
@@ -2200,26 +2306,29 @@ td {
     font-weight: 600;
     font-size: 11px;
     padding: 1px 2px;
-    line-height: 0.9;
+    line-height: 1.2;
 }
 
-/* altura consistente para todas as linhas do timesheet */
+/* altura/padding consistente para linhas do timesheet (acessível) */
+.timesheet-table thead th { line-height: 1.2; }
+.timesheet-table tbody td { line-height: 1.2; }
 .timesheet-table th,
 .timesheet-table td {
-    height: 30px;
+    height: 28px;
+    padding: 0 3px;
     vertical-align: middle;
 }
 
 .#ponto-timesheet .timesheet-table tbody td {
-    padding: 1px 2px;
-    line-height: 0.9;
+    padding: 0 3px;
+    line-height: 1.2;
     font-size: 11px;
 }
 
 .#ponto-timesheet .timesheet-table td.feriado-cell,
 .#ponto-timesheet .timesheet-table td.evento-vertical {
-    padding: 1px 2px;
-    line-height: 0.9;
+    padding: 0 3px;
+    line-height: 1.2;
 }
 
 /* Timesheet: make regular cells clearly readable */
@@ -2364,7 +2473,7 @@ td.evento-vertical {
     text-overflow: ellipsis;
     /* stack Latin letters one per line where supported */
     text-orientation: upright;
-    line-height: 0.9 !important;
+    line-height: 1.2;
     white-space: normal; /* allow vertical stacking */
     letter-spacing: 0.08em;
 }
@@ -2591,7 +2700,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: var(--z-modal);
     opacity: 0;
     transition: opacity 0.25s ease;
 }
@@ -2772,7 +2881,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: var(--z-modal);
     opacity: 0;
     transition: opacity 0.25s ease;
 }
@@ -3080,7 +3189,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 10000;
+    z-index: var(--z-toast);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -3173,7 +3282,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10001;
+    z-index: calc(var(--z-toast) + 1);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -3251,7 +3360,7 @@ html[data-theme="dark"] .dia-falta { background: rgba(248,113,113,0.04); }
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: var(--z-loading);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
@@ -3547,7 +3656,7 @@ select.field-invalid:focus {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 1000;
+    z-index: var(--z-sticky);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: bounceIn 0.5s ease;
 }
@@ -3575,7 +3684,7 @@ select.field-invalid:focus {
     border-radius: 999px;
     font-size: 13px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 9998;
+    z-index: var(--z-loading);
 }
 
 /* ================================================
@@ -3741,7 +3850,7 @@ html[data-theme="dark"] .empty-state-icon {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    z-index: 9999 !important;
+    z-index: var(--z-loading) !important;
     pointer-events: auto !important;
 }
 
@@ -3855,7 +3964,7 @@ html[data-theme="dark"] .table-container tbody tr:nth-child(odd) {
     position: fixed;
     bottom: 28px;
     right: 28px;
-    z-index: 1050;
+    z-index: var(--z-modal);
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -3911,7 +4020,7 @@ html[data-theme="dark"] .scroll-top-btn {
     background: rgba(15, 23, 42, 0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 1200;
+    z-index: var(--z-login);
     align-items: center;
     justify-content: center;
 }
@@ -4099,8 +4208,6 @@ html[data-theme="dark"] .skeleton::after {
    CSS variable aliases for cross-compatibility
    ================================================ */
 :root {
-    --danger: var(--negative);
-    --success: var(--positive);
     /* Overlay used for modals/loading/backdrops */
     --bg-overlay: rgba(255, 255, 255, 0.90);
 
@@ -4135,6 +4242,74 @@ html[data-theme="dark"] {
     color: var(--text-muted);
     margin: 14px 0 8px;
 }
+/* ================================================
+   Form / Config helpers (Melhoria 30)
+   ================================================ */
+.filtros-registros {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    align-items: flex-end;
+}
+.filtros-registros input,
+.filtros-registros select {
+    padding: 6px 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+.filtros-registros input:focus,
+.filtros-registros select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.config-backup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+.config-backup-card {
+    border: 1px solid var(--border-soft);
+    padding: 16px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.config-backup-card h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.config-backup-card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.config-backup-card--danger {
+    border-color: var(--negative);
+}
+.config-backup-card--danger h3 {
+    color: var(--negative);
+}
+
+/* Dark mode tweak for backup cards */
+html[data-theme="dark"] .config-backup-card {
+    background: var(--bg-card);
+    border-color: var(--border-soft);
+}
 .stats-section-label::before,
 .stats-section-label::after {
     content: '';
@@ -4159,9 +4334,9 @@ html[data-theme="dark"] {
 }
 
 /* 3. Exit card layout (hora de saída estimada) */
-.exit-card-layout {
-    display: flex !important;
-    flex-direction: row !important;
+.stats-grid .stat.exit-card-layout {
+    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 14px;
 }
