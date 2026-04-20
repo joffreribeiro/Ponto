@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="slate">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ponto — Redesign Hi-Fi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <style>
+/* ═══ THEME TOKENS ═══════════════════════════════════════════════════════ */
+:root, [data-theme="slate"] {
+  --bg:#f1f5f9; --bg-card:#ffffff; --bg-2:#f8fafc; --border:#e2e8f0;
+  --primary:#1e40af; --primary-soft:#dbeafe; --accent:#0891b2;
+  --text:#0f172a; --text-muted:#64748b;
+  --pos:#059669; --pos-soft:#d1fae5;
+  --neg:#dc2626; --neg-soft:#fee2e2;
+  --warn:#d97706; --warn-soft:#fef3c7;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 20px rgba(0,0,0,.10);
+  --r:12px; --r-sm:8px;
+  --font:'DM Sans',system-ui,-apple-system,sans-serif;
+  --tab-bg:#dbeafe; --tab-tx:#1e40af;
+  --topbar:linear-gradient(135deg,#1e3a8a 0%,#1e40af 60%,#1d4ed8 100%);
+  --topbar-tx:#ffffff;
+  --sidebar-act-bg:#dbeafe; --sidebar-act-tx:#1e40af;
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="meridian"] {
+  --bg:#f5f2ee; --bg-card:#fefcfa; --bg-2:#edeae5; --border:#d8d3cb;
+  --primary:#1a1714; --primary-soft:#e8e3dc; --accent:#c4935a;
+  --text:#1a1714; --text-muted:#8a8178;
+  --pos:#4a7c59; --pos-soft:#ddf0e4;
+  --neg:#a83232; --neg-soft:#f5e0e0;
+  --warn:#b07830; --warn-soft:#f5ecd8;
+  --shadow:none; --shadow-lg:0 2px 8px rgba(0,0,0,.06);
+  --r:4px; --r-sm:2px;
+  --font:'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --tab-bg:#1a1714; --tab-tx:#f5f2ee;
+  --topbar:#1a1714; --topbar-tx:#f5f2ee;
+  --sidebar-act-bg:#1a1714; --sidebar-act-tx:#f5f2ee;
+  --tr:all .15s ease;
+}
+[data-theme="dark"] {
+  --bg:#080d1a; --bg-card:#0f172a; --bg-2:#0b1120; --border:#1e293b;
+  --primary:#38bdf8; --primary-soft:rgba(56,189,248,.12); --accent:#818cf8;
+  --text:#e2e8f0; --text-muted:#64748b;
+  --pos:#34d399; --pos-soft:rgba(52,211,153,.10);
+  --neg:#f87171; --neg-soft:rgba(248,113,113,.10);
+  --warn:#fbbf24; --warn-soft:rgba(251,191,36,.10);
+  --shadow:0 1px 3px rgba(0,0,0,.45); --shadow-lg:0 4px 24px rgba(0,0,0,.55);
+  --r:12px; --r-sm:8px;
+  --font:system-ui,-apple-system,sans-serif;
+  --tab-bg:rgba(56,189,248,.12); --tab-tx:#38bdf8;
+  --topbar:#030712; --topbar-tx:#e2e8f0;
+  --sidebar-act-bg:rgba(56,189,248,.12); --sidebar-act-tx:#38bdf8;
+  --tr:all .2s ease;
+}
+
+/* ═══ BASE ═══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;transition:background .35s,color .35s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══ TOPBAR ═══════════════════════════════════════════════════════════ */
+.topbar{background:var(--topbar);color:var(--topbar-tx);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:background .35s}
+.topbar-logo{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.9}
+.topbar-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:12px;font-weight:600;color:var(--topbar-tx)}
+.topbar-dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.25);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.topbar-user{font-size:12px;opacity:.65}
+.topbar-avatar{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+
+/* ═══ LAYOUT ══════════════════════════════════════════════════════════ */
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:216px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);padding:16px 10px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;transition:background .35s,border-color .35s;display:flex;flex-direction:column}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);padding:0 10px;margin:20px 0 6px}
+.nav-label:first-of-type{margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:var(--font);transition:var(--tr)}
+.nav-item:hover{background:var(--primary-soft);color:var(--primary)}
+.nav-item.active{background:var(--sidebar-act-bg);color:var(--sidebar-act-tx);font-weight:600}
+[data-theme="meridian"] .nav-item.active{background:#1a1714;color:#f5f2ee}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--neg);color:#fff;padding:2px 6px;border-radius:100px}
+.nav-status{padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:5px}
+.nav-status-row{display:flex;justify-content:space-between}
+.main{flex:1;min-width:0;padding:24px;overflow-x:hidden}
+
+/* ═══ CARD ════════════════════════════════════════════════════════════ */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 24px;transition:background .35s,border-color .35s,box-shadow .2s}
+.card:hover{box-shadow:var(--shadow-lg)}
+.card-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;display:block}
+
+/* ═══ KPI GRID ════════════════════════════════════════════════════════ */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);transition:var(--tr);position:relative;overflow:hidden}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kl,var(--primary));border-radius:var(--r) var(--r) 0 0}
+[data-theme="meridian"] .kpi-card{border-radius:4px;border-left:2px solid var(--accent)}
+[data-theme="meridian"] .kpi-card::before{display:none}
+.kpi-label{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+.kpi-value{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+.kpi-pos .kpi-value{color:var(--pos)} .kpi-pos{--kl:var(--pos)}
+.kpi-acc .kpi-value{color:var(--accent)} .kpi-acc{--kl:var(--accent)}
+
+/* ═══ BADGES ══════════════════════════════════════════════════════════ */
+.bdg{display:inline-flex;align-items:center;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.2px}
+[data-theme="meridian"] .bdg{border-radius:2px}
+.bg{background:var(--pos-soft);color:var(--pos)} .br{background:var(--neg-soft);color:var(--neg)}
+.by{background:var(--warn-soft);color:var(--warn)} .bb{background:var(--primary-soft);color:var(--primary)}
+.bgr{background:var(--bg-2);color:var(--text-muted)}
+
+/* ═══ TABLE ═══════════════════════════════════════════════════════════ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:10px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;transition:color .35s}
+[data-theme="meridian"] thead th{background:#1a1714;color:#c4935a}
+[data-theme="dark"] thead th{color:var(--primary)}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;transition:background .12s}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--primary-soft)}
+[data-theme="dark"] tbody tr:hover{background:rgba(56,189,248,.05)}
+tbody tr:last-child td{border-bottom:none}
+
+/* ═══ BUTTONS ═════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);transition:var(--tr)}
+[data-theme="meridian"] .btn{border-radius:2px}
+.btn-p{background:var(--primary);color:#fff}
+.btn-p:hover{opacity:.88;transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.btn-g{background:transparent;color:var(--text-muted);border:1px solid var(--border)}
+.btn-g:hover{background:var(--primary-soft);color:var(--primary);border-color:var(--primary)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* ═══ SUBTABS ═════════════════════════════════════════════════════════ */
+.subtabs{display:flex;gap:3px;padding:3px;background:var(--bg-2);border-radius:var(--r-sm);width:fit-content;margin-bottom:16px}
+.subtab{padding:6px 14px;border-radius:calc(var(--r-sm) - 2px);font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text-muted);font-family:var(--font);transition:var(--tr)}
+.subtab.active{background:var(--bg-card);color:var(--text);box-shadow:var(--shadow)}
+[data-theme="meridian"] .subtab.active{background:#1a1714;color:#f5f2ee}
+[data-theme="dark"] .subtab.active{background:var(--bg-card);color:var(--primary)}
+
+/* ═══ TIMESHEET ROWS ══════════════════════════════════════════════════ */
+.ts-wrap{overflow-x:auto;font-size:13px}
+.ts-row{display:grid;grid-template-columns:72px 44px 78px 86px 94px 74px 88px 70px 1fr;border-bottom:1px solid var(--border);transition:background .12s}
+.ts-row:hover:not(.ts-hr){background:var(--primary-soft)}
+[data-theme="dark"] .ts-row:hover:not(.ts-hr){background:rgba(56,189,248,.05)}
+.ts-cell{padding:9px 10px;font-variant-numeric:tabular-nums;align-self:center}
+.ts-hr{background:var(--bg-2);border-bottom:2px solid var(--border)}
+[data-theme="meridian"] .ts-hr{background:#1a1714}
+.ts-hd{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted)}
+[data-theme="meridian"] .ts-hd{color:#c4935a}
+.ts-p{color:var(--pos);font-weight:700} .ts-n{color:var(--neg);font-weight:700} .ts-m{color:var(--text-muted)}
+.ts-today{background:color-mix(in oklch,var(--primary-soft) 80%,transparent)}
+.ts-fer{background:var(--warn-soft)}
+
+/* ═══ KANBAN ══════════════════════════════════════════════════════════ */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+.k-col{background:var(--bg-2);border-radius:var(--r);padding:12px}
+.k-head{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.k-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:var(--tr)}
+.k-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.k-card-title{font-size:13px;font-weight:600;margin-bottom:5px}
+.k-card-meta{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+
+/* ═══ ALERTS ══════════════════════════════════════════════════════════ */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r-sm);margin-bottom:8px}
+.alert:last-child{margin-bottom:0}
+.alert-warn{background:var(--warn-soft);border-left:3px solid var(--warn)}
+.alert-ok{background:var(--pos-soft);border-left:3px solid var(--pos)}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert-title{font-weight:700;font-size:13px;margin-bottom:2px}
+.alert-body{font-size:12px;color:var(--text-muted)}
+
+/* ═══ DASHBOARD ═══════════════════════════════════════════════════════ */
+.dash-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-top:16px}
+.dash-left{display:flex;flex-direction:column;gap:16px}
+.ferias-stat{padding:10px 0;border-bottom:1px solid var(--border)}
+.ferias-stat:last-child{border-bottom:none;padding-bottom:0}
+.ferias-lbl{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px}
+.ferias-val{font-size:15px;font-weight:700}
+
+/* ═══ SECTION HEADER ══════════════════════════════════════════════════ */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:18px;font-weight:700}
+[data-theme="meridian"] .sec-title{font-size:16px;letter-spacing:-.2px}
+
+/* ═══ PROGRESS BAR ════════════════════════════════════════════════════ */
+.prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.prog-fill{height:100%;border-radius:3px;transition:width .8s ease}
+
+/* ═══ PAGE ANIMATION ══════════════════════════════════════════════════ */
+.page{animation:fadeUp .24s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ═══ TWEAKS PANEL ════════════════════════════════════════════════════ */
+.tweaks-panel{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-lg);min-width:256px;display:none;animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.tweaks-panel.open{display:block}
+.tweaks-pane-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px}
+.tw-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:500;margin-bottom:4px;border:2px solid var(--border);transition:var(--tr);font-family:var(--font);background:none;width:100%;text-align:left;color:var(--text)}
+.tw-row:hover,.tw-row.sel{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.tw-swatch{width:18px;height:18px;border-radius:4px;flex-shrink:0;border:1px solid var(--border)}
+
+/* ═══ RESPONSIVE ══════════════════════════════════════════════════════ */
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.kanban{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.sidebar{display:none}.main{padding:16px}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="ponto-data.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+/* ── Tweak defaults ──────────────────────────────────────────────────── */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "slate",
+  "density": "normal"
+}/*EDITMODE-END*/;
+const loadTweaks = () => { try { return JSON.parse(localStorage.getItem('ponto-tw')||'null')||TWEAK_DEFAULTS; } catch { return TWEAK_DEFAULTS; } };
+
+/* ── Primitives ──────────────────────────────────────────────────────── */
+const KPI = ({label,value,sub,cls=''}) => (
+  <div className={`kpi-card ${cls}`}>
+    <div className="kpi-label">{label}</div>
+    <div className="kpi-value">{value}</div>
+    {sub && <div className="kpi-sub">{sub}</div>}
+  </div>
+);
+
+const Bdg = ({type,children}) => {
+  const m={verde:'bg',vermelho:'br',amarelo:'by',azul:'bb',cinza:'bgr'};
+  return <span className={`bdg ${m[type]||'bgr'}`}>{children}</span>;
+};
+
+const statusBdg = s => {
+  const m={concluida:['verde','Concluída'],'em andamento':['azul','Em andamento'],bloqueada:['vermelho','Bloqueada'],pendente:['amarelo','Pendente']};
+  const [t,l]=m[s]||['cinza',s]; return <Bdg type={t}>{l}</Bdg>;
+};
+const diasBdg = d => {
+  if(d<0)  return <Bdg type="vermelho">{d}d</Bdg>;
+  if(d===0) return <Bdg type="amarelo">Hoje</Bdg>;
+  if(d<=5)  return <Bdg type="amarelo">+{d}d</Bdg>;
+  return <Bdg type="cinza">+{d}d</Bdg>;
+};
+
+/* ── Charts ──────────────────────────────────────────────────────────── */
+const BarChart = ({values,labels,color='var(--primary)',h=72}) => {
+  const max=Math.max(...values), W=values.length*46;
+  return (
+    <svg width="100%" height={h+18} viewBox={`0 0 ${W} ${h+18}`} preserveAspectRatio="none" style={{display:'block'}}>
+      {values.map((v,i)=>{
+        const bh=Math.max(4,(v/max)*h);
+        return <g key={i}>
+          <rect x={i*46+5} y={h-bh} width={36} height={bh} rx={4} fill={color} opacity={.78}/>
+          <text x={i*46+23} y={h+14} textAnchor="middle" fontSize={10} fill="var(--text-muted)">{labels[i]}</text>
+        </g>;
+      })}
+    </svg>
+  );
+};
+const LineChart = ({values,labels,color='var(--accent)',h=72}) => {
+  const max=Math.max(...values.map(Math.abs))||1, W=values.length*46, mid=h/2;
+  const pts=values.map((v,i)=>`${i*46+23},${mid-(v/max)*(mid-6)}`).join(' ');
+  return (
+    <svg width="100%" height={h+18} viewBox={`0 0 ${W} ${h+18}`} preserveAspectRatio="none" style={{display:'block'}}>
+      <line x1={0} y1={mid} x2={W} y2={mid} stroke="var(--border)" strokeWidth={1} strokeDasharray="3,3"/>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"/>
+      {values.map((v,i)=><circle key={i} cx={i*46+23} cy={mid-(v/max)*(mid-6)} r={4} fill={color} stroke="var(--bg-card)" strokeWidth={2}/>)}
+      {labels.map((l,i)=><text key={i} x={i*46+23} y={h+14} textAnchor="middle" fontSize={10} fill="var(--text-muted)">{l}</text>)}
+    </svg>
+  );
+};
+
+/* ── DASHBOARD ───────────────────────────────────────────────────────── */
+const DashboardScreen = () => {
+  const {chartMeses:cm,chartHoras:ch,chartSaldo:cs,chartDias:cd}=window.D;
+  return (
+    <div className="page">
+      <div className="kpi-grid">
+        <KPI label="Horas Trabalhadas" value="168h 20min" sub="Abril 2026 · 21 dias úteis"/>
+        <KPI label="Saldo Banco de Horas" value="+8h 20min" sub="↑ 14% vs mês anterior" cls="kpi-pos"/>
+        <KPI label="Horas Extras" value="8h 20min" sub="Acumuladas no período" cls="kpi-acc"/>
+        <KPI label="Hora de Saída Hoje" value="17:08" sub="Entrada 08:52 · Almoço 12h–13h"/>
+      </div>
+      <div className="kpi-grid">
+        <KPI label="Média Diária" value="8h 01min" sub="Meta do acordo: 8h 00min"/>
+        <KPI label="Dias com Registro" value="21" sub="de 22 dias úteis no mês"/>
+        <KPI label="Saldo Últimos 30d" value="+6h 45min" sub="vs +5h 00min nos 30d ant." cls="kpi-pos"/>
+        <KPI label="Faltas / Ausências" value="0" sub="Nenhuma no período" cls="kpi-pos"/>
+      </div>
+
+      <div className="dash-grid">
+        <div className="dash-left">
+          <div className="card">
+            <span className="card-title">Analytics · Abril 2026</span>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Horas Mensais</div>
+                <BarChart values={ch} labels={cm} color="var(--primary)"/>
+              </div>
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Saldo Acumulado (h)</div>
+                <LineChart values={cs} labels={cm} color="var(--accent)"/>
+              </div>
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.5px'}}>Distribuição por Dia</div>
+                <BarChart values={Object.values(cd)} labels={Object.keys(cd)} color="var(--accent)" h={56}/>
+              </div>
+              <div>
+                <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',marginBottom:12,textTransform:'uppercase',letterSpacing:'.5px'}}>Tipos de Registro</div>
+                {[['Normal','var(--primary)',72],['Banco Horas','var(--accent)',14],['Feriado','var(--warn)',5]].map(([l,c,p])=>(
+                  <div key={l} style={{marginBottom:9}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:3}}>
+                      <span style={{color:'var(--text-muted)'}}>{l}</span>
+                      <span style={{fontWeight:700}}>{p}%</span>
+                    </div>
+                    <div className="prog-bar"><div className="prog-fill" style={{width:`${p}%`,background:c}}/></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <span className="card-title">Avisos</span>
+            <div className="alert alert-warn">
+              <span className="alert-icon">⚠️</span>
+              <div><div className="alert-title">Férias a vencer em 96 dias</div>
+              <div className="alert-body">Próximas férias: 04/08/2026 – 02/09/2026. Confirme o agendamento com a chefia para evitar perda do direito.</div></div>
+            </div>
+            <div className="alert alert-ok">
+              <span className="alert-icon">✓</span>
+              <div><div className="alert-title">Banco de horas positivo</div>
+              <div className="alert-body">Saldo acumulado de +8h 20min — dentro dos limites do acordo de jornada vigente.</div></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Férias sidebar */}
+        <div style={{position:'sticky',top:68}}>
+          <div className="card">
+            <span className="card-title">Resumo de Férias</span>
+            <div style={{marginBottom:16}}>
+              <div style={{height:16,background:'var(--border)',borderRadius:8,overflow:'hidden',position:'relative',marginBottom:4}}>
+                <div style={{position:'absolute',left:0,top:0,height:'100%',width:'38%',background:'var(--primary)',opacity:.45,borderRadius:'8px 0 0 8px'}}/>
+                <div style={{position:'absolute',left:'58%',width:'38%',top:0,height:'100%',background:'var(--pos)',opacity:.55,borderRadius:'0 8px 8px 0'}}/>
+                <div style={{position:'absolute',left:'38%',width:3,top:0,height:'100%',background:'var(--neg)',opacity:.85}}/>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'var(--text-muted)',letterSpacing:'.3px'}}>
+                <span>01/02/2026</span><span style={{color:'var(--neg)',fontWeight:700}}>Hoje</span><span>31/01/2027</span>
+              </div>
+              <div style={{display:'flex',gap:12,marginTop:5}}>
+                {[['var(--primary)','Concessivo'],['var(--neg)','Hoje'],['var(--pos)','Férias agend.']].map(([c,l])=>(
+                  <div key={l} style={{display:'flex',alignItems:'center',gap:4,fontSize:9,color:'var(--text-muted)'}}>
+                    <div style={{width:8,height:8,borderRadius:2,background:c}}/>{l}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {[
+              ['Período Aquisitivo','01/02/2025 – 31/01/2026',''],
+              ['Período Concessivo','01/02/2026 – 31/01/2027',''],
+              ['Próximas Férias','04/08/2026 – 02/09/2026','var(--pos)'],
+              ['Pode tirar a partir de','01/02/2026','var(--accent)'],
+              ['Dias Restantes','30 dias','var(--primary)'],
+              ['Dias Utilizados','0 dias','var(--text-muted)'],
+              ['Saldo Acumulado','30 dias','var(--pos)'],
+              ['Abono Disponível','10 dias','var(--pos)'],
+            ].map(([label,value,color])=>(
+              <div key={label} className="ferias-stat">
+                <div className="ferias-lbl">{label}</div>
+                <div className="ferias-val" style={color?{color}:{}}>{value}</div>
+              </div>
+            ))}
+            <div style={{marginTop:14,padding:'9px 12px',background:'var(--pos-soft)',borderRadius:'var(--r-sm)',fontSize:12,color:'var(--pos)',fontWeight:600}}>
+              Período aquisitivo encerrado · Férias liberadas
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── PONTO ───────────────────────────────────────────────────────────── */
+const PontoScreen = () => {
+  const [sub,setSub]=useState(()=>localStorage.getItem('ponto-sub')||'timesheet');
+  useEffect(()=>{localStorage.setItem('ponto-sub',sub)},[sub]);
+  const {registros}=window.D;
+  return (
+    <div className="page">
+      <div className="subtabs">
+        {[['timesheet','Timesheet'],['registros','Registros'],['acordos','Acordos'],['eventos','Eventos'],['ferias','Férias']].map(([k,l])=>(
+          <button key={k} className={`subtab${sub===k?' active':''}`} onClick={()=>setSub(k)}>{l}</button>
+        ))}
+      </div>
+
+      {sub==='timesheet'&&(
+        <div className="card" style={{padding:'20px 0'}}>
+          <div className="sec-hd" style={{padding:'0 24px'}}>
+            <span className="sec-title">Timesheet — Abril 2026</span>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-g btn-sm">CSV</button>
+              <button className="btn btn-g btn-sm">PDF</button>
+            </div>
+          </div>
+          <div className="ts-wrap">
+            <div className="ts-row ts-hr">
+              {['Data','Dia','Entrada','S. Almoço','R. Almoço','Saída','Total','Saldo','Observações'].map(h=>(
+                <div key={h} className="ts-cell ts-hd">{h}</div>
+              ))}
+            </div>
+            {registros.map((r,i)=>(
+              <div key={i} className={`ts-row${r.tipo==='hoje'?' ts-today':r.tipo==='feriado'?' ts-fer':''}`}>
+                <div className="ts-cell" style={{fontWeight:600}}>{r.data}</div>
+                <div className="ts-cell ts-m">{r.dia}</div>
+                <div className="ts-cell">{r.entrada}</div>
+                <div className="ts-cell">{r.sAlm}</div>
+                <div className="ts-cell">{r.rAlm}</div>
+                <div className="ts-cell">{r.saida}</div>
+                <div className="ts-cell" style={{fontWeight:600}}>{r.total}</div>
+                <div className={`ts-cell${r.saldo?.startsWith('+')?'  ts-p':r.saldo?.startsWith('-')?' ts-n':' ts-m'}`}>{r.saldo}</div>
+                <div className="ts-cell ts-m" style={{fontSize:12}}>{r.obs}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{display:'flex',gap:24,padding:'14px 24px 0',fontSize:12,color:'var(--text-muted)',borderTop:'1px solid var(--border)'}}>
+            <span>Total: <strong style={{color:'var(--text)'}}>168h 20min</strong></span>
+            <span>Acordo: <strong style={{color:'var(--text)'}}>160h 00min</strong></span>
+            <span>Saldo: <strong style={{color:'var(--pos)'}}>+8h 20min</strong></span>
+          </div>
+        </div>
+      )}
+
+      {sub==='registros'&&(
+        <div className="card" style={{padding:0,overflow:'hidden'}}>
+          <div className="sec-hd" style={{padding:'20px 24px 0'}}>
+            <span className="sec-title">Registros de Ponto</span>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-g btn-sm">Importar CSV</button>
+              <button className="btn btn-p btn-sm">+ Novo Registro</button>
+            </div>
+          </div>
+          <div style={{padding:'12px 24px 8px',display:'flex',gap:8,flexWrap:'wrap'}}>
+            {['Data de…','Data até…'].map(ph=>(
+              <input key={ph} placeholder={ph} style={{padding:'6px 10px',borderRadius:'var(--r-sm)',border:'1px solid var(--border)',background:'var(--bg-card)',color:'var(--text)',fontSize:12,width:120}}/>
+            ))}
+            <select style={{padding:'6px 10px',borderRadius:'var(--r-sm)',border:'1px solid var(--border)',background:'var(--bg-card)',color:'var(--text)',fontSize:12}}>
+              <option>Todos saldos</option><option>Positivo</option><option>Negativo</option>
+            </select>
+          </div>
+          <div className="table-wrap" style={{padding:'0 0 20px'}}>
+            <table>
+              <thead><tr>{['Data','Dia','Entrada','S. Almoço','R. Almoço','Saída','Total','Saldo','Observações',''].map(h=><th key={h}>{h}</th>)}</tr></thead>
+              <tbody>
+                {registros.map((r,i)=>(
+                  <tr key={i} style={r.tipo==='feriado'?{background:'var(--warn-soft)',opacity:.7}:r.tipo==='hoje'?{background:'var(--primary-soft)'}:{}}>
+                    <td style={{fontWeight:600}}>{r.data}</td>
+                    <td style={{color:'var(--text-muted)'}}>{r.dia}</td>
+                    <td>{r.entrada}</td><td>{r.sAlm}</td><td>{r.rAlm}</td><td>{r.saida}</td>
+                    <td style={{fontWeight:600}}>{r.total}</td>
+                    <td style={{fontWeight:700,color:r.saldo?.startsWith('+')?'var(--pos)':r.saldo?.startsWith('-')?'var(--neg)':'var(--text-muted)'}}>{r.saldo}</td>
+                    <td style={{color:'var(--text-muted)',fontSize:12}}>{r.obs}</td>
+                    <td>{r.tipo!=='feriado'&&<button className="btn btn-g btn-sm" style={{padding:'3px 8px'}}>✏️</button>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {sub==='acordos'&&(
+        <div className="card">
+          <div className="sec-hd"><span className="sec-title">Acordos de Jornada</span>
+          <button className="btn btn-p btn-sm">+ Novo Acordo</button></div>
+          <div style={{border:'1px solid var(--border)',borderRadius:'var(--r-sm)',padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div>
+              <div style={{fontWeight:700,marginBottom:4}}>Acordo Principal — Jornada Padrão</div>
+              <div style={{fontSize:12,color:'var(--text-muted)'}}>8h/dia · Segunda a Sexta · 40h semanais · Vigência: 01/02/2024 – 31/01/2027</div>
+            </div>
+            <Bdg type="verde">Ativo</Bdg>
+          </div>
+        </div>
+      )}
+
+      {(sub==='eventos'||sub==='ferias')&&(
+        <div className="card" style={{textAlign:'center',padding:'60px 24px'}}>
+          <div style={{fontSize:36,marginBottom:12}}>{sub==='eventos'?'📌':'🏖️'}</div>
+          <div style={{fontWeight:700,fontSize:16,marginBottom:6}}>{sub==='eventos'?'Eventos':'Períodos de Férias'}</div>
+          <div style={{color:'var(--text-muted)',fontSize:13,marginBottom:20}}>Nenhum {sub==='eventos'?'evento':'período'} cadastrado.</div>
+          <button className="btn btn-p btn-sm">+ Adicionar</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── ATIVIDADES ──────────────────────────────────────────────────────── */
+const AtividadesScreen = () => {
+  const [view,setView]=useState('table');
+  const [search,setSearch]=useState('');
+  const {atividades}=window.D;
+  const filtered=atividades.filter(a=>!search||[a.objeto,a.ted,a.assunto].some(s=>s.toLowerCase().includes(search.toLowerCase())));
+  const cols=['pendente','em andamento','bloqueada','concluida'];
+  const colLbl={pendente:'Pendente','em andamento':'Em Andamento',bloqueada:'Bloqueada',concluida:'Concluída'};
+  const colClr={pendente:'var(--warn)','em andamento':'var(--primary)',bloqueada:'var(--neg)',concluida:'var(--pos)'};
+  const colBdg={pendente:'amarelo','em andamento':'azul',bloqueada:'vermelho',concluida:'verde'};
+
+  return (
+    <div className="page">
+      <div className="sec-hd">
+        <span className="sec-title">Atividades</span>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar objeto, TED, assunto…"
+            style={{padding:'7px 12px',borderRadius:'var(--r-sm)',border:'1px solid var(--border)',background:'var(--bg-card)',color:'var(--text)',fontSize:13,width:230,fontFamily:'var(--font)'}}/>
+          <div className="subtabs" style={{marginBottom:0}}>
+            <button className={`subtab${view==='table'?' active':''}`} onClick={()=>setView('table')}>Tabela</button>
+            <button className={`subtab${view==='kanban'?' active':''}`} onClick={()=>setView('kanban')}>Kanban</button>
+          </div>
+          <button className="btn btn-g btn-sm">Exportar</button>
+          <button className="btn btn-p btn-sm">+ Nova</button>
+        </div>
+      </div>
+
+      {view==='table'&&(
+        <div className="card" style={{padding:0,overflow:'hidden'}}>
+          <div className="table-wrap">
+            <table>
+              <thead><tr>{['#','TED / Ptrab','Objeto','Processo','Assunto','Prazo','Dias','Remetente','Ação a Realizar','Status','Fin.',''].map(h=><th key={h}>{h}</th>)}</tr></thead>
+              <tbody>
+                {filtered.map(a=>(
+                  <tr key={a.id} style={a.finalizado?{opacity:.55}:{}}>
+                    <td style={{fontWeight:700,color:'var(--text-muted)',fontSize:12}}>{a.id}</td>
+                    <td><code style={{fontSize:11,background:'var(--primary-soft)',color:'var(--primary)',padding:'2px 6px',borderRadius:4,fontFamily:'monospace'}}>{a.ted}</code></td>
+                    <td style={{fontWeight:600,maxWidth:140}}>{a.objeto}</td>
+                    <td style={{fontSize:11,color:'var(--text-muted)',fontFamily:'monospace',whiteSpace:'nowrap'}}>{a.proc}</td>
+                    <td>{a.assunto}</td>
+                    <td style={{fontVariantNumeric:'tabular-nums',whiteSpace:'nowrap',fontSize:12}}>{a.prazo}</td>
+                    <td>{diasBdg(a.dias)}</td>
+                    <td style={{fontSize:12}}>{a.remetente}</td>
+                    <td style={{fontSize:12,color:'var(--text-muted)',maxWidth:170}}>{a.acao}</td>
+                    <td>{statusBdg(a.status)}</td>
+                    <td>{a.finalizado?<Bdg type="verde">✓</Bdg>:<Bdg type="cinza">—</Bdg>}</td>
+                    <td><button className="btn btn-g btn-sm" style={{padding:'3px 8px'}}>✏️</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{padding:'10px 20px',borderTop:'1px solid var(--border)',fontSize:12,color:'var(--text-muted)',display:'flex',gap:20}}>
+            <span>{filtered.length} registros</span>
+            <span style={{color:'var(--pos)'}}>{filtered.filter(a=>a.finalizado).length} concluídas</span>
+            <span style={{color:'var(--neg)'}}>{filtered.filter(a=>a.dias<0&&!a.finalizado).length} vencidas</span>
+          </div>
+        </div>
+      )}
+
+      {view==='kanban'&&(
+        <div className="kanban">
+          {cols.map(col=>{
+            const items=filtered.filter(a=>a.status===col);
+            return (
+              <div key={col} className="k-col">
+                <div className="k-head">
+                  <span style={{color:colClr[col]}}>{colLbl[col]}</span>
+                  <Bdg type={colBdg[col]}>{items.length}</Bdg>
+                </div>
+                {items.map(a=>(
+                  <div key={a.id} className="k-card">
+                    <div style={{fontSize:10,color:'var(--text-muted)',marginBottom:4,fontFamily:'monospace',fontWeight:600}}>{a.ted}</div>
+                    <div className="k-card-title">{a.objeto}</div>
+                    <div className="k-card-meta">{a.acao}</div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                      {diasBdg(a.dias)}<span style={{fontSize:10,color:'var(--text-muted)'}}>{a.prazo}</span>
+                    </div>
+                  </div>
+                ))}
+                {items.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'var(--text-muted)',fontSize:12}}>—</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── CONFIG ──────────────────────────────────────────────────────────── */
+const ConfigScreen = () => (
+  <div className="page">
+    <div className="sec-title" style={{marginBottom:16}}>Configurações</div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+      {[
+        {i:'⬇️',t:'Fazer Backup',d:'Exportar todos os dados (registros, eventos, acordos, atividades) em arquivo JSON.',b:'Fazer Download',v:'btn-p'},
+        {i:'⬆️',t:'Restaurar Backup',d:'Restaurar dados a partir de um arquivo de backup anterior.',b:'Selecionar Arquivo',v:'btn-g'},
+        {i:'🗑️',t:'Limpar Todos os Dados',d:'Remove permanentemente todos os dados do sistema. Esta ação não pode ser desfeita.',b:'Limpar Dados',v:'btn-g',danger:true},
+      ].map(c=>(
+        <div key={c.t} className="card">
+          <div style={{fontSize:28,marginBottom:12}}>{c.i}</div>
+          <div style={{fontWeight:700,fontSize:15,marginBottom:6}}>{c.t}</div>
+          <div style={{fontSize:13,color:'var(--text-muted)',marginBottom:20,lineHeight:1.6}}>{c.d}</div>
+          <button className={`btn ${c.v}`} style={c.danger?{color:'var(--neg)',borderColor:'var(--neg)'}:{}}>{c.b}</button>
+        </div>
+      ))}
+    </div>
+    <div className="card" style={{marginTop:14,borderLeft:'3px solid var(--accent)',background:'var(--primary-soft)'}}>
+      <div style={{fontWeight:700,marginBottom:6}}>ℹ️ Informações</div>
+      <ul style={{fontSize:13,color:'var(--text-muted)',paddingLeft:18,lineHeight:2}}>
+        <li>Backups são salvos em formato JSON e podem ser abertos em qualquer editor de texto.</li>
+        <li>Sempre faça um backup antes de executar uma limpeza de dados.</li>
+        <li>A restauração substitui completamente os dados atuais do sistema.</li>
+      </ul>
+    </div>
+  </div>
+);
+
+/* ── TWEAKS PANEL ────────────────────────────────────────────────────── */
+const TweaksPanel = ({open,tweaks,setTweaks}) => {
+  const themes=[
+    {id:'slate',   label:'Slate SaaS',      desc:'Índigo · Moderno & profissional',swatch:'#1e40af'},
+    {id:'meridian',label:'Meridian Clarity', desc:'Âmbar · Minimalismo clínico',    swatch:'#1a1714'},
+    {id:'dark',    label:'Deep Focus',       desc:'Navy · Dark mode total',         swatch:'#080d1a'},
+  ];
+  const apply=(key,val)=>{
+    const next={...tweaks,[key]:val};
+    setTweaks(next);
+    localStorage.setItem('ponto-tw',JSON.stringify(next));
+    if(key==='theme') document.documentElement.setAttribute('data-theme',val);
+    window.parent?.postMessage({type:'__edit_mode_set_keys',edits:next},'*');
+  };
+  return (
+    <div className={`tweaks-panel${open?' open':''}`}>
+      <div className="tweaks-pane-title">Tweaks</div>
+      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.8px',textTransform:'uppercase',color:'var(--text-muted)',marginBottom:8}}>Direção Visual</div>
+      {themes.map(th=>(
+        <button key={th.id} className={`tw-row${tweaks.theme===th.id?' sel':''}`} onClick={()=>apply('theme',th.id)}>
+          <div className="tw-swatch" style={{background:th.swatch}}/>
+          <div style={{flex:1,textAlign:'left'}}>
+            <div style={{fontWeight:700,fontSize:13}}>{th.label}</div>
+            <div style={{fontSize:11,opacity:.65,marginTop:1}}>{th.desc}</div>
+          </div>
+          {tweaks.theme===th.id&&<span style={{color:'var(--primary)',fontWeight:700}}>✓</span>}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+/* ── APP ─────────────────────────────────────────────────────────────── */
+const SCREENS = {dashboard:DashboardScreen, ponto:PontoScreen, atividades:AtividadesScreen, config:ConfigScreen};
+const NAV = [
+  {id:'dashboard',label:'Dashboard',icon:'▦'},
+  {id:'ponto',label:'Ponto',icon:'◷'},
+  {id:'atividades',label:'Atividades',icon:'▤',badge:8},
+  {id:'config',label:'Configurações',icon:'◎'},
+];
+
+const App = () => {
+  const [tab,setTab]       = useState(()=>localStorage.getItem('ponto-tab')||'dashboard');
+  const [tweaks,setTweaks] = useState(loadTweaks);
+  const [tweaksOpen,setTweaksOpen] = useState(false);
+  const {employee:emp}=window.D;
+
+  useEffect(()=>{ document.documentElement.setAttribute('data-theme',tweaks.theme||'slate'); },[tweaks.theme]);
+  useEffect(()=>{ localStorage.setItem('ponto-tab',tab); },[tab]);
+
+  useEffect(()=>{
+    const h=(e)=>{
+      if(e.data?.type==='__activate_edit_mode')   setTweaksOpen(true);
+      if(e.data?.type==='__deactivate_edit_mode') setTweaksOpen(false);
+    };
+    window.addEventListener('message',h);
+    window.parent?.postMessage({type:'__edit_mode_available'},'*');
+    return ()=>window.removeEventListener('message',h);
+  },[]);
+
+  const Screen=SCREENS[tab]||DashboardScreen;
+  return (
+    <>
+      <header className="topbar">
+        <div className="topbar-logo">Ponto</div>
+        <div>
+          <div className="topbar-chip"><div className="topbar-dot"/>Abril 2026</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <span className="topbar-user">{emp.name} · {emp.role}</span>
+          <div className="topbar-chip">
+            <div className="topbar-avatar">JR</div>
+            {emp.name.split(' ')[0]}
+          </div>
+        </div>
+      </header>
+
+      <div className="layout">
+        <nav className="sidebar">
+          <div className="nav-label" style={{marginTop:4}}>Principal</div>
+          {NAV.map(n=>(
+            <button key={n.id} className={`nav-item${tab===n.id?' active':''}`} onClick={()=>setTab(n.id)}>
+              <span className="nav-icon">{n.icon}</span>
+              {n.label}
+              {n.badge&&<span className="nav-badge">{n.badge}</span>}
+            </button>
+          ))}
+
+          <div className="nav-label">Status Hoje</div>
+          <div className="nav-status">
+            {[['Saldo','var(--pos)','+8h 20m'],['Saída est.','var(--text)','17:08'],['Férias','var(--pos)','30d']].map(([l,c,v])=>(
+              <div key={l} className="nav-status-row">
+                <span style={{color:'var(--text-muted)'}}>{l}</span>
+                <span style={{fontWeight:700,color:c}}>{v}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{marginTop:'auto',paddingTop:20}}>
+            <button className="nav-item" style={{color:'var(--neg)'}}>
+              <span className="nav-icon">↩</span>Sair
+            </button>
+          </div>
+        </nav>
+
+        <main className="main">
+          <Screen key={tab}/>
+        </main>
+      </div>
+
+      <TweaksPanel open={tweaksOpen} tweaks={tweaks} setTweaks={setTweaks}/>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="80" fill="#f1f5f9"/>
+  <rect width="120" height="14" fill="#1e40af"/>
+  <rect x="10" y="20" width="23" height="14" rx="2" fill="#dbeafe"/>
+  <rect x="37" y="20" width="23" height="14" rx="2" fill="#d1fae5"/>
+  <rect x="64" y="20" width="23" height="14" rx="2" fill="#dbeafe"/>
+  <rect x="91" y="20" width="23" height="14" rx="2" fill="#dbeafe"/>
+  <rect x="10" y="40" width="68" height="30" rx="3" fill="#fff" stroke="#e2e8f0" strokeWidth="0.5"/>
+  <rect x="83" y="40" width="30" height="30" rx="3" fill="#fff" stroke="#e2e8f0" strokeWidth="0.5"/>
+</svg>
+</template>
+</body>
+</html>

@@ -1,0 +1,65 @@
+// Ponto — Realistic prototype data
+window.D = {
+  employee: { name: 'Joffre Ribeiro', role: 'Analista Técnico Sênior', email: 'joffre.ribeiro@gov.br' },
+
+  kpis: {
+    horasTrabalhadas: '168h 20min',
+    saldoBanco: '+8h 20min',
+    saldoPos: true,
+    horasExtras: '8h 20min',
+    horasAcordo: '160h 00min',
+    mediaHorasDia: '8h 01min',
+    diasTrabalhados: 21,
+    saldo30d: '+6h 45min',
+    tendencia: '↑ 14%',
+    horaSaida: '17:08',
+    horaSaidaInfo: 'Entrada 08:52 · Almoço 12h–13h',
+    faltas: 0,
+  },
+
+  ferias: {
+    aquisitivo: '01/02/2025 – 31/01/2026',
+    concessivo: '01/02/2026 – 31/01/2027',
+    proximas: '04/08/2026 – 02/09/2026',
+    diasRestantes: 30,
+    diasUsados: 0,
+    acumulados: 30,
+    abono: '10 dias disponíveis',
+    status: 'Período aquisitivo encerrado · Férias liberadas',
+    aviso: '96 dias para início das férias',
+  },
+
+  registros: [
+    { data:'07/04', dia:'Seg', entrada:'08:52', sAlm:'12:00', rAlm:'13:00', saida:'18:05', total:'8h 13min', saldo:'+0:13', obs:'' },
+    { data:'08/04', dia:'Ter', entrada:'08:45', sAlm:'12:00', rAlm:'13:00', saida:'18:00', total:'8h 15min', saldo:'+0:15', obs:'' },
+    { data:'09/04', dia:'Qua', entrada:'09:10', sAlm:'12:00', rAlm:'13:00', saida:'18:10', total:'8h 00min', saldo:'0:00', obs:'' },
+    { data:'10/04', dia:'Qui', entrada:'08:55', sAlm:'12:00', rAlm:'13:05', saida:'18:30', total:'8h 30min', saldo:'+0:30', obs:'Reunião TED' },
+    { data:'11/04', dia:'Sex', entrada:'08:40', sAlm:'12:00', rAlm:'13:00', saida:'17:50', total:'7h 50min', saldo:'-0:10', obs:'' },
+    { data:'14/04', dia:'Seg', entrada:'08:50', sAlm:'12:00', rAlm:'13:00', saida:'18:00', total:'8h 10min', saldo:'+0:10', obs:'' },
+    { data:'15/04', dia:'Ter', entrada:'08:30', sAlm:'12:00', rAlm:'13:00', saida:'18:45', total:'9h 15min', saldo:'+1:15', obs:'Prazo TED 001' },
+    { data:'16/04', dia:'Qua', entrada:'09:00', sAlm:'12:00', rAlm:'13:00', saida:'18:00', total:'8h 00min', saldo:'0:00', obs:'' },
+    { data:'17/04', dia:'Qui', entrada:'08:48', sAlm:'12:00', rAlm:'13:00', saida:'18:10', total:'8h 22min', saldo:'+0:22', obs:'' },
+    { data:'18/04', dia:'Sex', entrada:'08:55', sAlm:'12:00', rAlm:'13:00', saida:'18:05', total:'8h 10min', saldo:'+0:10', obs:'' },
+    { data:'21/04', dia:'Seg', entrada:'—',    sAlm:'—',    rAlm:'—',    saida:'—',    total:'—',       saldo:'—',     obs:'Tiradentes', tipo:'feriado' },
+    { data:'22/04', dia:'Ter', entrada:'08:52', sAlm:'12:00', rAlm:'13:00', saida:'18:20', total:'8h 28min', saldo:'+0:28', obs:'' },
+    { data:'23/04', dia:'Qua', entrada:'09:05', sAlm:'12:00', rAlm:'13:00', saida:'18:05', total:'8h 00min', saldo:'0:00', obs:'' },
+    { data:'24/04', dia:'Qui', entrada:'08:40', sAlm:'12:00', rAlm:'13:00', saida:'18:30', total:'8h 50min', saldo:'+0:50', obs:'Vistoria' },
+    { data:'25/04', dia:'Sex', entrada:'08:52', sAlm:'—',    rAlm:'—',    saida:'—',    total:'—',       saldo:'—',     obs:'Em andamento', tipo:'hoje' },
+  ],
+
+  chartMeses: ['Jan','Fev','Mar','Abr'],
+  chartHoras: [154, 162, 159, 168],
+  chartSaldo: [3.5, 6.0, 5.0, 8.3],
+  chartDias:  { Seg: 8.1, Ter: 8.0, Qua: 8.2, Qui: 8.0, Sex: 7.9 },
+
+  atividades: [
+    { id:1, ted:'TED 001/26', objeto:'Análise Contratual',    proc:'08600.001/2026', assunto:'Contratos',    prazo:'25/04/2026', dias:5,   status:'em andamento', finalizado:false, obs:'Urgente — aguarda assinatura', remetente:'CGCON', acao:'Analisar e emitir parecer' },
+    { id:2, ted:'Ptrab 002', objeto:'Relatório Mensal',       proc:'08600.003/2026', assunto:'Relatórios',   prazo:'30/04/2026', dias:10,  status:'pendente',     finalizado:false, obs:'',                            remetente:'Chefia', acao:'Elaborar relatório' },
+    { id:3, ted:'TED 003/26', objeto:'Auditoria Documentos',  proc:'08600.004/2026', assunto:'Auditoria',    prazo:'10/04/2026', dias:-10, status:'concluida',    finalizado:true,  obs:'Concluído com êxito',         remetente:'TCU',   acao:'Providenciar documentação' },
+    { id:4, ted:'Ptrab 004', objeto:'Parecer Jurídico',       proc:'08600.006/2026', assunto:'Jurídico',     prazo:'10/05/2026', dias:20,  status:'bloqueada',    finalizado:false, obs:'Aguarda informações da PGF',  remetente:'PGF',   acao:'Emitir parecer' },
+    { id:5, ted:'TED 005/26', objeto:'Revisão de Contrato',   proc:'08600.007/2026', assunto:'Contratos',    prazo:'05/05/2026', dias:15,  status:'pendente',     finalizado:false, obs:'',                            remetente:'CGCON', acao:'Revisar minutas' },
+    { id:6, ted:'Ptrab 006', objeto:'Vistoria Técnica',       proc:'08600.009/2026', assunto:'Fiscalização', prazo:'25/04/2026', dias:0,   status:'em andamento', finalizado:false, obs:'Vencendo hoje',               remetente:'DIPES', acao:'Realizar vistoria in loco' },
+    { id:7, ted:'TED 007/26', objeto:'Correspondência MJ',    proc:'08600.010/2026', assunto:'Comunicações', prazo:'28/04/2026', dias:8,   status:'pendente',     finalizado:false, obs:'',                            remetente:'MJ',    acao:'Responder correspondência' },
+    { id:8, ted:'Ptrab 008', objeto:'Nota Informativa',       proc:'08600.012/2026', assunto:'Notas',        prazo:'12/04/2026', dias:-8,  status:'concluida',    finalizado:true,  obs:'Entregue à chefia',           remetente:'DIPES', acao:'Elaborar nota técnica' },
+  ],
+};
