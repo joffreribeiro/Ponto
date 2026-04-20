@@ -363,7 +363,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 /* Periodos aquisitivos table adjustments */
-#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 1200px; }
+#tablePeriodosAquisitivos { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 #tablePeriodosAquisitivos th, #tablePeriodosAquisitivos td { 
     border: 1px solid var(--border-table); 
     padding: 4px 6px;                 /* reduzido de 6px 8px para altura menor */
@@ -779,9 +779,12 @@ header h1 {
    Container principal / conteúdo
    ================================================ */
 .container {
-    max-width: 1600px;
-    margin: 20px auto 40px;
-    padding: 0 16px;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 20px 12px 24px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 72px);
 }
 
 .content {
@@ -1208,7 +1211,7 @@ input[aria-invalid="false"], textarea[aria-invalid="false"] {
    Atividades table: prevent header wrapping and ensure horizontal scroll
    ================================================ */
 #atividadesTableContainer .table-container { overflow-x: auto; }
-#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px; }
+#tabelaAtividades { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 #tabelaAtividades th, #tabelaAtividades td { border: 1px solid var(--border-table); padding: 4px 6px; font-size: 11px; vertical-align: middle; }
 #tabelaAtividades thead th {
     background: var(--primary);
