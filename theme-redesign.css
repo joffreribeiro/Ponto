@@ -1,44 +1,44 @@
 /* ═══════════════════════════════════════════════════════════════
-   TEMA: NEXUS — Controle de Ponto
-   SaaS clean — fundo claro, cards brancos, violeta profundo
-   Fontes: Outfit (display + body) · JetBrains Mono (valores)
+   TEMA: SLATE SAAS — Controle de Ponto
+   Fundo azul-aço, cards brancos, índigo profundo
+   Fontes: DM Sans (display + body) · JetBrains Mono (valores)
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
 /* ════════════════════════
-   MODO CLARO — Paleta
+   MODO CLARO — Paleta Slate SaaS
 ════════════════════════ */
 :root {
     /* Superfícies */
-    --bg-page:   #f0f2f8;
+    --bg-page:   #f1f5f9;
     --bg-header: #ffffff;
     --bg-card:   #ffffff;
-    --bg-soft:   #f5f6fb;
+    --bg-soft:   #f8fafc;
 
-    /* Primária — Violeta royal */
-    --primary:       #5750d4;
-    --primary-soft:  #ebe9fb;
-    --primary-dark:  #3e38b0;
-    --primary-hover: #4840c2;
+    /* Primária — Índigo azul */
+    --primary:       #1e40af;
+    --primary-soft:  #dbeafe;
+    --primary-dark:  #1e3a8a;
+    --primary-hover: #1d4ed8;
 
-    /* Secundária — Cinza azulado */
-    --secondary:      #6b7280;
-    --secondary-soft: #f3f4f8;
-    --secondary-dark: #374151;
+    /* Secundária — Cinza slate */
+    --secondary:      #64748b;
+    --secondary-soft: #f1f5f9;
+    --secondary-dark: #334155;
 
-    /* Acento — Ciano/teal */
-    --accent:      #00b4a6;
-    --accent-soft: #d9f5f3;
+    /* Acento — Ciano */
+    --accent:      #0891b2;
+    --accent-soft: #cffafe;
 
     /* Texto */
-    --text-main:  #111827;
-    --text-muted: #6b7280;
-    --text-light: #9ca3af;
+    --text-main:  #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
 
-    /* Bordas — quase invisíveis */
-    --border-soft:  #e5e7ef;
-    --border-table: #eaecf2;
+    /* Bordas */
+    --border-soft:  #e2e8f0;
+    --border-table: #e2e8f0;
 
     /* Status */
     --positive:       #059669;
@@ -53,20 +53,24 @@
     --info-soft:      #dbeafe;
 
     /* Sombras — sutis, SaaS-style */
-    --shadow-soft:   0 1px 3px rgba(17, 24, 39, 0.06), 0 1px 2px rgba(17, 24, 39, 0.04);
-    --shadow-medium: 0 4px 12px rgba(17, 24, 39, 0.08), 0 2px 6px rgba(17, 24, 39, 0.05);
-    --shadow-large:  0 10px 30px rgba(17, 24, 39, 0.10), 0 4px 10px rgba(17, 24, 39, 0.06);
+    --shadow-soft:   0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.10);
+    --shadow-large:  0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
 
     /* Tipografia */
-    --font-display: 'Outfit', system-ui, sans-serif;
-    --font-body:    'Outfit', system-ui, sans-serif;
+    --font-display: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
     --font-mono:    'JetBrains Mono', 'Consolas', monospace;
 
     /* Layout */
     --btn-radius:        8px;
-    --card-radius:       14px;
-    --focus-ring:        rgba(87, 80, 212, 0.18);
-    --focus-ring-strong: rgba(87, 80, 212, 0.30);
+    --card-radius:       12px;
+    --focus-ring:        rgba(30, 64, 175, 0.18);
+    --focus-ring-strong: rgba(30, 64, 175, 0.30);
+
+    /* Topbar gradient */
+    --topbar-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%);
+    --topbar-tx: #ffffff;
 }
 
 /* ════════════════════════
@@ -95,16 +99,34 @@ html, body {
 }
 
 /* ════════════════════════
-   TOPBAR — Dark nav strip
+   TOPBAR — Slate SaaS gradient
 ════════════════════════ */
 .topbar-unified {
-    background: #1c1f3a;
+    background: var(--topbar-bg, linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%));
     border-radius: 0;
-    box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     padding: 10px 24px;
     position: sticky;
     top: 0;
     z-index: 1000;
+}
+
+/* Dot de status online — pulse */
+.topbar-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+    animation: _nx-pulse 2s ease infinite;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+@keyframes _nx-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.10); }
 }
 
 .topbar-unified::after { display: none; } /* remove pseudo-element do tema anterior */
@@ -216,6 +238,47 @@ html, body {
     background: var(--primary-soft);
     border-bottom-color: var(--primary);
     font-weight: 600;
+}
+
+/* ════════════════════════
+   ANIMAÇÃO DE PÁGINA
+════════════════════════ */
+.tab-content.active,
+.tab-content[style*="display: block"],
+.tab-content[style*="display:block"] {
+    animation: _nx-fadeUp 0.24s ease both;
+}
+
+/* ════════════════════════
+   KPI CARDS — linha top colorida
+════════════════════════ */
+.stat,
+.stat-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::before,
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--_kpi-line, var(--primary));
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.stat:hover::before,
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+/* KPI positivo — linha verde */
+.stat[id*="saldo"]::before,
+.stat-card[id*="saldo"]::before {
+    --_kpi-line: var(--positive);
 }
 
 /* ════════════════════════
@@ -797,54 +860,56 @@ label {
 }
 
 /* ════════════════════════
-   MODO ESCURO
+   MODO ESCURO — Deep Focus navy
 ════════════════════════ */
 html[data-theme="dark"] {
-    --bg-page:   #0f1117;
-    --bg-header: #161922;
-    --bg-card:   #161922;
-    --bg-soft:   #1a1f2e;
+    --bg-page:   #080d1a;
+    --bg-header: #0f172a;
+    --bg-card:   #0f172a;
+    --bg-soft:   #0b1120;
 
-    --primary:       #7b74e8;
-    --primary-soft:  rgba(123, 116, 232, 0.13);
-    --primary-dark:  #a49ff0;
-    --primary-hover: #6960d4;
+    --primary:       #38bdf8;
+    --primary-soft:  rgba(56, 189, 248, 0.12);
+    --primary-dark:  #7dd3fc;
+    --primary-hover: #0ea5e9;
 
-    --secondary:      #9ca3af;
-    --secondary-soft: rgba(156, 163, 175, 0.08);
-    --secondary-dark: #d1d5db;
+    --secondary:      #94a3b8;
+    --secondary-soft: rgba(148, 163, 184, 0.08);
+    --secondary-dark: #cbd5e1;
 
-    --accent:      #00c8b8;
-    --accent-soft: rgba(0, 200, 184, 0.12);
+    --accent:      #818cf8;
+    --accent-soft: rgba(129, 140, 248, 0.12);
 
-    --text-main:  #e5e7eb;
-    --text-muted: #9ca3af;
-    --text-light: #6b7280;
+    --text-main:  #e2e8f0;
+    --text-muted: #64748b;
+    --text-light: #475569;
 
-    --border-soft:  #2a2f42;
-    --border-table: #242840;
+    --border-soft:  #1e293b;
+    --border-table: #1e293b;
 
     --positive:       #34d399;
-    --positive-soft:  rgba(52, 211, 153, 0.12);
+    --positive-soft:  rgba(52, 211, 153, 0.10);
     --positive-dark:  #6ee7b7;
     --negative:       #f87171;
-    --negative-soft:  rgba(248, 113, 113, 0.12);
+    --negative-soft:  rgba(248, 113, 113, 0.10);
     --negative-dark:  #fca5a5;
     --warning:        #fbbf24;
-    --warning-soft:   rgba(251, 191, 36, 0.12);
-    --info:           #60a5fa;
-    --info-soft:      rgba(96, 165, 250, 0.12);
+    --warning-soft:   rgba(251, 191, 36, 0.10);
+    --info:           #38bdf8;
+    --info-soft:      rgba(56, 189, 248, 0.10);
 
-    --shadow-soft:   0 1px 4px rgba(0, 0, 0, 0.4);
-    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --shadow-large:  0 10px 36px rgba(0, 0, 0, 0.6);
+    --shadow-soft:   0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-medium: 0 4px 24px rgba(0, 0, 0, 0.55);
+    --shadow-large:  0 10px 36px rgba(0, 0, 0, 0.65);
 
-    --focus-ring:        rgba(123, 116, 232, 0.22);
-    --focus-ring-strong: rgba(123, 116, 232, 0.35);
+    --focus-ring:        rgba(56, 189, 248, 0.20);
+    --focus-ring-strong: rgba(56, 189, 248, 0.35);
+
+    --topbar-bg: #030712;
 }
 
 html[data-theme="dark"] .topbar-unified {
-    background: #0d1016;
+    background: var(--topbar-bg);
     box-shadow: 0 1px 0 rgba(255,255,255,0.05);
 }
 

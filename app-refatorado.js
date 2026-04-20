@@ -816,7 +816,8 @@ function initUiPreferences() {
                 if (v === 'default') document.documentElement.removeAttribute('data-theme');
                 else document.documentElement.setAttribute('data-theme', v);
                 localStorage.setItem('ui_theme', v);
-                Notifications.info('Tema alterado: ' + (v === 'default' ? 'Padrão' : (v === 'pastel' ? 'Pastel' : 'Alto Contraste')), 1200);
+                const temaLabels = { default: 'Claro', dark: 'Escuro', pastel: 'Pastel', contrast: 'Alto Contraste' };
+                Notifications.info('Tema alterado: ' + (temaLabels[v] || v), 1200);
             });
         }
     } catch (e) { console.warn('initUiPreferences error:', e); }
