@@ -1,0 +1,807 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DESIGN IMPROVEMENTS — Controle de Ponto
+   Auditoria e refinamentos aplicados sobre styles.css + theme-redesign.css
+   ─────────────────────────────────────────────────────────────────────
+   PROBLEMAS CORRIGIDOS:
+   1. Fonte unificada em DM Sans (elimina conflito Inter vs DM Sans)
+   2. Paleta consolidada — single source of truth para tokens de cor
+   3. KPI cards com hierarquia visual clara (valor grande, label pequeno)
+   4. Tabs e subtabs com indicador ativo mais marcado
+   5. Sombras com profundidade consistente
+   6. Cor hardcoded #BFBFBF substituída por token
+   7. Topbar com gradient mais limpo (sem duplicação)
+   8. Animações de entrada staggered nas seções
+   9. Botões com micro-interação aprimorada
+   10. Estado de foco acessível e consistente
+═══════════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════════
+   1. FONTE ÚNICA — elimina conflito Inter vs DM Sans
+════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+html, body,
+.tab-btn, .subtab-btn, .btn-primary, .btn-secondary, .btn-outline,
+.btn-header, .btn-cloud, input, select, textarea, label,
+.card h2, .stat-label, .stat-value, .badge {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Valores numéricos sempre em mono para alinhamento tabular */
+.stat-value,
+#horasPeriodo, #saldoBancoHoras, #horasExtras, #horasAcordo,
+#mediaHorasDia, #diasTrabalhados, #saldo30d, #tendenciaSaldo,
+#horaSaidaEstimada, #faltasPeriodo {
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   2. PALETA — single source of truth (sobrescreve styles.css)
+════════════════════════════════════════════════════════════════ */
+:root {
+    /* Primária Slate — azul índigo coeso */
+    --primary:        #1e40af;
+    --primary-soft:   #dbeafe;
+    --primary-dark:   #1e3a8a;
+    --primary-hover:  #1d4ed8;
+
+    /* Superfícies */
+    --bg-page:    #f1f5f9;
+    --bg-card:    #ffffff;
+    --bg-soft:    #f8fafc;
+    --bg-header:  #ffffff;
+
+    /* Texto */
+    --text-main:  #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+
+    /* Bordas mais leves (menos pesadas que styles.css) */
+    --border-soft:  #e2e8f0;
+    --border-table: #e9edf2;
+
+    /* Sombras com profundidade real */
+    --shadow-soft:   0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-medium: 0 4px 16px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
+    --shadow-large:  0 12px 32px rgba(15, 23, 42, 0.13), 0 4px 12px rgba(15, 23, 42, 0.07);
+    --shadow-glow:   0 0 0 3px rgba(30, 64, 175, 0.15);
+
+    /* Raios */
+    --card-radius: 14px;
+    --btn-radius:  8px;
+
+    /* Topbar */
+    --topbar-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 55%, #2563eb 100%);
+
+    /* Cinza de linha de fim de semana (substitui #BFBFBF hardcoded) */
+    --weekend-bg: #d1d5db;
+    --weekend-text: #374151;
+
+    /* Focus */
+    --focus-ring: rgba(30, 64, 175, 0.20);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   3. TOPBAR — limpa duplicação, gradient refinado
+════════════════════════════════════════════════════════════════ */
+.topbar-unified {
+    background: var(--topbar-bg) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.18) !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 28px;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Logo SVG no lugar do emoji */
+.topbar-logo {
+    font-size: 0; /* esconde emoji se existir */
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.topbar-logo::after {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 18px;
+    background: white;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z'/%3E%3C/svg%3E");
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+.topbar-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.2px !important;
+    color: #fff !important;
+}
+
+.topbar-user {
+    font-size: 11.5px !important;
+    color: rgba(255,255,255,0.60) !important;
+    font-weight: 400 !important;
+    margin-top: 1px !important;
+}
+
+/* Chip de status online no topbar */
+.topbar-chip-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.16);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.90);
+}
+
+.topbar-chip-online::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.30);
+    animation: _imp-pulse 2s ease infinite;
+}
+
+@keyframes _imp-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.30); }
+    50%       { box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   4. TABS — indicador ativo mais marcado
+════════════════════════════════════════════════════════════════ */
+.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 0 6px;
+    background: var(--bg-page);
+    position: sticky;
+    top: 58px;
+    z-index: 990;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s, background 0.15s;
+}
+
+.tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 80%;
+    height: 2.5px;
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-btn:hover {
+    color: var(--primary);
+    background: var(--primary-soft);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    background: var(--primary-soft);
+    font-weight: 700;
+}
+
+.tab-btn.active::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* Sub-abas */
+.subtabs {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    width: fit-content;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-soft);
+}
+
+.subtab-btn {
+    padding: 6px 15px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.subtab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255,255,255,0.70);
+}
+
+.subtab-btn.active {
+    background: #fff;
+    color: var(--primary);
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   5. CARDS — profundidade consistente e hierarquia
+════════════════════════════════════════════════════════════════ */
+.card {
+    background: var(--bg-card) !important;
+    border-radius: var(--card-radius) !important;
+    border: 1px solid var(--border-soft) !important;
+    box-shadow: var(--shadow-soft) !important;
+    padding: 20px 24px !important;
+    transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-medium) !important;
+    transform: translateY(-2px) !important;
+}
+
+.card h2 {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    letter-spacing: -0.1px !important;
+    margin: 0 0 18px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   6. KPI / STAT CARDS — hierarquia visual clara
+════════════════════════════════════════════════════════════════ */
+.stat {
+    background: var(--bg-soft) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: 12px !important;
+    padding: 16px 18px !important;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+}
+
+/* Linha top colorida como acento de identidade */
+.stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--_stat-accent, var(--primary));
+    border-radius: 12px 12px 0 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stat:hover::before {
+    transform: scaleX(1);
+}
+
+.stat:hover {
+    box-shadow: var(--shadow-medium) !important;
+    border-color: rgba(30, 64, 175, 0.20) !important;
+    transform: translateY(-1px);
+}
+
+/* Acento por semântica */
+.stat:has(#saldoBancoHoras) { --_stat-accent: var(--positive); }
+.stat:has(#horasExtras)     { --_stat-accent: var(--accent);   }
+.stat:has(#horaSaidaEstimada) { --_stat-accent: var(--warning); }
+.stat:has(#faltasPeriodo)   { --_stat-accent: var(--negative); }
+
+.stat-label {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.7px !important;
+    color: var(--text-muted) !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+.stat-value {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    letter-spacing: -1px !important;
+    line-height: 1 !important;
+    display: block !important;
+}
+
+.stat-value-large {
+    font-size: 32px !important;
+    letter-spacing: -1.5px !important;
+}
+
+.stat-subtext {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+}
+
+/* Stat de destaque (hora de saída) */
+.stat.stat-highlight {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%) !important;
+    border-color: rgba(30, 64, 175, 0.12) !important;
+}
+
+.stat.stat-highlight .stat-value {
+    color: var(--primary) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   7. BOTÕES — micro-interações aprimoradas
+════════════════════════════════════════════════════════════════ */
+.btn-primary {
+    background: var(--primary) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: var(--btn-radius) !important;
+    padding: 8px 18px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.25), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+    transition: background 0.15s, transform 0.14s, box-shadow 0.14s !important;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+
+.btn-primary:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.20) !important;
+}
+
+.btn-secondary {
+    background: var(--bg-card) !important;
+    color: var(--secondary-dark, #334155) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: var(--btn-radius) !important;
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: background 0.14s, border-color 0.14s, transform 0.14s !important;
+}
+
+.btn-secondary:hover {
+    background: var(--primary-soft) !important;
+    border-color: rgba(30, 64, 175, 0.25) !important;
+    color: var(--primary) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-outline {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: var(--btn-radius) !important;
+    padding: 7px 14px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    transition: all 0.14s !important;
+}
+
+.btn-outline:hover {
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    background: var(--primary-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   8. TABELAS — zebra sutil, cabeçalho mais limpo
+════════════════════════════════════════════════════════════════ */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}
+
+thead th {
+    background: var(--bg-soft) !important;
+    color: var(--text-muted) !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.7px !important;
+    padding: 11px 12px !important;
+    border-bottom: 2px solid var(--border-soft) !important;
+    white-space: nowrap;
+}
+
+/* Exceto tabela de atividades que tem cabeçalho colorido */
+#tabelaAtividades thead th {
+    background: var(--primary) !important;
+    color: rgba(255,255,255,0.95) !important;
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--border-table) !important;
+    transition: background 0.10s ease;
+}
+
+tbody tr:nth-child(even) {
+    background: rgba(248, 250, 252, 0.6);
+}
+
+tbody tr:hover {
+    background: var(--primary-soft) !important;
+}
+
+tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+tbody td {
+    padding: 10px 12px !important;
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+/* Corrige linha cinza hardcoded do fim de semana */
+.linha-cinza {
+    background: var(--weekend-bg) !important;
+    color: var(--weekend-text) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   9. INPUTS & SELECTS — estilo coeso
+════════════════════════════════════════════════════════════════ */
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    background: #fff !important;
+    border: 1.5px solid var(--border-soft) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 13.5px !important;
+    color: var(--text-main) !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+    width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--focus-ring) !important;
+}
+
+label {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+    display: block !important;
+    margin-bottom: 5px !important;
+    letter-spacing: 0.2px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   10. BADGES — polimento
+════════════════════════════════════════════════════════════════ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+}
+
+.badge--ok      { background: var(--positive-soft); color: var(--positive-dark, #065f46); }
+.badge--due     { background: var(--warning-soft);  color: #92400e; }
+.badge--overdue { background: var(--negative-soft); color: var(--negative-dark, #991b1b); }
+.badge--order   { background: var(--primary-soft);  color: var(--primary-dark); }
+.badge--ted     { background: var(--primary-soft);  color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+
+/* ════════════════════════════════════════════════════════════════
+   11. MODAIS — polimento
+════════════════════════════════════════════════════════════════ */
+.modal-content {
+    border-radius: 16px !important;
+    border: 1px solid var(--border-soft) !important;
+    box-shadow: var(--shadow-large) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: var(--bg-soft) !important;
+    border-bottom: 1px solid var(--border-soft) !important;
+    padding: 18px 24px !important;
+}
+
+.modal-header h2 {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    margin: 0 !important;
+}
+
+.modal-footer {
+    background: var(--bg-soft) !important;
+    border-top: 1px solid var(--border-soft) !important;
+    padding: 14px 24px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   12. ANIMAÇÕES DE ENTRADA — staggered por seção
+════════════════════════════════════════════════════════════════ */
+@keyframes _imp-fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes _imp-fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.tab-content.active {
+    animation: _imp-fadeUp 0.22s ease both;
+}
+
+/* Stagger cards dentro do dashboard */
+.dashboard-grid > *:nth-child(1) { animation: _imp-fadeUp 0.22s 0.04s ease both; }
+.dashboard-grid > *:nth-child(2) { animation: _imp-fadeUp 0.22s 0.09s ease both; }
+.dashboard-grid > *:nth-child(3) { animation: _imp-fadeUp 0.22s 0.14s ease both; }
+
+/* Stagger stats */
+.stats-grid .stat:nth-child(1) { animation: _imp-fadeUp 0.20s 0.05s ease both; }
+.stats-grid .stat:nth-child(2) { animation: _imp-fadeUp 0.20s 0.10s ease both; }
+.stats-grid .stat:nth-child(3) { animation: _imp-fadeUp 0.20s 0.15s ease both; }
+.stats-grid .stat:nth-child(4) { animation: _imp-fadeUp 0.20s 0.20s ease both; }
+
+/* ════════════════════════════════════════════════════════════════
+   13. FILTROS DO DASHBOARD — mais refinados
+════════════════════════════════════════════════════════════════ */
+.dashboard-filters {
+    background: var(--bg-soft) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: 12px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 16px !important;
+    box-shadow: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   14. LINHA DO TEMPO DE FÉRIAS — mais polida
+════════════════════════════════════════════════════════════════ */
+.ferias-timeline {
+    background: var(--bg-soft) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+}
+
+.timeline-bar {
+    height: 20px !important;
+    border-radius: 10px !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   15. ALERTAS DE JORNADA — estilo consistente
+════════════════════════════════════════════════════════════════ */
+.alertas-jornada {
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(217, 119, 6, 0.20);
+    border-left: 3px solid var(--warning);
+    border-radius: 10px;
+    padding: 12px 16px;
+}
+
+.alertas-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #92400e;
+    margin-bottom: 8px;
+}
+
+.alertas-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.alertas-lista li {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding-left: 12px;
+    position: relative;
+}
+
+.alertas-lista li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--warning);
+    font-weight: 700;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   16. FOCO ACESSÍVEL — consistente em todo o sistema
+════════════════════════════════════════════════════════════════ */
+:where(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--focus-ring);
+    border-radius: 6px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   17. SCROLLBAR — discreta e elegante
+════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+/* ════════════════════════════════════════════════════════════════
+   18. MODO ESCURO — tokens corrigidos
+════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+    --bg-page:   #080d1a;
+    --bg-card:   #0f172a;
+    --bg-soft:   #0b1120;
+    --bg-header: #0f172a;
+
+    --primary:       #38bdf8;
+    --primary-soft:  rgba(56, 189, 248, 0.10);
+    --primary-dark:  #7dd3fc;
+    --primary-hover: #0ea5e9;
+
+    --text-main:  #e2e8f0;
+    --text-muted: #64748b;
+    --text-light: #475569;
+
+    --border-soft:  #1e293b;
+    --border-table: #1e293b;
+
+    --positive:      #34d399;
+    --positive-soft: rgba(52, 211, 153, 0.10);
+    --negative:      #f87171;
+    --negative-soft: rgba(248, 113, 113, 0.10);
+    --warning:       #fbbf24;
+    --warning-soft:  rgba(251, 191, 36, 0.10);
+    --accent:        #818cf8;
+
+    --shadow-soft:   0 1px 3px rgba(0, 0, 0, 0.40);
+    --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.55);
+    --shadow-large:  0 12px 40px rgba(0, 0, 0, 0.65);
+
+    --topbar-bg: #030712;
+    --weekend-bg: #1e293b;
+    --weekend-text: #94a3b8;
+}
+
+html[data-theme="dark"] .card {
+    background: var(--bg-card) !important;
+    border-color: var(--border-soft) !important;
+}
+
+html[data-theme="dark"] .stat {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: var(--border-soft) !important;
+}
+
+html[data-theme="dark"] .subtab-btn.active {
+    background: rgba(255,255,255,0.06) !important;
+    color: var(--primary) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+}
+
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="time"],
+html[data-theme="dark"] input[type="email"],
+html[data-theme="dark"] input[type="password"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    background: var(--bg-card) !important;
+    border-color: var(--border-soft) !important;
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.02);
+}
+
+html[data-theme="dark"] .dashboard-filters {
+    background: rgba(255,255,255,0.02) !important;
+    border-color: var(--border-soft) !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   19. RESPONSIVO — mobile-first melhorias
+════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .topbar-unified { padding: 0 16px; }
+    .tabs { flex-wrap: wrap; gap: 4px; }
+    .tab-btn { padding: 7px 12px; font-size: 12.5px; }
+    .stats-grid { grid-template-columns: 1fr 1fr !important; }
+    .stat-value { font-size: 22px !important; }
+    .dashboard-grid { grid-template-columns: 1fr !important; }
+    .ferias-vertical-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+    .topbar-title { font-size: 14px !important; }
+    .stats-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   20. MOTION REDUCTION — respeita preferência do sistema
+════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
