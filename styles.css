@@ -3198,6 +3198,37 @@ textarea {
     color: transparent !important;
 }
 
+/* --------------------------------------------------
+     Fix: garantir contraste nos cabeçalhos das tabelas
+     - regras com maior especificidade para sobrescrever
+         estilos genéricos (ex: design-improvements.css)
+     - corrige problema onde o texto do header fica da
+         mesma cor do fundo tornando-o ilegível
+     -------------------------------------------------- */
+
+/* Timesheet específico: força cabeçalho escuro com texto branco */
+#timesheetContent .timesheet-table thead th {
+        background: var(--primary) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+}
+
+/* Regras genéricas com maior especificidade (light theme) */
+body .table-container thead th {
+        /* usar texto principal (mais contrastante) em vez do text-muted */
+        color: var(--text-main) !important;
+        background: var(--bg-header) !important;
+        border-bottom: 1px solid var(--border-table) !important;
+}
+
+/* Dark theme: garantir também contraste legível */
+html[data-theme="dark"] .table-container thead th {
+        color: var(--text-main) !important;
+        background: rgba(255,255,255,0.03) !important;
+        border-bottom-color: var(--border-soft) !important;
+}
+
+
 .btn-loading::after {
     content: '';
     position: absolute;
