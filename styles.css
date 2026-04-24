@@ -1953,8 +1953,8 @@ table {
 /* Ensure table cells are readable: use main text color by default */
 .table-container th,
 .table-container td,
-.table-container table td,
-.table-container table tbody th {
+.table-container table th,
+.table-container table td {
     color: var(--text-main);
 }
 
@@ -2153,7 +2153,7 @@ td {
 
 .timesheet-table thead th {
     background: var(--primary);
-    color: #ffffff !important;
+    color: #ffffff;
     font-weight: 600;
     font-size: 11px !important;
     padding: 1px 2px !important;
