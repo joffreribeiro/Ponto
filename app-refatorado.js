@@ -4495,6 +4495,30 @@ function gerarTimesheetAcordo() {
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const primeiroDiaMesAnterior = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
 
+        // Determinar o primeiro mês GERAL (mês com a menor data presente nos dados).
+        // Esse mês deverá ter `Saldo Anterior = 0` independentemente de acordos.
+        let globalFirstDate = null;
+        try {
+            (AppState.dados.registros || []).forEach(r => {
+                const d = DateUtils.parse(r.data);
+                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+            });
+            (AppState.dados.eventos || []).forEach(ev => {
+                const d = DateUtils.parse(ev.dataInicioEvento || ev.dataInicio || ev.data);
+                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+            });
+            (AppState.dados.acordos || []).forEach(ac => {
+                (ac.periodos || []).forEach(p => {
+                    const d = DateUtils.parse(p.inicio);
+                    if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+                });
+            });
+        } catch (e) {
+            globalFirstDate = null;
+        }
+        const globalFirstYear = globalFirstDate ? globalFirstDate.getFullYear() : null;
+        const globalFirstMonth = globalFirstDate ? globalFirstDate.getMonth() : null;
+
         let saldoAcumuladoGeral = 0;
         try {
             let cursor = new Date(primeiroDiaMesAnterior.getFullYear(), primeiroDiaMesAnterior.getMonth(), primeiroDiaMesAnterior.getDate());
@@ -4642,8 +4666,10 @@ function gerarTimesheetAcordo() {
             }
 
             let saldoMes = 0;
-            const isFirstMonth = (dataAux.getFullYear() === inicio.getFullYear() && dataAux.getMonth() === inicio.getMonth());
-            const saldoAnterior = isFirstMonth ? 0 : (saldoAcumuladoGeral || 0);
+            const isGlobalFirstMonth = (globalFirstYear !== null && globalFirstMonth !== null)
+                ? (dataAux.getFullYear() === globalFirstYear && dataAux.getMonth() === globalFirstMonth)
+                : (dataAux.getFullYear() === inicio.getFullYear() && dataAux.getMonth() === inicio.getMonth());
+            const saldoAnterior = isGlobalFirstMonth ? 0 : (saldoAcumuladoGeral || 0);
             let saldoAcumuladoAtual = saldoAnterior;
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
