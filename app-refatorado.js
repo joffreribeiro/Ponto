@@ -4519,11 +4519,18 @@ function gerarTimesheetAcordo() {
         if (!acordoAnterior) {
             saldoAcumuladoGeral = 0;
         } else {
-            // Limitar cálculo ao intervalo do acordo anterior até o último dia antes do novo acordo
-            const inicioCalc = inicioAcordoAnterior;
-            const fimCalc = fimAcordoAnterior.getTime() > ultimoDiaMesAnterior.getTime()
+            // Limitar cálculo APENAS ao último MÊS do acordo anterior (mês imediatamente anterior ao início deste acordo)
+            // O comportamento esperado é que o 'Saldo Anterior' represente o saldo acumulado do último mês,
+            // não o acumulado de todo o acordo anterior.
+            const primeiroDiaUltimoMes = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
+            // Início do cálculo: máximo entre o primeiro dia do último mês e o início do acordo anterior
+            const inicioCalc = (inicioAcordoAnterior && inicioAcordoAnterior > primeiroDiaUltimoMes)
+                ? inicioAcordoAnterior
+                : primeiroDiaUltimoMes;
+            // Fim do cálculo: não pode ultrapassar o último dia do mês anterior nem o fim do acordo anterior
+            const fimCalc = (fimAcordoAnterior && fimAcordoAnterior.getTime() > ultimoDiaMesAnterior.getTime())
                 ? ultimoDiaMesAnterior
-                : fimAcordoAnterior;
+                : (fimAcordoAnterior || ultimoDiaMesAnterior);
 
             // Mapa de registros dentro do intervalo
             const mapaRegistros = {};
