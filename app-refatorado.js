@@ -4642,7 +4642,8 @@ function gerarTimesheetAcordo() {
             }
 
             let saldoMes = 0;
-            const saldoAnterior = saldoAcumuladoGeral || 0;
+            const isFirstMonth = (dataAux.getFullYear() === inicio.getFullYear() && dataAux.getMonth() === inicio.getMonth());
+            const saldoAnterior = isFirstMonth ? 0 : (saldoAcumuladoGeral || 0);
             let saldoAcumuladoAtual = saldoAnterior;
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
@@ -5356,15 +5357,17 @@ function renderizarEventos() {
             tdTipo.appendChild(badge);
             tr.appendChild(tdTipo);
 
+            const periodoLabel = { dia_todo: 'Dia todo', matutino: 'Manhã', vespertino: 'Tarde' };
             const colunas = [
                 { content: e.descricaoEvento },
-                { 
-                    content: (e.acordoIndex != null && AppState.dados.acordos[e.acordoIndex]) 
+                {
+                    content: (e.acordoIndex != null && AppState.dados.acordos[e.acordoIndex])
                         ? (AppState.dados.acordos[e.acordoIndex].nome || `Acordo ${e.acordoIndex + 1}`)
                         : ''
                 },
                 { content: formatarData(e.dataInicioEvento) },
                 { content: formatarData(e.dataFimEvento) },
+                { content: periodoLabel[e.periodo] || e.periodo || 'Dia todo' },
                 { content: e.impactoEvento }
             ];
 

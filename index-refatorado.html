@@ -756,26 +756,27 @@
                 <textarea id="observacoesRegistro" rows="2"></textarea>
             </div>
             <div class="form-group full-row">
-                <label for="registroPeriodoEvento">Marcar no timesheet (período):</label>
+                <label for="registroPeriodoEvento">Marcar ausência no timesheet:</label>
                 <select id="registroPeriodoEvento">
                     <option value="">Nenhum</option>
                     <option value="dia_todo">Dia todo</option>
-                    <option value="matutino">Matutino (somente manhã)</option>
-                    <option value="vespertino">Vespertino (somente tarde)</option>
+                    <option value="matutino">Somente manhã</option>
+                    <option value="vespertino">Somente tarde</option>
                 </select>
-                <p class="small-text" style="margin-top:6px;">Selecione um período para destacar apenas parte do dia no timesheet: <strong>Matutino</strong> (apenas manhã), <strong>Vespertino</strong> (apenas tarde) ou <strong>Dia todo</strong>. Útil para informar que você sairá mais cedo ou terá apenas parte do dia afetada.</p>
+                <p class="small-text" style="margin-top:6px;">Destaca parte do dia no timesheet: <strong>Somente manhã</strong>, <strong>Somente tarde</strong> ou <strong>Dia todo</strong>. Útil para informar saída antecipada ou ausência parcial.</p>
             </div>
             <div class="form-group">
                 <label for="registroCriarEvento" style="display:flex;align-items:center;gap:8px;">
                     <input type="checkbox" id="registroCriarEvento" checked>
-                    Criar evento persistente a partir deste registro
+                    Criar evento na aba Eventos a partir deste registro
                 </label>
             </div>
             <div class="form-group full-row">
-                <label for="registroTipoEvento">Tipo do evento (quando criado a partir deste registro):</label>
+                <label for="registroTipoEvento">Tipo do evento a registrar:</label>
                 <select id="registroTipoEvento">
                     <!-- será populado dinamicamente -->
                 </select>
+                <p class="small-text" style="margin-top:4px;">O evento criado é independente deste registro. Alterá-lo na aba <strong>Eventos</strong> não modifica os horários registrados aqui.</p>
             </div>
         </div>
         <div class="modal-footer">
@@ -919,7 +920,7 @@
                     <div id="modalEvento" class="modal">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h2>Novo Evento / Feriado</h2>
+                                <h2>Novo Evento</h2>
                                 <button type="button" class="modal-close"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
                             </div>
                             <div class="modal-body">
@@ -932,29 +933,29 @@
                                         <label for="tipoEvento">Tipo:</label>
                                         <select id="tipoEvento">
                                             <option value="feriado">Feriado</option>
-                                            <option value="ferias">Férias</option>
                                             <option value="afastamento">Afastamento</option>
-                                            <option value="viagem">Viagem</option>
+                                            <option value="viagem">Viagem a serviço</option>
                                             <option value="abono_acordo">Abono (acordo)</option>
-                                            <option value="compensar_acordo">Pagar Hora (acordo)</option>
+                                            <option value="compensar_acordo">Compensação (acordo)</option>
                                             <option value="outro">Outro</option>
                                         </select>
+                                        <p class="small-text" style="margin-top:4px;">Para registrar Férias, use a aba <strong>Ponto → Férias</strong>.</p>
                                     </div>
                                 </div>
 
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="eventoPeriodo">Período do Evento:</label>
+                                        <label for="eventoPeriodo">Parte do dia afetada:</label>
                                         <select id="eventoPeriodo">
                                             <option value="dia_todo">Dia todo</option>
-                                            <option value="matutino">Matutino (somente manhã)</option>
-                                            <option value="vespertino">Vespertino (somente tarde)</option>
+                                            <option value="matutino">Somente manhã</option>
+                                            <option value="vespertino">Somente tarde</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="descricaoEvento">Descrição:</label>
-                                    <input type="text" id="descricaoEvento" placeholder="Ex: Feriado estadual" />
+                                    <input type="text" id="descricaoEvento" placeholder="Ex: Feriado estadual, Consulta médica…" />
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
@@ -966,15 +967,16 @@
                                         <input type="date" id="dataFimEvento" />
                                     </div>
                                     <div class="form-group">
-                                        <label for="impactoEvento">Impacto:</label>
+                                        <label for="impactoEvento">Impacto no saldo:</label>
                                         <select id="impactoEvento">
-                                            <option value="folga">Folga</option>
-                                            <option value="trabalho">Trabalho</option>
+                                            <option value="folga">Folga (não conta como trabalhado)</option>
+                                            <option value="trabalho">Trabalho (conta normalmente)</option>
                                         </select>
                                     </div>
                                 </div>
                                 <hr style="margin: 8px 0; border: none; border-top: 1px solid #ddd;">
-                                <h3 style="font-size: 13px; margin: 6px 0 8px;">Aparência no Timesheet</h3>
+                                <h3 style="font-size: 13px; margin: 6px 0 4px;">Aparência no Timesheet</h3>
+                                <p class="small-text" style="margin-bottom:8px;">As cores abaixo são exibidas no Timesheet, não na tabela de eventos.</p>
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="eventoCorFundo">Cor de Fundo:</label>
@@ -984,11 +986,9 @@
                                         <label for="eventoCorTexto">Cor do Texto:</label>
                                         <input type="color" id="eventoCorTexto" value="#ffffff" />
                                     </div>
-                                    <div class="form-group">
-                                        <label for="eventoNomeCSS">Classe CSS:</label>
-                                        <input type="text" id="eventoNomeCSS" placeholder="Ex: evento-customizado" />
-                                    </div>
                                 </div>
+                                <!-- campo técnico mantido no DOM mas oculto para não quebrar o JS -->
+                                <input type="hidden" id="eventoNomeCSS" value="" />
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn-secondary btn-cancelar-evento">Cancelar</button>
