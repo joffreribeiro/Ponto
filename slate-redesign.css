@@ -512,6 +512,177 @@ input:focus, select:focus, textarea:focus {
   font-size: 13px !important;
 }
 
+/* ═══ ATIVIDADES TOOLBAR ════════════════════════════════════════════════ */
+.ativ-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  margin-bottom: 4px !important;
+}
+.ativ-title {
+  margin-bottom: 0 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+}
+.ativ-toolbar-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+.ativ-search {
+  width: 240px !important;
+  padding: 7px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-soft) !important;
+  font-size: 13px !important;
+  background: var(--bg-soft) !important;
+}
+.ativ-view-pills {
+  margin-bottom: 0 !important;
+}
+
+/* ═══ TABELA ATIVIDADES — HEADER CLEAN ══════════════════════════════════ */
+#tabelaAtividades thead th {
+  background: var(--bg-page) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .7px !important;
+  text-transform: uppercase !important;
+  border-bottom: 2px solid var(--border-soft) !important;
+  border-top: none !important;
+}
+
+/* ═══ BADGE TED/PTRAB ════════════════════════════════════════════════════ */
+.badge-ted {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+  white-space: nowrap !important;
+}
+.badge-ptrab {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--bg-soft) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-soft) !important;
+  white-space: nowrap !important;
+}
+
+/* ═══ BADGE DIAS ═════════════════════════════════════════════════════════ */
+.badge-dias-pos {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--warning-soft) !important;
+  color: var(--warning) !important;
+}
+.badge-dias-neg {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--negative-soft) !important;
+  color: var(--negative) !important;
+}
+.badge-dias-hoje {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--positive-soft) !important;
+  color: var(--positive) !important;
+}
+
+/* ═══ BADGE STATUS ═══════════════════════════════════════════════════════ */
+.badge-status-pendente {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--warning-soft) !important;
+  color: var(--warning) !important;
+}
+.badge-status-andamento {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+}
+.badge-status-concluida {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--positive-soft) !important;
+  color: var(--positive) !important;
+}
+.badge-status-bloqueada {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 100px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--negative-soft) !important;
+  color: var(--negative) !important;
+}
+
+/* Botão ícone editar */
+.btn-icon-edit {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  padding: 4px 6px !important;
+  border-radius: 6px !important;
+  opacity: .55 !important;
+  transition: opacity .15s, background .15s !important;
+}
+.btn-icon-edit:hover {
+  opacity: 1 !important;
+  background: var(--primary-soft) !important;
+}
+
+/* Row pendente: fundo sutil em vez de rosa forte */
+#tabelaAtividades tbody tr.row-pendente td {
+  background: color-mix(in srgb, var(--warning-soft) 40%, transparent) !important;
+}
+#tabelaAtividades tbody tr.row-bloqueada td {
+  background: color-mix(in srgb, var(--negative-soft) 40%, transparent) !important;
+}
+#tabelaAtividades tbody tr.row-concluida td {
+  color: var(--text-muted) !important;
+  opacity: .75 !important;
+}
+
 /* ═══ FOCUS ══════════════════════════════════════════════════════════════ */
 :focus-visible {
   outline: none !important;

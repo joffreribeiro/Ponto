@@ -323,13 +323,23 @@
         <!-- ATIVIDADES -->
         <section id="atividades" class="tab-content">
             <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <h2>Atividades</h2>
+                <!-- Toolbar do redesign: título + busca + pills de view + botão Nova -->
+                <div class="ativ-toolbar">
+                    <h2 class="ativ-title">Atividades</h2>
+                    <div class="ativ-toolbar-right">
+                        <input id="topFiltroBusca" class="ativ-search" placeholder="Buscar objeto, TED, assunto…" aria-label="Buscar texto em qualquer coluna">
+                        <div class="subtabs ativ-view-pills">
+                            <button class="subtab-btn active" data-action="toggleAtividadesTable">Tabela</button>
+                            <button class="subtab-btn" data-action="toggleAtividadesKanban">Kanban</button>
+                        </div>
+                        <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel" title="Exportar atividades para Excel (.xlsx)">Exportar</button>
+                        <button class="btn-primary" data-action="novaAtividade" data-auth="true" title="Adicionar nova atividade">+ Nova</button>
+                    </div>
                 </div>
 
-                <div style="margin-top:12px;">
+                <!-- Filtros avançados (colapsáveis, mantidos para compatibilidade) -->
+                <div id="atividadesFiltrosAvancados" style="margin-top:10px; display:none;">
                     <div class="advanced-filters-grid" style="width:100%;">
-                        <input id="topFiltroBusca" placeholder="Buscar (texto em qualquer coluna)" aria-label="Buscar texto em qualquer coluna">
                         <select id="topFiltroStatusCol" aria-label="Filtrar por status">
                             <option value="">Todos</option>
                             <option value="pendente">Pendente</option>
@@ -375,20 +385,13 @@
                 </div>
 
                 <div id="atividadesContainer" style="margin-top:12px;">
-                    <div id="atividadesControls" style="margin-bottom:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                        <button class="btn-primary" data-action="novaAtividade" data-auth="true" title="Adicionar nova atividade">
-                            <span class="icon">➕</span> Nova Atividade
-                        </button>
-                        <button class="btn-secondary" data-action="toggleAtividadesTable"><span class="icon">📋</span> Tabela</button>
-                        <button class="btn-secondary" data-action="toggleAtividadesCards"><span class="icon">🃏</span> Cards</button>
-                        <button class="btn-secondary" data-action="toggleAtividadesKanban"><span class="icon">📊</span> Kanban</button>
-                        <span style="flex:1;"></span>
-                        <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel" title="Exportar atividades para Excel (.xlsx)">
-                            <span class="icon">📥</span> Exportar Excel
-                        </button>
-                        <button class="btn-secondary btn-excel" data-action="importarAtividadesExcel" title="Importar atividades de Excel (.xlsx)">
-                            <span class="icon">📤</span> Importar Excel
-                        </button>
+                    <div id="atividadesControls" style="display:none;">
+                        <!-- botões legados mantidos ocultos para compatibilidade com JS -->
+                        <button class="btn-secondary" data-action="toggleAtividadesTable"></button>
+                        <button class="btn-secondary" data-action="toggleAtividadesCards"></button>
+                        <button class="btn-secondary" data-action="toggleAtividadesKanban"></button>
+                        <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel"></button>
+                        <button class="btn-secondary btn-excel" data-action="importarAtividadesExcel"></button>
                         <input type="file" id="importarAtividadesInput" accept=".xlsx,.xls,.csv" style="display:none;">
                     </div>
                     <!-- Painel inline Nova Atividade (oculto por padrão) -->

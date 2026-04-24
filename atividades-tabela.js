@@ -68,18 +68,50 @@
             const dataDoc = formatarDataBR(a.dataDoc);
             const rawDias = typeof a.dias !== 'undefined' ? a.dias : (a.atividadeDias || '');
             const diasNum = Number(rawDias);
-            let corClasse = '';
-            if (a.finalizado) corClasse = 'linha-cinza';
-            else if (!isNaN(diasNum) && rawDias !== '') {
-                if (diasNum > 10) corClasse = 'linha-verde';
-                else if (diasNum <= 10 && diasNum >= 5) corClasse = 'linha-amarelo';
-                else if (diasNum < 5) corClasse = 'linha-vermelho';
+
+            // Badge TED/Ptrab
+            const tedLower = tedPtrab.toLowerCase();
+            const tedBadge = tedPtrab
+                ? `<span class="${tedLower.includes('ted') ? 'badge-ted' : 'badge-ptrab'}">${escapeHtml(tedPtrab)}</span>`
+                : '';
+
+            // Badge Dias
+            let diasDisplay = '';
+            if (rawDias !== '' && rawDias !== null && rawDias !== undefined) {
+                if (diasNum === 0) {
+                    diasDisplay = `<span class="badge-dias-hoje">Hoje</span>`;
+                } else if (diasNum < 0) {
+                    diasDisplay = `<span class="badge-dias-neg">${diasNum}d</span>`;
+                } else {
+                    diasDisplay = `<span class="badge-dias-pos">+${diasNum}d</span>`;
+                }
             }
-            const diasDisplay = (rawDias === '' || rawDias === null || rawDias === undefined) ? '' : (diasNum < 0 ? `<span style="color:#b91c1c;">Vencido ${Math.abs(diasNum)}</span>` : String(diasNum));
-            return `<tr${corClasse ? ` class="${corClasse}"` : ''}>
+
+            // Badge Status
+            const statusVal = (a.status || '').toLowerCase().trim();
+            let statusBadge;
+            if (statusVal === 'pendente') {
+                statusBadge = `<span class="badge-status-pendente">Pendente</span>`;
+            } else if (statusVal === 'em andamento') {
+                statusBadge = `<span class="badge-status-andamento">Em andamento</span>`;
+            } else if (statusVal === 'concluida' || statusVal === 'concluída') {
+                statusBadge = `<span class="badge-status-concluida">Concluída</span>`;
+            } else if (statusVal === 'bloqueada') {
+                statusBadge = `<span class="badge-status-bloqueada">Bloqueada</span>`;
+            } else {
+                statusBadge = `<span class="badge">${escapeHtml(a.status || '')}</span>`;
+            }
+
+            // Classe de linha
+            let rowClass = '';
+            if (statusVal === 'pendente') rowClass = 'row-pendente';
+            else if (statusVal === 'bloqueada') rowClass = 'row-bloqueada';
+            else if (statusVal === 'concluida' || statusVal === 'concluída') rowClass = 'row-concluida';
+
+            return `<tr${rowClass ? ` class="${rowClass}"` : ''}>
                 <td>${escapeHtml(ordem)}</td>
-                <td>${escapeHtml(tedPtrab)}</td>
-                <td>${escapeHtml(objeto)}</td>
+                <td>${tedBadge}</td>
+                <td><strong>${escapeHtml(objeto)}</strong></td>
                 <td>${escapeHtml(processoPrincipal)}</td>
                 <td>${escapeHtml(assunto)}</td>
                 <td>${escapeHtml(processoSolicitacao)}</td>
@@ -93,9 +125,9 @@
                 <td>${diasDisplay}</td>
                 <td>${escapeHtml(observacoes)}</td>
                 <td>${a.finalizado ? 'Sim' : 'Não'}</td>
-                <td>${escapeHtml(a.status || '')}</td>
+                <td>${statusBadge}</td>
                 <td>
-                    <button class="btn-secondary" data-action="editarAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('edit', { title: 'Editar atividade', color: 'currentColor' }) : '✏️'}</button>
+                    <button class="btn-icon-edit" title="Editar" data-action="editarAtividade" data-id="${a.id}">✏️</button>
                     <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('trash', { title: 'Remover atividade', color: 'currentColor' }) : '🗑️'}</button>
                 </td>
             </tr>`;
