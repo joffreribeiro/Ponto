@@ -5183,7 +5183,7 @@ function renderizarEventos() {
                 { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
                 { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
-                { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
+                { id: 'compensar_acordo', nome: 'Compensação (acordo)', cor: '#db2777' },
                 { id: 'outro', nome: 'Outro', cor: '#64748b' }
             ];
             AppState.save();
@@ -5208,7 +5208,7 @@ function renderizarEventos() {
             const tabela = document.getElementById('tabelaEventos');
             if (tabela && !tabela._eventosSortInit) {
                 const ths = tabela.querySelectorAll('thead th');
-                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','impactoEvento', null];
+                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','periodo','impactoEvento', null];
                 ths.forEach((th, i) => {
                     // salvar label original
                     if (!th.dataset._origLabel) th.dataset._origLabel = th.textContent || '';
@@ -5311,7 +5311,7 @@ function renderizarEventos() {
             // Atualizar indicadores de setas nos cabeçalhos
             try {
                 const ths = document.querySelectorAll('#tabelaEventos thead th');
-                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','impactoEvento', null];
+                const keys = ['tipoEvento','descricaoEvento','acordoIndex','dataInicioEvento','dataFimEvento','periodo','impactoEvento', null];
                 ths.forEach((th, i) => {
                     const orig = th.dataset._origLabel || th.textContent || '';
                     const k = keys[i] || null;
@@ -5332,7 +5332,7 @@ function renderizarEventos() {
         if (eventosFiltrados.length === 0) {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
-            td.colSpan = 7;
+            td.colSpan = 8;
             td.style.textAlign = 'center';
             td.style.padding = '20px';
             td.style.color = 'var(--text-muted)';
@@ -7461,7 +7461,7 @@ function restaurarBackupLocal(event) {
                                 { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
                                 { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
-                                { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
+                                { id: 'compensar_acordo', nome: 'Compensação (acordo)', cor: '#db2777' },
                                 { id: 'outro', nome: 'Outro', cor: '#64748b' }
                             ];
                         }
