@@ -650,3 +650,122 @@ html[data-theme="dark"] .modal-footer {
         transition-duration: .01ms !important;
     }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   S. KPI CARDS — linha topo sempre visível (redesign Hi-Fi)
+   O redesign mostra a linha top colorida permanentemente,
+   não só no hover. Aqui aplicamos por semântica do valor.
+─────────────────────────────────────────────────────────────── */
+.stat,
+.stat-card {
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease !important;
+}
+
+/* Linha topo sempre visível em todos os KPI cards */
+.stat::before,
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--_kpi-line, var(--primary));
+    border-radius: var(--card-radius, 12px) var(--card-radius, 12px) 0 0;
+    opacity: 1 !important;
+    transition: opacity 0.2s;
+}
+
+/* Hover: translateY + shadow-medium (como no redesign) */
+.stat:hover,
+.stat-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-medium) !important;
+    border-color: var(--border-soft) !important;
+}
+
+/* KPI de saldo positivo — linha verde */
+.stat:has(#saldoBancoHoras),
+.stat:has(#saldo30d) {
+    --_kpi-line: var(--positive);
+}
+
+/* KPI de horas extras / saída estimada — linha accent */
+.stat:has(#horasExtras),
+.stat:has(#horaSaidaEstimada) {
+    --_kpi-line: var(--accent);
+}
+
+/* stat-highlight — linha primary mais forte */
+.stat-highlight::before,
+.stat.stat-highlight::before {
+    --_kpi-line: var(--primary);
+    opacity: 1 !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   T. BADGES — pill style como no redesign (border-radius: 100px)
+─────────────────────────────────────────────────────────────── */
+.badge {
+    border-radius: 100px !important;
+    padding: 3px 9px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: .2px !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   U. SUBTABS — pill container com item ativo elevado
+─────────────────────────────────────────────────────────────── */
+.subtabs {
+    background: var(--bg-soft) !important;
+    border-radius: 10px !important;
+    padding: 3px !important;
+    display: flex !important;
+    gap: 2px !important;
+}
+
+.subtab-btn {
+    border-bottom: none !important;
+    border-radius: 8px !important;
+    padding: 6px 14px !important;
+}
+
+.subtab-btn.active {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-bottom: none !important;
+    box-shadow: 0 1px 4px rgba(15,23,42,.12), 0 1px 2px rgba(15,23,42,.08) !important;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   V. TOPBAR — chip de status com dot pulsante (mês/período)
+─────────────────────────────────────────────────────────────── */
+.topbar-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,.9);
+    letter-spacing: .1px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   W. DARK MODE — ajustes para as novas regras S-V
+─────────────────────────────────────────────────────────────── */
+html[data-theme="dark"] .stat::before,
+html[data-theme="dark"] .stat-card::before {
+    opacity: .7 !important;
+}
+
+html[data-theme="dark"] .subtab-btn.active {
+    background: var(--bg-card) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,.4) !important;
+}
+
+html[data-theme="dark"] .badge {
+    letter-spacing: .2px;
+}
