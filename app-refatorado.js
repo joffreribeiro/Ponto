@@ -4491,75 +4491,16 @@ function gerarTimesheetAcordo() {
         let totalFaltas = 0;
         let totalFeriados = 0;
 
-        // Calcular saldo anterior apenas dentro do acordo anterior (maior fim < início atual)
+        // Calcular saldo anterior: sempre usar o saldo acumulado do mês ANTERIOR (1..ultimoDiaMesAnterior)
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
-        const ultimoDiaMesAnteriorStr = `${ultimoDiaMesAnterior.getFullYear()}-${String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')}-${String(ultimoDiaMesAnterior.getDate()).padStart(2, '0')}`;
-
-        // Detectar acordo anterior (maior fim < início atual) e seu intervalo total
-        let acordoAnterior = null;
-        let inicioAcordoAnterior = null;
-        let fimAcordoAnterior = null;
-        AppState.dados.acordos.forEach(ac => {
-            (ac.periodos || []).forEach(p => {
-                const ini = DateUtils.parse(p.inicio);
-                const fim = DateUtils.parse(p.fim);
-                if (!ini || !fim) return;
-                if (fim.getTime() < inicio.getTime()) {
-                    if (!fimAcordoAnterior || fim > fimAcordoAnterior) {
-                        fimAcordoAnterior = fim;
-                        inicioAcordoAnterior = ini;
-                        acordoAnterior = ac;
-                    }
-                }
-            });
-        });
+        const primeiroDiaMesAnterior = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
 
         let saldoAcumuladoGeral = 0;
-
-        if (!acordoAnterior) {
-            saldoAcumuladoGeral = 0;
-        } else {
-            // Limitar cálculo APENAS ao último MÊS do acordo anterior (mês imediatamente anterior ao início deste acordo)
-            // O comportamento esperado é que o 'Saldo Anterior' represente o saldo acumulado do último mês,
-            // não o acumulado de todo o acordo anterior.
-            const primeiroDiaUltimoMes = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
-            // Início do cálculo: máximo entre o primeiro dia do último mês e o início do acordo anterior
-            const inicioCalc = (inicioAcordoAnterior && inicioAcordoAnterior > primeiroDiaUltimoMes)
-                ? inicioAcordoAnterior
-                : primeiroDiaUltimoMes;
-            // Fim do cálculo: não pode ultrapassar o último dia do mês anterior nem o fim do acordo anterior
-            const fimCalc = (fimAcordoAnterior && fimAcordoAnterior.getTime() > ultimoDiaMesAnterior.getTime())
-                ? ultimoDiaMesAnterior
-                : (fimAcordoAnterior || ultimoDiaMesAnterior);
-
-            // Mapa de registros dentro do intervalo
-            const mapaRegistros = {};
-            AppState.dados.registros.forEach(r => {
-                const d = DateUtils.parse(r.data);
-                if (!d) return;
-                if (d.getTime() < inicioCalc.getTime() || d.getTime() > fimCalc.getTime()) return;
-                const iso = DateUtils.normalize(r.data);
-                mapaRegistros[iso] = r;
-            });
-
-            let cursor = new Date(inicioCalc.getFullYear(), inicioCalc.getMonth(), inicioCalc.getDate());
-            while (cursor.getTime() <= fimCalc.getTime()) {
+        try {
+            let cursor = new Date(primeiroDiaMesAnterior.getFullYear(), primeiroDiaMesAnterior.getMonth(), primeiroDiaMesAnterior.getDate());
+            while (cursor.getTime() <= ultimoDiaMesAnterior.getTime()) {
                 const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
-
-                // Respeitar bloqueio de evento (feriado/abono/etc) como no timesheet
-                const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
-                const isCompensar = ev && (
-                    ev.tipoEvento === 'compensar_acordo' ||
-                    ev.tipoEvento === 'compensacao_acordo' ||
-                    ev.tipoEvento === 'compensação_acordo' ||
-                    ev.impactoEvento === 'trabalho'
-                );
-                if (ev && !isCompensar) {
-                    cursor.setDate(cursor.getDate() + 1);
-                    continue;
-                }
-
-                const reg = mapaRegistros[iso];
+                const reg = mapaReg[iso];
                 const calc = Calculations.calculateDayWithContext(
                     AppState.dados.registros,
                     AppState.dados.eventos,
@@ -4567,14 +4508,12 @@ function gerarTimesheetAcordo() {
                     iso,
                     reg
                 );
-
-                // Só acumula se o dia pertence ao acordo anterior
-                if (calc.acordo && calc.acordo.nome === acordoAnterior.nome) {
-                    saldoAcumuladoGeral += calc.saldo || 0;
-                }
-
+                saldoAcumuladoGeral += calc.saldo || 0;
                 cursor.setDate(cursor.getDate() + 1);
             }
+        } catch (e) {
+            // falha segura: manter 0
+            saldoAcumuladoGeral = 0;
         }
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
@@ -4977,58 +4916,42 @@ function gerarTimesheetAcordo() {
             tdLabelSaldo.textContent = 'SALDO MÊS';
             trSaldoMes.appendChild(tdLabelSaldo);
 
-            // Coluna Saldo Anterior na linha SALDO MÊS
+            // Coluna Saldo Anterior na linha SALDO MÊS — sempre exibir o saldo acumulado do mês anterior
             const tdSaldoAnteriorMes = document.createElement('td');
             tdSaldoAnteriorMes.className = 'col-saldo-anterior';
-            // Exibir saldo anterior somente se TODO o mês anterior estiver preenchido
-            (function(){
-                try {
-                    const prevDate = new Date(ano, mes, 0); // último dia do mês anterior
-                    const prevYear = prevDate.getFullYear();
-                    const prevMonth = prevDate.getMonth();
-                    const lastDayPrev = prevDate.getDate();
-                    let prevComplete = true;
-                    for (let d = 1; d <= lastDayPrev; d++) {
-                        const iso = `${prevYear}-${String(prevMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                        const reg = mapaReg[iso];
-                        const dateObj = new Date(prevYear, prevMonth, d);
-                        const dow = dateObj.getDay();
-                        // Considera fins de semana como preenchidos automaticamente
-                        if (dow === 0 || dow === 6) continue;
-
-                        // Se existir registro com algum horário preenchido, ok
-                        if (reg && (reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) continue;
-
-                        // Caso exista evento que torne o dia não-trabalho (feriado/abono/afastamento/ferias), considerar preenchido
-                        try {
-                            const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
-                            const nonWorkingTypes = ['feriado','ferias','afastamento','abono_acordo','abono','folga'];
-                            if (ev) {
-                                if ((ev.impactoEvento && ev.impactoEvento !== 'trabalho') || (ev.tipoEvento && nonWorkingTypes.includes(ev.tipoEvento))) {
-                                    continue; // dia aceito como preenchido
-                                }
+            try {
+                tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+                if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
+                if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+                // se o mês anterior estiver incompleto, adicionamos um título informativo (não ocultamos o valor)
+                const prevDate = new Date(ano, mes, 0);
+                const prevYear = prevDate.getFullYear();
+                const prevMonth = prevDate.getMonth();
+                const lastDayPrev = prevDate.getDate();
+                let prevComplete = true;
+                for (let d = 1; d <= lastDayPrev; d++) {
+                    const iso = `${prevYear}-${String(prevMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const reg = mapaReg[iso];
+                    const dateObj = new Date(prevYear, prevMonth, d);
+                    const dow = dateObj.getDay();
+                    if (dow === 0 || dow === 6) continue;
+                    if (reg && (reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) continue;
+                    try {
+                        const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
+                        const nonWorkingTypes = ['feriado','ferias','afastamento','abono_acordo','abono','folga'];
+                        if (ev) {
+                            if ((ev.impactoEvento && ev.impactoEvento !== 'trabalho') || (ev.tipoEvento && nonWorkingTypes.includes(ev.tipoEvento))) {
+                                continue;
                             }
-                        } catch (ee) { /* ignore and treat as not filled */ }
-
-                        // Se chegou aqui, não está preenchido
-                        prevComplete = false;
-                        break;
-                    }
-                    if (prevComplete) {
-                        tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
-                        if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
-                        if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
-                    } else {
-                        // deixar em branco até o mês anterior estar completo
-                        tdSaldoAnteriorMes.textContent = '';
-                    }
-                } catch (e) {
-                    // Em caso de erro, mostrar o valor como fallback
-                    tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
-                    if (saldoAnterior > 0) tdSaldoAnteriorMes.classList.add('saldo-positivo');
-                    if (saldoAnterior < 0) tdSaldoAnteriorMes.classList.add('saldo-negativo');
+                        }
+                    } catch (ee) { }
+                    prevComplete = false;
+                    break;
                 }
-            })();
+                if (!prevComplete) tdSaldoAnteriorMes.title = 'Mês anterior incompleto — valor parcial exibido';
+            } catch (e) {
+                tdSaldoAnteriorMes.textContent = DateUtils.minutesToTime(saldoAnterior);
+            }
             trSaldoMes.appendChild(tdSaldoAnteriorMes);
 
             // Coluna Saldo do Mês (spanning all days)
