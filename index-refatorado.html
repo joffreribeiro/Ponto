@@ -42,6 +42,22 @@
             <button id="loginToggle" type="button" class="btn-header" style="display:none;">Login</button>
             <button id="logoutTopBtn" type="button" class="btn-header btn-header--danger" style="display:none;">Sair</button>
         </div>
+        <!-- Navegação principal (moved from sidebar) -->
+        <nav class="tabs topbar-tabs" role="navigation" aria-label="Navegação principal" style="gap:8px;">
+            <button class="tab-btn active" data-tab="dashboard">
+                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="11" width="4" height="8" rx="1" fill="currentColor"/><rect x="9" y="7" width="4" height="12" rx="1" fill="currentColor"/><rect x="15" y="3" width="4" height="16" rx="1" fill="currentColor"/></svg></span> Dashboard
+            </button>
+            <button class="tab-btn" data-tab="ponto">
+                <span class="icon">⏰</span> Ponto
+            </button>
+            <button class="tab-btn" data-tab="atividades">
+                <span class="icon">📋</span> Atividades
+            </button>
+            <button class="tab-btn" data-tab="configuracoes">
+                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.62l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.48.1.62l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.62l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.48-.1-.62l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></span> Configurações
+            </button>
+        </nav>
+
     </header>
 
     <!-- Modal de Login -->
@@ -61,23 +77,6 @@
         </div>
     </div>
     <div class="layout">
-        <!-- SIDEBAR LATERAL -->
-        <aside class="sidebar">
-            <nav class="tabs">
-            <button class="tab-btn active" data-tab="dashboard">
-                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="11" width="4" height="8" rx="1" fill="currentColor"/><rect x="9" y="7" width="4" height="12" rx="1" fill="currentColor"/><rect x="15" y="3" width="4" height="16" rx="1" fill="currentColor"/></svg></span> Dashboard
-            </button>
-            <button class="tab-btn" data-tab="ponto">
-                <span class="icon">⏰</span> Ponto
-            </button>
-            <button class="tab-btn" data-tab="atividades">
-                <span class="icon">📋</span> Atividades
-            </button>
-            <button class="tab-btn" data-tab="configuracoes">
-                <span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.62l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.48.1.62l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.62l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.48-.1-.62l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></span> Configurações
-            </button>
-            </nav>
-        </aside>
         <main class="main">
 
         <!-- SEÇÃO DASHBOARD -->
