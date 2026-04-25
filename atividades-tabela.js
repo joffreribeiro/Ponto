@@ -60,7 +60,7 @@
             let allRows = '';
             gruposOrdenados.forEach(([assunto, lista]) => {
                 const conc = lista.filter(a => a.finalizado || (a.status||'').includes('conclu')).length;
-                allRows += `<tr class="tbl-grupo-header"><td colspan="12">${escapeHtml(assunto)}<span class="tbl-grupo-stats">${conc}/${lista.length} concluídas</span></td></tr>`;
+                allRows += `<tr class="tbl-grupo-header"><td colspan="12" style="color:#fff !important;">${escapeHtml(assunto)}<span class="tbl-grupo-stats">${conc}/${lista.length} concluídas</span></td></tr>`;
                 lista.forEach((a, idx) => { allRows += buildRow(a, idx); });
             });
             try { tbody.innerHTML = allRows; } catch(e) { console.error(e); }
