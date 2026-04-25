@@ -4568,19 +4568,55 @@ function gerarTimesheetAcordo() {
 
         let saldoAcumuladoGeral = 0;
         try {
-            let cursor = new Date(primeiroDiaMesAnterior.getFullYear(), primeiroDiaMesAnterior.getMonth(), primeiroDiaMesAnterior.getDate());
-            while (cursor.getTime() <= ultimoDiaMesAnterior.getTime()) {
-                const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
-                const reg = mapaReg[iso];
-                const calc = Calculations.calculateDayWithContext(
-                    AppState.dados.registros,
-                    AppState.dados.eventos,
-                    AppState.dados.acordos,
-                    iso,
-                    reg
-                );
-                saldoAcumuladoGeral += calc.saldo || 0;
-                cursor.setDate(cursor.getDate() + 1);
+            // Se temos um primeiro mês geral detectado (baseado no acordo mais antigo),
+            // calcular acumulado mês-a-mês desde esse mês até o mês ANTERIOR ao `inicio`.
+            if (globalFirstYear !== null && globalFirstMonth !== null) {
+                const startMonth = new Date(globalFirstYear, globalFirstMonth, 1);
+                const endPrevMonthLastDay = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior ao inicio
+
+                if (startMonth <= endPrevMonthLastDay) {
+                    let runningAccum = 0;
+                    let mPtr = new Date(startMonth.getFullYear(), startMonth.getMonth(), 1);
+                    while (mPtr <= endPrevMonthLastDay) {
+                        const y = mPtr.getFullYear();
+                        const m = mPtr.getMonth();
+                        const lastDay = new Date(y, m + 1, 0).getDate();
+                        let monthSaldo = 0;
+                        for (let d = 1; d <= lastDay; d++) {
+                            const iso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                            const reg = mapaReg[iso];
+                            const calc = Calculations.calculateDayWithContext(
+                                AppState.dados.registros,
+                                AppState.dados.eventos,
+                                AppState.dados.acordos,
+                                iso,
+                                reg
+                            );
+                            monthSaldo += calc.saldo || 0;
+                        }
+                        runningAccum = runningAccum + monthSaldo;
+                        mPtr.setMonth(mPtr.getMonth() + 1);
+                    }
+                    saldoAcumuladoGeral = runningAccum;
+                } else {
+                    saldoAcumuladoGeral = 0;
+                }
+            } else {
+                // fallback: somar apenas o mês imediatamente anterior ao inicio (comportamento legado)
+                let cursor = new Date(primeiroDiaMesAnterior.getFullYear(), primeiroDiaMesAnterior.getMonth(), primeiroDiaMesAnterior.getDate());
+                while (cursor.getTime() <= ultimoDiaMesAnterior.getTime()) {
+                    const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+                    const reg = mapaReg[iso];
+                    const calc = Calculations.calculateDayWithContext(
+                        AppState.dados.registros,
+                        AppState.dados.eventos,
+                        AppState.dados.acordos,
+                        iso,
+                        reg
+                    );
+                    saldoAcumuladoGeral += calc.saldo || 0;
+                    cursor.setDate(cursor.getDate() + 1);
+                }
             }
         } catch (e) {
             // falha segura: manter 0
