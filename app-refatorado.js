@@ -4516,8 +4516,10 @@ function gerarTimesheetAcordo() {
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const primeiroDiaMesAnterior = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
 
-        // Determinar o 'primeiro mês geral' com base na menor data presente nos dados (registros, eventos, períodos).
-        // Esse mês deverá ter `Saldo Anterior = 0` independentemente do acordo/fiscalStart.
+        // Determinar o 'primeiro mês geral' com base na menor data relevante para este timesheet:
+        // - registros (todos)
+        // - eventos que são globais ou pertencem ao acordo selecionado
+        // - períodos do `acordo` atual (não de todos os acordos)
         let globalFirstDate = null;
         try {
             (AppState.dados.registros || []).forEach(r => {
@@ -4525,15 +4527,15 @@ function gerarTimesheetAcordo() {
                 if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
             });
             (AppState.dados.eventos || []).forEach(ev => {
+                // considerar apenas eventos sem acordoIndex (globais) ou vinculados ao acordo atual
+                if (typeof ev.acordoIndex !== 'undefined' && ev.acordoIndex !== idx) return;
                 const raw = ev.dataInicioEvento || ev.dataInicio || ev.data;
                 const d = DateUtils.parse(raw);
                 if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
             });
-            (AppState.dados.acordos || []).forEach(ac => {
-                (ac.periodos || []).forEach(p => {
-                    const d = DateUtils.parse(p.inicio);
-                    if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
-                });
+            (acordo.periodos || []).forEach(p => {
+                const d = DateUtils.parse(p.inicio);
+                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
             });
         } catch (e) {
             globalFirstDate = null;
@@ -4563,6 +4565,15 @@ function gerarTimesheetAcordo() {
         }
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+        // debug: coletar resumo dos meses gerados para inspeção (temporário)
+        const _timesheetDebug = {
+            generatedAt: new Date().toISOString(),
+            inicioYear: inicio.getFullYear(),
+            inicioMonth: inicio.getMonth(),
+            globalFirstYear: globalFirstYear,
+            globalFirstMonth: globalFirstMonth,
+            months: []
+        };
 
         while (dataAux <= fim) {
             const ano = dataAux.getFullYear();
@@ -5024,6 +5035,18 @@ function gerarTimesheetAcordo() {
 
             tbody.appendChild(trSaldoMes);
 
+            // registrar dados deste mês no debug
+            try {
+                _timesheetDebug.months.push({
+                    year: ano,
+                    month: mes,
+                    isGlobalFirstMonth: !!(globalFirstYear !== null && globalFirstMonth !== null) ? (dataAux.getFullYear() === globalFirstYear && dataAux.getMonth() === globalFirstMonth) : (dataAux.getFullYear() === inicio.getFullYear() && dataAux.getMonth() === inicio.getMonth()),
+                    saldoAnteriorMinutes: saldoAnterior || 0,
+                    saldoMesMinutes: saldoMes || 0,
+                    saldoAcumuladoMesMinutes: saldoAcumuladoMes || 0
+                });
+            } catch (e) { /* ignore debug push errors */ }
+
             table.appendChild(tbody);
             tableContainer.appendChild(table);
             wrapper.appendChild(tableContainer);
@@ -5058,6 +5081,11 @@ function gerarTimesheetAcordo() {
             </p>
         `;
         content.appendChild(resumo);
+        // Expor debug temporário para inspeção no console
+        try {
+            window._lastTimesheetDebug = _timesheetDebug;
+            if (window.console && typeof window.console.info === 'function') console.info('Timesheet debug:', window._lastTimesheetDebug);
+        } catch (e) { /* ignore */ }
     } catch (error) {
         console.error('Erro ao gerar timesheet:', error);
         mostrarAlertaGlobal('Erro ao gerar timesheet: ' + error.message, 'error');
