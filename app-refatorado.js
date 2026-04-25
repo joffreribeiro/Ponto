@@ -4566,13 +4566,15 @@ function gerarTimesheetAcordo() {
         const globalFirstYear = globalFirstDate ? globalFirstDate.getFullYear() : null;
         const globalFirstMonth = globalFirstDate ? globalFirstDate.getMonth() : null;
 
+        // Calcular saldo acumulado mês a mês desde o primeiro mês geral até o mês anterior ao início
+        // do ano fiscal atual. O resultado é o saldo anterior do primeiro mês exibido.
+        // O primeiro mês de todos os acordos (globalFirstMonth/Year) fica com saldo anterior = 0.
         let saldoAcumuladoGeral = 0;
         try {
-            // Se temos um primeiro mês geral detectado (baseado no acordo mais antigo),
-            // calcular acumulado mês-a-mês desde esse mês até o mês ANTERIOR ao `inicio`.
             if (globalFirstYear !== null && globalFirstMonth !== null) {
                 const startMonth = new Date(globalFirstYear, globalFirstMonth, 1);
-                const endPrevMonthLastDay = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior ao inicio
+                // Último dia do mês ANTERIOR ao início do ano fiscal exibido
+                const endPrevMonthLastDay = new Date(inicio.getFullYear(), inicio.getMonth(), 0);
 
                 if (startMonth <= endPrevMonthLastDay) {
                     let runningAccum = 0;
@@ -4594,15 +4596,16 @@ function gerarTimesheetAcordo() {
                             );
                             monthSaldo += calc.saldo || 0;
                         }
-                        runningAccum = runningAccum + monthSaldo;
+                        runningAccum += monthSaldo;
                         mPtr.setMonth(mPtr.getMonth() + 1);
                     }
                     saldoAcumuladoGeral = runningAccum;
                 } else {
+                    // O ano fiscal exibido É o primeiro ano geral → saldo anterior do primeiro mês = 0
                     saldoAcumuladoGeral = 0;
                 }
             } else {
-                // fallback: somar apenas o mês imediatamente anterior ao inicio (comportamento legado)
+                // Fallback: somar apenas o mês imediatamente anterior ao inicio
                 let cursor = new Date(primeiroDiaMesAnterior.getFullYear(), primeiroDiaMesAnterior.getMonth(), primeiroDiaMesAnterior.getDate());
                 while (cursor.getTime() <= ultimoDiaMesAnterior.getTime()) {
                     const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
@@ -4619,9 +4622,40 @@ function gerarTimesheetAcordo() {
                 }
             }
         } catch (e) {
-            // falha segura: manter 0
             saldoAcumuladoGeral = 0;
         }
+
+        // Pré-calcular o saldo acumulado mês a mês dentro do ano fiscal atual,
+        // para que o "saldo anterior" de cada mês seja sempre o acumulado real
+        // até o mês anterior — inclusive para o primeiro mês do acordo visualizado.
+        // Estrutura: { 'YYYY-MM': saldoAcumuladoAteOFimDestemês }
+        const saldoAcumuladoPorMes = {};
+        try {
+            let ptr = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+            let accumFiscal = saldoAcumuladoGeral; // acumulado vindo de antes do ano fiscal
+            while (ptr <= fim) {
+                const y = ptr.getFullYear();
+                const mo = ptr.getMonth();
+                const chave = `${y}-${String(mo + 1).padStart(2, '0')}`;
+                const lastDay = new Date(y, mo + 1, 0).getDate();
+                let monthSaldo = 0;
+                for (let d = 1; d <= lastDay; d++) {
+                    const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const reg = mapaReg[iso];
+                    const calc = Calculations.calculateDayWithContext(
+                        AppState.dados.registros,
+                        AppState.dados.eventos,
+                        AppState.dados.acordos,
+                        iso,
+                        reg
+                    );
+                    monthSaldo += calc.saldo || 0;
+                }
+                saldoAcumuladoPorMes[chave] = accumFiscal + monthSaldo;
+                accumFiscal += monthSaldo;
+                ptr.setMonth(ptr.getMonth() + 1);
+            }
+        } catch (e) { /* manter vazio */ }
 
         const dataAux = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
         // debug: coletar resumo dos meses gerados para inspeção (temporário)
@@ -4758,10 +4792,29 @@ function gerarTimesheetAcordo() {
             }
 
             let saldoMes = 0;
+            // Primeiro mês geral do sistema = saldo anterior zero
             const isGlobalFirstMonth = (globalFirstYear !== null && globalFirstMonth !== null)
                 ? (dataAux.getFullYear() === globalFirstYear && dataAux.getMonth() === globalFirstMonth)
                 : (dataAux.getFullYear() === inicio.getFullYear() && dataAux.getMonth() === inicio.getMonth());
-            const saldoAnterior = isGlobalFirstMonth ? 0 : (saldoAcumuladoGeral || 0);
+
+            // Saldo anterior = acumulado até o fim do mês anterior
+            // Para o primeiro mês (do mês global), é sempre 0.
+            // Para os demais meses dentro do ano fiscal, busca do pré-calculado.
+            // Para o primeiro mês do ano fiscal (não o global), usa saldoAcumuladoGeral (vindo de anos anteriores).
+            let saldoAnterior;
+            if (isGlobalFirstMonth) {
+                saldoAnterior = 0;
+            } else {
+                // Mês anterior ao atual
+                const mesAnterior = new Date(dataAux.getFullYear(), dataAux.getMonth() - 1, 1);
+                const chaveAnterior = `${mesAnterior.getFullYear()}-${String(mesAnterior.getMonth() + 1).padStart(2, '0')}`;
+                if (saldoAcumuladoPorMes[chaveAnterior] !== undefined) {
+                    saldoAnterior = saldoAcumuladoPorMes[chaveAnterior];
+                } else {
+                    // Primeiro mês do ano fiscal: vem de anos anteriores
+                    saldoAnterior = saldoAcumuladoGeral || 0;
+                }
+            }
             let saldoAcumuladoAtual = saldoAnterior;
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
