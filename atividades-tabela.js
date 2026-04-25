@@ -62,7 +62,10 @@
             const destinatario = a.destinatario || '';
             const acaoRealizar = a.acaoRealizar || '';
             const observacoes = a.observacoes || '';
-            
+            const origemDemanda = a.origemDemanda || '';
+            const dataConclusao = formatarDataBR(a.dataConclusao);
+            const descricaoReal = a.descricaoRealizado || '';
+
             // Formatar datas usando função local
             const prazo = formatarDataBR(a.prazo);
             const dataDoc = formatarDataBR(a.dataDoc);
@@ -103,29 +106,35 @@
             }
 
             // Classe de linha
+            const conc = statusVal === 'concluida' || statusVal === 'concluída' || a.finalizado;
+            const bloq = statusVal === 'bloqueada';
+            const venc = !conc && !bloq && a.prazo && new Date(a.prazo) < new Date();
             let rowClass = '';
-            if (statusVal === 'pendente') rowClass = 'row-pendente';
-            else if (statusVal === 'bloqueada') rowClass = 'row-bloqueada';
-            else if (statusVal === 'concluida' || statusVal === 'concluída') rowClass = 'row-concluida';
+            if (conc)                              rowClass = 'row-concluida';
+            else if (bloq)                         rowClass = 'row-bloqueada';
+            else if (venc)                         rowClass = 'row-vencida';
+            else if (statusVal === 'em andamento') rowClass = 'row-andamento';
+            else                                   rowClass = 'row-pendente';
 
-            return `<tr${rowClass ? ` class="${rowClass}"` : ''}>
+            const origemBadge = origemDemanda
+                ? `<span class="badge-origem">${escapeHtml(origemDemanda)}</span>`
+                : '';
+            const descTrunc = descricaoReal.length > 50
+                ? escapeHtml(descricaoReal.slice(0, 50)) + '…'
+                : escapeHtml(descricaoReal);
+
+            return `<tr class="${rowClass}">
                 <td>${escapeHtml(ordem)}</td>
-                <td>${tedBadge}</td>
-                <td><strong>${escapeHtml(objeto)}</strong></td>
-                <td>${escapeHtml(processoPrincipal)}</td>
-                <td>${escapeHtml(assunto)}</td>
-                <td>${escapeHtml(processoSolicitacao)}</td>
                 <td>${dataDoc}</td>
-                <td>${escapeHtml(tipoDoc)}</td>
-                <td>${escapeHtml(numeroDoc)}</td>
-                <td>${escapeHtml(remetente)}</td>
-                <td>${escapeHtml(destinatario)}</td>
+                <td>${escapeHtml(assunto)}</td>
+                <td>${origemBadge}</td>
+                <td><strong>${escapeHtml(objeto)}</strong></td>
                 <td>${escapeHtml(acaoRealizar)}</td>
-                <td>${prazo}</td>
-                <td>${diasDisplay}</td>
-                <td>${escapeHtml(observacoes)}</td>
-                <td>${a.finalizado ? 'Sim' : 'Não'}</td>
                 <td>${statusBadge}</td>
+                <td>${a.finalizado ? 'Sim' : 'Não'}</td>
+                <td>${dataConclusao}</td>
+                <td title="${escapeHtml(descricaoReal)}">${descTrunc}</td>
+                <td>${prazo}</td>
                 <td>
                     <button class="btn-icon-edit" title="Editar" data-action="editarAtividade" data-id="${a.id}">✏️</button>
                     <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('trash', { title: 'Remover atividade', color: 'currentColor' }) : '🗑️'}</button>

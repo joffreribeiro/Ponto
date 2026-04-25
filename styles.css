@@ -1,21 +1,53 @@
-/* Cores para linhas da tabela de atividades conforme prazo/status
-   Usamos as mesmas tonalidades/token do Timesheet para consistência */
-.linha-verde {
-    background: var(--positive-soft, #dcfce7) !important;
+/* Cores para linhas da tabela de atividades conforme prazo/status */
+.linha-verde, .row-concluida {
+    background: #f0fdf4 !important;
+    border-left: 3px solid var(--positive, #16a34a) !important;
     color: var(--text-main) !important;
 }
-.linha-amarelo {
-    background: var(--warning-soft, #fed7aa) !important;
+.linha-amarelo, .row-andamento {
+    background: var(--accent-soft, #e0f2fe) !important;
+    border-left: 3px solid var(--accent, #0284c7) !important;
     color: var(--text-main) !important;
 }
-.linha-vermelho {
-    background: var(--negative-soft, #fee2e2) !important;
+.row-pendente {
+    background: transparent !important;
     color: var(--text-main) !important;
 }
-.linha-cinza {
-    /* Use o mesmo tom de fim-de-semana/tabela do timesheet para consistência visual */
-    background: #BFBFBF !important;
-    color: #1e293b !important; /* var(--text-main) */
+.linha-vermelho, .row-vencida {
+    background: #fff1f2 !important;
+    border-left: 3px solid var(--negative, #dc2626) !important;
+    color: var(--text-main) !important;
+}
+.linha-cinza, .row-bloqueada {
+    background: #f1f5f9 !important;
+    border-left: 3px solid #94a3b8 !important;
+    color: #64748b !important;
+}
+#tabelaAtividades tbody tr.row-pendente:nth-child(even) {
+    background: #f8fafc !important;
+}
+#tabelaAtividades tbody tr:hover {
+    filter: brightness(0.96);
+    cursor: pointer;
+}
+.row-grupo-assunto { background: var(--primary, #1e3a8a) !important; }
+.row-grupo-assunto .grupo-assunto-label {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.badge-origem {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--primary-soft, #dbeafe);
+    color: var(--primary, #1e3a8a);
+    white-space: nowrap;
 }
 .modal-content.modal-medium {
     max-width: 900px !important;

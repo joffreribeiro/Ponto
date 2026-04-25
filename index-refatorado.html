@@ -400,47 +400,34 @@
                         <div class="table-container">
                             <table id="tabelaAtividades">
                                 <colgroup>
-                                    <col style="width:45px" />   <!-- Ordem -->
-                                    <col style="width:70px" />   <!-- TED/Ptrab -->
-                                    <col style="width:120px" />  <!-- Objeto -->
-                                    <col style="width:110px" />  <!-- Processo Principal -->
-                                    <col style="width:100px" />  <!-- Assunto -->
-                                    <col style="width:100px" />  <!-- Processo Solicitação -->
-                                    <col style="width:70px" />   <!-- Data -->
-                                    <col style="width:60px" />   <!-- Tipo Doc -->
-                                    <col style="width:55px" />   <!-- Nº Doc. -->
-                                    <col style="width:90px" />   <!-- Remetente -->
-                                    <col style="width:90px" />   <!-- Destinatário -->
-                                    <col style="width:120px" />  <!-- Ação a Realizar -->
-                                    <col style="width:70px" />   <!-- Prazo -->
-                                    <col style="width:45px" />   <!-- Dias -->
-                                    <col style="width:140px" />  <!-- Observações -->
-                                    <col style="width:50px" />   <!-- Finalizado -->
-                                    <col style="width:70px" />   <!-- Status -->
+                                    <col style="width:40px" />   <!-- Nº -->
+                                    <col style="width:80px" />   <!-- Recebido -->
+                                    <col style="width:130px" />  <!-- Assunto -->
+                                    <col style="width:110px" />  <!-- Origem -->
+                                    <col style="width:140px" />  <!-- Objeto -->
+                                    <col style="width:140px" />  <!-- Ação -->
+                                    <col style="width:90px" />   <!-- Status -->
+                                    <col style="width:60px" />   <!-- Concluído? -->
+                                    <col style="width:90px" />   <!-- Concluído em -->
+                                    <col style="width:160px" />  <!-- O que foi feito -->
+                                    <col style="width:80px" />   <!-- Prazo -->
                                     <col style="width:70px" />   <!-- Ações -->
                                 </colgroup>
                                 <thead>
                                     <tr>
-                                        <th>Ordem</th>
-                                        <th>TED/Ptrab</th>
-                                        <th>Objeto</th>
-                                        <th>Proc. Principal</th>
+                                        <th>Nº</th>
+                                        <th>Recebido</th>
                                         <th>Assunto</th>
-                                        <th>Proc. Solicit.</th>
-                                        <th>Data</th>
-                                        <th>Tipo</th>
-                                        <th>Nº Doc</th>
-                                        <th>Remetente</th>
-                                        <th>Destinatário</th>
+                                        <th>Origem</th>
+                                        <th>Objeto</th>
                                         <th>Ação</th>
-                                        <th>Prazo</th>
-                                        <th>Dias</th>
-                                        <th>Observações</th>
-                                        <th>Final.</th>
                                         <th>Status</th>
+                                        <th>Conc.?</th>
+                                        <th>Concluído em</th>
+                                        <th>O que foi feito</th>
+                                        <th>Prazo</th>
                                         <th>Ações</th>
                                     </tr>
-                                    <!-- filters moved to top panel (advanced filters) -->
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -1200,7 +1187,7 @@ window._loadXLSX = function() {
                     <li><a href="#" data-scroll-to="subtaskInputCompleta">Subtarefas</a></li>
                     <li><a href="#" data-scroll-to="atividadeLembreteDiasCompleta">Lembretes</a></li>
                     <li><a href="#" data-scroll-to="atividadeObservacoesCompleta">Observações</a></li>
-                    <li><a href="#" data-scroll-to="atividadeFinalizadoCompleta">Finalizado</a></li>
+                    <li><a href="#" data-scroll-to="secaoConclusaoCompleta">Conclusão</a></li>
                     <li><a href="#" data-scroll-to="atividadeArquivoCompleta">Anexos</a></li>
                     <li><a href="#" data-scroll-to="comentarioInputCompleta">Comentários</a></li>
                 </ul>
@@ -1263,6 +1250,10 @@ window._loadXLSX = function() {
                         <label for="atividadeAcaoRealizarCompleta">Ação a Realizar</label>
                         <input type="text" id="atividadeAcaoRealizarCompleta" />
                     </div>
+                    <div class="form-group">
+                        <label for="atividadeOrigemDemandaCompleta">Origem da Demanda</label>
+                        <input type="text" id="atividadeOrigemDemandaCompleta" placeholder="Ex: COAFI, e-mail de Maria, reunião 15/04" />
+                    </div>
                 </div>
                 <hr />
                 <div class="form-row">
@@ -1313,12 +1304,24 @@ window._loadXLSX = function() {
                     <label for="atividadeObservacoesCompleta">Observações</label>
                     <textarea id="atividadeObservacoesCompleta" rows="2"></textarea>
                 </div>
+                <hr />
+                <h3 id="secaoConclusaoCompleta">Conclusão</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="atividadeFinalizadoCompleta">Finalizado</label>
+                        <select id="atividadeFinalizadoCompleta">
+                            <option value="false">Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="atividadeDataConclusaoCompleta">Data de Conclusão</label>
+                        <input type="date" id="atividadeDataConclusaoCompleta" />
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="atividadeFinalizadoCompleta">Finalizado</label>
-                    <select id="atividadeFinalizadoCompleta">
-                        <option value="false">Não</option>
-                        <option value="true">Sim</option>
-                    </select>
+                    <label for="atividadeDescricaoRealizadoCompleta">O que foi feito</label>
+                    <textarea id="atividadeDescricaoRealizadoCompleta" rows="3" placeholder="Descreva as ações realizadas..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="atividadeArquivoCompleta">Anexar arquivo</label>
