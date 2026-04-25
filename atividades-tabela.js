@@ -37,7 +37,8 @@
         return s;
     }
 
-    function renderizarTabelaAtividades(items) {
+    function renderizarTabelaAtividades(items, opcoes) {
+        const agruparPor = (opcoes && opcoes.agruparPor) || '';
         try {
             console.debug('AtividadesTabela.renderizarTabelaAtividades: called with items length =', Array.isArray(items)? items.length : typeof items);
         } catch(e){}
@@ -46,9 +47,44 @@
             console.error('AtividadesTabela: tbody not found for #tabelaAtividades');
             return;
         }
+
+        // Agrupamento por assunto
+        if (agruparPor === 'assunto') {
+            const grupos = {};
+            items.forEach(a => {
+                const chave = (a.assunto || '').trim() || '(sem assunto)';
+                if (!grupos[chave]) grupos[chave] = [];
+                grupos[chave].push(a);
+            });
+            const gruposOrdenados = Object.entries(grupos).sort(([a], [b]) => a.localeCompare(b, 'pt-BR'));
+            let allRows = '';
+            gruposOrdenados.forEach(([assunto, lista]) => {
+                const conc = lista.filter(a => a.finalizado || (a.status||'').includes('conclu')).length;
+                allRows += `<tr class="tbl-grupo-header"><td colspan="12">${escapeHtml(assunto)}<span class="tbl-grupo-stats">${conc}/${lista.length} concluídas</span></td></tr>`;
+                lista.forEach((a, idx) => { allRows += buildRow(a, idx); });
+            });
+            try { tbody.innerHTML = allRows; } catch(e) { console.error(e); }
+            return;
+        }
+
         let rows = '';
         try {
-            rows = items.map((a, idx) => {
+            rows = items.map((a, idx) => buildRow(a, idx)).join('');
+        } catch (err) {
+            console.error('AtividadesTabela: error while creating rows HTML', err);
+            tbody.innerHTML = '';
+            return;
+        }
+        try {
+            tbody.innerHTML = rows;
+            console.debug('AtividadesTabela: tbody children after render =', tbody.childElementCount);
+            if (tbody.childElementCount === 0) console.warn('AtividadesTabela: rendered 0 rows even though items length =', Array.isArray(items)? items.length : typeof items);
+        } catch (err) {
+            console.error('AtividadesTabela: error setting tbody.innerHTML', err);
+        }
+    }
+
+    function buildRow(a, idx) {
             // Compatibilidade: mapear campos antigos para novos se necessário
             const ordem = a.ordem || String(idx + 1);
             const tedPtrab = a.tedPtrab || '';
@@ -140,20 +176,6 @@
                     <button class="btn-secondary" data-action="removerAtividade" data-id="${a.id}">${(typeof svgIcon==='function')? svgIcon('trash', { title: 'Remover atividade', color: 'currentColor' }) : '🗑️'}</button>
                 </td>
             </tr>`;
-        }).join('');
-        } catch (err) {
-            console.error('AtividadesTabela: error while creating rows HTML', err);
-            // attempt to fallback to a safe empty body
-            tbody.innerHTML = '';
-            return;
-        }
-        try {
-            tbody.innerHTML = rows;
-            console.debug('AtividadesTabela: tbody children after render =', tbody.childElementCount);
-            if (tbody.childElementCount === 0) console.warn('AtividadesTabela: rendered 0 rows even though items length =', Array.isArray(items)? items.length : typeof items);
-        } catch (err) {
-            console.error('AtividadesTabela: error setting tbody.innerHTML', err);
-        }
     }
 
     window.AtividadesTabela = {

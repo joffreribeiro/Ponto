@@ -552,6 +552,7 @@ function inicializar() {
                     'importarAtividadesExcel': importarAtividadesExcelAction,
                     'toggleAtividadesKanban': toggleAtividadesKanban,
                     'toggleAtividadesTable': toggleAtividadesTable,
+                    'toggleAtividadesTimeline': toggleAtividadesTimeline,
                     'abrirAbaNovaAtividade': abrirAbaNovaAtividade,
                     'fecharAbaNovaAtividade': fecharAbaNovaAtividade,
                         // wrap theme toggle to avoid ReferenceError if global not defined yet
@@ -983,8 +984,10 @@ function renderizarAtividades() {
     const tabelaContainer = document.getElementById('atividadesTableContainer');
     console.debug('renderizarAtividades: tabelaContainer=', tabelaContainer, 'display=', tabelaContainer ? tabelaContainer.style.display : 'N/A');
     if (tabelaContainer) {
-        // Forçar renderização da tabela sempre
-        renderizarTabelaAtividades(AppState.dados.atividades || []);
+        const itensParaTabela = ordenarPor === 'assunto'
+            ? (AppState.dados.atividades || [])
+            : (AppState.dados.atividades || []);
+        renderizarTabelaAtividades(itensParaTabela, { agruparPor: ordenarPor });
     }
 
     if (!container) return;
@@ -1069,14 +1072,20 @@ function renderizarAtividades() {
     if (kanban) {
         renderizarKanban(items);
     }
+
+    // Re-renderizar timeline se estiver visível
+    const tlEl = document.getElementById('atividadesTimeline');
+    if (tlEl && tlEl.style.display !== 'none' && window.AtividadesTimeline) {
+        AtividadesTimeline.renderizarTimeline(items);
+    }
 }
 
 // Icons and badges moved to `icons.js` (exposed as `Icons.svgIcon` / `svgIcon` and `Icons.getPriorityBadge` / `getPriorityBadge`)
 
-function renderizarTabelaAtividades(items) {
+function renderizarTabelaAtividades(items, opcoes) {
     try { console.debug('renderizarTabelaAtividades: items length =', Array.isArray(items)? items.length : typeof items); } catch(e){}
     if (window.AtividadesTabela && typeof AtividadesTabela.renderizarTabelaAtividades === 'function') {
-        try { return AtividadesTabela.renderizarTabelaAtividades(items); } catch(e){ console.error('AtividadesTabela.renderizarTabelaAtividades error', e); }
+        try { return AtividadesTabela.renderizarTabelaAtividades(items, opcoes); } catch(e){ console.error('AtividadesTabela.renderizarTabelaAtividades error', e); }
     }
     // fallback mínimo: limpa o tbody
     const tbody = document.querySelector('#tabelaAtividades tbody');
@@ -2224,27 +2233,31 @@ function removerAtividade(idOrIdx) {
     }
 }
 
+function _esconderTodasVisualizacoes() {
+    const els = ['atividadesKanban','atividadesTableContainer','atividadesLista','atividadesTimeline'];
+    els.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+}
+
 function toggleAtividadesKanban() {
+    _esconderTodasVisualizacoes();
     const kanban = document.getElementById('atividadesKanban');
-    const tabela = document.getElementById('atividadesTableContainer');
-    const cards = document.getElementById('atividadesLista');
-    // Mostrar Kanban, esconder os outros
     if (kanban) kanban.style.display = 'block';
-    if (tabela) tabela.style.display = 'none';
-    if (cards) cards.style.display = 'none';
-    // Atualizar estado dos botões
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
 
 function toggleAtividadesTable() {
-    const kanban = document.getElementById('atividadesKanban');
+    _esconderTodasVisualizacoes();
     const tabela = document.getElementById('atividadesTableContainer');
-    const cards = document.getElementById('atividadesLista');
-    // Mostrar Tabela, esconder os outros
     if (tabela) tabela.style.display = 'block';
-    if (kanban) kanban.style.display = 'none';
-    if (cards) cards.style.display = 'none';
-    // Atualizar estado dos botões
+    if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
+}
+
+function toggleAtividadesTimeline() {
+    _esconderTodasVisualizacoes();
+    const tl = document.getElementById('atividadesTimeline');
+    if (tl) tl.style.display = 'block';
+    const items = AppState.dados.atividades || [];
+    if (window.AtividadesTimeline) AtividadesTimeline.renderizarTimeline(items);
     if (typeof updateToggleButtonsState === 'function') updateToggleButtonsState();
 }
 

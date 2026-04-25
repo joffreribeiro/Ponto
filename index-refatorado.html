@@ -328,6 +328,7 @@
                         <div class="subtabs ativ-view-pills">
                             <button class="subtab-btn active" data-action="toggleAtividadesTable">Tabela</button>
                             <button class="subtab-btn" data-action="toggleAtividadesKanban">Kanban</button>
+                            <button class="subtab-btn" data-action="toggleAtividadesTimeline">Timeline</button>
                         </div>
                         <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel" title="Exportar atividades para Excel (.xlsx)">Exportar</button>
                         <button class="btn-primary" data-action="novaAtividade" data-auth="true" title="Adicionar nova atividade">+ Nova</button>
@@ -356,6 +357,7 @@
                             <option value="prioridade">Prioridade</option>
                             <option value="prazo">Prazo</option>
                             <option value="criadoEm">Criado</option>
+                            <option value="assunto">Agrupar por Assunto</option>
                         </select>
                         <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" aria-label="Ordem de referência">
                         <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" aria-label="Filtrar por TED ou Ptrab">
@@ -434,6 +436,7 @@
                         </div>
                     </div>
                     <div id="atividadesKanban" style="display:none;margin-top:8px;"></div>
+                    <div id="atividadesTimeline" style="display:none;margin-top:8px;"></div>
                 </div>
             </div>
         </section>
@@ -1113,6 +1116,7 @@ window._loadXLSX = function() {
 <script src="calculations.js?v=1.2.0"></script>
 <script src="atividades-tabela.js?v=1.1.0"></script>
 <script src="atividades-kanban.js?v=1.0.0"></script>
+<script src="atividades-timeline.js?v=1.0.0"></script>
 <script>
     // Função para atualizar estado visual dos botões (exposta globalmente)
     window.updateToggleButtonsState = function(){
