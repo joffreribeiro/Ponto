@@ -4516,27 +4516,50 @@ function gerarTimesheetAcordo() {
         const ultimoDiaMesAnterior = new Date(inicio.getFullYear(), inicio.getMonth(), 0); // último dia do mês anterior
         const primeiroDiaMesAnterior = new Date(ultimoDiaMesAnterior.getFullYear(), ultimoDiaMesAnterior.getMonth(), 1);
 
-        // Determinar o 'primeiro mês geral' com base na menor data relevante para este timesheet:
-        // - registros (todos)
-        // - eventos que são globais ou pertencem ao acordo selecionado
-        // - períodos do `acordo` atual (não de todos os acordos)
+        // Determinar o 'primeiro mês geral' preferindo o acordo mais antigo (criado ou com período mais antigo).
+        // Se encontrado, usar essa data como referência para zerar o Saldo Anterior.
         let globalFirstDate = null;
         try {
-            (AppState.dados.registros || []).forEach(r => {
-                const d = DateUtils.parse(r.data);
-                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+            let earliestAcordoDate = null;
+            (AppState.dados.acordos || []).forEach(ac => {
+                try {
+                    // Preferir data de criação quando disponível
+                    if (ac && ac.criadoEm) {
+                        const c = new Date(ac.criadoEm);
+                        if (!isNaN(c.getTime())) {
+                            if (!earliestAcordoDate || c < earliestAcordoDate) earliestAcordoDate = c;
+                        }
+                    }
+                } catch (e) { /* ignore parse criadoEm */ }
+
+                try {
+                    // Fallback: procurar pelo primeiro período do acordo
+                    (ac.periodos || []).forEach(p => {
+                        const pd = DateUtils.parse(p.inicio);
+                        if (pd && (!earliestAcordoDate || pd < earliestAcordoDate)) earliestAcordoDate = pd;
+                    });
+                } catch (e) { /* ignore */ }
             });
-            (AppState.dados.eventos || []).forEach(ev => {
-                // considerar apenas eventos sem acordoIndex (globais) ou vinculados ao acordo atual
-                if (typeof ev.acordoIndex !== 'undefined' && ev.acordoIndex !== idx) return;
-                const raw = ev.dataInicioEvento || ev.dataInicio || ev.data;
-                const d = DateUtils.parse(raw);
-                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
-            });
-            (acordo.periodos || []).forEach(p => {
-                const d = DateUtils.parse(p.inicio);
-                if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
-            });
+
+            if (earliestAcordoDate) {
+                globalFirstDate = earliestAcordoDate;
+            } else {
+                // fallback anterior: usar registros + eventos relevantes + períodos do acordo selecionado
+                (AppState.dados.registros || []).forEach(r => {
+                    const d = DateUtils.parse(r.data);
+                    if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+                });
+                (AppState.dados.eventos || []).forEach(ev => {
+                    if (typeof ev.acordoIndex !== 'undefined' && ev.acordoIndex !== idx) return;
+                    const raw = ev.dataInicioEvento || ev.dataInicio || ev.data;
+                    const d = DateUtils.parse(raw);
+                    if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+                });
+                (acordo.periodos || []).forEach(p => {
+                    const d = DateUtils.parse(p.inicio);
+                    if (d && (!globalFirstDate || d < globalFirstDate)) globalFirstDate = d;
+                });
+            }
         } catch (e) {
             globalFirstDate = null;
         }
