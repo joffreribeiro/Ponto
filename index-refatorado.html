@@ -325,6 +325,12 @@
                     <h2 class="ativ-title">Atividades</h2>
                     <div class="ativ-toolbar-right">
                         <input id="topFiltroBusca" class="ativ-search" placeholder="Buscar objeto, TED, assunto…" aria-label="Buscar texto em qualquer coluna">
+                        <select id="topFiltroOrdem" aria-label="Ordenar por" title="Ordenar / Agrupar" style="font-size:13px; padding:5px 8px; border-radius:6px; border:1px solid var(--border-soft); background:var(--bg-card); color:var(--text-main);">
+                            <option value="prioridade">Ordenar: Prioridade</option>
+                            <option value="prazo">Ordenar: Prazo</option>
+                            <option value="criadoEm">Ordenar: Criado</option>
+                            <option value="assunto">Agrupar por Assunto</option>
+                        </select>
                         <div class="subtabs ativ-view-pills">
                             <button class="subtab-btn active" data-action="toggleAtividadesTable">Tabela</button>
                             <button class="subtab-btn" data-action="toggleAtividadesKanban">Kanban</button>
@@ -353,12 +359,6 @@
                             <option value="critica">Crítica</option>
                         </select>
                         <input id="topFiltroResponsavel" placeholder="Responsável" aria-label="Filtrar por responsável">
-                        <select id="topFiltroOrdem" aria-label="Ordenar por">
-                            <option value="prioridade">Prioridade</option>
-                            <option value="prazo">Prazo</option>
-                            <option value="criadoEm">Criado</option>
-                            <option value="assunto">Agrupar por Assunto</option>
-                        </select>
                         <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" aria-label="Ordem de referência">
                         <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" aria-label="Filtrar por TED ou Ptrab">
                         <input id="topFiltroObjeto" placeholder="Objeto" aria-label="Filtrar por objeto">
@@ -1461,7 +1461,16 @@ window._loadXLSX = function() {
         const clearBtn=document.getElementById('topBtnLimparFiltros'); if (clearBtn) clearBtn.addEventListener('click', function(){ ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.value=''; }); aplicarFiltrosTabelaAtividades(); });
         const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
     }
-document.addEventListener('DOMContentLoaded', function(){ attachTopFilters(); if(typeof updateToggleButtonsState==='function') updateToggleButtonsState(); setTimeout(aplicarFiltrosTabelaAtividades,50); });
+document.addEventListener('DOMContentLoaded', function(){
+    attachTopFilters();
+    if(typeof updateToggleButtonsState==='function') updateToggleButtonsState();
+    setTimeout(aplicarFiltrosTabelaAtividades,50);
+    // Agrupamento por assunto: re-renderiza via JS quando topFiltroOrdem muda
+    const ordemEl = document.getElementById('topFiltroOrdem');
+    if (ordemEl) ordemEl.addEventListener('change', function(){
+        if (typeof renderizarAtividades === 'function') renderizarAtividades();
+    });
+});
 })();
 </script>
 
