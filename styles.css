@@ -1,4 +1,307 @@
-/* Cores para linhas da tabela de atividades conforme prazo/status */
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR LATERAL — inspirada no Controle de Estoque
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+    --sidebar-width: 224px;
+    --sidebar-collapsed-width: 58px;
+    --sidebar-bg: #080e18;
+    --sidebar-border: #141e2d;
+    --sidebar-hover: #111a27;
+    --sidebar-active: #162235;
+    --sidebar-text: #7a8fa8;
+    --sidebar-text-hover: #c8d8e8;
+    --sidebar-text-active: #d4a83a;
+    --sidebar-accent: #b8922a;
+    --sidebar-group-label: #3d5068;
+}
+
+/* Layout raiz */
+body {
+    display: flex !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-page, #f8f9fa);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 200;
+    transition: width 0.2s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+    border-right: 1px solid var(--sidebar-border);
+}
+.sidebar--collapsed { width: var(--sidebar-collapsed-width); }
+
+/* Toggle */
+.sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--sidebar-border);
+    color: var(--sidebar-text);
+    cursor: pointer;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+.sidebar-toggle:hover { color: var(--sidebar-text-hover); }
+
+/* Logo */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.sidebar-logo-icon {
+    font-size: 22px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a2a42, #0d1825);
+    border-radius: 8px;
+    border: 1px solid var(--sidebar-accent);
+    flex-shrink: 0;
+}
+.sidebar-logo-text { overflow: hidden; white-space: nowrap; }
+.sidebar-logo-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sidebar-text-hover);
+    line-height: 1.2;
+}
+.sidebar-logo-sub {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--sidebar-text-active);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* Nav */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #1e2d40 transparent;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: #1e2d40; border-radius: 2px; }
+
+/* Grupos */
+.sidebar-group { padding: 6px 0 2px; }
+.sidebar-group-label {
+    display: block;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sidebar-group-label);
+    padding: 4px 14px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.15s;
+}
+.sidebar--collapsed .sidebar-group-label { opacity: 0; }
+
+/* Nav items */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    border-radius: 0 6px 6px 0;
+    color: var(--sidebar-text);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition: all 0.18s cubic-bezier(.4,0,.2,1);
+    position: relative;
+}
+.nav-item:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-hover);
+}
+.nav-item.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-active);
+    border-left-color: var(--sidebar-accent);
+    font-weight: 600;
+}
+.nav-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+}
+.nav-label { flex: 1; overflow: hidden; }
+.sidebar--collapsed .nav-label { opacity: 0; width: 0; }
+.nav-arrow {
+    font-size: 10px;
+    opacity: 0.5;
+    transition: transform 0.2s;
+    margin-left: auto;
+}
+.sidebar--collapsed .nav-arrow { opacity: 0; }
+
+/* Submenu */
+.nav-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s cubic-bezier(.4,0,.2,1);
+    background: rgba(0,0,0,0.15);
+}
+.nav-submenu--open { max-height: 300px; }
+.sidebar--collapsed .nav-submenu { max-height: 0; }
+
+.nav-subitem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 14px 7px 36px;
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    color: var(--sidebar-text);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.nav-subitem:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text-hover);
+}
+.nav-subitem.active {
+    color: var(--sidebar-text-active);
+    border-left-color: var(--sidebar-accent);
+    background: rgba(184,146,42,0.08);
+}
+.nav-subicon { font-size: 13px; flex-shrink: 0; }
+
+/* Footer */
+.sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 10px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.sidebar-sync { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-btn-sync {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--sidebar-text-hover);
+    font-size: 11px;
+    padding: 5px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background 0.15s;
+}
+.sidebar-btn-sync:hover { background: rgba(255,255,255,0.12); }
+.sidebar-sync-status { font-size: 10px; color: var(--sidebar-text); white-space: nowrap; overflow: hidden; }
+.sidebar-footer-controls { display: flex; gap: 6px; }
+.sidebar-select {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--sidebar-text-hover);
+    font-size: 11px;
+    padding: 5px 6px;
+    width: 100%;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.sidebar-auth { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-username, .sidebar-auth-status { font-size: 10px; color: var(--sidebar-text); white-space: nowrap; overflow: hidden; }
+.sidebar-btn-auth {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--sidebar-text-hover);
+    font-size: 11px;
+    padding: 5px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.sidebar-btn-auth--danger { border-color: rgba(220,38,38,0.4); color: #f87171; }
+.sidebar-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #28a745;
+    align-self: center;
+    margin-top: 4px;
+}
+
+/* ── Área de conteúdo principal ──────────────────────────── */
+.main-topbar { display: none; }
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    min-height: 100vh;
+    padding: 24px 28px;
+    transition: margin-left 0.2s cubic-bezier(.4,0,.2,1);
+    box-sizing: border-box;
+    max-width: calc(100vw - var(--sidebar-width));
+}
+.main-content--expanded {
+    margin-left: var(--sidebar-collapsed-width);
+    max-width: calc(100vw - var(--sidebar-collapsed-width));
+}
+
+/* Ocultar topbar antiga e tabs horizontais */
+.topbar-unified, .tabs { display: none !important; }
+
+/* Container antigo passa a ser sem margem/padding extra */
+.container {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Subtabs do Ponto (mantidas no conteúdo mas ocultas — nav é sidebar) */
+.subtabs { display: none !important; }
+
+/* ── Cores para linhas da tabela de atividades conforme prazo/status */
 .linha-verde, .row-concluida {
     background: #f0fdf4 !important;
     border-left: 3px solid var(--positive, #16a34a) !important;

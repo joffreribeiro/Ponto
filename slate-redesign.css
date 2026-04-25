@@ -65,16 +65,8 @@ html, body {
   font-size: var(--font-size-base);
 }
 
-/* ═══ TOPBAR ════════════════════════════════════════════════════════════ */
-.topbar-unified {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 55%, #1d4ed8 100%) !important;
-  border-radius: 0 !important;
-  padding: 0 24px !important;
-  height: 56px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,.12) !important;
-  display: flex !important;
-  align-items: center !important;
-}
+/* ═══ TOPBAR (oculta — substituída pela sidebar) ════════════════════════ */
+.topbar-unified { display: none !important; }
 
 .topbar-title {
   font-size: 15px !important;
@@ -86,22 +78,15 @@ html, body {
   font-size: 20px !important;
 }
 
-/* ═══ CONTAINER ═════════════════════════════════════════════════════════ */
+/* ═══ CONTAINER (sem margem — layout agora é sidebar+main-content) ═════ */
 .container {
-  max-width: 1600px;
-  margin: 20px auto 40px;
-  padding: 0 20px;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* ═══ TABS ══════════════════════════════════════════════════════════════ */
-.tabs {
-  background: var(--bg-page) !important;
-  border-bottom: 1px solid var(--border-soft) !important;
-  padding: 0 !important;
-  gap: 0 !important;
-  margin-bottom: 20px !important;
-  top: 56px !important;
-}
+/* ═══ TABS (ocultas — navegação agora é pela sidebar) ══════════════════ */
+.tabs { display: none !important; }
 
 .tab-btn {
   border-radius: 0 !important;
