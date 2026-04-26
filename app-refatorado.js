@@ -843,6 +843,10 @@ function ensureTiposEventoDefault() {
         { id: 'evento_registro', nome: 'Registro (ponto)', cor: '#06b6d4', corTexto: '#ffffff' }
     ];
 
+    // IDs obsoletos que devem ser removidos da lista de tipos
+    const idsObsoletos = ['afastamento', 'compensar_acordo', 'pagar_hora', 'evento_registro'];
+    AppState.dados.tiposEvento = AppState.dados.tiposEvento.filter(t => !idsObsoletos.includes(t.id));
+
     // Inserir qualquer tipo default que esteja faltando
     defaults.forEach(d => {
         if (!AppState.dados.tiposEvento.some(t => t.id === d.id)) {
@@ -8174,8 +8178,8 @@ function atualizarSelectTiposEventos() {
     // Guardar valor selecionado se existir
     select.innerHTML = '';
     
-    // Excluir o tipo 'ferias' do select de eventos (férias devem ser marcadas na aba Férias)
-    tipos.filter(tipo => tipo.id !== 'ferias').forEach(tipo => {
+    const idsOcultos = ['ferias', 'evento_registro', 'afastamento', 'compensar_acordo', 'pagar_hora'];
+    tipos.filter(tipo => !idsOcultos.includes(tipo.id)).forEach(tipo => {
         const option = document.createElement('option');
         option.value = tipo.id;
         option.textContent = tipo.nome;
@@ -8194,13 +8198,13 @@ function atualizarSelectTiposEventos() {
     if (selectReg) {
         const valReg = selectReg.value;
         selectReg.innerHTML = '';
-        tipos.filter(tipo => tipo.id !== 'ferias').forEach(tipo => {
+        tipos.filter(tipo => !idsOcultos.includes(tipo.id)).forEach(tipo => {
             const opt = document.createElement('option');
             opt.value = tipo.id;
             opt.textContent = tipo.nome;
             selectReg.appendChild(opt);
         });
-        const tiposFiltrados = tipos.filter(t => t.id !== 'ferias');
+        const tiposFiltrados = tipos.filter(t => !idsOcultos.includes(t.id));
         if (tiposFiltrados.some(t => t.id === valReg)) selectReg.value = valReg;
         else if (tiposFiltrados.length > 0) selectReg.value = tiposFiltrados[0].id;
     }
