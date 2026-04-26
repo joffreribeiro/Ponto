@@ -835,13 +835,11 @@ function ensureTiposEventoDefault() {
     const defaults = [
         { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
         { id: 'ferias', nome: 'Férias', cor: '#d97706' },
-        { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
         { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
-        { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
         { id: 'abono', nome: 'Abono', cor: '#10b981' },
-        { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
-        { id: 'pagar_hora', nome: 'Pagar Hora', cor: '#f59e0b' },
-        { id: 'outro', nome: 'Outro', cor: '#64748b' },
+        { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
+        { id: 'pagar_hora_acordo', nome: 'Pagar hora (Acordo)', cor: '#db2777' },
+        { id: 'outro', nome: 'Outros', cor: '#64748b' },
         { id: 'evento_registro', nome: 'Registro (ponto)', cor: '#06b6d4', corTexto: '#ffffff' }
     ];
 
@@ -4215,7 +4213,7 @@ function salvarRegistro() {
         }
 
         // Tipos que devem sempre gerar um evento persistente quando marcados no registro
-        const tiposAutoEvento = ['abono_acordo', 'abono', 'compensar_acordo', 'pagar_hora'];
+        const tiposAutoEvento = ['abono_acordo', 'abono', 'pagar_hora_acordo'];
         // Se o tipo do registro for um destes, forçar criação do evento (facilita fluxo via registro)
         if (tiposAutoEvento.includes(tipoEventoRegistro)) {
             createLinkedEvent = true;
@@ -4845,10 +4843,10 @@ function gerarTimesheetAcordo() {
                     const ev = eventos[colIdx];
                     // Eventos do tipo "compensar_acordo", "pagar_hora", "abono_acordo", "abono" 
                     // NUNCA devem criar células mescladas - sempre células normais coloridas
-                    const tiposNaoMesclar = ['compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
+                    const tiposNaoMesclar = ['pagar_hora_acordo', 'compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
                     const isCompensar = ev && tiposNaoMesclar.includes(ev.tipoEvento);
 
-                    // Evento com bloqueio visual (exceto compensar_acordo, que deve permitir registro)
+                    // Evento com bloqueio visual (exceto pagar_hora_acordo, que deve permitir registro)
                     if (ev && !isCompensar) {
                         // Suporta marcação de período parcial do evento (matutino/vespertino/dia todo)
                         const periodoEv = (ev.periodo || 'dia_todo');
@@ -4876,9 +4874,10 @@ function gerarTimesheetAcordo() {
                             switch (ev.tipoEvento) {
                                 case 'feriado': classeEvento = 'evento-feriado'; break;
                                 case 'ferias': classeEvento = 'evento-ferias'; break;
-                                case 'afastamento': classeEvento = 'evento-afastamento'; break;
                                 case 'viagem': classeEvento = 'evento-viagem'; break;
+                                case 'abono': classeEvento = 'evento-abono'; break;
                                 case 'abono_acordo': classeEvento = 'evento-abono-acordo'; break;
+                                case 'pagar_hora_acordo': classeEvento = 'evento-pagar-hora-acordo'; break;
                             }
 
                             td.className = `${classeEvento} evento-vertical evento-periodo-${periodoEv}`;
@@ -4887,8 +4886,8 @@ function gerarTimesheetAcordo() {
                                 td.textContent = 'Férias';
                             } 
                             // Para abono/compensar/pagar_hora em períodos específicos, não mostrar descrição
-                            else if ((ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono' || 
-                                      ev.tipoEvento === 'compensar_acordo' || ev.tipoEvento === 'pagar_hora') && 
+                            else if ((ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono' ||
+                                      ev.tipoEvento === 'pagar_hora_acordo') &&
                                      (periodoEv === 'matutino' || periodoEv === 'vespertino')) {
                                 td.textContent = ''; // Deixar vazio para períodos
                             }
@@ -4945,7 +4944,7 @@ function gerarTimesheetAcordo() {
                             // Aplicar classe baseada no tipo de evento
                             if (ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono') {
                                 td.classList.add('evento-abono-periodo');
-                            } else if (ev.tipoEvento === 'compensar_acordo' || ev.tipoEvento === 'pagar_hora') {
+                            } else if (ev.tipoEvento === 'pagar_hora_acordo') {
                                 td.classList.add('evento-pagar-hora-periodo');
                             }
                         }
@@ -5110,7 +5109,7 @@ function gerarTimesheetAcordo() {
                     if (reg && (reg.entrada || reg.saida || reg.saidaAlmoco || reg.retornoAlmoco)) continue;
                     try {
                         const ev = Calculations.getEventoByData(AppState.dados.eventos, iso);
-                        const nonWorkingTypes = ['feriado','ferias','afastamento','abono_acordo','abono','folga'];
+                        const nonWorkingTypes = ['feriado','ferias','abono_acordo','abono','folga'];
                         if (ev) {
                             if ((ev.impactoEvento && ev.impactoEvento !== 'trabalho') || (ev.tipoEvento && nonWorkingTypes.includes(ev.tipoEvento))) {
                                 continue;
@@ -5368,11 +5367,11 @@ function renderizarEventos() {
             AppState.dados.tiposEvento = [
                 { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
                 { id: 'ferias', nome: 'Férias', cor: '#d97706' },
-                { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+                { id: 'abono', nome: 'Abono', cor: '#10b981' },
                 { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
-                { id: 'compensar_acordo', nome: 'Compensação (acordo)', cor: '#db2777' },
-                { id: 'outro', nome: 'Outro', cor: '#64748b' }
+                { id: 'pagar_hora_acordo', nome: 'Pagar hora (Acordo)', cor: '#db2777' },
+                { id: 'outro', nome: 'Outros', cor: '#64748b' }
             ];
             AppState.save();
         }
@@ -7047,7 +7046,7 @@ function atualizarExibicaoUsoBeneficios() {
                 }
             }
             
-            if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
+            if (tipo === 'pagar_hora_acordo' || tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
                 // Contar horas (usar campo horas se disponível, ou calcular pelos dias)
                 if (ev.horas) {
                     horasPagasUsadas += Number(ev.horas) || 0;
@@ -7115,7 +7114,7 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
             }
         }
         
-        if (tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
+        if (tipo === 'pagar_hora_acordo' || tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
             if (ev.horas) {
                 horasPagasUsadas += Number(ev.horas) || 0;
             } else {
@@ -7646,11 +7645,11 @@ function restaurarBackupLocal(event) {
                             AppState.dados.tiposEvento = [
                                 { id: 'feriado', nome: 'Feriado', cor: '#dc2626' },
                                 { id: 'ferias', nome: 'Férias', cor: '#d97706' },
-                                { id: 'afastamento', nome: 'Afastamento', cor: '#0891b2' },
                                 { id: 'viagem', nome: 'Viagem', cor: '#7c3aed' },
+                                { id: 'abono', nome: 'Abono', cor: '#10b981' },
                                 { id: 'abono_acordo', nome: 'Abono (acordo)', cor: '#059669' },
-                                { id: 'compensar_acordo', nome: 'Compensação (acordo)', cor: '#db2777' },
-                                { id: 'outro', nome: 'Outro', cor: '#64748b' }
+                                { id: 'pagar_hora_acordo', nome: 'Pagar hora (Acordo)', cor: '#db2777' },
+                                { id: 'outro', nome: 'Outros', cor: '#64748b' }
                             ];
                         }
 
