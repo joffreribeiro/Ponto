@@ -1869,28 +1869,6 @@ function confirmarSolicitacaoFerias() {
         targetPeriodo.dias = dias;
         targetPeriodo.adto13 = adto13 || '';
         
-        // Criar evento de férias
-        const evento = {
-            tipoEvento: 'ferias',
-            descricaoEvento: `Férias - ${novoSubIndex}º Período`,
-            dataInicioEvento: inicio,
-            dataFimEvento: fim,
-            impactoEvento: 'folga',
-            periodo: 'dia_todo',
-            acordoIndex: null,
-            corFundo: '#f0f8ff',
-            corTexto: '#000000',
-            nomeCSS: ''
-        };
-        
-        const erros = Validators.validateEvento(evento);
-        if (erros && erros.length) {
-            mostrarAlertaGlobal(erros.join('; '), 'error');
-            return;
-        }
-        
-        if (!AppState.dados.eventos) AppState.dados.eventos = [];
-        AppState.dados.eventos.push(evento);
         AppState.save();
         
         fecharModalSolicitarFerias();
@@ -2005,22 +1983,6 @@ function solicitarFeriasFromRow(id) {
             return;
         }
 
-        const evento = {
-            tipoEvento: 'ferias',
-            descricaoEvento: 'Férias',
-            dataInicioEvento: inicioISO,
-            dataFimEvento: fimISO,
-            impactoEvento: 'folga',
-            periodo: 'dia_todo',
-            acordoIndex: null,
-            corFundo: '#f0f8ff',
-            corTexto: '#000000',
-            nomeCSS: ''
-        };
-
-        const erros = Validators.validateEvento(evento);
-        if (erros && erros.length) throw new Error(erros.join('; '));
-
         // Atualizar o período com as datas de férias solicitadas
         periodo.feriasInicio = inicioISO;
         periodo.feriasFim = fimISO;
@@ -2031,8 +1993,6 @@ function solicitarFeriasFromRow(id) {
             periodo.dias = Math.floor((dtFim - dtInicio) / (24 * 60 * 60 * 1000)) + 1;
         }
 
-        if (!AppState.dados.eventos) AppState.dados.eventos = [];
-        AppState.dados.eventos.push(evento);
         AppState.save();
         renderizarEventos();
         renderizarPeriodosAquisitivosTable(); // Atualizar o relatório
@@ -2080,35 +2040,17 @@ function solicitarFeriasGroup(periodoIndex) {
             return;
         }
 
-        const evento = {
-            tipoEvento: 'ferias',
-            descricaoEvento: 'Férias',
-            dataInicioEvento: inicioISO,
-            dataFimEvento: fimISO,
-            impactoEvento: 'folga',
-            periodo: 'dia_todo',
-            acordoIndex: null,
-            corFundo: '#f0f8ff',
-            corTexto: '#000000',
-            nomeCSS: ''
-        };
-
-        const erros = Validators.validateEvento(evento);
-        if (erros && erros.length) throw new Error(erros.join('; '));
-
         // Atualizar todos os subperíodos com as datas de férias
         const dtInicio = DateUtils.parse(inicioISO);
         const dtFim = DateUtils.parse(fimISO);
         const diasTotal = (dtInicio && dtFim) ? Math.floor((dtFim - dtInicio) / (24 * 60 * 60 * 1000)) + 1 : null;
-        
+
         rows.forEach(p => {
             p.feriasInicio = inicioISO;
             p.feriasFim = fimISO;
             p.dias = diasTotal;
         });
 
-        if (!AppState.dados.eventos) AppState.dados.eventos = [];
-        AppState.dados.eventos.push(evento);
         AppState.save();
         renderizarEventos();
         renderizarPeriodosAquisitivosTable(); // Atualizar o relatório
@@ -4757,6 +4699,28 @@ function gerarTimesheetAcordo() {
                     return evFromData;
                 }
 
+                // Verificar se o dia está dentro de um período de férias (periodosAquisitivos)
+                const dataAtual = DateUtils.parse(d.dataStr);
+                if (dataAtual) {
+                    const periodos = AppState.dados.periodosAquisitivos || [];
+                    const emFerias = periodos.find(p => {
+                        if (!p.feriasInicio || !p.feriasFim) return false;
+                        const ini = DateUtils.parse(p.feriasInicio);
+                        const fim = DateUtils.parse(p.feriasFim);
+                        return ini && fim && dataAtual >= ini && dataAtual <= fim;
+                    });
+                    if (emFerias) {
+                        return {
+                            tipoEvento: 'ferias',
+                            descricaoEvento: 'Férias',
+                            periodo: 'dia_todo',
+                            impactoEvento: 'folga',
+                            corFundo: '#f0f8ff',
+                            corTexto: '#000080'
+                        };
+                    }
+                }
+
                 // Se existe um registro com periodo marcado e o usuário permitiu a marcação (ou não definiu a preferência),
                 // criamos um evento sintético baseado no registro
                 if (reg && reg.periodoEvento && (typeof reg.createLinkedEvent === 'undefined' || reg.createLinkedEvent)) {
@@ -5666,18 +5630,9 @@ function salvarEvento() {
             AppState.dados.eventos.push(evento);
         }
 
-        // Se for um evento de férias, tentar sincronizar com os períodos aquisitivos
-        try {
-            if (String(evento.tipoEvento).toLowerCase() === 'ferias') {
-                sincronizarFeriasComPeriodos(evento);
-            }
-        } catch (syncErr) { console.warn('Erro ao sincronizar férias com períodos:', syncErr); }
-
         AppState.save();
         renderizarEventos();
         renderizarAcordos();
-        // Atualizar relatório de períodos aquisitivos caso o evento seja Férias
-        try { renderizarPeriodosAquisitivosTable(); } catch(e) { /* ignore */ }
         gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
         limparEvento();
         fecharModalEvento();
@@ -5727,25 +5682,6 @@ function salvarFeriasFromTab() {
         const dataFim = fimEl ? (fimEl.value || dataInicio) : dataInicio;
         const descricao = (motivoEl && motivoEl.value) ? `Férias: ${motivoEl.value}` : 'Férias solicitadas';
 
-        const evento = {
-            tipoEvento: 'ferias',
-            descricaoEvento: descricao,
-            dataInicioEvento: dataInicio,
-            dataFimEvento: dataFim || dataInicio,
-            impactoEvento: 'folga',
-            periodo: 'dia_todo',
-            acordoIndex: Number(acordoIdxRaw),
-            corFundo: '',
-            corTexto: '',
-            nomeCSS: ''
-        };
-
-        // Validar usando validators existentes
-        const erros = Validators.validateEvento(evento);
-        if (erros && erros.length) throw new Error(erros.join('; '));
-
-        AppState.dados.eventos.push(evento);
-        try { if (String(evento.tipoEvento).toLowerCase() === 'ferias') sincronizarFeriasComPeriodos(evento); } catch(e){ console.warn('Erro sincronizando ferias:', e); }
         AppState.save();
 
         // Atualiza UI
@@ -6324,11 +6260,6 @@ function fecharModalEvento() {
 function deletarEventoConfirmado() {
     try {
         if (AppState.eventoSelecionado === null) return;
-        // Antes de remover o evento, se for do tipo 'ferias', limpar marcações nos períodos
-        const ev = AppState.dados.eventos[AppState.eventoSelecionado];
-        if (ev && String(ev.tipoEvento).toLowerCase() === 'ferias') {
-            try { limparMarcacoesDeFeriasPorEvento(ev); } catch(e) { console.warn('Erro ao limpar marcações de férias:', e); }
-        }
         AppState.dados.eventos.splice(AppState.eventoSelecionado, 1);
         AppState.eventoSelecionado = null;
         AppState.save();
@@ -6597,28 +6528,7 @@ function salvarFeriasFromTab() {
         const dataFim = (fimEl && fimEl.value) ? fimEl.value : dataInicio;
         const motivo = motivoEl ? motivoEl.value.trim() : '';
 
-        const evento = {
-            tipoEvento: 'ferias',
-            descricaoEvento: motivo || 'Férias',
-            dataInicioEvento: dataInicio,
-            dataFimEvento: dataFim,
-            impactoEvento: 'folga',
-            periodo: 'dia_todo',
-            acordoIndex: Number(acordoIdx),
-            corFundo: '#f0f8ff',
-            corTexto: '#000000',
-            nomeCSS: ''
-        };
-
-        const erros = Validators.validateEvento(evento);
-        if (erros && erros.length) throw new Error(erros.join('; '));
-
-        AppState.dados.eventos.push(evento);
-        try { if (String(evento.tipoEvento).toLowerCase() === 'ferias') sincronizarFeriasComPeriodos(evento); } catch(e){ console.warn('Erro sincronizando ferias:', e); }
         AppState.save();
-        renderizarEventos();
-        // Atualizar relatório de períodos aquisitivos para refletir a nova solicitação
-        try { renderizarPeriodosAquisitivosTable(); } catch(e) { /* ignore */ }
         try { gerarTimesheetAcordo(); } catch(e){}
         try { atualizarDashboard(); } catch(e){}
 
