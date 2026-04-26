@@ -3104,15 +3104,132 @@ textarea {
 #modalRegistro .modal-footer { margin-top: 12px; display: flex; gap: 10px; justify-content: flex-end; }
 
 /* Evento: modal compacto */
-#modalEvento .modal-content { max-width: 520px; }
-#modalEvento .form-group label { font-size: 11px; }
+/* ================================================
+   Modal Evento — redesign
+   ================================================ */
+#modalEvento .modal-content { max-width: 560px; }
+#modalEvento .form-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary, #6b7280); margin-bottom: 4px; }
 #modalEvento input[type="text"],
 #modalEvento input[type="date"],
-#modalEvento input[type="color"],
 #modalEvento select {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 7px 10px;
+    font-size: 13px;
+    border-radius: 8px;
 }
+
+/* Título do modal com ícone */
+.modal-evento-title { display: flex; align-items: center; gap: 10px; }
+.modal-evento-title h2 { margin: 0; font-size: 16px; }
+.modal-evento-icon { font-size: 22px; line-height: 1; }
+
+/* Chips de tipo de evento */
+.evento-tipo-section { display: flex; flex-direction: column; gap: 6px; }
+.evento-section-label { font-size: 12px; font-weight: 600; color: var(--text-secondary, #6b7280); }
+.evento-tipo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.evento-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    min-width: 72px;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    line-height: 1.3;
+}
+.evento-chip:hover { border-color: var(--primary, #2563eb); background: #eff6ff; color: var(--primary, #2563eb); }
+.evento-chip.active { border-color: var(--primary, #2563eb); background: var(--primary, #2563eb); color: #fff; }
+.evento-chip.active .chip-icon { filter: none; }
+.chip-icon { font-size: 18px; line-height: 1; }
+.evento-chip small { font-size: 10px; opacity: 0.85; }
+
+.evento-ferias-hint {
+    font-size: 11px;
+    color: #6b7280;
+    background: #f3f4f6;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 0;
+}
+.evento-ferias-hint strong { color: var(--primary, #2563eb); }
+
+/* Toggle impacto */
+.impacto-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+.impacto-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.impacto-btn:hover { border-color: var(--primary, #2563eb); background: #eff6ff; }
+.impacto-btn.active { border-color: var(--primary, #2563eb); background: #eff6ff; color: var(--primary, #2563eb); font-weight: 700; }
+.impacto-btn small { display: block; font-size: 10px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+
+/* Seção de aparência (details/summary) */
+.evento-aparencia-section {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+.evento-aparencia-section summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    list-style: none;
+    user-select: none;
+}
+.evento-aparencia-section summary::-webkit-details-marker { display: none; }
+.evento-aparencia-section .small-text { font-size: 11px; color: #9ca3af; margin: 4px 0 0; }
+.evento-cor-group input[type="color"] {
+    width: 48px;
+    height: 36px;
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+}
+.evento-cor-preview-group { min-width: 80px; }
+.evento-cor-preview {
+    width: 100%;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+    background: #2563eb;
+    color: #fff;
+}
+
+html[data-theme="dark"] .evento-chip { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+html[data-theme="dark"] .evento-chip:hover { background: #1e3a5f; border-color: var(--primary); color: var(--primary); }
+html[data-theme="dark"] .evento-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+html[data-theme="dark"] .evento-ferias-hint { background: #1e293b; color: #94a3b8; }
+html[data-theme="dark"] .impacto-btn { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+html[data-theme="dark"] .impacto-btn.active { background: #1e3a5f; border-color: var(--primary); color: var(--primary); }
+html[data-theme="dark"] .evento-aparencia-section { border-color: #334155; }
 
 .form-row {
     display: flex;

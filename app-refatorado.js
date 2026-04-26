@@ -5643,14 +5643,90 @@ function salvarEvento() {
     }
 }
 
+const EVENTO_TIPO_META = {
+    feriado:         { icon: '🏖️', label: 'Feriado',            cor: '#dc2626', corTexto: '#ffffff' },
+    viagem:          { icon: '✈️',  label: 'Viagem',             cor: '#7c3aed', corTexto: '#ffffff' },
+    abono:           { icon: '📋', label: 'Abono',              cor: '#10b981', corTexto: '#ffffff' },
+    abono_acordo:    { icon: '🤝', label: 'Abono (acordo)',     cor: '#059669', corTexto: '#ffffff' },
+    pagar_hora_acordo:{ icon: '⏱️', label: 'Pagar hora (Acordo)',cor: '#db2777', corTexto: '#ffffff' },
+    outro:           { icon: '📌', label: 'Outros',             cor: '#64748b', corTexto: '#ffffff' },
+};
+
+function sincronizarChipsEvento(valor) {
+    document.querySelectorAll('#eventoTipoChips .evento-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === valor);
+    });
+    const meta = EVENTO_TIPO_META[valor] || EVENTO_TIPO_META['outro'];
+    const iconeEl = document.getElementById('modalEventoIcone');
+    const tituloEl = document.getElementById('modalEventoTitulo');
+    if (iconeEl) iconeEl.textContent = meta.icon;
+    if (tituloEl) tituloEl.textContent = AppState.eventoEmEdicao != null ? `Editar Evento` : 'Novo Evento';
+    // Aplicar cor padrão do tipo se os campos de cor ainda estiverem no default
+    const corFundo = document.getElementById('eventoCorFundo');
+    const corTexto = document.getElementById('eventoCorTexto');
+    if (corFundo && corTexto) {
+        corFundo.value = meta.cor;
+        corTexto.value = meta.corTexto;
+        atualizarPreviewCor();
+    }
+}
+
+function sincronizarToggleImpacto(valor) {
+    document.querySelectorAll('#impactoToggle .impacto-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === valor);
+    });
+}
+
+function atualizarPreviewCor() {
+    const corFundo = document.getElementById('eventoCorFundo');
+    const corTexto = document.getElementById('eventoCorTexto');
+    const preview = document.getElementById('eventoCorPreview');
+    if (corFundo && corTexto && preview) {
+        preview.style.background = corFundo.value;
+        preview.style.color = corTexto.value;
+    }
+}
+
+function inicializarEventoModalChips() {
+    // Chips de tipo
+    document.querySelectorAll('#eventoTipoChips .evento-chip').forEach(btn => {
+        if (btn._chipInit) return;
+        btn._chipInit = true;
+        btn.addEventListener('click', () => {
+            const val = btn.dataset.value;
+            const sel = document.getElementById('tipoEvento');
+            if (sel) sel.value = val;
+            sincronizarChipsEvento(val);
+        });
+    });
+    // Toggle impacto
+    document.querySelectorAll('#impactoToggle .impacto-btn').forEach(btn => {
+        if (btn._impactoInit) return;
+        btn._impactoInit = true;
+        btn.addEventListener('click', () => {
+            const val = btn.dataset.value;
+            const sel = document.getElementById('impactoEvento');
+            if (sel) sel.value = val;
+            sincronizarToggleImpacto(val);
+        });
+    });
+    // Preview de cor
+    ['eventoCorFundo', 'eventoCorTexto'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el._previewInit) {
+            el._previewInit = true;
+            el.addEventListener('input', atualizarPreviewCor);
+        }
+    });
+    atualizarPreviewCor();
+}
+
 function limparEvento() {
     const tipoEl = document.getElementById('tipoEvento'); if (tipoEl) tipoEl.value = 'feriado';
     const descEl = document.getElementById('descricaoEvento'); if (descEl) descEl.value = '';
     const inicioEl = document.getElementById('dataInicioEvento'); if (inicioEl) inicioEl.value = '';
     const fimEl = document.getElementById('dataFimEvento'); if (fimEl) fimEl.value = '';
     const impactoEl = document.getElementById('impactoEvento'); if (impactoEl) impactoEl.value = 'folga';
-    const corFundoEl = document.getElementById('eventoCorFundo'); if (corFundoEl) corFundoEl.value = '#ffe4e6';
-    const corTextoEl = document.getElementById('eventoCorTexto'); if (corTextoEl) corTextoEl.value = '#9f1239';
     const nomeCssEl = document.getElementById('eventoNomeCSS'); if (nomeCssEl) nomeCssEl.value = '';
     const periodoEl = document.getElementById('eventoPeriodo'); if (periodoEl) periodoEl.value = 'dia_todo';
     const acordoSel = document.getElementById('acordoEventoSelect');
@@ -5661,6 +5737,8 @@ function limparEvento() {
             try { acordoSel.selectedIndex = 0; } catch(e) { acordoSel.value = acordoSel.value || ''; }
         }
     }
+    sincronizarChipsEvento('feriado');
+    sincronizarToggleImpacto('folga');
     AppState.eventoEmEdicao = null;
     AppState.eventoAcordoPreselected = null;
 }
@@ -6230,6 +6308,14 @@ function abrirEditarEvento(index) {
         const acordoSel = document.getElementById('acordoEventoSelect'); if (acordoSel) acordoSel.value = (e.acordoIndex != null) ? String(e.acordoIndex) : '';
 
         AppState.eventoEmEdicao = index;
+        inicializarEventoModalChips();
+        sincronizarChipsEvento(e.tipoEvento || 'feriado');
+        sincronizarToggleImpacto(e.impactoEvento || 'folga');
+        // Restaurar cores salvas (sobrepõe a cor padrão do tipo definida no sincronizarChips)
+        const corFundoEl2 = document.getElementById('eventoCorFundo'); if (corFundoEl2 && e.corFundo) corFundoEl2.value = e.corFundo;
+        const corTextoEl2 = document.getElementById('eventoCorTexto'); if (corTextoEl2 && e.corTexto) corTextoEl2.value = e.corTexto;
+        atualizarPreviewCor();
+        const tituloEl = document.getElementById('modalEventoTitulo'); if (tituloEl) tituloEl.textContent = 'Editar Evento';
         const modalEl = document.getElementById('modalEvento'); if (modalEl) modalEl.classList.add('active');
     } catch (error) {
         console.error('Erro ao editar evento:', error);
@@ -6598,6 +6684,7 @@ function abrirModalEvento() {
             } catch(e) { try { acordoSel.value = '0'; } catch(_){} }
         }
 
+        inicializarEventoModalChips();
         const modal = document.getElementById('modalEvento');
         if (modal) modal.classList.add('active');
     } catch (error) {

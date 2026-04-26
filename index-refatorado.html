@@ -952,34 +952,65 @@
 
                     <!-- Modal Evento -->
                     <div id="modalEvento" class="modal">
-                        <div class="modal-content">
+                        <div class="modal-content modal-evento-redesign">
                             <div class="modal-header">
-                                <h2>Novo Evento</h2>
+                                <div class="modal-evento-title">
+                                    <span class="modal-evento-icon" id="modalEventoIcone">📅</span>
+                                    <h2 id="modalEventoTitulo">Novo Evento</h2>
+                                </div>
                                 <button type="button" class="modal-close"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
                             </div>
                             <div class="modal-body">
+
+                                <!-- Tipo de evento — chips visuais -->
+                                <div class="evento-tipo-section">
+                                    <label class="evento-section-label">Tipo de evento</label>
+                                    <div class="evento-tipo-chips" id="eventoTipoChips">
+                                        <button type="button" class="evento-chip active" data-value="feriado">
+                                            <span class="chip-icon">🏖️</span>
+                                            <span>Feriado</span>
+                                        </button>
+                                        <button type="button" class="evento-chip" data-value="viagem">
+                                            <span class="chip-icon">✈️</span>
+                                            <span>Viagem</span>
+                                        </button>
+                                        <button type="button" class="evento-chip" data-value="abono">
+                                            <span class="chip-icon">📋</span>
+                                            <span>Abono</span>
+                                        </button>
+                                        <button type="button" class="evento-chip" data-value="abono_acordo">
+                                            <span class="chip-icon">🤝</span>
+                                            <span>Abono<br><small>(acordo)</small></span>
+                                        </button>
+                                        <button type="button" class="evento-chip" data-value="pagar_hora_acordo">
+                                            <span class="chip-icon">⏱️</span>
+                                            <span>Pagar hora<br><small>(acordo)</small></span>
+                                        </button>
+                                        <button type="button" class="evento-chip" data-value="outro">
+                                            <span class="chip-icon">📌</span>
+                                            <span>Outros</span>
+                                        </button>
+                                    </div>
+                                    <!-- select oculto mantido para compatibilidade com o JS existente -->
+                                    <select id="tipoEvento" style="display:none;">
+                                        <option value="feriado">Feriado</option>
+                                        <option value="viagem">Viagem</option>
+                                        <option value="abono">Abono</option>
+                                        <option value="abono_acordo">Abono (acordo)</option>
+                                        <option value="pagar_hora_acordo">Pagar hora (Acordo)</option>
+                                        <option value="outro">Outros</option>
+                                    </select>
+                                    <p class="evento-ferias-hint">💡 Para registrar Férias use a aba <strong>Ponto → Férias</strong>.</p>
+                                </div>
+
+                                <!-- Acordo + Período -->
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="acordoEventoSelect">Acordo:</label>
+                                        <label for="acordoEventoSelect">Acordo</label>
                                         <select id="acordoEventoSelect"></select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="tipoEvento">Tipo:</label>
-                                        <select id="tipoEvento">
-                                            <option value="feriado">Feriado</option>
-                                            <option value="viagem">Viagem</option>
-                                            <option value="abono">Abono</option>
-                                            <option value="abono_acordo">Abono (acordo)</option>
-                                            <option value="pagar_hora_acordo">Pagar hora (Acordo)</option>
-                                            <option value="outro">Outros</option>
-                                        </select>
-                                        <p class="small-text" style="margin-top:4px;">Para registrar Férias, use a aba <strong>Ponto → Férias</strong>.</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="eventoPeriodo">Parte do dia afetada:</label>
+                                        <label for="eventoPeriodo">Período do dia</label>
                                         <select id="eventoPeriodo">
                                             <option value="dia_todo">Dia todo</option>
                                             <option value="matutino">Somente manhã</option>
@@ -987,41 +1018,61 @@
                                         </select>
                                     </div>
                                 </div>
+
+                                <!-- Descrição -->
                                 <div class="form-group">
-                                    <label for="descricaoEvento">Descrição:</label>
+                                    <label for="descricaoEvento">Descrição</label>
                                     <input type="text" id="descricaoEvento" placeholder="Ex: Feriado estadual, Consulta médica…" />
                                 </div>
+
+                                <!-- Datas + Impacto -->
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="dataInicioEvento">Início:</label>
+                                        <label for="dataInicioEvento">Início</label>
                                         <input type="date" id="dataInicioEvento" />
                                     </div>
                                     <div class="form-group">
-                                        <label for="dataFimEvento">Fim:</label>
+                                        <label for="dataFimEvento">Fim</label>
                                         <input type="date" id="dataFimEvento" />
                                     </div>
-                                    <div class="form-group">
-                                        <label for="impactoEvento">Impacto no saldo:</label>
-                                        <select id="impactoEvento">
-                                            <option value="folga">Folga (não conta como trabalhado)</option>
-                                            <option value="trabalho">Trabalho (conta normalmente)</option>
-                                        </select>
-                                    </div>
                                 </div>
-                                <hr style="margin: 8px 0; border: none; border-top: 1px solid #ddd;">
-                                <h3 style="font-size: 13px; margin: 6px 0 4px;">Aparência no Timesheet</h3>
-                                <p class="small-text" style="margin-bottom:8px;">As cores abaixo são exibidas no Timesheet, não na tabela de eventos.</p>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="eventoCorFundo">Cor de Fundo:</label>
-                                        <input type="color" id="eventoCorFundo" value="#2563eb" />
+
+                                <div class="form-group">
+                                    <label for="impactoEvento">Impacto no saldo</label>
+                                    <div class="impacto-toggle" id="impactoToggle">
+                                        <button type="button" class="impacto-btn active" data-value="folga">
+                                            <span>🚫</span> Folga <small>(não conta como trabalhado)</small>
+                                        </button>
+                                        <button type="button" class="impacto-btn" data-value="trabalho">
+                                            <span>✅</span> Trabalho <small>(conta normalmente)</small>
+                                        </button>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="eventoCorTexto">Cor do Texto:</label>
-                                        <input type="color" id="eventoCorTexto" value="#ffffff" />
-                                    </div>
+                                    <select id="impactoEvento" style="display:none;">
+                                        <option value="folga">Folga</option>
+                                        <option value="trabalho">Trabalho</option>
+                                    </select>
                                 </div>
-                                <!-- campo técnico mantido no DOM mas oculto para não quebrar o JS -->
+
+                                <!-- Aparência -->
+                                <details class="evento-aparencia-section">
+                                    <summary>🎨 Aparência no Timesheet</summary>
+                                    <p class="small-text">As cores são exibidas no Timesheet, não na tabela de eventos.</p>
+                                    <div class="form-row" style="margin-top:8px;">
+                                        <div class="form-group evento-cor-group">
+                                            <label for="eventoCorFundo">Cor de Fundo</label>
+                                            <input type="color" id="eventoCorFundo" value="#2563eb" />
+                                        </div>
+                                        <div class="form-group evento-cor-group">
+                                            <label for="eventoCorTexto">Cor do Texto</label>
+                                            <input type="color" id="eventoCorTexto" value="#ffffff" />
+                                        </div>
+                                        <div class="form-group evento-cor-preview-group">
+                                            <label>Prévia</label>
+                                            <div class="evento-cor-preview" id="eventoCorPreview">Abc</div>
+                                        </div>
+                                    </div>
+                                </details>
+
                                 <input type="hidden" id="eventoNomeCSS" value="" />
                             </div>
                             <div class="modal-footer">
