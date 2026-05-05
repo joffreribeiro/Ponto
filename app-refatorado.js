@@ -5015,6 +5015,14 @@ function gerarTimesheetAcordo() {
                                     saldoAcumuladoAtual += calc.saldo || 0;
                                 }
                             }
+                        } else if (calc && !calc.temRegistro && calc.saldo < 0) {
+                            // Dia sem registro mas com saldo negativo (ex: pagar_hora_acordo)
+                            if (rowIndex === 9) {
+                                td.textContent = DateUtils.minutesToTime(calc.saldo);
+                                td.classList.add('saldo-negativo');
+                                totalFaltas++;
+                                saldoMes += calc.saldo;
+                            }
                         } else {
                             // dia útil sem registro -> potencial falta
                             if (!dia.isWeekend && DateUtils.isBusinessDay(dia.data)) {

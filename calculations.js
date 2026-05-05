@@ -198,6 +198,32 @@ const Calculations = {
         const minutosExtras = this.getMinutosExtrasForDay(acordo, dataStr);
         const regra = this.getRegraHorarioForDay(acordo, dataStr);
 
+        // Dias marcados como "Pagar Hora (Acordo)" = ausência total ou parcial, saldo negativo
+        if (evento && evento.tipoEvento === 'pagar_hora_acordo') {
+            const minutosExtrasRegra = regra.minutosExtras || 0;
+            const cargaDia = 480 + minutosExtrasRegra;
+            const periodo = evento.periodo || 'dia_todo';
+            const meioPeriodo = (periodo === 'matutino' || periodo === 'vespertino');
+
+            const temPonto = registro && (registro.entrada || registro.saida);
+
+            if (!temPonto) {
+                // Sem registro: desconta o período inteiro
+                const cargaPeriodo = meioPeriodo ? cargaDia / 2 : cargaDia;
+                return {
+                    trabalhadas: 0,
+                    saldo: -cargaPeriodo,
+                    temRegistro: false,
+                    status: 'falta',
+                    evento,
+                    acordo,
+                    regra,
+                    detalhes: { carga: cargaPeriodo }
+                };
+            }
+            // Com registro (qualquer período): cai no cálculo normal com carga de 8h + extras
+        }
+
         const calc = this.calculateDayDetail(registro, minutosExtras, regra);
 
         return {
