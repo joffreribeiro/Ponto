@@ -4538,7 +4538,9 @@ function gerarTimesheetAcordo() {
                                 iso,
                                 reg
                             );
-                            monthSaldo += calc.saldo || 0;
+                            if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                                monthSaldo += calc.saldo || 0;
+                            }
                         }
                         runningAccum += monthSaldo;
                         mPtr.setMonth(mPtr.getMonth() + 1);
@@ -4593,7 +4595,9 @@ function gerarTimesheetAcordo() {
                         iso,
                         reg
                     );
-                    monthSaldo += calc.saldo || 0;
+                    if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                        monthSaldo += calc.saldo || 0;
+                    }
                 }
                 saldoAcumuladoPorMes[chave] = accumFiscal + monthSaldo;
                 accumFiscal += monthSaldo;
@@ -5011,9 +5015,6 @@ function gerarTimesheetAcordo() {
                                 }
 
                                 saldoMes += calc.saldo || 0;
-                                if (rowIndex === 7) {
-                                    saldoAcumuladoAtual += calc.saldo || 0;
-                                }
                             }
                         } else if (calc && !calc.temRegistro && calc.saldo < 0) {
                             // Dia sem registro mas com saldo negativo (ex: pagar_hora_acordo)

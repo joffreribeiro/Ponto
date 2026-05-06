@@ -23,7 +23,8 @@
       "PowerShell(Start-Process \"http://localhost:8765\")",
       "Bash(Get-ChildItem -Path \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\" -Recurse -File)",
       "Bash(Select-Object -ExpandProperty Name)",
-      "Bash(Sort-Object)"
+      "Bash(Sort-Object)",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
       "E:\\MEUS DOCUMENTOS\\OneDrive\\Documentos\\Sistemas\\Integrado"
