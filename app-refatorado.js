@@ -4538,7 +4538,10 @@ function gerarTimesheetAcordo() {
                                 iso,
                                 reg
                             );
-                            if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                            const evDia = calc.evento;
+                            const tiposNaoContarSaldo = ['pagar_hora_acordo', 'compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
+                            const eventoBloqueia = evDia && !tiposNaoContarSaldo.includes(evDia.tipoEvento) && (evDia.periodo || 'dia_todo') === 'dia_todo';
+                            if (!eventoBloqueia && (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0))) {
                                 monthSaldo += calc.saldo || 0;
                             }
                         }
@@ -4563,7 +4566,10 @@ function gerarTimesheetAcordo() {
                         iso,
                         reg
                     );
-                    if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                    const evDia = calc.evento;
+                    const tiposNaoContarSaldo = ['pagar_hora_acordo', 'compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
+                    const eventoBloqueia = evDia && !tiposNaoContarSaldo.includes(evDia.tipoEvento) && (evDia.periodo || 'dia_todo') === 'dia_todo';
+                    if (!eventoBloqueia && (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0))) {
                         saldoAcumuladoGeral += calc.saldo || 0;
                     }
                     cursor.setDate(cursor.getDate() + 1);
@@ -4597,7 +4603,10 @@ function gerarTimesheetAcordo() {
                         iso,
                         reg
                     );
-                    if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                    const evDia = calc.evento;
+                    const tiposNaoContarSaldo = ['pagar_hora_acordo', 'compensar_acordo', 'compensacao_acordo', 'compensação_acordo', 'pagar_hora', 'abono_acordo', 'abono'];
+                    const eventoBloqueia = evDia && !tiposNaoContarSaldo.includes(evDia.tipoEvento) && (evDia.periodo || 'dia_todo') === 'dia_todo';
+                    if (!eventoBloqueia && (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0))) {
                         monthSaldo += calc.saldo || 0;
                     }
                 }
