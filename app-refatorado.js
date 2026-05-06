@@ -4563,7 +4563,9 @@ function gerarTimesheetAcordo() {
                         iso,
                         reg
                     );
-                    saldoAcumuladoGeral += calc.saldo || 0;
+                    if (calc.temRegistro || (!calc.temRegistro && calc.saldo < 0)) {
+                        saldoAcumuladoGeral += calc.saldo || 0;
+                    }
                     cursor.setDate(cursor.getDate() + 1);
                 }
             }
