@@ -7170,134 +7170,182 @@ function renderizarAcordos() {
         container.innerHTML = '';
 
         if (!AppState.dados.acordos.length) {
-            const p = document.createElement('p');
-            p.className = 'small-text';
-            p.textContent = 'Nenhum acordo cadastrado ainda.';
-            container.appendChild(p);
+            container.innerHTML = `<div class="acordo-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg><p>Nenhum acordo cadastrado ainda.</p></div>`;
             return;
         }
 
-        // Exibir acordos ordenados do mais novo para o mais antigo
+        const TIPO_ICONES = { ferias: '🏖️', feriado: '📅', afastamento: '🏥', viagem: '✈️', folga: '☀️' };
+
         const sorted = getAcordosSortedByNewest();
-        sorted.forEach((item, displayIdx) => {
+        sorted.forEach((item) => {
             const a = item.a;
-            const idx = item.i; // original index in AppState.dados.acordos
-            const div = document.createElement('div');
-            div.className = 'acordo-card';
+            const idx = item.i;
+            const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
+            const benefInfo = (a.qtdAbono > 0 || a.qtdPagarHora > 0) ? calcularUsoBeneficiosAcordo(idx, a) : null;
 
-            const titulo = document.createElement('div');
-            titulo.className = 'acordo-titulo';
-            titulo.textContent = a.nome || `Acordo ${idx + 1}`;
-            div.appendChild(titulo);
+            // Determinar período ativo
+            const hoje = new Date().toISOString().slice(0, 10);
+            const periodoAtivo = (a.periodos || []).find(p => p.inicio <= hoje && (!p.fim || p.fim >= hoje));
+            const regraAtiva = (a.regrasHorario || []).find(r => r.inicio <= hoje && (!r.fim || r.fim >= hoje));
 
-            const subt1 = document.createElement('div');
-            subt1.className = 'acordo-subtitulo';
-            subt1.textContent = 'Períodos de compensação:';
-            div.appendChild(subt1);
+            const card = document.createElement('div');
+            card.className = 'acordo-card-v2';
 
-            const ul1 = document.createElement('ul');
-            ul1.className = 'acordo-lista';
-            (a.periodos || []).forEach(p => {
-                const li = document.createElement('li');
-                const inicioStr = dateIsoToBr(p.inicio) || p.inicio || '';
-                const fimStr = dateIsoToBr(p.fim) || p.fim || '';
-                li.textContent = `${inicioStr} a ${fimStr} (${p.minutosExtras} min/dia)`;
-                ul1.appendChild(li);
-            });
-            div.appendChild(ul1);
+            // ── Cabeçalho ──
+            const header = document.createElement('div');
+            header.className = 'acv2-header';
+            header.innerHTML = `
+                <div class="acv2-header-left">
+                    <span class="acv2-titulo">${a.nome || `Acordo ${idx + 1}`}</span>
+                    ${periodoAtivo ? `<span class="acv2-badge acv2-badge-active">Vigente</span>` : `<span class="acv2-badge acv2-badge-inactive">Encerrado</span>`}
+                </div>
+                <div class="acv2-header-actions">
+                    <button type="button" class="acv2-btn acv2-btn-ghost" data-action-editar="${idx}" title="Editar acordo">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z"/></svg>
+                        Editar
+                    </button>
+                    <button type="button" class="acv2-btn acv2-btn-primary" data-action-evento="${idx}" title="Novo evento">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd"/></svg>
+                        Evento
+                    </button>
+                </div>`;
+            card.appendChild(header);
 
-            const subt2 = document.createElement('div');
-            subt2.className = 'acordo-subtitulo';
-            subt2.textContent = 'Regras de horário:';
-            div.appendChild(subt2);
+            // ── Stats rápidas (regra ativa) ──
+            if (regraAtiva) {
+                const stats = document.createElement('div');
+                stats.className = 'acv2-stats';
+                const entrada = regraAtiva.inicioExpediente || '—';
+                const almoco = regraAtiva.almocoMin != null ? `${regraAtiva.almocoMin} min` : '—';
+                const extras = regraAtiva.minutosExtras != null ? `+${regraAtiva.minutosExtras} min/dia` : '—';
+                stats.innerHTML = `
+                    <div class="acv2-stat"><span class="acv2-stat-label">Entrada</span><span class="acv2-stat-value">${entrada}</span></div>
+                    <div class="acv2-stat"><span class="acv2-stat-label">Almoço</span><span class="acv2-stat-value">${almoco}</span></div>
+                    <div class="acv2-stat"><span class="acv2-stat-label">Extras/dia</span><span class="acv2-stat-value">${extras}</span></div>
+                    <div class="acv2-stat"><span class="acv2-stat-label">Eventos</span><span class="acv2-stat-value">${eventosAcordo.length}</span></div>`;
+                card.appendChild(stats);
+            }
 
-            const ul2 = document.createElement('ul');
-            ul2.className = 'acordo-lista';
-            (a.regrasHorario || []).forEach(r => {
-                const li = document.createElement('li');
-                li.textContent = `${r.inicio} a ${r.fim} - 8h + ${r.minutosExtras} min`;
-                ul2.appendChild(li);
-            });
-            div.appendChild(ul2);
+            // ── Seções colapsáveis ──
+            const sections = document.createElement('div');
+            sections.className = 'acv2-sections';
 
-            // Exibir resumo de Abono e Pagar Hora
-            if (a.qtdAbono > 0 || a.qtdPagarHora > 0) {
-                const subtBenef = document.createElement('div');
-                subtBenef.className = 'acordo-subtitulo';
-                subtBenef.textContent = 'Abono / Pagar Hora:';
-                div.appendChild(subtBenef);
+            // Seção: Períodos
+            const periodos = a.periodos || [];
+            sections.appendChild(_criarSecaoAcordo(
+                'Períodos de Compensação',
+                periodos.length ? periodos.map(p => {
+                    const ini = dateIsoToBr(p.inicio) || p.inicio || '';
+                    const fim = dateIsoToBr(p.fim) || p.fim || '';
+                    const ativo = p.inicio <= hoje && (!p.fim || p.fim >= hoje);
+                    return `<div class="acv2-row${ativo ? ' acv2-row-ativo' : ''}">
+                        <span>${ini} → ${fim}</span>
+                        <span class="acv2-chip">${p.minutosExtras} min/dia</span>
+                    </div>`;
+                }).join('') : '<p class="acv2-empty-section">Nenhum período cadastrado</p>',
+                periodos.length
+            ));
 
-                const benefInfo = calcularUsoBeneficiosAcordo(idx, a);
-                const ulBenef = document.createElement('ul');
-                ulBenef.className = 'acordo-lista';
-                
+            // Seção: Regras de Horário
+            const regras = a.regrasHorario || [];
+            sections.appendChild(_criarSecaoAcordo(
+                'Regras de Horário',
+                regras.length ? regras.map(r => {
+                    const ini = dateIsoToBr(r.inicio) || r.inicio || '';
+                    const fim = dateIsoToBr(r.fim) || r.fim || '';
+                    const ativo = r.inicio <= hoje && (!r.fim || r.fim >= hoje);
+                    const tolInfo = (r.tolAlmoco || r.tolSaida) ? ` · tol: ${r.tolAlmoco||0}/${r.tolSaida||0} min` : '';
+                    return `<div class="acv2-row${ativo ? ' acv2-row-ativo' : ''}">
+                        <div>
+                            <span>${ini} → ${fim}</span>
+                            <span class="acv2-row-sub">${r.inicioExpediente || ''} · almoço ${r.almocoMin ?? 60} min${tolInfo}</span>
+                        </div>
+                        <span class="acv2-chip">+${r.minutosExtras || 0} min/dia</span>
+                    </div>`;
+                }).join('') : '<p class="acv2-empty-section">Nenhuma regra cadastrada</p>',
+                regras.length
+            ));
+
+            // Seção: Benefícios (Abono / Pagar Hora)
+            if (benefInfo) {
+                const pctAbono = a.qtdAbono > 0 ? Math.round((benefInfo.usadoAbono / a.qtdAbono) * 100) : 0;
+                const pctPH = a.qtdPagarHora > 0 ? Math.round((benefInfo.usadoPagarHora / a.qtdPagarHora) * 100) : 0;
+                let benefHtml = '';
                 if (a.qtdAbono > 0) {
-                    const liAbono = document.createElement('li');
-                    liAbono.innerHTML = `Abono: <strong>${benefInfo.restanteAbono}</strong> meio-período(s) disponível (${benefInfo.usadoAbono} usado de ${a.qtdAbono})`;
-                    if (benefInfo.restanteAbono <= 0) liAbono.style.color = 'var(--error)';
-                    ulBenef.appendChild(liAbono);
+                    const esgotado = benefInfo.restanteAbono <= 0;
+                    benefHtml += `<div class="acv2-beneficio">
+                        <div class="acv2-beneficio-header">
+                            <span class="acv2-beneficio-label">Abono (meio-períodos)</span>
+                            <span class="acv2-beneficio-nums${esgotado ? ' acv2-esgotado' : ''}">${benefInfo.usadoAbono} / ${a.qtdAbono} usados</span>
+                        </div>
+                        <div class="acv2-progress"><div class="acv2-progress-bar${esgotado ? ' acv2-progress-danger' : ''}" style="width:${Math.min(pctAbono,100)}%"></div></div>
+                    </div>`;
                 }
                 if (a.qtdPagarHora > 0) {
-                    const liPH = document.createElement('li');
-                    liPH.innerHTML = `Pagar Hora: <strong>${benefInfo.restantePagarHora}</strong>h disponível (${benefInfo.usadoPagarHora}h usado de ${a.qtdPagarHora}h)`;
-                    if (benefInfo.restantePagarHora <= 0) liPH.style.color = 'var(--error)';
-                    ulBenef.appendChild(liPH);
+                    const esgotado = benefInfo.restantePagarHora <= 0;
+                    benefHtml += `<div class="acv2-beneficio">
+                        <div class="acv2-beneficio-header">
+                            <span class="acv2-beneficio-label">Pagar Hora</span>
+                            <span class="acv2-beneficio-nums${esgotado ? ' acv2-esgotado' : ''}">${benefInfo.usadoPagarHora}h / ${a.qtdPagarHora}h usados</span>
+                        </div>
+                        <div class="acv2-progress"><div class="acv2-progress-bar${esgotado ? ' acv2-progress-danger' : ''}" style="width:${Math.min(pctPH,100)}%"></div></div>
+                    </div>`;
                 }
-                div.appendChild(ulBenef);
+                sections.appendChild(_criarSecaoAcordo('Abono / Pagar Hora', benefHtml, true));
             }
 
-            const subt3 = document.createElement('div');
-            subt3.className = 'acordo-subtitulo';
-            subt3.textContent = 'Eventos e feriados:';
-            div.appendChild(subt3);
-
-            const ul3 = document.createElement('ul');
-            ul3.className = 'acordo-lista';
-                const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
-            if (!eventosAcordo.length) {
-                const li = document.createElement('li');
-                li.className = 'small-text';
-                li.textContent = 'Nenhum evento vinculado';
-                ul3.appendChild(li);
-            } else {
-                eventosAcordo.forEach(ev => {
-                    const li = document.createElement('li');
-                    const inicioEv = dateIsoToBr(ev.dataInicioEvento) || ev.dataInicioEvento || '';
+            // Seção: Eventos
+            sections.appendChild(_criarSecaoAcordo(
+                'Eventos e Feriados',
+                eventosAcordo.length ? eventosAcordo.map(ev => {
+                    const ini = dateIsoToBr(ev.dataInicioEvento) || ev.dataInicioEvento || '';
                     const fim = ev.dataFimEvento && ev.dataFimEvento !== ev.dataInicioEvento
-                        ? ` a ${dateIsoToBr(ev.dataFimEvento) || ev.dataFimEvento}`
-                        : '';
-                    li.textContent = `${ev.tipoEvento} - ${ev.descricaoEvento} (${inicioEv}${fim})`;
-                    ul3.appendChild(li);
+                        ? ` → ${dateIsoToBr(ev.dataFimEvento) || ev.dataFimEvento}` : '';
+                    const icone = TIPO_ICONES[ev.tipoEvento] || '📌';
+                    return `<div class="acv2-row acv2-row-evento">
+                        <span class="acv2-evento-tipo">${icone} ${ev.tipoEvento}</span>
+                        <span class="acv2-evento-desc">${ev.descricaoEvento}</span>
+                        <span class="acv2-evento-data">${ini}${fim}</span>
+                    </div>`;
+                }).join('') : '<p class="acv2-empty-section">Nenhum evento vinculado</p>',
+                eventosAcordo.length,
+                true
+            ));
+
+            card.appendChild(sections);
+            container.appendChild(card);
+
+            // Eventos dos botões
+            card.querySelector(`[data-action-editar="${idx}"]`).addEventListener('click', () => editarAcordo(idx));
+            card.querySelector(`[data-action-evento="${idx}"]`).addEventListener('click', () => abrirModalEventoParaAcordo(idx));
+
+            // Toggle de seções
+            card.querySelectorAll('.acv2-section-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const sec = btn.closest('.acv2-section');
+                    sec.classList.toggle('acv2-section-open');
                 });
-            }
-            div.appendChild(ul3);
-
-            const btnRow = document.createElement('div');
-            btnRow.className = 'form-row';
-            const btnEditar = document.createElement('button');
-            btnEditar.type = 'button';
-            btnEditar.className = 'btn-secondary';
-            btnEditar.textContent = 'Editar';
-            btnEditar.addEventListener('click', () => editarAcordo(idx));
-            btnRow.appendChild(btnEditar);
-
-            const btnEventos = document.createElement('button');
-            btnEventos.type = 'button';
-            btnEventos.className = 'btn-secondary';
-            btnEventos.textContent = 'Eventos';
-            btnEventos.addEventListener('click', () => abrirModalEventoParaAcordo(idx));
-            btnRow.appendChild(btnEventos);
-
-            div.appendChild(btnRow);
-            container.appendChild(div);
+            });
         });
 
-        // Atualiza selects dependentes (timesheet/eventos já atualizados em salvar, aqui garantimos registros)
         atualizarSelectAcordosRegistros();
         atualizarSelectAcordosFerias();
     } catch (error) {
         console.error('Erro ao renderizar acordos:', error);
     }
+}
+
+function _criarSecaoAcordo(titulo, conteudoHtml, temItens, iniciarFechada = false) {
+    const sec = document.createElement('div');
+    sec.className = 'acv2-section' + ((!iniciarFechada && temItens) ? ' acv2-section-open' : '');
+    sec.innerHTML = `
+        <button type="button" class="acv2-section-toggle">
+            <span class="acv2-section-titulo">${titulo}</span>
+            <span class="acv2-section-count">${typeof temItens === 'number' ? temItens : ''}</span>
+            <svg class="acv2-section-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>
+        </button>
+        <div class="acv2-section-body">${conteudoHtml}</div>`;
+    return sec;
 }
 
 // ============= UTILIDADES =============
