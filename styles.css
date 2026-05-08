@@ -2878,9 +2878,9 @@ td.evento-vertical {
     color: #9d174d !important;
 }
 
-/* Células cobertas por atestado de comparecimento */
+/* Células cobertas por atestado de comparecimento — amarelo */
 .ts-atestado-comparecimento {
-    background: #fef9c3 !important; /* amarelo mel suave */
+    background: #fef9c3 !important;
     color: #713f12 !important;
     border-left: 2px solid #facc15 !important;
     font-style: italic;
@@ -2889,6 +2889,19 @@ html[data-theme="dark"] .ts-atestado-comparecimento {
     background: rgba(250,204,21,.15) !important;
     color: #fde68a !important;
     border-left-color: #ca8a04 !important;
+}
+
+/* Células cobertas por abono — verde */
+.ts-abono {
+    background: #dcfce7 !important;
+    color: #14532d !important;
+    border-left: 2px solid #4ade80 !important;
+    font-style: italic;
+}
+html[data-theme="dark"] .ts-abono {
+    background: rgba(74,222,128,.12) !important;
+    color: #86efac !important;
+    border-left-color: #16a34a !important;
 }
 
 /* Eventos parciais: matutino (alinhado ao topo) e vespertino (alinhado ao rodapé) */

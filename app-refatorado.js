@@ -4008,14 +4008,18 @@ function renderizarTabelaRegistros() {
 
             const tr = document.createElement('tr');
 
-            // Mostrar atestado ou período marcado no registro (curto)
+            // Mostrar justificativa ou período marcado no registro (curto)
             let periodoDisplay = '';
             if (r.tipoAtestado) {
-                switch (r.tipoAtestado) {
-                    case 'afastamento': periodoDisplay = '🏥 Afastamento'; break;
-                    case 'comparecimento_matutino': periodoDisplay = '🌅 Ates. Manh.'; break;
-                    case 'comparecimento_vespertino': periodoDisplay = '☀️ Ates. Tarde'; break;
-                }
+                const _labelsTabela = {
+                    afastamento:               '🏥 Afastamento',
+                    comparecimento_matutino:   '🌅 Comp. Manhã',
+                    comparecimento_vespertino: '🌇 Comp. Tarde',
+                    abono_matutino:            '🟢 Abono Manhã',
+                    abono_vespertino:          '🟢 Abono Tarde',
+                    abono_dia_todo:            '🟢 Abono Dia',
+                };
+                periodoDisplay = _labelsTabela[r.tipoAtestado] || r.tipoAtestado;
             } else if (r.periodoEvento) {
                 switch (r.periodoEvento) {
                     case 'matutino': periodoDisplay = '☀️ Mat.'; break;
@@ -4080,12 +4084,6 @@ function abrirModalRegistro() {
     document.getElementById('observacoesRegistro').value = '';
     const per = document.getElementById('registroPeriodoEvento');
     if (per) per.value = '';
-    const tipoReg = document.getElementById('registroTipoEvento');
-    if (tipoReg && AppState.dados.tiposEvento && AppState.dados.tiposEvento.length > 0) {
-        tipoReg.value = AppState.dados.tiposEvento[0].id;
-    }
-    const criarChk = document.getElementById('registroCriarEvento');
-    if (criarChk) criarChk.checked = true;
     const atestadoSel = document.getElementById('registroTipoAtestado');
     if (atestadoSel) atestadoSel.value = '';
     _atualizarInfoAtestado('');
@@ -4101,9 +4099,12 @@ function _atualizarInfoAtestado(tipo) {
     const el = document.getElementById('mreg-atestado-info');
     if (!el) return;
     const msgs = {
-        afastamento: { icon: '🏥', text: 'Horários reais são preservados. No cálculo, o dia inteiro é considerado trabalhado (saldo zero).' },
-        comparecimento_matutino: { icon: '🌅', text: 'Horários reais são preservados. No cálculo, a <strong>entrada é tratada como 07:45</strong>. No timesheet, as células da manhã ficam destacadas em amarelo.' },
-        comparecimento_vespertino: { icon: '☀️', text: 'Horários reais são preservados. No cálculo, a <strong>jornada completa é considerada trabalhada</strong> (saldo zero). No timesheet, as células da tarde ficam destacadas em amarelo.' }
+        afastamento:               { icon: '🏥', text: 'Horários reais preservados. Dia inteiro considerado trabalhado — <strong>saldo zero</strong>.' },
+        comparecimento_matutino:   { icon: '🌅', text: 'Horários reais preservados. No cálculo, a <strong>entrada é tratada como 07:45</strong>. Células da manhã destacadas em amarelo no timesheet.' },
+        comparecimento_vespertino: { icon: '🌇', text: 'Horários reais preservados. <strong>Jornada completa considerada</strong> — saldo zero. Células da tarde destacadas em amarelo no timesheet.' },
+        abono_matutino:            { icon: '🟢', text: 'Horários reais preservados. Período da manhã <strong>abonado</strong> — saldo zero. Células da manhã destacadas em verde no timesheet.' },
+        abono_vespertino:          { icon: '🟢', text: 'Horários reais preservados. Período da tarde <strong>abonado</strong> — saldo zero. Células da tarde destacadas em verde no timesheet.' },
+        abono_dia_todo:            { icon: '🟢', text: 'Horários reais preservados. Dia inteiro <strong>abonado</strong> — saldo zero. Todas as células de horário destacadas em verde no timesheet.' },
     };
     if (msgs[tipo]) {
         el.innerHTML = `<span class="mreg-atestado-icon">${msgs[tipo].icon}</span><span>${msgs[tipo].text}</span>`;
@@ -4145,10 +4146,6 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         document.getElementById('observacoesRegistro').value = (r && r.observacoes) || '';
         const perSel = document.getElementById('registroPeriodoEvento');
         if (perSel) perSel.value = (r && r.periodoEvento) || '';
-        const tipoRegSel = document.getElementById('registroTipoEvento');
-        if (tipoRegSel) tipoRegSel.value = (r && r.tipoEventoRegistro) || (AppState.dados.tiposEvento && AppState.dados.tiposEvento[0] && AppState.dados.tiposEvento[0].id) || '';
-        const criarChk = document.getElementById('registroCriarEvento');
-        if (criarChk) criarChk.checked = (r && typeof r.createLinkedEvent !== 'undefined') ? Boolean(r.createLinkedEvent) : true;
         const atestadoSel = document.getElementById('registroTipoAtestado');
         if (atestadoSel) atestadoSel.value = (r && r.tipoAtestado) || '';
         _atualizarInfoAtestado((r && r.tipoAtestado) || '');
@@ -4181,10 +4178,22 @@ function salvarRegistro() {
         let retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
         let saida = document.getElementById('saidaRegistro').value;
         const observacoes = document.getElementById('observacoesRegistro').value;
-        const periodoEvento = document.getElementById('registroPeriodoEvento') ? document.getElementById('registroPeriodoEvento').value : '';
-        const tipoEventoRegistro = document.getElementById('registroTipoEvento') ? document.getElementById('registroTipoEvento').value : '';
-        let createLinkedEvent = document.getElementById('registroCriarEvento') ? Boolean(document.getElementById('registroCriarEvento').checked) : true;
         const tipoAtestado = document.getElementById('registroTipoAtestado') ? document.getElementById('registroTipoAtestado').value : '';
+
+        // Mapear tipoAtestado → periodoEvento e tipoEventoRegistro automaticamente
+        // Esses campos internos alimentam os eventos sintéticos do timesheet
+        const _mapa = {
+            afastamento:               { periodo: 'dia_todo',   tipo: 'afastamento' },
+            comparecimento_matutino:   { periodo: 'matutino',   tipo: 'afastamento' },
+            comparecimento_vespertino: { periodo: 'vespertino', tipo: 'afastamento' },
+            abono_matutino:            { periodo: 'matutino',   tipo: 'abono' },
+            abono_vespertino:          { periodo: 'vespertino', tipo: 'abono' },
+            abono_dia_todo:            { periodo: 'dia_todo',   tipo: 'abono' },
+        };
+        const _map = tipoAtestado ? (_mapa[tipoAtestado] || { periodo: '', tipo: '' }) : { periodo: '', tipo: '' };
+        const periodoEvento = _map.periodo;
+        const tipoEventoRegistro = _map.tipo;
+        const createLinkedEvent = !!periodoEvento;
 
         // Horários são sempre salvos como registrado — o cálculo usa o tipoAtestado para ajustar
         const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent, tipoAtestado };
@@ -4216,13 +4225,6 @@ function salvarRegistro() {
             if (acordoObj) acordoIndexForDay = AppState.dados.acordos.indexOf(acordoObj);
         } catch (e) {
             acordoIndexForDay = null;
-        }
-
-        // Tipos que devem sempre gerar um evento persistente quando marcados no registro
-        const tiposAutoEvento = ['abono_acordo', 'abono', 'pagar_hora_acordo'];
-        // Se o tipo do registro for um destes, forçar criação do evento (facilita fluxo via registro)
-        if (tiposAutoEvento.includes(tipoEventoRegistro)) {
-            createLinkedEvent = true;
         }
 
         if (periodoEvento && createLinkedEvent) {
@@ -4986,18 +4988,31 @@ function gerarTimesheetAcordo() {
                         }
                     }
 
-                    // Atestado de comparecimento: colorir período coberto pelo atestado
+                    // Justificativa: colorir células do período coberto
                     if (r && r.tipoAtestado && r.tipoAtestado !== 'afastamento') {
-                        // matutino: linhas 0 (entrada) e 1 (saída almoço)
-                        // vespertino: linhas 3 (retorno almoço) e 4 (saída)
-                        const linhasMatutino = [0, 1];
-                        const linhasVespertino = [3, 4];
-                        const linhas = r.tipoAtestado === 'comparecimento_matutino' ? linhasMatutino : linhasVespertino;
-                        if (linhas.includes(rowIndex)) {
-                            td.classList.add('ts-atestado-comparecimento');
-                            td.title = r.tipoAtestado === 'comparecimento_matutino'
-                                ? 'Atestado de comparecimento — período matutino (entrada ajustada para 07:45 no cálculo)'
-                                : 'Atestado de comparecimento — período vespertino (jornada completa considerada)';
+                        // matutino: entrada (0) + saída almoço (1)
+                        // vespertino: retorno almoço (3) + saída (4)
+                        // dia_todo: todas as linhas de horário (0-4)
+                        const ehMatutino = r.tipoAtestado === 'comparecimento_matutino' || r.tipoAtestado === 'abono_matutino';
+                        const ehVespertino = r.tipoAtestado === 'comparecimento_vespertino' || r.tipoAtestado === 'abono_vespertino';
+                        const ehDiaTodo = r.tipoAtestado === 'abono_dia_todo';
+                        const ehAbono = r.tipoAtestado.startsWith('abono_');
+
+                        let linhasCoberta = [];
+                        if (ehMatutino)  linhasCoberta = [0, 1];
+                        else if (ehVespertino) linhasCoberta = [3, 4];
+                        else if (ehDiaTodo)    linhasCoberta = [0, 1, 2, 3, 4];
+
+                        if (linhasCoberta.includes(rowIndex)) {
+                            td.classList.add(ehAbono ? 'ts-abono' : 'ts-atestado-comparecimento');
+                            const _labels = {
+                                comparecimento_matutino:   'Atestado de comparecimento — manhã (entrada considerada 07:45)',
+                                comparecimento_vespertino: 'Atestado de comparecimento — tarde (jornada completa considerada)',
+                                abono_matutino:            'Abono — manhã (saldo zerado)',
+                                abono_vespertino:          'Abono — tarde (saldo zerado)',
+                                abono_dia_todo:            'Abono — dia todo (saldo zerado)',
+                            };
+                            td.title = _labels[r.tipoAtestado] || '';
                         }
                     }
 

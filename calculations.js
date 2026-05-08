@@ -230,6 +230,25 @@ const Calculations = {
             };
         }
 
+        // Abono (manhã, tarde ou dia todo): horários reais preservados, saldo zero
+        if (registro && (registro.tipoAtestado === 'abono_matutino' ||
+                         registro.tipoAtestado === 'abono_vespertino' ||
+                         registro.tipoAtestado === 'abono_dia_todo')) {
+            const minutosExtrasRegra = regra.minutosExtras || 0;
+            const carga = 480 + minutosExtrasRegra;
+            return {
+                trabalhadas: carga,
+                saldo: 0,
+                temRegistro: true,
+                status: 'ok',
+                evento,
+                acordo,
+                regra,
+                tipoAtestado: registro.tipoAtestado,
+                detalhes: { carga, atestado: true }
+            };
+        }
+
         // Atestado de afastamento: dia inteiro coberto — saldo zero, carga cheia
         if (registro && registro.tipoAtestado === 'afastamento') {
             const minutosExtrasRegra = regra.minutosExtras || 0;
