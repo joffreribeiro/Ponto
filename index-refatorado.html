@@ -853,7 +853,30 @@
 
                 <div class="acordo-content">
                     <div id="acordo-overview" class="acordo-panel active">
-                        <p>Defina os períodos de compensação e regras de horário para este acordo.</p>
+                        <div class="acordo-overview-hint">
+                            <div class="acordo-overview-step">
+                                <span class="acordo-overview-num">1</span>
+                                <div>
+                                    <strong>Períodos</strong>
+                                    <p>Defina os intervalos de vigência do acordo e quantos minutos extras por dia são acumulados.</p>
+                                </div>
+                            </div>
+                            <div class="acordo-overview-step">
+                                <span class="acordo-overview-num">2</span>
+                                <div>
+                                    <strong>Regras de Horário</strong>
+                                    <p>Configure o horário de entrada, tolerâncias e tempo de almoço para cada faixa de vigência.</p>
+                                </div>
+                            </div>
+                            <div class="acordo-overview-step">
+                                <span class="acordo-overview-num">3</span>
+                                <div>
+                                    <strong>Abono / Pagar Hora</strong>
+                                    <p>Defina a cota de abonos e horas extras remuneradas disponíveis neste acordo.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="acordoOverviewResumo" class="acordo-overview-resumo" style="display:none;"></div>
                     </div>
 
                     <div id="acordo-periodos" class="acordo-panel">
@@ -871,14 +894,27 @@
                                 <tbody id="tabelaPeriodosAcordo"></tbody>
                             </table>
                         </div>
-                        <div class="form-group">
-                            <span class="group-label">Novo Período:</span>
-                            <input type="date" id="periodoInicio" placeholder="Início">
-                            <input type="date" id="periodoFim" placeholder="Fim">
-                            <input type="number" id="periodoMinutosExtras" placeholder="Minutos extras/dia" value="0">
-                            <button type="button" class="btn-secondary" id="btnAdicionarPeriodo">
-                                Adicionar Período
-                            </button>
+                        <div class="acordo-form-section">
+                            <div class="acordo-form-section-title">Novo Período</div>
+                            <div class="acordo-form-grid acordo-form-grid-3">
+                                <div class="form-group">
+                                    <label for="periodoInicio">Início</label>
+                                    <input type="date" id="periodoInicio">
+                                </div>
+                                <div class="form-group">
+                                    <label for="periodoFim">Fim</label>
+                                    <input type="date" id="periodoFim">
+                                </div>
+                                <div class="form-group">
+                                    <label for="periodoMinutosExtras">Minutos extras/dia</label>
+                                    <input type="number" id="periodoMinutosExtras" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="acordo-form-actions">
+                                <button type="button" class="btn-secondary" id="btnAdicionarPeriodo">
+                                    + Adicionar Período
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -907,20 +943,60 @@
                             </div>
                             <button class="scroll-btn scroll-btn-right" data-action="scrollTableRightNoEvent">›</button>
                         </div>
-                        <div class="form-group">
-                            <span class="group-label">Nova Regra:</span>
-                            <input type="date" id="regraInicio" placeholder="Início">
-                            <input type="date" id="regraFim" placeholder="Fim">
-                            <input type="number" id="regraMinutosExtras" placeholder="Minutos extras" value="0">
-                            <input type="time" id="regraInicioExpediente" placeholder="Início expediente">
-                            <input type="number" id="regraAlmoco" placeholder="Almoço (min)" value="60">
-                            <input type="number" id="regraTolAlmoco" placeholder="Tol. almoço (min)" value="5">
-                            <input type="number" id="regraTolSaida" placeholder="Tol. saída (min)" value="5">
-                            <input type="text" id="regraTipo" placeholder="Tipo">
-                            <input type="number" id="regraVale" placeholder="Vale (R$)" value="0">
-                            <button type="button" class="btn-secondary" id="btnAdicionarRegra">
-                                Adicionar Regra
-                            </button>
+                        <div class="acordo-form-section">
+                            <div class="acordo-form-section-title">Nova Regra</div>
+                            <div class="acordo-form-grid acordo-form-grid-2">
+                                <div class="form-group">
+                                    <label for="regraInicio">Início da vigência</label>
+                                    <input type="date" id="regraInicio">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regraFim">Fim da vigência</label>
+                                    <input type="date" id="regraFim">
+                                </div>
+                            </div>
+                            <div class="acordo-form-divider">Expediente</div>
+                            <div class="acordo-form-grid acordo-form-grid-2">
+                                <div class="form-group">
+                                    <label for="regraInicioExpediente">Horário de entrada</label>
+                                    <input type="time" id="regraInicioExpediente">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regraMinutosExtras">Minutos extras por dia</label>
+                                    <input type="number" id="regraMinutosExtras" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="acordo-form-divider">Almoço e Tolerâncias</div>
+                            <div class="acordo-form-grid acordo-form-grid-3">
+                                <div class="form-group">
+                                    <label for="regraAlmoco">Almoço (min)</label>
+                                    <input type="number" id="regraAlmoco" value="60" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regraTolAlmoco">Tolerância almoço (min)</label>
+                                    <input type="number" id="regraTolAlmoco" value="5" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regraTolSaida">Tolerância saída (min)</label>
+                                    <input type="number" id="regraTolSaida" value="5" min="0">
+                                </div>
+                            </div>
+                            <div class="acordo-form-divider">Classificação</div>
+                            <div class="acordo-form-grid acordo-form-grid-2">
+                                <div class="form-group">
+                                    <label for="regraTipo">Tipo de regra</label>
+                                    <input type="text" id="regraTipo" placeholder="ex: Normal, Especial...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="regraVale">Vale transporte (R$)</label>
+                                    <input type="number" id="regraVale" value="0" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="acordo-form-actions">
+                                <button type="button" class="btn-secondary" id="btnAdicionarRegra">
+                                    + Adicionar Regra
+                                </button>
+                            </div>
                         </div>
                     </div>
 

@@ -3419,10 +3419,116 @@ html[data-theme="dark"] .evento-aparencia-section { border-color: #334155; }
 .acordo-panel { display: none; }
 .acordo-panel.active { display: block; }
 
+/* Acordo: overview panel */
+.acordo-overview-hint {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 6px 0;
+}
+.acordo-overview-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.acordo-overview-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.acordo-overview-step strong {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 2px;
+}
+.acordo-overview-step p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-muted, #6b7280);
+    line-height: 1.45;
+}
+.acordo-overview-resumo {
+    margin-top: 16px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 12px;
+}
+
+/* Acordo: form sections inside panels */
+.acordo-form-section {
+    margin-top: 16px;
+    background: var(--bg-soft, #f8fafc);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 16px 18px 12px;
+}
+html[data-theme="dark"] .acordo-form-section {
+    background: rgba(255,255,255,0.04);
+}
+.acordo-form-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+.acordo-form-divider {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, #9ca3af);
+    border-top: 1px solid var(--border-soft);
+    margin: 14px 0 10px;
+    padding-top: 10px;
+}
+.acordo-form-grid {
+    display: grid;
+    gap: 10px 14px;
+}
+.acordo-form-grid-2 { grid-template-columns: 1fr 1fr; }
+.acordo-form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.acordo-form-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+#modalAcordo .modal-content {
+    max-width: 820px;
+    width: 95vw;
+}
+#modalAcordo .modal-body {
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+#modalAcordo .acordo-panels {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    margin-top: 14px;
+    align-items: start;
+}
+#modalAcordo .acordo-content {
+    min-width: 0;
+}
+
 @media (max-width: 800px) {
     .acordo-modal-grid { grid-template-columns: 1fr; }
     .acordo-sidebar { flex-direction: row; overflow-x: auto; }
     .acordo-side-btn { white-space: nowrap; }
+    .acordo-form-grid-2, .acordo-form-grid-3 { grid-template-columns: 1fr 1fr; }
+    #modalAcordo .acordo-panels { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+    .acordo-form-grid-2, .acordo-form-grid-3 { grid-template-columns: 1fr; }
 }
 
 .modal-content h2 {
