@@ -2878,6 +2878,31 @@ td.evento-vertical {
     color: #9d174d !important;
 }
 
+/* Badges de justificativa na tabela de registros */
+.reg-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+    line-height: 1.6;
+}
+.reg-badge-atestado {
+    background: #fef9c3;
+    color: #713f12;
+    border: 1px solid #facc15;
+}
+.reg-badge-abono {
+    background: #dcfce7;
+    color: #14532d;
+    border: 1px solid #4ade80;
+}
+html[data-theme="dark"] .reg-badge-atestado { background: rgba(250,204,21,.18); color: #fde68a; border-color: #ca8a04; }
+html[data-theme="dark"] .reg-badge-abono    { background: rgba(74,222,128,.15); color: #86efac; border-color: #16a34a; }
+.reg-col-justificativa { white-space: nowrap; }
+.reg-col-obs { max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: var(--text-muted); }
+
 /* Células cobertas por atestado de comparecimento — amarelo */
 .ts-atestado-comparecimento {
     background: #fef9c3 !important;

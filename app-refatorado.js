@@ -4029,21 +4029,39 @@ function renderizarTabelaRegistros() {
                 }
             }
 
+            // Badge HTML para justificativa
+            const _badgeCores = {
+                afastamento:               'reg-badge-atestado',
+                comparecimento_matutino:   'reg-badge-atestado',
+                comparecimento_vespertino: 'reg-badge-atestado',
+                abono_matutino:            'reg-badge-abono',
+                abono_vespertino:          'reg-badge-abono',
+                abono_dia_todo:            'reg-badge-abono',
+            };
+            const badgeClass = r.tipoAtestado ? (_badgeCores[r.tipoAtestado] || '') : '';
+            const periodoHTML = periodoDisplay
+                ? `<span class="reg-badge ${badgeClass}">${periodoDisplay}</span>`
+                : '';
+
             const colunas = [
                 { content: DateUtils.formatBR(r.data), className: '' },
                 { content: r.entrada || '', className: '' },
                 { content: r.saidaAlmoco || '', className: '' },
                 { content: r.retornoAlmoco || '', className: '' },
                 { content: r.saida || '', className: '' },
-                { content: periodoDisplay, className: '' },
+                { html: periodoHTML, className: 'reg-col-justificativa' },
                 { content: DateUtils.minutesToTime(calc.trabalhadas), className: '' },
                 { content: calc.saldo ? DateUtils.minutesToTime(calc.saldo) : '', className: classSaldo },
-                { content: r.observacoes || '', className: '' }
+                { content: r.observacoes || '', className: 'reg-col-obs' }
             ];
 
             colunas.forEach(col => {
                 const td = document.createElement('td');
-                td.textContent = col.content;
+                if (col.html !== undefined) {
+                    td.innerHTML = col.html;
+                } else {
+                    td.textContent = col.content;
+                }
                 if (col.className) td.className = col.className;
                 tr.appendChild(td);
             });
@@ -4181,7 +4199,6 @@ function salvarRegistro() {
         const tipoAtestado = document.getElementById('registroTipoAtestado') ? document.getElementById('registroTipoAtestado').value : '';
 
         // Mapear tipoAtestado → periodoEvento e tipoEventoRegistro automaticamente
-        // Esses campos internos alimentam os eventos sintéticos do timesheet
         const _mapa = {
             afastamento:               { periodo: 'dia_todo',   tipo: 'afastamento' },
             comparecimento_matutino:   { periodo: 'matutino',   tipo: 'afastamento' },
@@ -4195,8 +4212,61 @@ function salvarRegistro() {
         const tipoEventoRegistro = _map.tipo;
         const createLinkedEvent = !!periodoEvento;
 
+        // Autopreenchimento de horários em branco para abono
+        if (tipoAtestado && tipoAtestado.startsWith('abono_')) {
+            let regraAbono = null;
+            try {
+                const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, data);
+                if (acordoObj) regraAbono = Calculations.getRegraHorarioForDay(acordoObj, data);
+            } catch(e) {}
+            const almocoMin  = (regraAbono && regraAbono.almocoMin)        || 60;
+            const extrasMin  = (regraAbono && regraAbono.minutosExtras)    || 0;
+            const cargaMin   = 480 + extrasMin;
+            const entradaRef = (regraAbono && regraAbono.inicioExpediente) || '07:45';
+
+            // Helper: soma minutos a um string "HH:MM"
+            const addMin = (hhmm, min) => {
+                const base = DateUtils.timeToMinutes(hhmm);
+                if (base === null) return '';
+                const total = base + min;
+                return `${String(Math.floor(total / 60)).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}`;
+            };
+
+            if (tipoAtestado === 'abono_vespertino') {
+                // Cenário: trabalhador saiu para almoço mas não voltou (saída antecipada tarde)
+                // Entrada e saidaAlmoco já registradas → completar retorno e saída
+                const baseEntrada = entrada || entradaRef;
+                if (!retornoAlmoco && saidaAlmoco) retornoAlmoco = addMin(saidaAlmoco, almocoMin);
+                if (!saida) saida = addMin(baseEntrada, cargaMin + almocoMin);
+            } else if (tipoAtestado === 'abono_matutino') {
+                // Cenário: chegou tarde, precisa completar o dia
+                const baseEntrada = entrada || entradaRef;
+                if (!saidaAlmoco)  saidaAlmoco  = addMin(baseEntrada, cargaMin / 2);
+                if (!retornoAlmoco) retornoAlmoco = addMin(saidaAlmoco, almocoMin);
+                if (!saida)        saida         = addMin(baseEntrada, cargaMin + almocoMin);
+            } else if (tipoAtestado === 'abono_dia_todo') {
+                // Dia todo: preenche tudo a partir da entrada do acordo
+                const baseEntrada = entrada || entradaRef;
+                if (!entrada)      entrada       = entradaRef;
+                if (!saidaAlmoco)  saidaAlmoco   = addMin(baseEntrada, cargaMin / 2);
+                if (!retornoAlmoco) retornoAlmoco = addMin(saidaAlmoco, almocoMin);
+                if (!saida)        saida          = addMin(baseEntrada, cargaMin + almocoMin);
+            }
+        }
+
+        // Autopreenchimento de observações: registrar justificativa se obs vazia
+        const _labelsObs = {
+            afastamento:               'Atestado de afastamento',
+            comparecimento_matutino:   'Atestado de comparecimento — manhã',
+            comparecimento_vespertino: 'Atestado de comparecimento — tarde',
+            abono_matutino:            'Abono — período da manhã',
+            abono_vespertino:          'Abono — período da tarde',
+            abono_dia_todo:            'Abono — dia todo',
+        };
+        const obsFinal = observacoes || (tipoAtestado && _labelsObs[tipoAtestado] ? _labelsObs[tipoAtestado] : observacoes);
+
         // Horários são sempre salvos como registrado — o cálculo usa o tipoAtestado para ajustar
-        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent, tipoAtestado };
+        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes: obsFinal, periodoEvento, tipoEventoRegistro, createLinkedEvent, tipoAtestado };
 
         // Validar
         const erros = Validators.validateRegistro(registro);
