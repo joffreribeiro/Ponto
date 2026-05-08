@@ -755,67 +755,123 @@
 
 <!-- Modal Registro -->
 <div id="modalRegistro" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Registro de Ponto</h2>
-            <button type="button" class="modal-close" data-action="fecharModalRegistro"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
+    <div class="modal-content mreg-content">
+        <div class="modal-header mreg-header">
+            <div class="mreg-header-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <h2>Registro de Ponto</h2>
+            </div>
+            <button type="button" class="modal-close" data-action="fecharModalRegistro" aria-label="Fechar"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
         </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="dataRegistro">Data:</label>
-                <input type="date" id="dataRegistro" required>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="entradaRegistro">Entrada:</label>
-                    <input type="time" id="entradaRegistro">
+
+        <div class="modal-body mreg-body">
+
+            <!-- Linha: Data -->
+            <div class="mreg-date-row">
+                <div class="form-group mreg-date-group">
+                    <label for="dataRegistro">Data</label>
+                    <input type="date" id="dataRegistro" required>
                 </div>
-                <div class="form-group">
-                    <label for="saidaAlmocoRegistro">Saída Almoço:</label>
-                    <input type="time" id="saidaAlmocoRegistro">
+                <div id="mreg-dia-semana" class="mreg-weekday"></div>
+            </div>
+
+            <!-- Bloco: Horários -->
+            <div class="mreg-block">
+                <div class="mreg-block-label">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd"/></svg>
+                    Horários
+                </div>
+                <div class="mreg-times-grid">
+                    <div class="form-group mreg-time-group">
+                        <label for="entradaRegistro">Entrada</label>
+                        <input type="time" id="entradaRegistro" class="mreg-time-input">
+                        <span class="mreg-time-icon">→</span>
+                    </div>
+                    <div class="form-group mreg-time-group">
+                        <label for="saidaAlmocoRegistro">Saída almoço</label>
+                        <input type="time" id="saidaAlmocoRegistro" class="mreg-time-input">
+                    </div>
+                    <div class="form-group mreg-time-group">
+                        <label for="retornoAlmocoRegistro">Retorno almoço</label>
+                        <input type="time" id="retornoAlmocoRegistro" class="mreg-time-input">
+                    </div>
+                    <div class="form-group mreg-time-group">
+                        <label for="saidaRegistro">Saída</label>
+                        <input type="time" id="saidaRegistro" class="mreg-time-input">
+                        <span class="mreg-time-icon">←</span>
+                    </div>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="retornoAlmocoRegistro">Retorno Almoço:</label>
-                    <input type="time" id="retornoAlmocoRegistro">
+
+            <!-- Bloco: Atestado -->
+            <div class="mreg-block">
+                <div class="mreg-block-label">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path fill-rule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm2 6a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm1 3a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H7Z" clip-rule="evenodd"/></svg>
+                    Atestado Médico
                 </div>
-                <div class="form-group">
-                    <label for="saidaRegistro">Saída:</label>
-                    <input type="time" id="saidaRegistro">
+                <div class="mreg-atestado-row">
+                    <div class="form-group" style="flex:1">
+                        <label for="registroTipoAtestado">Tipo</label>
+                        <select id="registroTipoAtestado">
+                            <option value="">Nenhum</option>
+                            <option value="afastamento">Atestado de Afastamento (dia todo)</option>
+                            <option value="comparecimento_matutino">Atestado de Comparecimento — Matutino (manhã)</option>
+                            <option value="comparecimento_vespertino">Atestado de Comparecimento — Vespertino (tarde)</option>
+                        </select>
+                    </div>
                 </div>
+                <div id="mreg-atestado-info" class="mreg-atestado-info" style="display:none;"></div>
             </div>
-            <div class="form-group full-row">
-                <label for="observacoesRegistro">Observações:</label>
-                <textarea id="observacoesRegistro" rows="2"></textarea>
+
+            <!-- Bloco: Ausência no timesheet -->
+            <div class="mreg-block">
+                <div class="mreg-block-label">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13"><path d="M5.433 13.917l1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"/><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"/></svg>
+                    Marcar no Timesheet
+                </div>
+                <div class="mreg-periodo-row">
+                    <div class="form-group" style="flex:1">
+                        <label for="registroPeriodoEvento">Período de ausência</label>
+                        <select id="registroPeriodoEvento">
+                            <option value="">Nenhum</option>
+                            <option value="dia_todo">Dia todo</option>
+                            <option value="matutino">Somente manhã</option>
+                            <option value="vespertino">Somente tarde</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="mreg-hint">Destaca ausência no timesheet. Independente do atestado acima.</p>
             </div>
-            <div class="form-group full-row">
-                <label for="registroPeriodoEvento">Marcar ausência no timesheet:</label>
-                <select id="registroPeriodoEvento">
-                    <option value="">Nenhum</option>
-                    <option value="dia_todo">Dia todo</option>
-                    <option value="matutino">Somente manhã</option>
-                    <option value="vespertino">Somente tarde</option>
-                </select>
-                <p class="small-text" style="margin-top:6px;">Destaca parte do dia no timesheet: <strong>Somente manhã</strong>, <strong>Somente tarde</strong> ou <strong>Dia todo</strong>. Útil para informar saída antecipada ou ausência parcial.</p>
-            </div>
-            <div class="form-group">
-                <label for="registroCriarEvento" style="display:flex;align-items:center;gap:8px;">
+
+            <!-- Bloco: Evento vinculado -->
+            <div class="mreg-block mreg-block-evento">
+                <label class="mreg-checkbox-label">
                     <input type="checkbox" id="registroCriarEvento" checked>
-                    Criar evento na aba Eventos a partir deste registro
+                    <span>Criar evento na aba Eventos a partir deste registro</span>
                 </label>
+                <div class="form-group mreg-tipo-evento-group">
+                    <label for="registroTipoEvento">Tipo do evento</label>
+                    <select id="registroTipoEvento">
+                        <!-- populado dinamicamente -->
+                    </select>
+                </div>
+                <p class="mreg-hint">O evento é independente. Alterá-lo em Eventos não afeta os horários registrados aqui.</p>
             </div>
-            <div class="form-group full-row">
-                <label for="registroTipoEvento">Tipo do evento a registrar:</label>
-                <select id="registroTipoEvento">
-                    <!-- será populado dinamicamente -->
-                </select>
-                <p class="small-text" style="margin-top:4px;">O evento criado é independente deste registro. Alterá-lo na aba <strong>Eventos</strong> não modifica os horários registrados aqui.</p>
+
+            <!-- Observações -->
+            <div class="form-group mreg-obs-group">
+                <label for="observacoesRegistro">Observações</label>
+                <textarea id="observacoesRegistro" rows="2" placeholder="Opcional…"></textarea>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" data-action="fecharModalRegistro"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></span> Cancelar</button>
-            <button type="button" class="btn-primary" data-action="salvarRegistro" data-auth="true"><span class="icon"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h4.66V9h3.84L12 2z"/></svg></span> Salvar</button>
+
+        </div><!-- /.mreg-body -->
+
+        <div class="modal-footer mreg-footer">
+            <button type="button" class="btn-secondary" data-action="fecharModalRegistro">Cancelar</button>
+            <button type="button" class="btn-primary" data-action="salvarRegistro" data-auth="true">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z"/><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/></svg>
+                Salvar
+            </button>
         </div>
     </div>
 </div>

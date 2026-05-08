@@ -2576,6 +2576,21 @@ document.addEventListener('DOMContentLoaded', () => {
             try { AppState.flushAutoSave(); } catch (e) { /* ignore */ }
         }
     });
+
+    // Listener: tipo de atestado → info dinâmica
+    const atestadoSelEl = document.getElementById('registroTipoAtestado');
+    if (atestadoSelEl) {
+        atestadoSelEl.addEventListener('change', () => _atualizarInfoAtestado(atestadoSelEl.value));
+    }
+
+    // Listener: data do registro → dia da semana
+    const dataRegEl = document.getElementById('dataRegistro');
+    if (dataRegEl) {
+        dataRegEl.addEventListener('change', () => {
+            const iso = dateBrToIso ? dateBrToIso(dataRegEl.value) : dataRegEl.value;
+            _atualizarDiaSemanaMReg(iso || dataRegEl.value);
+        });
+    }
 });
 
 /**
@@ -3993,9 +4008,15 @@ function renderizarTabelaRegistros() {
 
             const tr = document.createElement('tr');
 
-            // Mostrar período marcado no registro (curto)
+            // Mostrar atestado ou período marcado no registro (curto)
             let periodoDisplay = '';
-            if (r.periodoEvento) {
+            if (r.tipoAtestado) {
+                switch (r.tipoAtestado) {
+                    case 'afastamento': periodoDisplay = '🏥 Afastamento'; break;
+                    case 'comparecimento_matutino': periodoDisplay = '🌅 Ates. Manh.'; break;
+                    case 'comparecimento_vespertino': periodoDisplay = '☀️ Ates. Tarde'; break;
+                }
+            } else if (r.periodoEvento) {
                 switch (r.periodoEvento) {
                     case 'matutino': periodoDisplay = '☀️ Mat.'; break;
                     case 'vespertino': periodoDisplay = '🌙 Ves.'; break;
@@ -4065,11 +4086,44 @@ function abrirModalRegistro() {
     }
     const criarChk = document.getElementById('registroCriarEvento');
     if (criarChk) criarChk.checked = true;
+    const atestadoSel = document.getElementById('registroTipoAtestado');
+    if (atestadoSel) atestadoSel.value = '';
+    _atualizarInfoAtestado('');
+    _atualizarDiaSemanaMReg('');
     document.getElementById('modalRegistro').classList.add('active');
 }
 
 function fecharModalRegistro() {
     document.getElementById('modalRegistro').classList.remove('active');
+}
+
+function _atualizarInfoAtestado(tipo) {
+    const el = document.getElementById('mreg-atestado-info');
+    if (!el) return;
+    const msgs = {
+        afastamento: { icon: '🏥', text: 'Horários reais são preservados. No cálculo, o dia inteiro é considerado trabalhado (saldo zero).' },
+        comparecimento_matutino: { icon: '🌅', text: 'Horários reais são preservados. No cálculo, a <strong>entrada é tratada como 07:45</strong>. No timesheet, as células da manhã ficam destacadas em amarelo.' },
+        comparecimento_vespertino: { icon: '☀️', text: 'Horários reais são preservados. No cálculo, a <strong>jornada completa é considerada trabalhada</strong> (saldo zero). No timesheet, as células da tarde ficam destacadas em amarelo.' }
+    };
+    if (msgs[tipo]) {
+        el.innerHTML = `<span class="mreg-atestado-icon">${msgs[tipo].icon}</span><span>${msgs[tipo].text}</span>`;
+        el.style.display = 'flex';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+function _atualizarDiaSemanaMReg(dataIso) {
+    const el = document.getElementById('mreg-dia-semana');
+    if (!el) return;
+    if (!dataIso) { el.textContent = ''; return; }
+    try {
+        const DIAS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+        const [y, m, d] = dataIso.split('-').map(Number);
+        const dia = new Date(y, m - 1, d).getDay();
+        el.textContent = DIAS[dia];
+        el.className = 'mreg-weekday' + (dia === 0 || dia === 6 ? ' mreg-weekday-fim' : '');
+    } catch(e) { el.textContent = ''; }
 }
 
 /**
@@ -4095,6 +4149,10 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
         if (tipoRegSel) tipoRegSel.value = (r && r.tipoEventoRegistro) || (AppState.dados.tiposEvento && AppState.dados.tiposEvento[0] && AppState.dados.tiposEvento[0].id) || '';
         const criarChk = document.getElementById('registroCriarEvento');
         if (criarChk) criarChk.checked = (r && typeof r.createLinkedEvent !== 'undefined') ? Boolean(r.createLinkedEvent) : true;
+        const atestadoSel = document.getElementById('registroTipoAtestado');
+        if (atestadoSel) atestadoSel.value = (r && r.tipoAtestado) || '';
+        _atualizarInfoAtestado((r && r.tipoAtestado) || '');
+        _atualizarDiaSemanaMReg(dataStr);
 
         document.getElementById('modalRegistro').classList.add('active');
 
@@ -4118,16 +4176,18 @@ function abrirEdicaoDiaTimesheet(dataStr, focusField = null) {
 function salvarRegistro() {
     try {
         const data = dateBrToIso(document.getElementById('dataRegistro').value);
-        const entrada = document.getElementById('entradaRegistro').value;
-        const saidaAlmoco = document.getElementById('saidaAlmocoRegistro').value;
-        const retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
-        const saida = document.getElementById('saidaRegistro').value;
+        let entrada = document.getElementById('entradaRegistro').value;
+        let saidaAlmoco = document.getElementById('saidaAlmocoRegistro').value;
+        let retornoAlmoco = document.getElementById('retornoAlmocoRegistro').value;
+        let saida = document.getElementById('saidaRegistro').value;
         const observacoes = document.getElementById('observacoesRegistro').value;
         const periodoEvento = document.getElementById('registroPeriodoEvento') ? document.getElementById('registroPeriodoEvento').value : '';
         const tipoEventoRegistro = document.getElementById('registroTipoEvento') ? document.getElementById('registroTipoEvento').value : '';
         let createLinkedEvent = document.getElementById('registroCriarEvento') ? Boolean(document.getElementById('registroCriarEvento').checked) : true;
+        const tipoAtestado = document.getElementById('registroTipoAtestado') ? document.getElementById('registroTipoAtestado').value : '';
 
-        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent };
+        // Horários são sempre salvos como registrado — o cálculo usa o tipoAtestado para ajustar
+        const registro = { data, entrada, saidaAlmoco, retornoAlmoco, saida, observacoes, periodoEvento, tipoEventoRegistro, createLinkedEvent, tipoAtestado };
 
         // Validar
         const erros = Validators.validateRegistro(registro);
@@ -4231,6 +4291,10 @@ function editarRegistro(index) {
         document.getElementById('observacoesRegistro').value = r.observacoes || '';
         const perSel = document.getElementById('registroPeriodoEvento');
         if (perSel) perSel.value = r.periodoEvento || '';
+        const atestadoSel2 = document.getElementById('registroTipoAtestado');
+        if (atestadoSel2) atestadoSel2.value = r.tipoAtestado || '';
+        _atualizarInfoAtestado(r.tipoAtestado || '');
+        _atualizarDiaSemanaMReg(r.data);
 
         document.getElementById('modalRegistro').classList.add('active');
     } catch (error) {
@@ -4908,28 +4972,32 @@ function gerarTimesheetAcordo() {
                     // Dia útil normal (ou compensação de acordo)
                     const r = mapaReg[dia.dataStr] || null;
                     const td = document.createElement('td');
-                    
+
                     // Para eventos abono/pagar_hora/compensar, colorir as células correspondentes ao período
                     if (isCompensar && ev) {
                         const periodoEv = ev.periodo || 'dia_todo';
-                        // Determinar se esta linha está no período do evento
                         let linhaNoEvento = false;
-                        if (periodoEv === 'matutino' && rowIndex >= 0 && rowIndex <= 3) {
-                            linhaNoEvento = true;
-                        } else if (periodoEv === 'vespertino' && rowIndex >= 3 && rowIndex <= 5) {
-                            linhaNoEvento = true;
-                        } else if (periodoEv === 'dia_todo') {
-                            // Para dia_todo, colorir todas as linhas de horário (0-5)
-                            linhaNoEvento = (rowIndex >= 0 && rowIndex <= 5);
-                        }
-                        
+                        if (periodoEv === 'matutino' && rowIndex >= 0 && rowIndex <= 3) linhaNoEvento = true;
+                        else if (periodoEv === 'vespertino' && rowIndex >= 3 && rowIndex <= 5) linhaNoEvento = true;
+                        else if (periodoEv === 'dia_todo') linhaNoEvento = (rowIndex >= 0 && rowIndex <= 5);
                         if (linhaNoEvento) {
-                            // Aplicar classe baseada no tipo de evento
-                            if (ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono') {
-                                td.classList.add('evento-abono-periodo');
-                            } else if (ev.tipoEvento === 'pagar_hora_acordo') {
-                                td.classList.add('evento-pagar-hora-periodo');
-                            }
+                            if (ev.tipoEvento === 'abono_acordo' || ev.tipoEvento === 'abono') td.classList.add('evento-abono-periodo');
+                            else if (ev.tipoEvento === 'pagar_hora_acordo') td.classList.add('evento-pagar-hora-periodo');
+                        }
+                    }
+
+                    // Atestado de comparecimento: colorir período coberto pelo atestado
+                    if (r && r.tipoAtestado && r.tipoAtestado !== 'afastamento') {
+                        // matutino: linhas 0 (entrada) e 1 (saída almoço)
+                        // vespertino: linhas 3 (retorno almoço) e 4 (saída)
+                        const linhasMatutino = [0, 1];
+                        const linhasVespertino = [3, 4];
+                        const linhas = r.tipoAtestado === 'comparecimento_matutino' ? linhasMatutino : linhasVespertino;
+                        if (linhas.includes(rowIndex)) {
+                            td.classList.add('ts-atestado-comparecimento');
+                            td.title = r.tipoAtestado === 'comparecimento_matutino'
+                                ? 'Atestado de comparecimento — período matutino (entrada ajustada para 07:45 no cálculo)'
+                                : 'Atestado de comparecimento — período vespertino (jornada completa considerada)';
                         }
                     }
 

@@ -198,6 +198,55 @@ const Calculations = {
         const minutosExtras = this.getMinutosExtrasForDay(acordo, dataStr);
         const regra = this.getRegraHorarioForDay(acordo, dataStr);
 
+        // Atestado de comparecimento vespertino: jornada completa — saldo sempre zero
+        // Horários reais são mantidos no registro; o cálculo ignora-os e retorna carga cheia
+        if (registro && registro.tipoAtestado === 'comparecimento_vespertino') {
+            const minutosExtrasRegra = regra.minutosExtras || 0;
+            const carga = 480 + minutosExtrasRegra;
+            return {
+                trabalhadas: carga,
+                saldo: 0,
+                temRegistro: true,
+                status: 'ok',
+                evento,
+                acordo,
+                regra,
+                tipoAtestado: 'comparecimento_vespertino',
+                detalhes: { carga, atestado: true }
+            };
+        }
+
+        // Atestado de comparecimento matutino: entrada efetiva = 07:45 (ignora hora real registrada)
+        if (registro && registro.tipoAtestado === 'comparecimento_matutino') {
+            const entradaEfetiva = (regra && regra.inicioExpediente) || '07:45';
+            const registroAjustado = { ...registro, entrada: entradaEfetiva };
+            const calc = this.calculateDayDetail(registroAjustado, minutosExtras, regra);
+            return {
+                ...calc,
+                evento,
+                acordo,
+                regra,
+                tipoAtestado: 'comparecimento_matutino'
+            };
+        }
+
+        // Atestado de afastamento: dia inteiro coberto — saldo zero, carga cheia
+        if (registro && registro.tipoAtestado === 'afastamento') {
+            const minutosExtrasRegra = regra.minutosExtras || 0;
+            const carga = 480 + minutosExtrasRegra;
+            return {
+                trabalhadas: carga,
+                saldo: 0,
+                temRegistro: true,
+                status: 'ok',
+                evento,
+                acordo,
+                regra,
+                tipoAtestado: 'afastamento',
+                detalhes: { carga, atestado: true }
+            };
+        }
+
         // Dias marcados como "Pagar Hora (Acordo)" = ausência total ou parcial, saldo negativo
         if (evento && evento.tipoEvento === 'pagar_hora_acordo') {
             const minutosExtrasRegra = regra.minutosExtras || 0;
@@ -208,7 +257,6 @@ const Calculations = {
             const temPonto = registro && (registro.entrada || registro.saida);
 
             if (!temPonto) {
-                // Sem registro: desconta o período inteiro
                 const cargaPeriodo = meioPeriodo ? cargaDia / 2 : cargaDia;
                 return {
                     trabalhadas: 0,
@@ -221,7 +269,6 @@ const Calculations = {
                     detalhes: { carga: cargaPeriodo }
                 };
             }
-            // Com registro (qualquer período): cai no cálculo normal com carga de 8h + extras
         }
 
         const calc = this.calculateDayDetail(registro, minutosExtras, regra);
