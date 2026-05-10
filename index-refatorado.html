@@ -565,65 +565,95 @@
 
             <!-- Registros -->
             <div id="ponto-registros" class="subtab-content">
-                <div class="card">
-                    <h3>Registros de Ponto</h3>
-                    <div class="toolbar">
-                        <div>
-                            <label for="filtroAcordoRegistros">Acordo:</label>
-                            <select id="filtroAcordoRegistros"></select>
+                <div class="card rp-card">
+                    <!-- Cabeçalho da seção -->
+                    <div class="rp-header">
+                        <div class="rp-header-left">
+                            <h3 class="rp-title">Registros de Ponto</h3>
+                            <div class="rp-acordo-wrap">
+                                <label for="filtroAcordoRegistros" class="rp-acordo-label">Acordo</label>
+                                <select id="filtroAcordoRegistros" class="rp-acordo-select"></select>
+                            </div>
                         </div>
-                        <button type="button" class="btn-primary" data-action="abrirModalNovoRegistro" data-auth="true"><span class="icon">➕</span> Novo Registro</button>
-                        <span style="flex:1;"></span>
-                        <button type="button" class="btn-secondary btn-excel" onclick="exportarRegistrosCSV()" title="Exportar em formato CSV">
-                            <span class="icon">📥</span> Exportar CSV
-                        </button>
-                        <button type="button" class="btn-secondary btn-excel" onclick="document.getElementById('importarRegistrosInput').click()" title="Importar de arquivo CSV">
-                            <span class="icon">📤</span> Importar CSV
-                        </button>
-                        <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display:none;">
+                        <div class="rp-header-right">
+                            <button type="button" class="btn-secondary rp-btn-icon" onclick="exportarRegistrosCSV()" title="Exportar CSV">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Exportar</span>
+                            </button>
+                            <button type="button" class="btn-secondary rp-btn-icon" onclick="document.getElementById('importarRegistrosInput').click()" title="Importar CSV">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Importar</span>
+                            </button>
+                            <input type="file" id="importarRegistrosInput" accept=".csv" onchange="importarRegistrosCSV(event)" style="display:none;">
+                            <button type="button" class="btn-primary rp-btn-novo" data-action="abrirModalNovoRegistro" data-auth="true">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Novo Registro
+                            </button>
+                        </div>
                     </div>
-                    <!-- Filtros da tabela -->
-                    <div class="filtros-registros" style="display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; padding:10px; background:var(--bg-secondary); border-radius:6px;">
-                        <input type="date" id="filtroRegDataDe" placeholder="Data De" title="Filtrar a partir de" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
-                        <input type="date" id="filtroRegDataAte" placeholder="Data Até" title="Filtrar até" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
-                        <select id="filtroRegPeriodo" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
-                            <option value="">Todos Períodos</option>
-                        </select>
-                        <select id="filtroRegSaldo" style="padding:6px 8px; border:1px solid var(--border); border-radius:4px;">
-                            <option value="">Todos Saldos</option>
-                            <option value="positivo">Saldo Positivo</option>
-                            <option value="negativo">Saldo Negativo</option>
-                            <option value="zero">Saldo Zero</option>
-                        </select>
-                        <input type="text" id="filtroRegObs" placeholder="Buscar observações..." style="padding:6px 8px; border:1px solid var(--border); border-radius:4px; min-width:150px;">
-                        <button type="button" class="btn-secondary" onclick="limparFiltrosRegistros()" style="padding:6px 12px;">Limpar</button>
+
+                    <!-- Painel de filtros -->
+                    <div class="rp-filters">
+                        <div class="rp-filter-group">
+                            <label class="rp-filter-label">Período</label>
+                            <div class="rp-filter-dates">
+                                <input type="date" id="filtroRegDataDe" title="Data inicial" class="rp-filter-input">
+                                <span class="rp-filter-sep">–</span>
+                                <input type="date" id="filtroRegDataAte" title="Data final" class="rp-filter-input">
+                            </div>
+                        </div>
+                        <div class="rp-filter-group">
+                            <label class="rp-filter-label">Justificativa</label>
+                            <select id="filtroRegPeriodo" class="rp-filter-input rp-filter-select">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="rp-filter-group">
+                            <label class="rp-filter-label">Saldo</label>
+                            <select id="filtroRegSaldo" class="rp-filter-input rp-filter-select">
+                                <option value="">Todos</option>
+                                <option value="positivo">Positivo ▲</option>
+                                <option value="negativo">Negativo ▼</option>
+                                <option value="zero">Zerado</option>
+                            </select>
+                        </div>
+                        <div class="rp-filter-group rp-filter-obs">
+                            <label class="rp-filter-label">Observação</label>
+                            <input type="text" id="filtroRegObs" placeholder="Buscar..." class="rp-filter-input">
+                        </div>
+                        <button type="button" class="rp-btn-limpar" onclick="limparFiltrosRegistros()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            Limpar
+                        </button>
                     </div>
-                    <div class="table-container">
-                        <table id="tabelaRegistros">
+
+                    <!-- Tabela -->
+                    <div class="rp-table-wrap">
+                        <table id="tabelaRegistros" class="rp-table">
                             <colgroup>
-                                <col style="width:90px" />  <!-- DATA -->
-                                <col style="width:90px" />  <!-- ENTRADA -->
-                                <col style="width:110px" /> <!-- SAÍDA ALMOÇO -->
-                                <col style="width:110px" /> <!-- RETORNO ALMOÇO -->
-                                <col style="width:90px" />  <!-- SAÍDA -->
-                                <col style="width:90px" />  <!-- PERÍODO -->
-                                <col style="width:90px" />  <!-- TOTAL -->
-                                <col style="width:90px" />  <!-- SALDO -->
-                                <col style="width:85px" />  <!-- OBSERVAÇÕES (largura de 'Expediente') -->
-                                <col style="width:110px" /> <!-- AÇÕES -->
+                                <col class="rp-col-data" />
+                                <col class="rp-col-hora" />
+                                <col class="rp-col-hora" />
+                                <col class="rp-col-hora" />
+                                <col class="rp-col-hora" />
+                                <col class="rp-col-justi" />
+                                <col class="rp-col-total" />
+                                <col class="rp-col-saldo" />
+                                <col class="rp-col-obs" />
+                                <col class="rp-col-acoes" />
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>DATA</th>
-                                    <th>ENTRADA</th>
-                                    <th>SAÍDA ALMOÇO</th>
-                                    <th>RETORNO ALMOÇO</th>
-                                    <th>SAÍDA</th>
-                                    <th>PERÍODO</th>
-                                    <th>TOTAL</th>
-                                    <th>SALDO</th>
-                                    <th>OBSERVAÇÕES</th>
-                                    <th>AÇÕES</th>
+                                    <th>Data</th>
+                                    <th>Entrada</th>
+                                    <th>Saída Almoço</th>
+                                    <th>Retorno Almoço</th>
+                                    <th>Saída</th>
+                                    <th>Justificativa</th>
+                                    <th>Total</th>
+                                    <th>Saldo</th>
+                                    <th>Observações</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1691,8 +1721,8 @@ document.addEventListener('DOMContentLoaded', function(){
         Array.from(tbody.rows).forEach(row => {
             let match = true;
             
-            // Filtro por data (coluna 0)
-            const dataCell = row.cells[0]?.innerText?.trim() || '';
+            // Filtro por data (coluna 0) — lê só o span da data, ignorando o dia da semana
+            const dataCell = (row.cells[0]?.querySelector('.rp-data-dia')?.innerText || row.cells[0]?.innerText || '').trim();
             if (dataDe || dataAte) {
                 const partes = dataCell.split('/');
                 if (partes.length === 3) {
@@ -1714,12 +1744,15 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (!periodoCell.includes(periodo)) match = false;
             }
             
-            // Filtro por saldo (coluna 7)
+            // Filtro por saldo (coluna 7) — detecta pela classe do chip
             if (saldo && match) {
-                const saldoCell = row.cells[7]?.innerText?.trim() || '';
-                if (saldo === 'positivo' && !saldoCell.startsWith('+')) match = false;
-                if (saldo === 'negativo' && !saldoCell.startsWith('-')) match = false;
-                if (saldo === 'zero' && saldoCell !== '00:00' && saldoCell !== '0:00') match = false;
+                const saldoChip = row.cells[7]?.querySelector('.rp-saldo-chip');
+                const temPositivo = saldoChip && saldoChip.classList.contains('saldo-positivo');
+                const temNegativo = saldoChip && saldoChip.classList.contains('saldo-negativo');
+                const temZero     = saldoChip && saldoChip.classList.contains('rp-saldo-zero');
+                if (saldo === 'positivo' && !temPositivo) match = false;
+                if (saldo === 'negativo' && !temNegativo) match = false;
+                if (saldo === 'zero'     && !temZero)     match = false;
             }
             
             // Filtro por observações (coluna 8)

@@ -4007,6 +4007,7 @@ function renderizarTabelaRegistros() {
                 calc.saldo < 0 ? 'saldo-negativo' : '';
 
             const tr = document.createElement('tr');
+            tr.className = 'rp-tr';
 
             // Mostrar justificativa ou período marcado no registro (curto)
             let periodoDisplay = '';
@@ -4043,16 +4044,30 @@ function renderizarTabelaRegistros() {
                 ? `<span class="reg-badge ${badgeClass}">${periodoDisplay}</span>`
                 : '';
 
+            // Data com dia da semana
+            const _diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+            const _dateParts = r.data ? r.data.split('-') : null;
+            let _diaSemana = '';
+            if (_dateParts && _dateParts.length === 3) {
+                const _dObj = new Date(Number(_dateParts[0]), Number(_dateParts[1]) - 1, Number(_dateParts[2]));
+                _diaSemana = _diasSemana[_dObj.getDay()] || '';
+            }
+            const _isSabDom = _diaSemana === 'Sáb' || _diaSemana === 'Dom';
+            if (_isSabDom) tr.classList.add('rp-tr-fds');
+            const dataHTML = `<span class="rp-data-dia">${DateUtils.formatBR(r.data)}</span><span class="rp-data-dsem${_isSabDom ? ' rp-data-fds' : ''}">${_diaSemana}</span>`;
+
+            const _fmtHora = (h) => h ? `<span class="rp-hora">${h}</span>` : `<span class="rp-hora rp-hora-vazia">—</span>`;
+
             const colunas = [
-                { content: DateUtils.formatBR(r.data), className: '' },
-                { content: r.entrada || '', className: '' },
-                { content: r.saidaAlmoco || '', className: '' },
-                { content: r.retornoAlmoco || '', className: '' },
-                { content: r.saida || '', className: '' },
-                { html: periodoHTML, className: 'reg-col-justificativa' },
-                { content: DateUtils.minutesToTime(calc.trabalhadas), className: '' },
-                { content: calc.saldo ? DateUtils.minutesToTime(calc.saldo) : '', className: classSaldo },
-                { content: r.observacoes || '', className: 'reg-col-obs' }
+                { html: dataHTML, className: 'rp-td-data' + (_isSabDom ? ' rp-td-fds' : '') },
+                { html: _fmtHora(r.entrada), className: 'rp-td-hora' },
+                { html: _fmtHora(r.saidaAlmoco), className: 'rp-td-hora' },
+                { html: _fmtHora(r.retornoAlmoco), className: 'rp-td-hora' },
+                { html: _fmtHora(r.saida), className: 'rp-td-hora' },
+                { html: periodoHTML, className: 'rp-td-justi' },
+                { content: DateUtils.minutesToTime(calc.trabalhadas), className: 'rp-td-total' },
+                { html: calc.saldo ? `<span class="rp-saldo-chip ${classSaldo}">${DateUtils.minutesToTime(calc.saldo)}</span>` : '<span class="rp-saldo-chip rp-saldo-zero">—</span>', className: 'rp-td-saldo' },
+                { content: r.observacoes || '', className: 'rp-td-obs' }
             ];
 
             colunas.forEach(col => {
@@ -4068,20 +4083,21 @@ function renderizarTabelaRegistros() {
 
             // Botões de ação
             const tdActions = document.createElement('td');
-            
+            tdActions.className = 'rp-td-acoes';
+
             const btnEdit = document.createElement('button');
             btnEdit.type = 'button';
-            btnEdit.className = 'btn-secondary btn-icon';
+            btnEdit.className = 'rp-btn-acao rp-btn-editar';
             btnEdit.setAttribute('title', 'Editar registro');
-            btnEdit.innerHTML = (typeof svgIcon === 'function')? svgIcon('edit', { title: 'Editar registro', color: 'currentColor' }) : '✏️';
+            btnEdit.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
             btnEdit.addEventListener('click', () => editarRegistro(r._idx));
             tdActions.appendChild(btnEdit);
 
             const btnDel = document.createElement('button');
             btnDel.type = 'button';
-            btnDel.className = 'btn-error btn-icon';
-            btnDel.setAttribute('title', 'Deletar registro');
-            btnDel.innerHTML = (typeof svgIcon === 'function')? svgIcon('trash', { title: 'Remover', color: 'currentColor' }) : '🗑️';
+            btnDel.className = 'rp-btn-acao rp-btn-deletar';
+            btnDel.setAttribute('title', 'Excluir registro');
+            btnDel.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
             btnDel.addEventListener('click', () => excluirRegistro(r._idx));
             tdActions.appendChild(btnDel);
 
