@@ -373,6 +373,9 @@ tbody tr:nth-child(even) {
 tbody tr:hover {
     background: var(--primary-soft) !important;
 }
+.timesheet-table tbody tr:hover {
+    background: unset !important;
+}
 
 tbody td {
     padding: 10px 12px !important;

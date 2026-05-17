@@ -4805,6 +4805,23 @@ function gerarTimesheetAcordo() {
             table.addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
             table.addEventListener('selectstart', e => e.preventDefault());
 
+            const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
+            const _isSpecial = td => _specialCls.some(c => td.classList.contains(c));
+            let _hoveredTds = [];
+            table.addEventListener('mouseover', e => {
+                const td = e.target.closest('td');
+                if (!td || !table.contains(td)) return;
+                const tr = td.closest('tr');
+                if (!tr) return;
+                _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
+                _hoveredTds = Array.from(tr.cells).filter(c => !_isSpecial(c));
+                _hoveredTds.forEach(c => c.classList.add('ts-row-hover'));
+            });
+            table.addEventListener('mouseleave', () => {
+                _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
+                _hoveredTds = [];
+            });
+
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');
             const thTipo = document.createElement('th');
