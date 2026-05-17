@@ -5166,23 +5166,22 @@ select.field-invalid:focus {
 .table-container tbody tr:hover {
     background: rgba(30, 58, 138, 0.04);
 }
-.timesheet-table tbody tr:hover,
+/* Hover na timesheet: só células normais ficam azul, especiais mantêm cor */
 .timesheet-table tbody tr:hover td {
-    background: unset !important;
-}
-.timesheet-table tbody tr:hover td:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado) {
     background: var(--primary-soft) !important;
 }
-/* Preservar cores originais das células especiais durante hover */
-.timesheet-table tbody tr:hover td.col-fimsemana          { background: #BFBFBF !important; }
+.timesheet-table tbody td {
+    background: transparent;
+}
+.timesheet-table tbody tr:hover td.col-fimsemana            { background: #BFBFBF !important; }
 .timesheet-table tbody tr:hover td.col-saldo-anterior,
-.timesheet-table tbody tr:hover td.col-saldo-acumulado    { background: unset !important; }
-.timesheet-table tbody tr:hover td.evento-feriado         { background: #ffe4e6 !important; }
-.timesheet-table tbody tr:hover td.evento-ferias          { background: #fef9c3 !important; }
-.timesheet-table tbody tr:hover td.evento-viagem          { background: #ede9fe !important; }
-.timesheet-table tbody tr:hover td.evento-outro           { background: #f3f4f6 !important; }
-.timesheet-table tbody tr:hover td.evento-abono-acordo    { background: #dcfce7 !important; }
-.timesheet-table tbody tr:hover td.evento-abono-periodo   { background: #dcfce7 !important; }
+.timesheet-table tbody tr:hover td.col-saldo-acumulado      { background: transparent !important; }
+.timesheet-table tbody tr:hover td.evento-feriado           { background: #ffe4e6 !important; }
+.timesheet-table tbody tr:hover td.evento-ferias            { background: #fef9c3 !important; }
+.timesheet-table tbody tr:hover td.evento-viagem            { background: #ede9fe !important; }
+.timesheet-table tbody tr:hover td.evento-outro             { background: #f3f4f6 !important; }
+.timesheet-table tbody tr:hover td.evento-abono-acordo      { background: #dcfce7 !important; }
+.timesheet-table tbody tr:hover td.evento-abono-periodo     { background: #dcfce7 !important; }
 .timesheet-table tbody tr:hover td.evento-pagar-hora-acordo { background: #fef9c3 !important; }
 /* Dark mode zebra */
 html[data-theme="dark"] .table-container tbody tr:nth-child(even) {
