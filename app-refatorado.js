@@ -5390,6 +5390,34 @@ function gerarTimesheetAcordo() {
                 const cells = Array.from(r.cells || []);
                 console.info('TS-DUMP row cells:', cells.map(c => ({ class: c.className, bg: getComputedStyle(c).backgroundColor, text: (c.textContent||'').trim().slice(0,40) })));
             });
+            // Scan all timesheet TDs for non-transparent computed backgrounds (suspicious)
+            try {
+                const allTds = Array.from(document.querySelectorAll('.timesheet-table td'));
+                const suspicious = [];
+                allTds.forEach(td => {
+                    try {
+                        const cs = getComputedStyle(td);
+                        const bg = cs.backgroundColor || '';
+                        const bgImg = cs.backgroundImage || '';
+                        const inlineBg = (td.style && td.style.background) ? td.style.background : '';
+                        const nonTransparent = (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent');
+                        const hasBgImage = (bgImg && bgImg !== 'none' && bgImg !== 'initial');
+                        if (nonTransparent || hasBgImage || inlineBg) {
+                            const tr = td.closest('tr');
+                            const tbody = td.closest('tbody');
+                            const rowIndex = tr && tbody ? Array.from(tbody.children).indexOf(tr) : -1;
+                            const colIndex = td.parentElement ? Array.from(td.parentElement.children).indexOf(td) : -1;
+                            const monthWrap = td.closest('.timesheet-mes');
+                            const monthInfo = monthWrap ? { year: monthWrap.dataset.year, month: monthWrap.dataset.month } : null;
+                            suspicious.push({ el: td, classes: td.className, text: (td.textContent||'').trim().slice(0,40), bg, bgImg, inlineBg, rowIndex, colIndex, monthInfo });
+                        }
+                    } catch (inner) { /* ignore per-td errors */ }
+                });
+                console.info('TS-DUMP: suspicious timesheet TDs with computed background/image/inline-style:', suspicious.length);
+                suspicious.forEach(s => console.info(s));
+            } catch (scanErr) {
+                console.error('TS-DUMP scan error', scanErr);
+            }
         } catch (e) { console.error('TS-DUMP error', e); }
     };
 
