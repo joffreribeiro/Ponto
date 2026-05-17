@@ -4812,7 +4812,7 @@ function gerarTimesheetAcordo() {
                 const td = e.target.closest('td');
                 if (!td || !table.contains(td)) return;
                 const tr = td.closest('tr');
-                if (!tr) return;
+                if (!tr || !tr.closest('tbody')) return;
                 _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
                 _hoveredTds = Array.from(tr.cells).filter(c => !_isSpecial(c));
                 _hoveredTds.forEach(c => c.classList.add('ts-row-hover'));
