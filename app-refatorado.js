@@ -4798,7 +4798,7 @@ function gerarTimesheetAcordo() {
             wrapper.appendChild(titulo);
 
             const tableContainer = document.createElement('div');
-            tableContainer.className = 'table-container';
+            tableContainer.className = 'table-container timesheet-wrapper';
 
             const table = document.createElement('table');
             table.className = 'timesheet-table';
