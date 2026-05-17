@@ -4805,31 +4805,9 @@ function gerarTimesheetAcordo() {
             table.addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
             table.addEventListener('selectstart', e => e.preventDefault());
 
-            const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
-            const _isSpecial = td => _specialCls.some(c => td.classList.contains(c));
-            let _hoveredTds = [];
-            table.addEventListener('mouseover', e => {
-                const td = e.target.closest('td');
-                // Se não houver célula válida sob o cursor, limpar hover atual
-                if (!td || !table.contains(td)) {
-                    _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
-                    _hoveredTds = [];
-                    return;
-                }
-                const tr = td.closest('tr');
-                if (!tr || !tr.closest('tbody')) {
-                    _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
-                    _hoveredTds = [];
-                    return;
-                }
-                _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
-                _hoveredTds = Array.from(tr.cells).filter(c => !_isSpecial(c));
-                _hoveredTds.forEach(c => c.classList.add('ts-row-hover'));
-            });
-            table.addEventListener('mouseleave', () => {
-                _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
-                _hoveredTds = [];
-            });
+            /* Hover visual do timesheet agora é controlado por CSS (mais confiável).
+               Removido o gerenciamento via JS de classes 'ts-row-hover' para evitar
+               highlights presos. */
 
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');
@@ -5390,24 +5368,77 @@ function gerarTimesheetAcordo() {
 
 // ============= EVENTOS =============
 
-// Garantir listener global para limpar highlights presos no timesheet
-if (typeof window !== 'undefined' && !window._timesheetMouseHandlerInstalled) {
-    window._timesheetMouseHandlerInstalled = true;
-    document.addEventListener('mousemove', function (e) {
+// Debug temporário: instalar handlers para registrar eventos do mouse
+// no timesheet e inspecionar por que o destaque fica preso.
+(function() {
+    if (typeof window === 'undefined') return;
+    if (window._timesheetDebugInstalled) return;
+    window._timesheetDebugInstalled = true;
+
+    // Habilitar logs por padrão conforme solicitado
+    window._tsDebugEnabled = true;
+    window.enableTimesheetLogs = function() { window._tsDebugEnabled = true; console.info('Timesheet logs ENABLED'); };
+    window.disableTimesheetLogs = function() { window._tsDebugEnabled = false; console.info('Timesheet logs DISABLED'); };
+
+    window.dumpTimesheetHoverState = function() {
         try {
-            // Se o cursor não estiver dentro de alguma tabela do timesheet, remover highlights
-            if (!e.target || (typeof e.target.closest === 'function' && !e.target.closest('.timesheet-table'))) {
-                const stuck = document.querySelectorAll('.ts-row-hover');
-                if (stuck && stuck.length) {
-                    stuck.forEach(el => el.classList.remove('ts-row-hover'));
-                }
-            }
-        } catch (err) {
-            // evitar quebrar outras coisas
-            console.debug('timesheet mousemove cleanup error', err);
-        }
+            const tsHoverElems = Array.from(document.querySelectorAll('.ts-row-hover'));
+            const cssHoveredRows = Array.from(document.querySelectorAll('.timesheet-table tr:hover'));
+            console.info('TS-DUMP: elements with .ts-row-hover:', tsHoverElems);
+            console.info('TS-DUMP: rows currently hovered by CSS (:hover):', cssHoveredRows);
+            cssHoveredRows.forEach(r => {
+                const cells = Array.from(r.cells || []);
+                console.info('TS-DUMP row cells:', cells.map(c => ({ class: c.className, bg: getComputedStyle(c).backgroundColor, text: (c.textContent||'').trim().slice(0,40) })));
+            });
+        } catch (e) { console.error('TS-DUMP error', e); }
+    };
+
+    var _tsLastLog = 0;
+    var _tsThrottle = 150; // ms
+
+    document.addEventListener('pointermove', function (e) {
+        if (!window._tsDebugEnabled) return;
+        var now = Date.now();
+        if (now - _tsLastLog < _tsThrottle) return;
+        _tsLastLog = now;
+        try {
+            var t = e.target;
+            var td = t && t.closest ? t.closest('td') : null;
+            var tr = t && t.closest ? t.closest('tr') : null;
+            var withinTimesheet = t && t.closest ? !!t.closest('.timesheet-table') : false;
+            var tsRowHoverCount = document.querySelectorAll('.ts-row-hover').length;
+            var cssHoveredCount = document.querySelectorAll('.timesheet-table tr:hover').length;
+            var tdCls = td ? td.className : '';
+            var tdTxt = td ? (td.textContent||'').trim().slice(0,30) : '';
+            var trBg = tr ? getComputedStyle(tr).backgroundColor : '';
+            console.log('[TS-LOG] pointermove withinTimesheet=' + withinTimesheet + ' tdCls="' + tdCls + '" tdText="' + tdTxt + '" tsRowHoverCount=' + tsRowHoverCount + ' cssHoveredCount=' + cssHoveredCount + ' trBg=' + trBg);
+        } catch (err) { console.error('TS-LOG pointermove error', err); }
     }, { passive: true });
-}
+
+    document.addEventListener('pointerover', function (e) {
+        if (!window._tsDebugEnabled) return;
+        try {
+            var t = e.target;
+            var td = t && t.closest ? t.closest('td') : null;
+            var tr = t && t.closest ? t.closest('tr') : null;
+            var withinTimesheet = t && t.closest ? !!t.closest('.timesheet-table') : false;
+            console.info('[TS-LOG] pointerover withinTimesheet=' + withinTimesheet + ' target=' + (t && t.nodeName) + ' td=' + (td ? td.className : 'none') + ' tr=' + (tr ? (tr.className||'row') : 'none'));
+            if (!withinTimesheet) window.dumpTimesheetHoverState();
+        } catch (err) { console.error('TS-LOG pointerover error', err); }
+    }, true);
+
+    document.addEventListener('pointerout', function (e) {
+        if (!window._tsDebugEnabled) return;
+        try {
+            var t = e.target;
+            var withinTimesheet = t && t.closest ? !!t.closest('.timesheet-table') : false;
+            console.info('[TS-LOG] pointerout withinTimesheet=' + withinTimesheet + ' target=' + (t && t.nodeName));
+            if (!withinTimesheet) window.dumpTimesheetHoverState();
+        } catch (err) { console.error('TS-LOG pointerout error', err); }
+    }, true);
+
+    console.info('Timesheet debug installed — use enableTimesheetLogs()/disableTimesheetLogs()/dumpTimesheetHoverState()');
+})();
 
 // Sincroniza um evento do tipo 'ferias' com os períodos aquisitivos salvos
 function sincronizarFeriasComPeriodos(evento) {
