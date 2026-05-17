@@ -712,3 +712,399 @@ input:focus, select:focus, textarea:focus {
   background-image: none !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   TIMESHEET VISUAL REDESIGN — Precision Ledger
+   Tipografia mono para dados, cabeçalho escuro denso, saldos com pill badges,
+   separadores refinados, eventos com chips saturados.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+/* ── Variáveis locais do timesheet ─────────────────────────────────────── */
+:root {
+  --ts-header-from:   #0f1c3f;
+  --ts-header-to:     #1a2f6e;
+  --ts-header-accent: #3b82f6;
+  --ts-row-odd:       #ffffff;
+  --ts-row-even:      #f7f9fc;
+  --ts-border:        #dde3ef;
+  --ts-label-bg:      #f0f4fa;
+  --ts-label-color:   #334155;
+  --ts-fds-bg:        #eaecf1;
+  --ts-fds-stripe:    repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,.04) 3px,
+    rgba(0,0,0,.04) 6px
+  );
+  --ts-sep-color:     #1e3a8a;
+  --ts-mono:          'JetBrains Mono', 'Courier New', monospace;
+  --ts-display:       'Syne', 'DM Sans', sans-serif;
+  --ts-radius:        12px;
+}
+
+/* ── Container do mês ───────────────────────────────────────────────────── */
+.timesheet-mes {
+  margin-top: 20px !important;
+  border-radius: var(--ts-radius) !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 16px rgba(15,28,63,.10), 0 1px 3px rgba(15,28,63,.06) !important;
+  border: 1px solid var(--ts-border) !important;
+}
+
+/* ── Cabeçalho do mês (título) ──────────────────────────────────────────── */
+.timesheet-header {
+  background: linear-gradient(135deg, var(--ts-header-from) 0%, var(--ts-header-to) 100%) !important;
+  color: #ffffff !important;
+  font-family: var(--ts-display) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  padding: 10px 16px !important;
+  border-radius: 0 !important;
+  border-bottom: 2px solid var(--ts-header-accent) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.timesheet-header::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ts-header-accent);
+  box-shadow: 0 0 0 2px rgba(59,130,246,.35);
+  flex-shrink: 0;
+}
+
+/* ── Container da tabela ────────────────────────────────────────────────── */
+.timesheet-mes .table-container,
+.timesheet-mes .timesheet-wrapper {
+  border-radius: 0 !important;
+  border-top: none !important;
+  overflow-x: auto !important;
+  background: var(--ts-row-odd) !important;
+  margin-top: 0 !important;
+}
+
+/* ── Tabela base ────────────────────────────────────────────────────────── */
+.timesheet-table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  font-family: var(--ts-mono) !important;
+  font-size: 11px !important;
+}
+
+/* ── THEAD: cabeçalho das colunas ──────────────────────────────────────── */
+.timesheet-table thead th {
+  background: linear-gradient(180deg, #1e3a8a 0%, #1a3278 100%) !important;
+  color: rgba(255,255,255,.9) !important;
+  font-family: var(--ts-mono) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: .02em !important;
+  padding: 4px 3px !important;
+  border-right: 1px solid rgba(255,255,255,.08) !important;
+  border-bottom: none !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.timesheet-table thead th:first-child {
+  background: linear-gradient(180deg, #0f1c3f 0%, #122050 100%) !important;
+  min-width: 88px !important;
+  font-family: var(--ts-display) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+
+/* Dia: abreviação em cima, número em baixo */
+.th-dia {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1px !important;
+  padding: 3px 2px !important;
+  line-height: 1 !important;
+}
+.th-dia-semana {
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  opacity: .75 !important;
+  line-height: 1 !important;
+  color: rgba(255,255,255,.8) !important;
+}
+.th-dia-num {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: #ffffff !important;
+  margin-top: 0 !important;
+}
+
+/* Saldo no cabeçalho */
+.timesheet-table thead th.th-saldo-anterior,
+.timesheet-table thead th.th-saldo-acumulado {
+  background: linear-gradient(180deg, #0f1c3f 0%, #122050 100%) !important;
+  font-family: var(--ts-display) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,.75) !important;
+}
+
+/* ── TBODY: células normais ─────────────────────────────────────────────── */
+.timesheet-table tbody tr {
+  border-bottom: 1px solid var(--ts-border) !important;
+}
+.timesheet-table tbody tr:nth-child(odd) td:not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not(.evento-vertical):not([class*="evento"]) {
+  background: var(--ts-row-odd) !important;
+}
+.timesheet-table tbody tr:nth-child(even) td:not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not(.evento-vertical):not([class*="evento"]) {
+  background: var(--ts-row-even) !important;
+}
+.timesheet-table tbody td {
+  font-family: var(--ts-mono) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+  padding: 0 4px !important;
+  height: 28px !important;
+  border-right: 1px solid var(--ts-border) !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
+  transition: background .1s !important;
+}
+
+/* ── Coluna TIPO (primeira coluna) ──────────────────────────────────────── */
+.timesheet-table tbody td:first-child {
+  background: var(--ts-label-bg) !important;
+  color: var(--ts-label-color) !important;
+  font-family: var(--ts-display) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .03em !important;
+  text-align: left !important;
+  padding: 0 10px !important;
+  border-right: 2px solid var(--ts-border) !important;
+  white-space: nowrap !important;
+}
+
+/* ── Horários clicáveis ─────────────────────────────────────────────────── */
+.timesheet-table td.ts-clickable {
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+.timesheet-table td.ts-clickable:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
+/* ── Colunas de saldo ───────────────────────────────────────────────────── */
+.timesheet-table td.col-saldo-anterior,
+.timesheet-table td.col-saldo-acumulado {
+  background: #eef2fb !important;
+  border-left: 2px solid #bfcbef !important;
+  border-right: 2px solid #bfcbef !important;
+  color: #1e3a8a !important;
+  font-family: var(--ts-mono) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.timesheet-table td.col-saldo-anterior .saldo-vertical-text,
+.timesheet-table td.col-saldo-acumulado .saldo-vertical-text {
+  writing-mode: vertical-rl !important;
+  text-orientation: upright !important;
+  letter-spacing: .06em !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  opacity: .8 !important;
+}
+
+/* ── Fins de semana ─────────────────────────────────────────────────────── */
+.timesheet-table td.col-fimsemana {
+  background: var(--ts-fds-bg) !important;
+  background-image: var(--ts-fds-stripe) !important;
+  color: transparent !important;
+  border-right: 1px solid #cdd1da !important;
+}
+
+/* ── Linha: Duração Almoço ──────────────────────────────────────────────── */
+.timesheet-table tbody tr.row-duracao-almoco td:not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not(.evento-vertical) {
+  background: #f1f5fb !important;
+  color: #475569 !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+}
+
+/* ── Separador azul (linha entre Saída e Horas Trabalhadas) ─────────────── */
+.timesheet-table tbody tr.row-separador-azul td {
+  background: var(--ts-sep-color) !important;
+  padding: 0 !important;
+  height: 2px !important;
+  border: none !important;
+  line-height: 0 !important;
+}
+
+/* ── Linha: Horas Trabalhadas ───────────────────────────────────────────── */
+.timesheet-table tbody tr:has(td.ts-horas-trabalhadas) td:not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not(.evento-vertical) {
+  background: #f8faff !important;
+}
+
+/* ── Linha: Saldo do Mês ────────────────────────────────────────────────── */
+.timesheet-table tbody tr.row-saldo-mes td {
+  background: linear-gradient(90deg, #f0f4fd 0%, #e8eef9 100%) !important;
+  font-family: var(--ts-display) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+  border-top: 2px solid #bfcbef !important;
+  color: #0f1c3f !important;
+}
+.timesheet-table tbody tr.row-saldo-mes td:first-child {
+  background: linear-gradient(90deg, #e8eef9 0%, #dbe4f5 100%) !important;
+  color: #0f1c3f !important;
+  letter-spacing: .08em !important;
+}
+
+/* ── Saldo positivo / negativo ──────────────────────────────────────────── */
+.timesheet-table td.saldo-positivo {
+  background: #dcfce7 !important;
+  color: #14532d !important;
+  font-weight: 700 !important;
+  font-family: var(--ts-mono) !important;
+  border-radius: 0 !important;
+  outline: 2px solid #bbf7d0;
+  outline-offset: -2px;
+}
+.timesheet-table td.saldo-negativo {
+  background: #fee2e2 !important;
+  color: #7f1d1d !important;
+  font-weight: 700 !important;
+  font-family: var(--ts-mono) !important;
+  border-radius: 0 !important;
+  outline: 2px solid #fecaca;
+  outline-offset: -2px;
+}
+
+/* ── Eventos verticais ──────────────────────────────────────────────────── */
+td.evento-vertical {
+  font-family: var(--ts-mono) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em !important;
+  border-left: none !important;
+  border-right: 1px solid rgba(0,0,0,.08) !important;
+  opacity: .95 !important;
+}
+.evento-feriado    { background: #fef2f2 !important; color: #b91c1c !important; border-left: 3px solid #ef4444 !important; }
+.evento-ferias     { background: #fffbeb !important; color: #92400e !important; border-left: 3px solid #f59e0b !important; }
+.evento-afastamento{ background: #eff6ff !important; color: #1d4ed8 !important; border-left: 3px solid #3b82f6 !important; }
+.evento-viagem     { background: #f5f3ff !important; color: #6d28d9 !important; border-left: 3px solid #8b5cf6 !important; }
+.evento-abono-acordo{ background: #f0fdf4 !important; color: #15803d !important; border-left: 3px solid #22c55e !important; }
+.evento-compensar-acordo{ background: #fff7ed !important; color: #c2410c !important; border-left: 3px solid #fb923c !important; }
+.evento-outro      { background: #f8fafc !important; color: #475569 !important; border-left: 3px solid #94a3b8 !important; }
+
+/* Períodos parciais */
+.evento-abono-periodo    { background: #f0fdf4 !important; color: #15803d !important; }
+.evento-pagar-hora-periodo { background: #fdf2f8 !important; color: #9d174d !important; }
+
+/* ── Justificativas inline ──────────────────────────────────────────────── */
+.ts-atestado-comparecimento {
+  background: #fffbeb !important;
+  color: #92400e !important;
+  border-left: 2px solid #f59e0b !important;
+  font-style: italic !important;
+}
+.ts-abono {
+  background: #f0fdf4 !important;
+  color: #14532d !important;
+  border-left: 2px solid #22c55e !important;
+  font-style: italic !important;
+}
+
+/* ── Hover refinado ─────────────────────────────────────────────────────── */
+.timesheet-table tbody td.ts-row-hover:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="col-fds"]):not([class*="evento"]) {
+  background: #dbeafe !important;
+  color: #1e293b !important;
+  transition: background .08s !important;
+}
+.timesheet-table tbody td.ts-row-hover.evento-vertical,
+.timesheet-table tbody td.ts-row-hover.col-fimsemana,
+.timesheet-table tbody td.ts-row-hover.col-saldo-anterior,
+.timesheet-table tbody td.ts-row-hover.col-saldo-acumulado,
+.timesheet-table tbody td.ts-row-hover[class*="evento"] {
+  background: revert !important;
+}
+
+/* ── Célula atual (mês corrente) ────────────────────────────────────────── */
+.timesheet-current {
+  box-shadow: 0 0 0 2px rgba(59,130,246,.3) !important;
+  border-radius: var(--ts-radius) !important;
+  outline: none !important;
+}
+.timesheet-current .timesheet-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+  border-bottom-color: #60a5fa !important;
+}
+.timesheet-current .timesheet-header::before {
+  background: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96,165,250,.4), 0 0 8px rgba(96,165,250,.6) !important;
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+html[data-theme="dark"] {
+  --ts-row-odd:    #1e2535;
+  --ts-row-even:   #1a2030;
+  --ts-border:     #2a3348;
+  --ts-label-bg:   #162033;
+  --ts-label-color:#94a3b8;
+  --ts-fds-bg:     #1a1f2e;
+}
+html[data-theme="dark"] .timesheet-mes {
+  box-shadow: 0 2px 20px rgba(0,0,0,.35) !important;
+  border-color: var(--ts-border) !important;
+}
+html[data-theme="dark"] .timesheet-table tbody td {
+  color: #cbd5e1 !important;
+}
+html[data-theme="dark"] .timesheet-table tbody td:first-child {
+  color: var(--ts-label-color) !important;
+}
+html[data-theme="dark"] .timesheet-table tbody tr.row-saldo-mes td {
+  background: #1a2540 !important;
+  color: #e2e8f0 !important;
+  border-top-color: #2a3a60 !important;
+}
+html[data-theme="dark"] .timesheet-table td.col-saldo-anterior,
+html[data-theme="dark"] .timesheet-table td.col-saldo-acumulado {
+  background: #16213a !important;
+  border-color: #2a3a60 !important;
+  color: #93bbef !important;
+}
+html[data-theme="dark"] .timesheet-table td.col-fimsemana {
+  background: var(--ts-fds-bg) !important;
+  background-image: repeating-linear-gradient(
+    135deg, transparent, transparent 3px,
+    rgba(255,255,255,.03) 3px, rgba(255,255,255,.03) 6px
+  ) !important;
+}
+html[data-theme="dark"] .timesheet-table tbody td.ts-row-hover:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="evento"]) {
+  background: rgba(59,130,246,.18) !important;
+}
+html[data-theme="dark"] .evento-feriado     { background: rgba(185,28,28,.25) !important; color: #fca5a5 !important; }
+html[data-theme="dark"] .evento-ferias      { background: rgba(146,64,14,.25) !important; color: #fcd34d !important; }
+html[data-theme="dark"] .evento-afastamento { background: rgba(29,78,216,.25) !important; color: #93c5fd !important; }
+html[data-theme="dark"] .evento-viagem      { background: rgba(109,40,217,.25) !important; color: #c4b5fd !important; }
+html[data-theme="dark"] .evento-abono-acordo{ background: rgba(21,128,61,.25) !important; color: #86efac !important; }
+html[data-theme="dark"] .ts-atestado-comparecimento { background: rgba(146,64,14,.2) !important; color: #fcd34d !important; border-left-color: #f59e0b !important; }
+html[data-theme="dark"] .ts-abono { background: rgba(21,128,61,.2) !important; color: #86efac !important; border-left-color: #22c55e !important; }

@@ -5155,10 +5155,10 @@ select.field-invalid:focus {
     background: #ffffff;
 }
 /* Don't override special row backgrounds (saldo, separador, eventos, etc.) */
-.table-container tbody tr.row-saldo-mes,
-.table-container tbody tr.row-separador,
-.table-container tbody tr.row-separador-azul,
-.table-container tbody tr.row-duracao-almoco,
+.table-container:not(.timesheet-wrapper) tbody tr.row-saldo-mes,
+.table-container:not(.timesheet-wrapper) tbody tr.row-separador,
+.table-container:not(.timesheet-wrapper) tbody tr.row-separador-azul,
+.table-container:not(.timesheet-wrapper) tbody tr.row-duracao-almoco,
 .table-container tbody tr[class*="linha-"],
 .table-container:not(.timesheet-wrapper) tbody tr:hover {
     background: revert;
