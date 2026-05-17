@@ -5390,6 +5390,25 @@ function gerarTimesheetAcordo() {
 
 // ============= EVENTOS =============
 
+// Garantir listener global para limpar highlights presos no timesheet
+if (typeof window !== 'undefined' && !window._timesheetMouseHandlerInstalled) {
+    window._timesheetMouseHandlerInstalled = true;
+    document.addEventListener('mousemove', function (e) {
+        try {
+            // Se o cursor não estiver dentro de alguma tabela do timesheet, remover highlights
+            if (!e.target || (typeof e.target.closest === 'function' && !e.target.closest('.timesheet-table'))) {
+                const stuck = document.querySelectorAll('.ts-row-hover');
+                if (stuck && stuck.length) {
+                    stuck.forEach(el => el.classList.remove('ts-row-hover'));
+                }
+            }
+        } catch (err) {
+            // evitar quebrar outras coisas
+            console.debug('timesheet mousemove cleanup error', err);
+        }
+    }, { passive: true });
+}
+
 // Sincroniza um evento do tipo 'ferias' com os períodos aquisitivos salvos
 function sincronizarFeriasComPeriodos(evento) {
     try {
