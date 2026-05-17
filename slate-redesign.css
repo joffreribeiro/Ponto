@@ -254,7 +254,8 @@ table tbody td {
   font-size: 13px !important;
   transition: background .1s !important;
 }
-table tbody tr:hover td {
+/* Não aplicar hover globalmente em tabelas do timesheet (tem comportamento customizado) */
+table:not(.timesheet-table) tbody tr:hover td {
   background: var(--primary-soft) !important;
 }
 table tbody tr:last-child td {
