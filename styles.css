@@ -5167,8 +5167,16 @@ select.field-invalid:focus {
     background: rgba(30, 58, 138, 0.04);
 }
 /* Hover na timesheet: usar CSS para destacar apenas células não-especiais */
-.timesheet-table tbody tr:hover td:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="col-fds"]):not([class*="evento"]) {
+.timesheet-table tbody td.ts-row-hover {
     background: var(--primary-soft) !important;
+}
+.timesheet-table tbody td.ts-row-hover.evento-vertical,
+.timesheet-table tbody td.ts-row-hover.col-fimsemana,
+.timesheet-table tbody td.ts-row-hover.col-saldo-anterior,
+.timesheet-table tbody td.ts-row-hover.col-saldo-acumulado,
+.timesheet-table tbody td.ts-row-hover[class*="col-fds"],
+.timesheet-table tbody td.ts-row-hover[class*="evento"] {
+    background: revert !important;
 }
 /* Dark mode zebra */
 html[data-theme="dark"] .table-container tbody tr:nth-child(even) {

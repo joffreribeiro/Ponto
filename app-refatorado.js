@@ -4079,6 +4079,27 @@ function renderizarTabelaRegistros() {
                 }
                 if (col.className) td.className = col.className;
                 tr.appendChild(td);
+
+                // Adicionar listeners robustos por linha para aplicar/remover hover
+                // usando mouseenter/mouseleave (não-bubbling) para evitar estados presos.
+                // Fazemos isso apenas na primeira iteração onde o tr é criado.
+                if (!tr._tsHoverInstalled) {
+                    tr._tsHoverInstalled = true;
+                    tr.addEventListener('mouseenter', () => {
+                        try {
+                            const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
+                            const toHover = Array.from(tr.cells).filter(c => !_specialCls.some(cc => c.classList.contains(cc)));
+                            toHover.forEach(c => c.classList.add('ts-row-hover'));
+                        } catch (err) { /* ignore */ }
+                    });
+                    tr.addEventListener('mouseleave', () => {
+                        try {
+                            const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
+                            const toHover = Array.from(tr.cells).filter(c => !_specialCls.some(cc => c.classList.contains(cc)));
+                            toHover.forEach(c => c.classList.remove('ts-row-hover'));
+                        } catch (err) { /* ignore */ }
+                    });
+                }
             });
 
             // Botões de ação
@@ -4805,6 +4826,15 @@ function gerarTimesheetAcordo() {
             table.addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
             table.addEventListener('selectstart', e => e.preventDefault());
 
+            // Limpeza de fallback: quando o cursor sair do container do mês,
+            // garantir que nenhuma célula mantenha a classe 'ts-row-hover'.
+            tableContainer.addEventListener('pointerleave', () => {
+                try {
+                    const stuck = table.querySelectorAll('.ts-row-hover');
+                    stuck.forEach(el => el.classList.remove('ts-row-hover'));
+                } catch (e) { /* ignore */ }
+            }, { passive: true });
+
             /* Hover visual do timesheet agora é controlado por CSS (mais confiável).
                Removido o gerenciamento via JS de classes 'ts-row-hover' para evitar
                highlights presos. */
@@ -5306,6 +5336,24 @@ function gerarTimesheetAcordo() {
             if (saldoAcumuladoMes > 0) tdSaldoAcumuladoMes.classList.add('saldo-positivo');
             if (saldoAcumuladoMes < 0) tdSaldoAcumuladoMes.classList.add('saldo-negativo');
             trSaldoMes.appendChild(tdSaldoAcumuladoMes);
+
+            // adicionar hover robusto também para a linha de saldo do mês
+            try {
+                trSaldoMes.addEventListener('mouseenter', () => {
+                    try {
+                        const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
+                        const toHover = Array.from(trSaldoMes.cells).filter(c => !_specialCls.some(cc => c.classList.contains(cc)));
+                        toHover.forEach(c => c.classList.add('ts-row-hover'));
+                    } catch (err) { /* ignore */ }
+                });
+                trSaldoMes.addEventListener('mouseleave', () => {
+                    try {
+                        const _specialCls = ['evento-vertical','col-fimsemana','col-saldo-anterior','col-saldo-acumulado'];
+                        const toHover = Array.from(trSaldoMes.cells).filter(c => !_specialCls.some(cc => c.classList.contains(cc)));
+                        toHover.forEach(c => c.classList.remove('ts-row-hover'));
+                    } catch (err) { /* ignore */ }
+                });
+            } catch (e) { /* ignore */ }
 
             tbody.appendChild(trSaldoMes);
 
