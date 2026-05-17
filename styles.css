@@ -3058,7 +3058,9 @@ td {
 
 /* Fins de semana no timesheet (coluna em azul bem claro) */
 .timesheet-table td.col-fimsemana {
-    background: #BFBFBF;     /* azul clarinho, diferente do cinza padrão */
+    background: #BFBFBF;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 
@@ -3165,6 +3167,8 @@ td.evento-vertical {
     white-space: nowrap;
     text-align: center;
     vertical-align: middle;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* ensure the vertical text for event TDs doesn't overflow visually */
@@ -3478,6 +3482,8 @@ textarea {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
 }
 .ts-clickable:hover {
     color: var(--primary);
