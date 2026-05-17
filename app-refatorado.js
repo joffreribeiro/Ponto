@@ -4810,9 +4810,18 @@ function gerarTimesheetAcordo() {
             let _hoveredTds = [];
             table.addEventListener('mouseover', e => {
                 const td = e.target.closest('td');
-                if (!td || !table.contains(td)) return;
+                // Se não houver célula válida sob o cursor, limpar hover atual
+                if (!td || !table.contains(td)) {
+                    _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
+                    _hoveredTds = [];
+                    return;
+                }
                 const tr = td.closest('tr');
-                if (!tr || !tr.closest('tbody')) return;
+                if (!tr || !tr.closest('tbody')) {
+                    _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
+                    _hoveredTds = [];
+                    return;
+                }
                 _hoveredTds.forEach(c => c.classList.remove('ts-row-hover'));
                 _hoveredTds = Array.from(tr.cells).filter(c => !_isSpecial(c));
                 _hoveredTds.forEach(c => c.classList.add('ts-row-hover'));
