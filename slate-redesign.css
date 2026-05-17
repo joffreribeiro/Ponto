@@ -687,3 +687,19 @@ input:focus, select:focus, textarea:focus {
   border-radius: 7px !important;
 }
 
+/* ===== Timesheet: forçar destaque visual confiável (override final) ===== */
+.timesheet-table tbody td.ts-row-hover:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="col-fds"]):not([class*="evento"]) {
+  background: rgba(219,234,254,0.92) !important; /* visível mesmo se outras regras existirem */
+  color: var(--text-main) !important;
+  transition: background .12s !important;
+  box-shadow: inset 0 0 0 1px rgba(30,64,175,0.06) !important;
+}
+.timesheet-table tbody td.ts-row-hover.evento-vertical,
+.timesheet-table tbody td.ts-row-hover.col-fimsemana,
+.timesheet-table tbody td.ts-row-hover.col-saldo-anterior,
+.timesheet-table tbody td.ts-row-hover.col-saldo-acumulado,
+.timesheet-table tbody td.ts-row-hover[class*="col-fds"],
+.timesheet-table tbody td.ts-row-hover[class*="evento"] {
+  background: revert !important;
+}
+

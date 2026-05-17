@@ -5423,8 +5423,8 @@ function gerarTimesheetAcordo() {
     if (window._timesheetDebugInstalled) return;
     window._timesheetDebugInstalled = true;
 
-    // Habilitar logs por padrão conforme solicitado
-    window._tsDebugEnabled = true;
+    // Logs desativados por padrão
+    window._tsDebugEnabled = false;
     window.enableTimesheetLogs = function() { window._tsDebugEnabled = true; console.info('Timesheet logs ENABLED'); };
     window.disableTimesheetLogs = function() { window._tsDebugEnabled = false; console.info('Timesheet logs DISABLED'); };
 
@@ -5513,7 +5513,7 @@ function gerarTimesheetAcordo() {
         } catch (err) { console.error('TS-LOG pointerout error', err); }
     }, true);
 
-    console.info('Timesheet debug installed — use enableTimesheetLogs()/disableTimesheetLogs()/dumpTimesheetHoverState()');
+    console.debug('Timesheet debug installed — use enableTimesheetLogs()/disableTimesheetLogs()/dumpTimesheetHoverState()');
 })();
 
 // Sincroniza um evento do tipo 'ferias' com os períodos aquisitivos salvos
