@@ -5166,6 +5166,10 @@ select.field-invalid:focus {
 .table-container tbody tr:hover {
     background: rgba(30, 58, 138, 0.04);
 }
+.timesheet-table tbody tr:hover,
+.timesheet-table tbody tr:hover td {
+    background: unset !important;
+}
 /* Dark mode zebra */
 html[data-theme="dark"] .table-container tbody tr:nth-child(even) {
     background: rgba(255,255,255,0.02);
