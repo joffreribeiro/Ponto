@@ -4802,6 +4802,8 @@ function gerarTimesheetAcordo() {
 
             const table = document.createElement('table');
             table.className = 'timesheet-table';
+            table.addEventListener('mousedown', e => { if (e.detail > 1) e.preventDefault(); });
+            table.addEventListener('selectstart', e => e.preventDefault());
 
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');

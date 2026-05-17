@@ -3001,6 +3001,11 @@ td {
     border-top: none;
 }
 
+.timesheet-table {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .timesheet-table thead th {
     background: var(--primary);
     color: #ffffff;
