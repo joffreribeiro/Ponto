@@ -6,7 +6,6 @@
 
 /* ═══ GOOGLE FONT ═══════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
 
 /* ═══ TOKENS ═══════════════════════════════════════════════════════════ */
 :root {
@@ -703,119 +702,6 @@ input:focus, select:focus, textarea:focus {
 .timesheet-table tbody td.ts-row-hover[class*="evento"] {
   background: revert !important;
 }
-
-/* ========================= Timesheet — Visual Refresh ========================= */
-/* Design direction: elegant/editorial — Playfair Display headline, DM Sans body */
-:root {
-  --ts-accent: var(--primary);
-  --ts-accent-soft: rgba(219,234,254,0.92);
-  --ts-card-bg: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,255,0.85));
-  --ts-shadow-1: 0 6px 18px rgba(16,24,40,0.06);
-  --ts-shadow-2: 0 12px 30px rgba(16,24,40,0.08);
-}
-
-/* Month card */
-.timesheet-mes {
-  margin: 1rem 0;
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--ts-card-bg);
-  box-shadow: var(--ts-shadow-1);
-  border: 1px solid var(--border-soft);
-  transition: transform .18s ease, box-shadow .18s ease;
-  animation: ts-fade-in .36s cubic-bezier(.2,.9,.2,1) both;
-}
-.timesheet-mes:hover { transform: translateY(-6px); box-shadow: var(--ts-shadow-2); }
-
-.timesheet-header {
-  font-family: 'Playfair Display', 'DM Sans', serif !important;
-  color: var(--primary-dark);
-  font-size: 1.05rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 10px;
-}
-.timesheet-header::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--ts-accent) 0%, rgba(30,64,175,0.12) 100%);
-  margin-left: 0.6rem;
-  opacity: 0.75;
-}
-
-.table-container.timesheet-wrapper { padding: 6px; border-radius: 10px; overflow:auto; }
-
-.timesheet-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 8px 8px;
-  font-family: 'DM Sans', system-ui, -apple-system, sans-serif !important;
-  font-size: 0.92rem;
-  color: var(--text-main);
-}
-
-.timesheet-table thead th {
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: .78rem;
-  text-align: center;
-  padding: 6px 8px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-.timesheet-table thead th:first-child { text-align: left; padding-left: 12px; }
-.th-saldo-anterior, .th-saldo-acumulado { width: 96px; }
-
-.timesheet-table tbody td {
-  background: rgba(255,255,255,0.86);
-  padding: 8px 10px;
-  border-radius: 8px;
-  vertical-align: middle;
-  transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
-  border: 1px solid transparent;
-}
-
-.ts-clickable { cursor: pointer; position: relative; }
-.ts-clickable::after { content: ''; position: absolute; inset: 0; border-radius: 8px; opacity: 0; transition: opacity .12s ease; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02); }
-.ts-clickable:hover::after { opacity: 1; }
-
-.saldo-vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); font-weight:700; color: var(--text-muted); padding: 6px 8px; }
-
-/* Subtle lift for hovered row (works alongside .ts-row-hover) */
-.timesheet-table tbody tr:hover td.ts-row-hover,
-.timesheet-table tbody tr:hover td:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="col-fds"]):not([class*="evento"]) {
-  transform: translateY(-2px);
-}
-
-.row-saldo-mes td { background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(248,250,255,0.94)); font-weight:700; color:var(--primary-dark); border-radius:10px; padding:12px 14px; }
-
-.timesheet-current { outline: 2px solid rgba(30,64,175,0.04); box-shadow: 0 6px 20px rgba(30,64,175,0.03) inset; }
-
-/* Preserve explicit colors for special columns */
-.timesheet-table tbody td.evento-vertical,
-.timesheet-table tbody td.col-fimsemana,
-.timesheet-table tbody td.col-saldo-anterior,
-.timesheet-table tbody td.col-saldo-acumulado {
-  background: revert !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-@keyframes ts-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-/* small responsive tune */
-@media (max-width: 920px) {
-  .timesheet-mes { padding: 12px; }
-  .timesheet-table thead th { font-size: .72rem; }
-  .timesheet-table tbody td { padding: 6px 8px; font-size: .88rem; }
-}
-
-/* End Timesheet visual refresh */
 
 /* Garantir destaque por :hover (fallback quando .ts-row-hover não estiver presente) */
 .timesheet-table tbody tr:hover td:not(.evento-vertical):not(.col-fimsemana):not(.col-saldo-anterior):not(.col-saldo-acumulado):not([class*="col-fds"]):not([class*="evento"]) {
