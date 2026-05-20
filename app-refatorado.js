@@ -4154,12 +4154,18 @@ function _atualizarInfoAtestado(tipo) {
     const el = document.getElementById('mreg-atestado-info');
     if (!el) return;
     const msgs = {
-        afastamento:               { icon: '🏥', text: 'Horários reais preservados. Dia inteiro considerado trabalhado — <strong>saldo zero</strong>.' },
-        comparecimento_matutino:   { icon: '🌅', text: 'Horários reais preservados. No cálculo, a <strong>entrada é tratada como 07:45</strong>. Células da manhã destacadas em amarelo no timesheet.' },
-        comparecimento_vespertino: { icon: '🌇', text: 'Horários reais preservados. <strong>Jornada completa considerada</strong> — saldo zero. Células da tarde destacadas em amarelo no timesheet.' },
-        abono_matutino:            { icon: '🟢', text: 'Horários reais preservados. Período da manhã <strong>abonado</strong> — saldo zero. Células da manhã destacadas em verde no timesheet.' },
-        abono_vespertino:          { icon: '🟢', text: 'Horários reais preservados. Período da tarde <strong>abonado</strong> — saldo zero. Células da tarde destacadas em verde no timesheet.' },
-        abono_dia_todo:            { icon: '🟢', text: 'Horários reais preservados. Dia inteiro <strong>abonado</strong> — saldo zero. Todas as células de horário destacadas em verde no timesheet.' },
+        afastamento:                    { icon: '🏥', text: 'Horários reais preservados. Dia inteiro considerado trabalhado — <strong>saldo zero</strong>.' },
+        comparecimento_matutino:        { icon: '🌅', text: 'Horários reais preservados. No cálculo, a <strong>entrada é tratada como 07:45</strong>. Células da manhã destacadas em amarelo no timesheet.' },
+        comparecimento_vespertino:      { icon: '🌇', text: 'Horários reais preservados. <strong>Jornada completa considerada</strong> — saldo zero. Células da tarde destacadas em amarelo no timesheet.' },
+        abono_matutino:                 { icon: '🟢', text: 'Horários reais preservados. Período da manhã <strong>abonado</strong> — saldo zero. Células da manhã destacadas em verde no timesheet.' },
+        abono_vespertino:               { icon: '🟢', text: 'Horários reais preservados. Período da tarde <strong>abonado</strong> — saldo zero. Células da tarde destacadas em verde no timesheet.' },
+        abono_dia_todo:                 { icon: '🟢', text: 'Horários reais preservados. Dia inteiro <strong>abonado</strong> — saldo zero. Todas as células de horário destacadas em verde no timesheet.' },
+        abono_acordo_matutino:          { icon: '🤝', text: 'Período da manhã <strong>abonado pelo acordo</strong> — saldo zero. <strong>Desconta um meio-período</strong> da cota de abonos do acordo vigente.' },
+        abono_acordo_vespertino:        { icon: '🤝', text: 'Período da tarde <strong>abonado pelo acordo</strong> — saldo zero. <strong>Desconta um meio-período</strong> da cota de abonos do acordo vigente.' },
+        abono_acordo_dia_todo:          { icon: '🤝', text: 'Dia inteiro <strong>abonado pelo acordo</strong> — saldo zero. <strong>Desconta um dia inteiro</strong> da cota de abonos do acordo vigente.' },
+        pagar_hora_acordo_matutino:     { icon: '⏱️', text: 'Período da manhã marcado como <strong>pagar hora (acordo)</strong> — desconta da cota de horas do acordo vigente. Saldo negativo no período.' },
+        pagar_hora_acordo_vespertino:   { icon: '⏱️', text: 'Período da tarde marcado como <strong>pagar hora (acordo)</strong> — desconta da cota de horas do acordo vigente. Saldo negativo no período.' },
+        pagar_hora_acordo_dia_todo:     { icon: '⏱️', text: 'Dia inteiro marcado como <strong>pagar hora (acordo)</strong> — desconta da cota de horas do acordo vigente. Saldo negativo no dia.' },
     };
     if (msgs[tipo]) {
         el.innerHTML = `<span class="mreg-atestado-icon">${msgs[tipo].icon}</span><span>${msgs[tipo].text}</span>`;
@@ -4237,20 +4243,26 @@ function salvarRegistro() {
 
         // Mapear tipoAtestado → periodoEvento e tipoEventoRegistro automaticamente
         const _mapa = {
-            afastamento:               { periodo: 'dia_todo',   tipo: 'afastamento' },
-            comparecimento_matutino:   { periodo: 'matutino',   tipo: 'afastamento' },
-            comparecimento_vespertino: { periodo: 'vespertino', tipo: 'afastamento' },
-            abono_matutino:            { periodo: 'matutino',   tipo: 'abono' },
-            abono_vespertino:          { periodo: 'vespertino', tipo: 'abono' },
-            abono_dia_todo:            { periodo: 'dia_todo',   tipo: 'abono' },
+            afastamento:                    { periodo: 'dia_todo',   tipo: 'afastamento' },
+            comparecimento_matutino:        { periodo: 'matutino',   tipo: 'afastamento' },
+            comparecimento_vespertino:      { periodo: 'vespertino', tipo: 'afastamento' },
+            abono_matutino:                 { periodo: 'matutino',   tipo: 'abono' },
+            abono_vespertino:               { periodo: 'vespertino', tipo: 'abono' },
+            abono_dia_todo:                 { periodo: 'dia_todo',   tipo: 'abono' },
+            abono_acordo_matutino:          { periodo: 'matutino',   tipo: 'abono_acordo' },
+            abono_acordo_vespertino:        { periodo: 'vespertino', tipo: 'abono_acordo' },
+            abono_acordo_dia_todo:          { periodo: 'dia_todo',   tipo: 'abono_acordo' },
+            pagar_hora_acordo_matutino:     { periodo: 'matutino',   tipo: 'pagar_hora_acordo' },
+            pagar_hora_acordo_vespertino:   { periodo: 'vespertino', tipo: 'pagar_hora_acordo' },
+            pagar_hora_acordo_dia_todo:     { periodo: 'dia_todo',   tipo: 'pagar_hora_acordo' },
         };
         const _map = tipoAtestado ? (_mapa[tipoAtestado] || { periodo: '', tipo: '' }) : { periodo: '', tipo: '' };
         const periodoEvento = _map.periodo;
         const tipoEventoRegistro = _map.tipo;
         const createLinkedEvent = !!periodoEvento;
 
-        // Autopreenchimento de horários em branco para abono
-        if (tipoAtestado && tipoAtestado.startsWith('abono_')) {
+        // Autopreenchimento de horários em branco para abono e abono acordo
+        if (tipoAtestado && (tipoAtestado.startsWith('abono_') || tipoAtestado.startsWith('pagar_hora_acordo_'))) {
             let regraAbono = null;
             try {
                 const acordoObj = Calculations.getAcordoByData(AppState.dados.acordos, data);
@@ -4269,19 +4281,18 @@ function salvarRegistro() {
                 return `${String(Math.floor(total / 60)).padStart(2,'0')}:${String(total % 60).padStart(2,'0')}`;
             };
 
-            if (tipoAtestado === 'abono_vespertino') {
+            if (tipoAtestado === 'abono_vespertino' || tipoAtestado === 'abono_acordo_vespertino' || tipoAtestado === 'pagar_hora_acordo_vespertino') {
                 // Cenário: trabalhador saiu para almoço mas não voltou (saída antecipada tarde)
-                // Entrada e saidaAlmoco já registradas → completar retorno e saída
                 const baseEntrada = entrada || entradaRef;
                 if (!retornoAlmoco && saidaAlmoco) retornoAlmoco = addMin(saidaAlmoco, almocoMin);
                 if (!saida) saida = addMin(baseEntrada, cargaMin + almocoMin);
-            } else if (tipoAtestado === 'abono_matutino') {
+            } else if (tipoAtestado === 'abono_matutino' || tipoAtestado === 'abono_acordo_matutino' || tipoAtestado === 'pagar_hora_acordo_matutino') {
                 // Cenário: chegou tarde, precisa completar o dia
                 const baseEntrada = entrada || entradaRef;
                 if (!saidaAlmoco)  saidaAlmoco  = addMin(baseEntrada, cargaMin / 2);
                 if (!retornoAlmoco) retornoAlmoco = addMin(saidaAlmoco, almocoMin);
                 if (!saida)        saida         = addMin(baseEntrada, cargaMin + almocoMin);
-            } else if (tipoAtestado === 'abono_dia_todo') {
+            } else if (tipoAtestado === 'abono_dia_todo' || tipoAtestado === 'abono_acordo_dia_todo' || tipoAtestado === 'pagar_hora_acordo_dia_todo') {
                 // Dia todo: preenche tudo a partir da entrada do acordo
                 const baseEntrada = entrada || entradaRef;
                 if (!entrada)      entrada       = entradaRef;
@@ -4293,12 +4304,18 @@ function salvarRegistro() {
 
         // Autopreenchimento de observações: registrar justificativa se obs vazia
         const _labelsObs = {
-            afastamento:               'Atestado de afastamento',
-            comparecimento_matutino:   'Atestado de comparecimento — manhã',
-            comparecimento_vespertino: 'Atestado de comparecimento — tarde',
-            abono_matutino:            'Abono — período da manhã',
-            abono_vespertino:          'Abono — período da tarde',
-            abono_dia_todo:            'Abono — dia todo',
+            afastamento:                    'Atestado de afastamento',
+            comparecimento_matutino:        'Atestado de comparecimento — manhã',
+            comparecimento_vespertino:      'Atestado de comparecimento — tarde',
+            abono_matutino:                 'Abono — período da manhã',
+            abono_vespertino:               'Abono — período da tarde',
+            abono_dia_todo:                 'Abono — dia todo',
+            abono_acordo_matutino:          'Abono acordo — período da manhã',
+            abono_acordo_vespertino:        'Abono acordo — período da tarde',
+            abono_acordo_dia_todo:          'Abono acordo — dia todo',
+            pagar_hora_acordo_matutino:     'Pagar hora acordo — período da manhã',
+            pagar_hora_acordo_vespertino:   'Pagar hora acordo — período da tarde',
+            pagar_hora_acordo_dia_todo:     'Pagar hora acordo — dia todo',
         };
         const obsFinal = observacoes || (tipoAtestado && _labelsObs[tipoAtestado] ? _labelsObs[tipoAtestado] : observacoes);
 
@@ -7434,30 +7451,29 @@ function atualizarExibicaoUsoBeneficios() {
  */
 function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
     const eventos = AppState.dados.eventos || [];
+    const registros = AppState.dados.registros || [];
     // `qtdAbono` e os retornos aqui são expressos em MEIO-PERÍODOS (1 = meio-período, 2 = dia inteiro)
     let usadosMeioPeriodo = 0;
     let horasPagasUsadas = 0;
-    
+
+    // Consumo via eventos (tipo abono_acordo ou pagar_hora_acordo vinculados ao acordo)
     eventos.forEach(ev => {
-        // Verificar se o evento pertence a este acordo (normalizar tipos/string)
         if (ev.acordoIndex == null) return;
         if (Number(ev.acordoIndex) !== Number(acordoIndex)) return;
-        
+
         const tipo = String(ev.tipoEvento || '').toLowerCase();
         const periodo = String(ev.periodo || '').toLowerCase();
-        // Fator: meio período (matutino/vespertino) conta como 0.5
         const fatorPeriodo = (periodo === 'matutino' || periodo === 'vespertino') ? 0.5 : 1;
-        
-        if (tipo === 'abono_acordo' || tipo === 'abono') {
+
+        if (tipo === 'abono_acordo') {
             const inicio = DateUtils.parse(ev.dataInicioEvento);
             const fim = DateUtils.parse(ev.dataFimEvento);
             if (inicio && fim) {
                 const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                // cada dia = 2 meios; meio-período conta como 1 meio
                 usadosMeioPeriodo += dias * (fatorPeriodo * 2);
             }
         }
-        
+
         if (tipo === 'pagar_hora_acordo' || tipo === 'compensar_acordo' || tipo === 'pagar_hora') {
             if (ev.horas) {
                 horasPagasUsadas += Number(ev.horas) || 0;
@@ -7466,15 +7482,48 @@ function calcularUsoBeneficiosAcordo(acordoIndex, acordo) {
                 const fim = DateUtils.parse(ev.dataFimEvento);
                 if (inicio && fim) {
                     const dias = Math.floor((fim - inicio) / (24 * 60 * 60 * 1000)) + 1;
-                    // Meio período = 4h, dia todo = 8h
                     const horasPorDia = (periodo === 'matutino' || periodo === 'vespertino') ? 4 : 8;
                     horasPagasUsadas += dias * horasPorDia;
                 }
             }
         }
     });
-    
-    const qtdAbono = acordo.qtdAbono || 0; // agora em meios
+
+    // Consumo via registros de ponto com tipoAtestado de abono/hora do acordo
+    // Determinar datas de vigência do acordo para filtrar registros
+    const periodos = acordo.periodos || [];
+    registros.forEach(reg => {
+        const ta = String(reg.tipoAtestado || '');
+        if (!ta.startsWith('abono_acordo_') && !ta.startsWith('pagar_hora_acordo_')) return;
+        // Verificar se a data do registro está dentro de algum período do acordo
+        const dataReg = reg.data;
+        const pertence = periodos.some(p => dataReg >= p.inicio && dataReg <= p.fim);
+        if (!pertence) return;
+        // Também verificar se o acordo é o correto para essa data (pode haver múltiplos acordos)
+        const acordosDados = AppState.dados.acordos || [];
+        const acordoDaData = Calculations.getAcordoByData(acordosDados, dataReg);
+        if (!acordoDaData) return;
+        // Confirmar que o acordo da data corresponde ao acordoIndex solicitado
+        const idxDaData = acordosDados.indexOf(acordoDaData);
+        if (idxDaData !== Number(acordoIndex)) return;
+
+        // Determinar período a partir do sufixo do tipoAtestado
+        const sufixo = ta.replace('abono_acordo_', '').replace('pagar_hora_acordo_', '');
+        const fator = (sufixo === 'matutino' || sufixo === 'vespertino') ? 0.5 : 1;
+
+        if (ta.startsWith('abono_acordo_')) {
+            // 1 dia: fator * 2 meios-períodos
+            usadosMeioPeriodo += fator * 2;
+        } else if (ta.startsWith('pagar_hora_acordo_')) {
+            // Meio período = 4h, dia todo = 8h
+            const regraReg = Calculations.getRegraHorarioForDay(acordoDaData, dataReg);
+            const extrasMin = (regraReg && regraReg.minutosExtras) || 0;
+            const cargaMin = 480 + extrasMin;
+            horasPagasUsadas += (fator * cargaMin) / 60;
+        }
+    });
+
+    const qtdAbono = acordo.qtdAbono || 0;
     const qtdPagarHora = acordo.qtdPagarHora || 0;
 
     return {

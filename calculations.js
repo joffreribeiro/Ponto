@@ -233,7 +233,10 @@ const Calculations = {
         // Abono (manhã, tarde ou dia todo): horários reais preservados, saldo zero
         if (registro && (registro.tipoAtestado === 'abono_matutino' ||
                          registro.tipoAtestado === 'abono_vespertino' ||
-                         registro.tipoAtestado === 'abono_dia_todo')) {
+                         registro.tipoAtestado === 'abono_dia_todo' ||
+                         registro.tipoAtestado === 'abono_acordo_matutino' ||
+                         registro.tipoAtestado === 'abono_acordo_vespertino' ||
+                         registro.tipoAtestado === 'abono_acordo_dia_todo')) {
             const minutosExtrasRegra = regra.minutosExtras || 0;
             const carga = 480 + minutosExtrasRegra;
             return {
@@ -247,6 +250,30 @@ const Calculations = {
                 tipoAtestado: registro.tipoAtestado,
                 detalhes: { carga, atestado: true }
             };
+        }
+
+        // Pagar hora acordo via registro de ponto: saldo negativo no período
+        if (registro && (registro.tipoAtestado === 'pagar_hora_acordo_matutino' ||
+                         registro.tipoAtestado === 'pagar_hora_acordo_vespertino' ||
+                         registro.tipoAtestado === 'pagar_hora_acordo_dia_todo')) {
+            const minutosExtrasRegra = regra.minutosExtras || 0;
+            const cargaDia = 480 + minutosExtrasRegra;
+            const meioPeriodo = registro.tipoAtestado !== 'pagar_hora_acordo_dia_todo';
+            const cargaPeriodo = meioPeriodo ? cargaDia / 2 : cargaDia;
+            const temPonto = registro.entrada || registro.saida;
+            if (!temPonto) {
+                return {
+                    trabalhadas: 0,
+                    saldo: -cargaPeriodo,
+                    temRegistro: false,
+                    status: 'falta',
+                    evento,
+                    acordo,
+                    regra,
+                    tipoAtestado: registro.tipoAtestado,
+                    detalhes: { carga: cargaPeriodo }
+                };
+            }
         }
 
         // Atestado de afastamento: dia inteiro coberto — saldo zero, carga cheia
