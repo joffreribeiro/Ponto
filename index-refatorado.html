@@ -1892,9 +1892,12 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         });
 
-        // Abrir submenu Ponto se aba Ponto já estiver ativa
+        // Abrir submenu Ponto somente se a aba Ponto já estiver ativa ao carregar
         const submenu = document.getElementById('submenuPonto');
-        if (submenu) submenu.classList.add('nav-submenu--open');
+        const navPontoBtn = document.querySelector('.nav-item[data-tab="ponto"]');
+        if (submenu && navPontoBtn && navPontoBtn.classList.contains('active')) {
+            submenu.classList.add('nav-submenu--open');
+        }
     })();
     </script>
 </body>

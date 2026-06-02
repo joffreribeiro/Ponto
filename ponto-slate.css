@@ -317,6 +317,7 @@ body { margin: 0 !important; }
   gap: 1px !important;
   position: relative !important;
   margin-bottom: 4px !important;
+  background: transparent !important;
 }
 .nav-submenu::before {
   content: '' !important;
@@ -1045,7 +1046,7 @@ table:not(.timesheet-table) tbody tr:nth-child(even):hover td { background: var(
 /* Férias: grid vertical */
 .ferias-vertical-grid {
   display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
   gap: 10px !important;
   margin-top: 12px !important;
 }
@@ -1843,7 +1844,7 @@ table:not(.timesheet-table) tbody tr:nth-child(even):hover td { background: var(
 /* ══ DASHBOARD GRID ═════════════════════════════════════════════════════ */
 .dashboard-grid {
   display: grid !important;
-  grid-template-columns: 1fr 300px !important;
+  grid-template-columns: 1fr 1fr !important;
   gap: 16px !important;
   align-items: start !important;
 }
