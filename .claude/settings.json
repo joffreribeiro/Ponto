@@ -12,7 +12,8 @@
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8765/index-refatorado.html\" -UseBasicParsing)",
       "Bash(python3 -c ' *)",
       "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\ponto-slate.css\" -Raw; $opens = \\([regex]::Matches\\($css, '{'\\)\\).Count; $closes = \\([regex]::Matches\\($css, '}'\\)\\).Count; \"Abre: $opens  Fecha: $closes  Diff: $\\($opens - $closes\\)\")",
-      "Bash(awk '/^const Storage|^var Storage|^let Storage|Storage\\\\s*=\\\\s*\\\\{/{found=1} found{print NR\": \"$0; count++} count>5{exit}' \"e:/MEUS DOCUMENTOS/OneDrive/Documentos/Ponto/app-refatorado.js\")"
+      "Bash(awk '/^const Storage|^var Storage|^let Storage|Storage\\\\s*=\\\\s*\\\\{/{found=1} found{print NR\": \"$0; count++} count>5{exit}' \"e:/MEUS DOCUMENTOS/OneDrive/Documentos/Ponto/app-refatorado.js\")",
+      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\ponto-imbel.css\" -Raw; $o = \\([regex]::Matches\\($css,'{'\\)\\).Count; $c = \\([regex]::Matches\\($css,'}'\\)\\).Count; \"Abre: $o  Fecha: $c  Diff: $\\($o-$c\\)  Linhas: $\\($css.Split\\(\"`n\"\\).Count\\)\")"
     ]
   }
 }
