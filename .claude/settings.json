@@ -4,7 +4,14 @@
       "Bash(Select-Object -First 30)",
       "Bash(Get-ChildItem -Path \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\" -Recurse -Filter \"*.js\" -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(start \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\index-refatorado.html\")"
+      "Bash(start \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\index-refatorado.html\")",
+      "Bash(python -m http.server 8765)",
+      "Bash(Start-Sleep -Seconds 2)",
+      "Bash(Invoke-WebRequest -Uri \"http://localhost:8765/index-refatorado.html\" -UseBasicParsing)",
+      "Bash(Select-Object -ExpandProperty StatusCode)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8765/index-refatorado.html\" -UseBasicParsing)",
+      "Bash(python3 -c ' *)",
+      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\ponto-slate.css\" -Raw; $opens = \\([regex]::Matches\\($css, '{'\\)\\).Count; $closes = \\([regex]::Matches\\($css, '}'\\)\\).Count; \"Abre: $opens  Fecha: $closes  Diff: $\\($opens - $closes\\)\")"
     ]
   }
 }

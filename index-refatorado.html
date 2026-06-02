@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="theme-redesign.css">
     <link rel="stylesheet" href="design-improvements.css">
     <link rel="stylesheet" href="slate-redesign.css">
+    <link rel="stylesheet" href="ponto-slate.css">
     <style>
     /* Login styles moved to styles.css — kept minimal reset here */
     </style>
@@ -24,10 +25,12 @@
 
         <!-- Logo -->
         <div class="sidebar-logo">
-            <div class="sidebar-logo-icon">📋</div>
+            <div class="sidebar-logo-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
             <div class="sidebar-logo-text">
-                <div class="sidebar-logo-title">CONTROLE DE</div>
-                <div class="sidebar-logo-sub">ATIVIDADES</div>
+                <div class="sidebar-logo-title">Ponto</div>
+                <div class="sidebar-logo-sub">Controle de jornada</div>
             </div>
         </div>
 
@@ -37,7 +40,7 @@
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Principal</span>
                 <button class="nav-item active" data-tab="dashboard">
-                    <span class="nav-icon"><svg viewBox="0 0 24 24" width="16" height="16"><rect x="3" y="11" width="4" height="8" rx="1" fill="currentColor"/><rect x="9" y="7" width="4" height="12" rx="1" fill="currentColor"/><rect x="15" y="3" width="4" height="16" rx="1" fill="currentColor"/></svg></span>
+                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h7V3H3v10Zm0 8h7v-6H3v6Zm11 0h7V11h-7v10Zm0-18v6h7V3h-7Z"/></svg></span>
                     <span class="nav-label">Dashboard</span>
                 </button>
             </div>
@@ -46,26 +49,16 @@
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Ponto</span>
                 <button class="nav-item nav-item--parent" data-tab="ponto" id="navPonto">
-                    <span class="nav-icon">⏰</span>
+                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
                     <span class="nav-label">Ponto</span>
-                    <span class="nav-arrow">▾</span>
+                    <span class="nav-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
                 </button>
                 <div class="nav-submenu" id="submenuPonto">
-                    <button class="nav-subitem active" data-subtab="ponto-timesheet">
-                        <span class="nav-subicon">📅</span> Folha de Ponto
-                    </button>
-                    <button class="nav-subitem" data-subtab="ponto-registros">
-                        <span class="nav-subicon">📝</span> Registros
-                    </button>
-                    <button class="nav-subitem" data-subtab="ponto-config">
-                        <span class="nav-subicon">🤝</span> Acordos
-                    </button>
-                    <button class="nav-subitem" data-subtab="ponto-eventos">
-                        <span class="nav-subicon">📌</span> Eventos
-                    </button>
-                    <button class="nav-subitem" data-subtab="ponto-ferias">
-                        <span class="nav-subicon">🏖️</span> Férias
-                    </button>
+                    <button class="nav-subitem active" data-subtab="ponto-timesheet">Folha de Ponto</button>
+                    <button class="nav-subitem" data-subtab="ponto-registros">Registros</button>
+                    <button class="nav-subitem" data-subtab="ponto-config">Acordos</button>
+                    <button class="nav-subitem" data-subtab="ponto-eventos">Eventos</button>
+                    <button class="nav-subitem" data-subtab="ponto-ferias">Férias</button>
                 </div>
             </div>
 
@@ -73,7 +66,7 @@
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Trabalho</span>
                 <button class="nav-item" data-tab="atividades">
-                    <span class="nav-icon">📋</span>
+                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
                     <span class="nav-label">Atividades</span>
                 </button>
             </div>
@@ -82,7 +75,7 @@
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Sistema</span>
                 <button class="nav-item" data-tab="configuracoes">
-                    <span class="nav-icon"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.62l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.48.1.62l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.62l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.48-.1-.62l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></span>
+                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6M4 11V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 15h6M9 8h6M17 16h6"/></svg></span>
                     <span class="nav-label">Configurações</span>
                 </button>
             </div>
@@ -91,23 +84,33 @@
         <!-- Footer: controles de nuvem + auth -->
         <div class="sidebar-footer">
             <div id="syncControls" class="sidebar-sync" style="display:none;">
-                <button id="btnSalvarNuvem" type="button" class="sidebar-btn-sync" title="Salvar na nuvem">☁️ Salvar</button>
-                <button id="btnCarregarNuvem" type="button" class="sidebar-btn-sync" title="Carregar da nuvem">☁️ Carregar</button>
+                <button id="btnSalvarNuvem" type="button" class="sidebar-btn-sync" title="Salvar na nuvem">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><path d="M18 10h-1.3A7 7 0 1 0 4 16h13a4 4 0 0 0 1-7.9Z"/></svg>Salvar
+                </button>
+                <button id="btnCarregarNuvem" type="button" class="sidebar-btn-sync" title="Carregar da nuvem">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><path d="M18 10h-1.3A7 7 0 1 0 4 16h13a4 4 0 0 0 1-7.9Z"/></svg>Carregar
+                </button>
             </div>
             <div id="syncStatus" class="sidebar-sync-status" style="display:none;"></div>
             <div class="sidebar-footer-controls">
                 <select id="selectTheme" class="sidebar-select" title="Tema visual">
-                    <option value="default">☀️ Claro</option>
-                    <option value="dark">🌙 Escuro</option>
-                    <option value="pastel">🎨 Pastel</option>
-                    <option value="contrast">⚡ Contraste</option>
+                    <option value="default">Slate (padrão)</option>
+                    <option value="dark">Deep Focus (escuro)</option>
+                    <option value="pastel">Meridian (quente)</option>
+                    <option value="contrast">Alto Contraste</option>
                 </select>
             </div>
             <div class="sidebar-auth">
                 <div id="authStatus" class="sidebar-auth-status"></div>
                 <div id="headerUserName" class="sidebar-username"></div>
-                <button id="loginToggle" type="button" class="sidebar-btn-auth" style="display:none;">Login</button>
-                <button id="logoutTopBtn" type="button" class="sidebar-btn-auth sidebar-btn-auth--danger" style="display:none;">Sair</button>
+                <button id="loginToggle" type="button" class="sidebar-btn-auth" style="display:none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Login
+                </button>
+                <button id="logoutTopBtn" type="button" class="sidebar-btn-auth sidebar-btn-auth--danger" style="display:none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair
+                </button>
             </div>
             <div class="sidebar-status-dot" id="sidebarStatusDot" title="Status de sincronização"></div>
         </div>
