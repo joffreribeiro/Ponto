@@ -81,17 +81,8 @@
             </div>
         </nav>
 
-        <!-- Footer: controles de nuvem + auth -->
+        <!-- Footer: seletor de tema -->
         <div class="sidebar-footer">
-            <div id="syncControls" class="sidebar-sync" style="display:none;">
-                <button id="btnSalvarNuvem" type="button" class="sidebar-btn-sync" title="Salvar na nuvem">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><path d="M18 10h-1.3A7 7 0 1 0 4 16h13a4 4 0 0 0 1-7.9Z"/></svg>Salvar
-                </button>
-                <button id="btnCarregarNuvem" type="button" class="sidebar-btn-sync" title="Carregar da nuvem">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px"><path d="M18 10h-1.3A7 7 0 1 0 4 16h13a4 4 0 0 0 1-7.9Z"/></svg>Carregar
-                </button>
-            </div>
-            <div id="syncStatus" class="sidebar-sync-status" style="display:none;"></div>
             <div class="sidebar-footer-controls">
                 <select id="selectTheme" class="sidebar-select" title="Tema visual">
                     <option value="default">Slate (padrão)</option>
@@ -100,19 +91,15 @@
                     <option value="contrast">Alto Contraste</option>
                 </select>
             </div>
-            <div class="sidebar-auth">
-                <div id="authStatus" class="sidebar-auth-status"></div>
-                <div id="headerUserName" class="sidebar-username"></div>
-                <button id="loginToggle" type="button" class="sidebar-btn-auth" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                    Login
-                </button>
-                <button id="logoutTopBtn" type="button" class="sidebar-btn-auth sidebar-btn-auth--danger" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    Sair
-                </button>
-            </div>
-            <div class="sidebar-status-dot" id="sidebarStatusDot" title="Status de sincronização"></div>
+            <!-- IDs mantidos ocultos para compatibilidade com JS -->
+            <div id="syncControls" style="display:none;"><button id="btnSalvarNuvem" type="button"></button><button id="btnCarregarNuvem" type="button"></button></div>
+            <div id="syncStatus" style="display:none;"></div>
+            <div id="authStatus" style="display:none;"></div>
+            <div id="headerUserName" style="display:none;"></div>
+            <button id="loginToggle" type="button" style="display:none;"></button>
+            <button id="logoutTopBtn" type="button" style="display:none;"></button>
+            <button id="logoutBtn" type="button" style="display:none;"></button>
+            <div id="sidebarStatusDot" style="display:none;"></div>
         </div>
     </aside>
 
@@ -121,21 +108,12 @@
         <button id="btnToggleCompact" type="button" class="btn-header" title="Modo compacto" style="display:none;">Compacto</button>
     </div>
 
-    <!-- Modal de Login -->
-    <div id="loginModal" class="login-overlay" role="dialog" aria-modal="true">
-        <div class="login-card" role="document">
-            <button id="loginModalClose" class="login-close" aria-label="Fechar">✕</button>
-            <div class="login-icon">📋</div>
-            <h3>Acesso Administrador</h3>
-            <p class="sub">Faça login para editar dados</p>
-            <div style="margin-top:6px">
-                <div class="login-field"><label for="loginEmail" class="sr-only">Email</label><input id="loginEmail" type="email" placeholder="Email" aria-label="Email" /></div>
-                <div class="login-field"><label for="loginPassword" class="sr-only">Senha</label><input id="loginPassword" type="password" placeholder="Senha" aria-label="Senha" /></div>
-                <div class="login-actions">
-                    <button id="loginBtn" type="button" class="btn-primary login">Entrar</button>
-                </div>
-            </div>
-        </div>
+    <!-- Modal de Login removido — IDs mantidos ocultos para compatibilidade com JS -->
+    <div id="loginModal" style="display:none;" aria-hidden="true">
+        <input id="loginEmail" type="email" style="display:none;">
+        <input id="loginPassword" type="password" style="display:none;">
+        <button id="loginBtn" type="button" style="display:none;"></button>
+        <button id="loginModalClose" type="button" style="display:none;"></button>
     </div>
     <div class="main-content" id="mainContent">
 

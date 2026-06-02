@@ -1404,6 +1404,14 @@ table:not(.timesheet-table) tbody tr:nth-child(even):hover td { background: var(
   color: var(--text) !important;
 }
 
+/* ══ AUTH REMOVIDO — nunca bloquear controles ════════════════════════════ */
+.locked-by-auth {
+  opacity: 1 !important;
+  cursor: default !important;
+  pointer-events: auto !important;
+}
+.locked-by-auth::after { display: none !important; }
+
 /* ══ SCROLLBAR ═══════════════════════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--bg); }

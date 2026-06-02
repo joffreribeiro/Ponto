@@ -365,13 +365,7 @@ const AppState = window.AppState = {
      * Verifica se o usuário está autenticado (Firebase)
      */
     isAuthenticated() {
-        try {
-            if (window.FirebaseSync && typeof window.FirebaseSync.getCurrentUserSync === 'function') {
-                return !!window.FirebaseSync.getCurrentUserSync();
-            }
-            // Se FirebaseSync não carregou ainda, considerar não autenticado
-            return false;
-        } catch (e) { return false; }
+        return true; // login removido — acesso livre
     },
 
     /**
@@ -2266,22 +2260,20 @@ function escapeHtml(s) {
 }
 
 // ===== Autenticação: UI e proteção de ações =====
-function updateAuthDependentControls(user) {
+function updateAuthDependentControls(_user) {
     try {
-        const els = document.querySelectorAll('[data-auth]');
-        els.forEach(el => {
-            if (user) {
-                el.removeAttribute('disabled');
-                el.classList.remove('locked-by-auth');
-            } else {
-                el.setAttribute('disabled', 'disabled');
-                el.classList.add('locked-by-auth');
-            }
+        // login removido — todos os controles sempre habilitados
+        document.querySelectorAll('[data-auth]').forEach(el => {
+            el.removeAttribute('disabled');
+            el.classList.remove('locked-by-auth');
         });
     } catch (e) { console.warn('updateAuthDependentControls erro:', e); }
 }
 
 function setupAuthUI() {
+    // login removido — desbloquear todos os controles imediatamente
+    updateAuthDependentControls(true);
+
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const loginEmail = document.getElementById('loginEmail');
