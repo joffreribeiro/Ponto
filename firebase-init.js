@@ -81,6 +81,9 @@ async function signIn(email, password) {
     if (e && e.code === 'auth/invalid-credential') {
       throw new Error('Email ou senha inválidos.');
     }
+    if (e && (e.code === 'auth/network-request-failed' || (e.message && e.message.includes('network')))) {
+      throw new Error('Sem conexão com o servidor de autenticação. Verifique sua internet ou desative extensões bloqueadoras (ex.: ad-blocker) e tente novamente.');
+    }
     throw e;
   }
 }

@@ -771,9 +771,16 @@ function inicializar() {
                     console.info('[Auth] FirebaseSync detectado após ' + (_fbPollCount * 200) + 'ms — re-inicializando auth UI');
                     try { setupAuthUI(); } catch(e) { console.warn('Re-setupAuthUI falhou:', e); }
                 }
-                if (_fbPollCount > 50) { // max 10s
+                if (_fbPollCount > 20) { // max 4s (antes eram 10s)
                     clearInterval(_fbPoll);
-                    console.warn('[Auth] FirebaseSync não foi detectado em 10s. Verifique se firebase-init.js está carregando.');
+                    console.warn('[Auth] FirebaseSync não foi detectado em 4s. Verifique se firebase-init.js está carregando.');
+                    // Mostrar botão Login mesmo sem Firebase (ad-blocker ou falha de rede)
+                    try {
+                        const lt = document.getElementById('loginToggle');
+                        if (lt) lt.style.display = '';
+                        const as = document.getElementById('authStatus');
+                        if (as) as.textContent = 'Offline';
+                    } catch(e) {}
                 }
             }, 200);
         }
