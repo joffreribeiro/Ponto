@@ -470,6 +470,22 @@ function inicializar() {
         renderizarAtividades();
         // Inicializar UI de autenticação (login/logout) e proteção de ações
         try { setupAuthUI(); } catch(e) { console.warn('setupAuthUI falhou:', e); }
+        // Listener global para o botão de login (garante funcionamento independente de race conditions)
+        if (!document._loginToggleGlobalAttached) {
+            document._loginToggleGlobalAttached = true;
+            document.addEventListener('click', function(ev) {
+                const t = ev.target;
+                if (t && (t.id === 'loginToggle' || t.id === 'bannerLoginBtn' || t.closest('#loginToggle') || t.closest('#bannerLoginBtn'))) {
+                    const modal = document.getElementById('loginModal');
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        try { document.body.style.overflow = 'hidden'; } catch(_) {}
+                        const em = document.getElementById('loginEmail');
+                        if (em) em.focus();
+                    }
+                }
+            });
+        }
         // Garantir que a tabela seja renderizada na inicialização
         if (typeof renderizarTabelaAtividades === 'function') {
             renderizarTabelaAtividades(AppState.dados.atividades || []);
