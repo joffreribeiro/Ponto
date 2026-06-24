@@ -2285,18 +2285,21 @@ function setupAuthUI() {
         if (authStatus) authStatus.textContent = 'Não autenticado';
         const syncStatus = document.getElementById('syncStatus');
         if (syncStatus) syncStatus.style.display = 'none';
-        // Limpar nome dinâmico no header
         const headerName = document.getElementById('headerUserName');
         if (headerName) headerName.textContent = '';
         if (loginForm) loginForm.style.display = 'none';
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = '';
         if (logoutBtn) logoutBtn.style.display = 'none';
-        // Ocultar botões de nuvem
         const syncControls = document.getElementById('syncControls');
         if (syncControls) syncControls.style.display = 'none';
         const logoutTop = document.getElementById('logoutTopBtn');
         if (logoutTop) logoutTop.style.display = 'none';
+        // Mostrar banner de aviso
+        const banner = document.getElementById('bannerSemLogin');
+        if (banner) banner.style.display = 'flex';
+        const bannerBtn = document.getElementById('bannerLoginBtn');
+        if (bannerBtn) bannerBtn.onclick = () => document.getElementById('loginToggle')?.click();
     }
 
     function setAuthUI(user) {
@@ -2306,18 +2309,19 @@ function setupAuthUI() {
         const syncStatus = document.getElementById('syncStatus');
         if (syncStatus) syncStatus.style.display = 'inline-flex';
         restaurarStatusSyncCloud();
-        // Atualizar nome dinâmico no header
         const headerName = document.getElementById('headerUserName');
         if (headerName) headerName.textContent = displayName;
         if (loginForm) loginForm.style.display = 'none';
         const loginToggle = document.getElementById('loginToggle');
         if (loginToggle) loginToggle.style.display = 'none';
         if (logoutBtn) logoutBtn.style.display = '';
-        // Mostrar botões de nuvem
         const syncControls = document.getElementById('syncControls');
         if (syncControls) syncControls.style.display = 'flex';
         const logoutTop = document.getElementById('logoutTopBtn');
         if (logoutTop) logoutTop.style.display = '';
+        // Ocultar banner de aviso
+        const banner = document.getElementById('bannerSemLogin');
+        if (banner) banner.style.display = 'none';
     }
 
     // Se o helper FirebaseSync existir, usar onAuthStateChanged
@@ -2455,9 +2459,14 @@ function setupAuthUI() {
                 closeLoginModal();
             }
         });
-        // fechar com Esc
         document.addEventListener('keydown', (ev) => {
             if (ev.key === 'Escape') closeLoginModal();
+        });
+    }
+    // Enter no campo senha aciona o login
+    if (loginPassword) {
+        loginPassword.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' && loginBtn) loginBtn.click();
         });
     }
 

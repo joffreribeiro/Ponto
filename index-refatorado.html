@@ -91,15 +91,14 @@
                     <option value="contrast">Alto Contraste</option>
                 </select>
             </div>
-            <!-- IDs mantidos ocultos para compatibilidade com JS -->
             <div id="syncControls" style="display:none;"><button id="btnSalvarNuvem" type="button"></button><button id="btnCarregarNuvem" type="button"></button></div>
             <div id="syncStatus" style="display:none;"></div>
-            <div id="authStatus" style="display:none;"></div>
-            <div id="headerUserName" style="display:none;"></div>
-            <button id="loginToggle" type="button" style="display:none;"></button>
-            <button id="logoutTopBtn" type="button" style="display:none;"></button>
-            <button id="logoutBtn" type="button" style="display:none;"></button>
             <div id="sidebarStatusDot" style="display:none;"></div>
+            <div id="authStatus" class="sidebar-auth-status"></div>
+            <div id="headerUserName" style="display:none;"></div>
+            <button id="loginToggle" type="button" class="btn-auth btn-login">Entrar</button>
+            <button id="logoutTopBtn" type="button" class="btn-auth btn-logout" style="display:none;">Sair</button>
+            <button id="logoutBtn" type="button" class="btn-auth btn-logout" style="display:none;">Sair</button>
         </div>
     </aside>
 
@@ -108,14 +107,28 @@
         <button id="btnToggleCompact" type="button" class="btn-header" title="Modo compacto" style="display:none;">Compacto</button>
     </div>
 
-    <!-- Modal de Login removido — IDs mantidos ocultos para compatibilidade com JS -->
-    <div id="loginModal" style="display:none;" aria-hidden="true">
-        <input id="loginEmail" type="email" style="display:none;">
-        <input id="loginPassword" type="password" style="display:none;">
-        <button id="loginBtn" type="button" style="display:none;"></button>
-        <button id="loginModalClose" type="button" style="display:none;"></button>
+    <!-- Modal de Login -->
+    <div id="loginModal" style="display:none;" aria-hidden="true" class="login-modal-overlay">
+        <div class="login-modal-box">
+            <button id="loginModalClose" type="button" class="login-modal-close" title="Fechar">✕</button>
+            <h2 class="login-modal-title">Entrar</h2>
+            <p class="login-modal-subtitle">Faça login para sincronizar seus dados na nuvem.</p>
+            <div class="login-modal-field">
+                <label for="loginEmail">E-mail</label>
+                <input id="loginEmail" type="email" placeholder="seu@email.com" autocomplete="username">
+            </div>
+            <div class="login-modal-field">
+                <label for="loginPassword">Senha</label>
+                <input id="loginPassword" type="password" placeholder="Sua senha" autocomplete="current-password">
+            </div>
+            <button id="loginBtn" type="button" class="login-modal-btn">Entrar</button>
+        </div>
     </div>
     <div class="main-content" id="mainContent">
+    <div id="bannerSemLogin" class="banner-sem-login" style="display:none;">
+        ⚠️ Você não está logado — edições salvas <strong>apenas neste navegador</strong>, não na nuvem.
+        <button type="button" id="bannerLoginBtn">Fazer login</button>
+    </div>
 
         <!-- SEÇÃO DASHBOARD -->
         <section id="dashboard" class="tab-content active">
