@@ -1360,8 +1360,8 @@ table:not(.timesheet-table) tbody tr:hover td {
 .modal-close:hover { background: rgba(255,255,255,.1) !important; color: #fff !important; }
 .modal-evento-redesign .modal-header { background: var(--im-navy) !important; border-bottom-color: var(--im-amber) !important; }
 
-/* Login modal (oculto, mas ID mantido) */
-#loginModal { display: none !important; }
+/* Login modal — controlado via JS */
+#loginModal { display: none; }
 
 /* ══ CONFIGURAÇÕES ═══════════════════════════════════════════════════════ */
 #configuracoes .card { border-top: 3px solid var(--im-amber) !important; }
