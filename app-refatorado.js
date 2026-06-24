@@ -2508,7 +2508,7 @@ function setupAuthUI() {
                 Notifications.error('Falha ao salvar na nuvem: ' + (err.message || err));
             } finally {
                 btnSalvarNuvem.disabled = false;
-                btnSalvarNuvem.innerHTML = '☁️ <span class="btn-cloud-label">Salvar</span>';
+                btnSalvarNuvem.innerHTML = '☁️ Salvar na nuvem';
             }
         });
     }

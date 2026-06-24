@@ -5451,6 +5451,11 @@ html[data-theme="dark"] .skeleton {
 .btn-login:hover { background: #1d4ed8; }
 .btn-logout { background: #475569; color: #fff; }
 .btn-logout:hover { background: #334155; }
+.btn-cloud { background: #0f766e; color: #fff; font-size: 0.8rem; }
+.btn-cloud:hover { background: #0d9488; }
+.btn-cloud-load { background: #1e40af; color: #fff; font-size: 0.8rem; }
+.btn-cloud-load:hover { background: #1d4ed8; }
+.sidebar-sync-controls { display: flex; flex-direction: column; gap: 0; }
 
 .banner-sem-login {
     background: #78350f;

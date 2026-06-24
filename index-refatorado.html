@@ -91,13 +91,16 @@
                     <option value="contrast">Alto Contraste</option>
                 </select>
             </div>
-            <div id="syncControls" style="display:none;"><button id="btnSalvarNuvem" type="button"></button><button id="btnCarregarNuvem" type="button"></button></div>
             <div id="syncStatus" style="display:none;"></div>
             <div id="sidebarStatusDot" style="display:none;"></div>
             <div id="authStatus" class="sidebar-auth-status"></div>
             <div id="headerUserName" style="display:none;"></div>
+            <div id="syncControls" style="display:none;" class="sidebar-sync-controls">
+                <button id="btnSalvarNuvem" type="button" class="btn-auth btn-cloud">☁️ Salvar na nuvem</button>
+                <button id="btnCarregarNuvem" type="button" class="btn-auth btn-cloud-load">⬇️ Carregar da nuvem</button>
+            </div>
             <button id="loginToggle" type="button" class="btn-auth btn-login">Entrar</button>
-            <button id="logoutTopBtn" type="button" class="btn-auth btn-logout" style="display:none;">Sair</button>
+            <button id="logoutTopBtn" type="button" style="display:none;"></button>
             <button id="logoutBtn" type="button" class="btn-auth btn-logout" style="display:none;">Sair</button>
         </div>
     </aside>
