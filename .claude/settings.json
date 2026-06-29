@@ -2,18 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(Select-Object -First 30)",
-      "Bash(Get-ChildItem -Path \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\" -Recurse -Filter \"*.js\" -File)",
+      "Bash(Get-ChildItem -Path \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Sistemas\\\\Ponto\" -Recurse -Filter \"*.js\" -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(start \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\index-refatorado.html\")",
+      "Bash(start \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Sistemas\\\\Ponto\\\\index-refatorado.html\")",
       "Bash(python -m http.server 8765)",
       "Bash(Start-Sleep -Seconds 2)",
       "Bash(Invoke-WebRequest -Uri \"http://localhost:8765/index-refatorado.html\" -UseBasicParsing)",
       "Bash(Select-Object -ExpandProperty StatusCode)",
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8765/index-refatorado.html\" -UseBasicParsing)",
       "Bash(python3 -c ' *)",
-      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\ponto-slate.css\" -Raw; $opens = \\([regex]::Matches\\($css, '{'\\)\\).Count; $closes = \\([regex]::Matches\\($css, '}'\\)\\).Count; \"Abre: $opens  Fecha: $closes  Diff: $\\($opens - $closes\\)\")",
-      "Bash(awk '/^const Storage|^var Storage|^let Storage|Storage\\\\s*=\\\\s*\\\\{/{found=1} found{print NR\": \"$0; count++} count>5{exit}' \"e:/MEUS DOCUMENTOS/OneDrive/Documentos/Ponto/app-refatorado.js\")",
-      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Ponto\\\\ponto-imbel.css\" -Raw; $o = \\([regex]::Matches\\($css,'{'\\)\\).Count; $c = \\([regex]::Matches\\($css,'}'\\)\\).Count; \"Abre: $o  Fecha: $c  Diff: $\\($o-$c\\)  Linhas: $\\($css.Split\\(\"`n\"\\).Count\\)\")"
+      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Sistemas\\\\Ponto\\\\ponto-slate.css\" -Raw; $opens = \\([regex]::Matches\\($css, '{'\\)\\).Count; $closes = \\([regex]::Matches\\($css, '}'\\)\\).Count; \"Abre: $opens  Fecha: $closes  Diff: $\\($opens - $closes\\)\")",
+      "Bash(awk '/^const Storage|^var Storage|^let Storage|Storage\\\\s*=\\\\s*\\\\{/{found=1} found{print NR\": \"$0; count++} count>5{exit}' \"e:/MEUS DOCUMENTOS/OneDrive/Documentos/Sistemas/Ponto/app-refatorado.js\")",
+      "PowerShell($css = Get-Content \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Sistemas\\\\Ponto\\\\ponto-imbel.css\" -Raw; $o = \\([regex]::Matches\\($css,'{'\\)\\).Count; $c = \\([regex]::Matches\\($css,'}'\\)\\).Count; \"Abre: $o  Fecha: $c  Diff: $\\($o-$c\\)  Linhas: $\\($css.Split\\(\"`n\"\\).Count\\)\")"
     ]
   }
 }
