@@ -58,6 +58,8 @@ const Notifications = {
             btnUndo.type = 'button';
             btnUndo.textContent = (opts.undoLabel) ? opts.undoLabel : 'Desfazer';
             btnUndo.addEventListener('click', () => {
+                if (btnUndo.disabled) return;
+                btnUndo.disabled = true;
                 try { opts.onUndo(); } catch(e){ console.warn('undo failed', e); }
                 this.close(toast);
             });
@@ -101,20 +103,20 @@ const Notifications = {
     /**
      * Atalhos para tipos específicos
      */
-    success(message, duration) {
-        return this.show(message, 'success', duration);
+    success(message, duration, opts) {
+        return this.show(message, 'success', duration, opts);
     },
 
-    error(message, duration) {
-        return this.show(message, 'error', duration);
+    error(message, duration, opts) {
+        return this.show(message, 'error', duration, opts);
     },
 
-    warning(message, duration) {
-        return this.show(message, 'warning', duration);
+    warning(message, duration, opts) {
+        return this.show(message, 'warning', duration, opts);
     },
 
-    info(message, duration) {
-        return this.show(message, 'info', duration);
+    info(message, duration, opts) {
+        return this.show(message, 'info', duration, opts);
     },
 
     /**

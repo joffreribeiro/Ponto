@@ -1,11 +1,9 @@
+@layer slate {
 /*
   slate-redesign.css — Sistema de design Precision Ledger
   Linguagem visual unificada: monoespaçado para dados, azul naval escuro,
   estrutura cirúrgica de 1px, tipografia display bold nos títulos.
 */
-
-/* ═══ GOOGLE FONTS ══════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
 
 /* ═══ TOKENS ═══════════════════════════════════════════════════════════ */
 :root {
@@ -1140,8 +1138,6 @@ html[data-theme="dark"] .acordo-card-v2 {
    Tipografia mono para dados, cabeçalho escuro denso, saldos com pill badges,
    separadores refinados, eventos com chips saturados.
    ═══════════════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
-
 /* ── Variáveis locais do timesheet ─────────────────────────────────────── */
 :root {
   --ts-header-from:   #0f1c3f;
@@ -1531,3 +1527,5 @@ html[data-theme="dark"] .evento-viagem      { background: rgba(109,40,217,.25) !
 html[data-theme="dark"] .evento-abono-acordo{ background: rgba(21,128,61,.25) !important; color: #86efac !important; }
 html[data-theme="dark"] .ts-atestado-comparecimento { background: rgba(146,64,14,.2) !important; color: #fcd34d !important; border-left-color: #f59e0b !important; }
 html[data-theme="dark"] .ts-abono { background: rgba(21,128,61,.2) !important; color: #86efac !important; border-left-color: #22c55e !important; }
+
+}

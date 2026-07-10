@@ -1,10 +1,9 @@
+@layer theme {
 /* ═══════════════════════════════════════════════════════════════
    TEMA: SLATE SAAS — Controle de Ponto
    Fundo azul-aço, cards brancos, índigo profundo
    Fontes: DM Sans (display + body) · JetBrains Mono (valores)
 ═══════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
 /* ════════════════════════
    MODO CLARO — Paleta Slate SaaS
@@ -1087,4 +1086,6 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #383e58; }
     #horasAcordo { font-size: 22px; }
 
     .card { padding: 16px 16px; }
+}
+
 }

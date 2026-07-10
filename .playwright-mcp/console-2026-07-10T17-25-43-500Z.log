@@ -1,0 +1,14 @@
+[     942ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[     943ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[     991ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/index-refatorado:0
+[    1014ms] [LOG] [PWA] Service Worker registrado: ServiceWorkerRegistration @ http://localhost:5173/pwa.js?v=1.2.0:36
+[    1425ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[    1425ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[    1447ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/index-refatorado:0
+[    1458ms] [LOG] [PWA] Service Worker registrado: ServiceWorkerRegistration @ http://localhost:5173/pwa.js?v=1.2.0:36
+[  221124ms] [INFO] Timesheet debug: {generatedAt: 2026-07-10T17:29:24.599Z, inicioYear: 2026, inicioMonth: 3, globalFirstYear: 2026, globalFirstMonth: 0} @ http://localhost:5173/app-refatorado.js?v=1.2.8:5451
+[  221153ms] [INFO] Timesheet debug: {generatedAt: 2026-07-10T17:29:24.632Z, inicioYear: 2026, inicioMonth: 3, globalFirstYear: 2026, globalFirstMonth: 0} @ http://localhost:5173/app-refatorado.js?v=1.2.8:5451
+[  221154ms] [LOG] [SUCCESS] Acordo excluído. @ http://localhost:5173/app-refatorado.js?v=1.2.8:7819
+[  227883ms] [INFO] Timesheet debug: {generatedAt: 2026-07-10T17:29:31.272Z, inicioYear: 2026, inicioMonth: 3, globalFirstYear: 2026, globalFirstMonth: 0} @ http://localhost:5173/app-refatorado.js?v=1.2.8:5451
+[  237735ms] [INFO] Timesheet debug: {generatedAt: 2026-07-10T17:29:41.145Z, inicioYear: 2026, inicioMonth: 3, globalFirstYear: 2026, globalFirstMonth: 0} @ http://localhost:5173/app-refatorado.js?v=1.2.8:5451
+[  238399ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80

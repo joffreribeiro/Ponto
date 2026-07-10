@@ -303,3 +303,7 @@ const Validators = {
         return errors;
     }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Validators;
+}

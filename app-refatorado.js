@@ -694,6 +694,8 @@ function inicializar() {
         if (filtroDataFim) filtroDataFim.addEventListener('change', renderizarEventos);
         const filtroRegistros = document.getElementById('filtroAcordoRegistros');
         if (filtroRegistros) filtroRegistros.addEventListener('change', renderizarTabelaRegistros);
+        const buscaAcordosEl = document.getElementById('buscaAcordos');
+        if (buscaAcordosEl) buscaAcordosEl.addEventListener('input', renderizarAcordos);
         // iniciar verificação de lembretes a cada 30 minutos
         try {
             checkAtividadesDeadlines();
@@ -2186,10 +2188,19 @@ function removerAtividade(idOrIdx) {
     const idx = list.findIndex(x => x.id === id);
     if (idx >= 0) {
         Notifications.confirm('Deseja excluir esta atividade?', () => {
+            const snapshot = JSON.parse(JSON.stringify(list[idx]));
             list.splice(idx, 1);
             AppState.dados.atividades = list;
             AppState.save();
             renderizarAtividades();
+
+            Notifications.success('🗑️ Atividade removida.', 6000, {
+                onUndo: () => {
+                    AppState.dados.atividades.splice(idx, 0, snapshot);
+                    AppState.save();
+                    renderizarAtividades();
+                }
+            });
         });
     }
 }
@@ -3664,7 +3675,7 @@ function atualizarDashboard() {
             if (acqInfo) {
                 const start = overview.acquisitionStart ? DateUtils.formatBR(overview.acquisitionStart) : '-';
                 const end = overview.acquisitionEnd ? DateUtils.formatBR(overview.acquisitionEnd) : '-';
-                const acordText = overview.acquisitionAcordo ? `Acordo: ${overview.acquisitionAcordo.nome || '—'}` : '';
+                const acordText = overview.acquisitionAcordo ? `Acordo: ${escapeHtml(overview.acquisitionAcordo.nome || '—')}` : '';
                 if (acordText) {
                     // two-line display: period on first line, acordo on second line
                     acqInfo.innerHTML = `${start} → ${end}<div class="acordo-line">(${acordText})</div>`;
@@ -4458,11 +4469,18 @@ function excluirRegistro(index) {
         Notifications.confirm(
             'Deseja realmente excluir este registro?',
             () => {
-                // Antes de remover registro, também remover evento persistente vinculado (se existir)
                 const reg = AppState.dados.registros[index];
+                const regSnapshot = reg ? JSON.parse(JSON.stringify(reg)) : null;
+                let evSnapshot = null;
+                let evIdx = -1;
+
+                // Antes de remover registro, também remover evento persistente vinculado (se existir)
                 if (reg && reg.data) {
-                    const evIdx = AppState.dados.eventos.findIndex(ev => ev.linkedRegistroDate === reg.data);
-                    if (evIdx >= 0) AppState.dados.eventos.splice(evIdx, 1);
+                    evIdx = AppState.dados.eventos.findIndex(ev => ev.linkedRegistroDate === reg.data);
+                    if (evIdx >= 0) {
+                        evSnapshot = JSON.parse(JSON.stringify(AppState.dados.eventos[evIdx]));
+                        AppState.dados.eventos.splice(evIdx, 1);
+                    }
                 }
 
                 AppState.dados.registros.splice(index, 1);
@@ -4470,7 +4488,17 @@ function excluirRegistro(index) {
                 atualizarDashboard();
                 renderizarTabelaRegistros();
                 gerarTimesheetAcordo(); // Atualiza timesheet automaticamente
-                Notifications.success('🗑️ Registro deletado.');
+
+                Notifications.success('🗑️ Registro deletado.', 6000, {
+                    onUndo: () => {
+                        if (regSnapshot) AppState.dados.registros.splice(index, 0, regSnapshot);
+                        if (evSnapshot && evIdx >= 0) AppState.dados.eventos.splice(evIdx, 0, evSnapshot);
+                        Storage.saveDebounced(AppState.dados);
+                        atualizarDashboard();
+                        renderizarTabelaRegistros();
+                        gerarTimesheetAcordo();
+                    }
+                });
             }
         );
     } catch (error) {
@@ -7387,6 +7415,48 @@ function salvarAcordo() {
     }
 }
 
+function excluirAcordo(index) {
+    try {
+        const acordo = AppState.dados.acordos[index];
+        if (!acordo) throw new Error('Acordo não encontrado');
+
+        const nomeAcordo = acordo.nome || `Acordo ${index + 1}`;
+        Notifications.confirm(
+            `Deseja realmente excluir o acordo "${nomeAcordo}"? Esta ação não pode ser desfeita.`,
+            () => {
+                try {
+                    // Ajustar acordoIndex dos eventos ANTES do splice, sempre contra o índice antigo
+                    (AppState.dados.eventos || []).forEach(ev => {
+                        if (!ev || typeof ev.acordoIndex !== 'number') return;
+                        if (ev.acordoIndex === index) ev.acordoIndex = null;
+                        else if (ev.acordoIndex > index) ev.acordoIndex -= 1;
+                    });
+
+                    AppState.dados.acordos.splice(index, 1);
+
+                    // Tentar realocar eventos órfãos por sobreposição de data (best-effort)
+                    try { atualizarAcordosEventosExistentes(); } catch (e) { console.warn('Falha ao realocar eventos órfãos:', e); }
+
+                    AppState.save();
+                    renderizarAcordos();
+                    atualizarSelectAcordosTimesheet();
+                    atualizarSelectAcordosEventos();
+                    atualizarSelectAcordosFerias();
+                    atualizarSelectAcordosRegistros();
+                    gerarTimesheetAcordo();
+                    mostrarAlertaGlobal('Acordo excluído.', 'success');
+                } catch (error) {
+                    console.error('Erro ao excluir acordo:', error);
+                    mostrarAlertaGlobal(error.message, 'error');
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Erro ao excluir acordo:', error);
+        mostrarAlertaGlobal(error.message, 'error');
+    }
+}
+
 function fecharModalAcordo() {
     document.getElementById('modalAcordo').classList.remove('active');
     AppState.acordoEmEdicao = null;
@@ -7573,7 +7643,18 @@ function renderizarAcordos() {
         const TIPO_ICONES = { ferias: '🏖️', feriado: '📅', afastamento: '🏥', viagem: '✈️', folga: '☀️' };
 
         const sorted = getAcordosSortedByNewest();
-        sorted.forEach((item) => {
+        const buscaEl = document.getElementById('buscaAcordos');
+        const busca = buscaEl ? (buscaEl.value || '').trim().toLowerCase() : '';
+        const sortedFiltrado = busca
+            ? sorted.filter(item => String(item.a.nome || `Acordo ${item.i + 1}`).toLowerCase().includes(busca))
+            : sorted;
+
+        if (busca && !sortedFiltrado.length) {
+            container.innerHTML = `<div class="acordo-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg><p>Nenhum acordo encontrado para "${escapeHtml(buscaEl.value)}".</p></div>`;
+            return;
+        }
+
+        sortedFiltrado.forEach((item) => {
             const a = item.a;
             const idx = item.i;
             const eventosAcordo = AppState.dados.eventos.filter(ev => ev.acordoIndex === idx);
@@ -7592,7 +7673,7 @@ function renderizarAcordos() {
             header.className = 'acv2-header';
             header.innerHTML = `
                 <div class="acv2-header-left">
-                    <span class="acv2-titulo">${a.nome || `Acordo ${idx + 1}`}</span>
+                    <span class="acv2-titulo">${a.nome ? escapeHtml(a.nome) : `Acordo ${idx + 1}`}</span>
                     ${periodoAtivo ? `<span class="acv2-badge acv2-badge-active">Vigente</span>` : `<span class="acv2-badge acv2-badge-inactive">Encerrado</span>`}
                 </div>
                 <div class="acv2-header-actions">
@@ -7603,6 +7684,10 @@ function renderizarAcordos() {
                     <button type="button" class="acv2-btn acv2-btn-primary" data-action-evento="${idx}" title="Novo evento">
                         <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd"/></svg>
                         Evento
+                    </button>
+                    <button type="button" class="acv2-btn acv2-btn-danger" data-action-excluir="${idx}" title="Excluir acordo">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd"/></svg>
+                        Excluir
                     </button>
                 </div>`;
             card.appendChild(header);
@@ -7714,6 +7799,7 @@ function renderizarAcordos() {
             // Eventos dos botões
             card.querySelector(`[data-action-editar="${idx}"]`).addEventListener('click', () => editarAcordo(idx));
             card.querySelector(`[data-action-evento="${idx}"]`).addEventListener('click', () => abrirModalEventoParaAcordo(idx));
+            card.querySelector(`[data-action-excluir="${idx}"]`).addEventListener('click', () => excluirAcordo(idx));
 
             // Toggle de seções
             card.querySelectorAll('.acv2-section-toggle').forEach(btn => {

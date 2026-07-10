@@ -1,0 +1,154 @@
+- generic [active] [ref=e1]:
+  - navigation "Menu lateral" [ref=e2]:
+    - button "Toggle menu" [ref=e3] [cursor=pointer]
+    - generic [ref=e11]:
+      - generic [ref=e12]: Ponto
+      - generic [ref=e13]: Controle de jornada
+    - navigation [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]: Principal
+        - button "Dashboard" [ref=e17] [cursor=pointer]
+      - generic [ref=e22]:
+        - generic [ref=e23]: Ponto
+        - button "Ponto" [ref=e24] [cursor=pointer]
+        - generic [ref=e33]:
+          - button "Folha de Ponto" [ref=e34] [cursor=pointer]
+          - button "Registros" [ref=e35] [cursor=pointer]
+          - button "Acordos" [ref=e36] [cursor=pointer]
+          - button "Eventos" [ref=e37] [cursor=pointer]
+          - button "Férias" [ref=e38] [cursor=pointer]
+      - generic [ref=e39]:
+        - generic [ref=e40]: Trabalho
+        - button "Atividades" [ref=e41] [cursor=pointer]
+      - generic [ref=e45]:
+        - generic [ref=e46]: Sistema
+        - button "Configurações" [ref=e47] [cursor=pointer]
+    - generic [ref=e52]:
+      - combobox "Tema visual" [ref=e54] [cursor=pointer]:
+        - option "Slate (padrão)" [selected]
+        - option "Deep Focus (escuro)"
+        - option "Meridian (quente)"
+        - option "Alto Contraste"
+      - generic [ref=e55]: Não autenticado
+      - button "Entrar" [ref=e56] [cursor=pointer]
+  - generic [ref=e57]:
+    - generic [ref=e58]:
+      - text: ⚠️ Você não está logado — edições salvas
+      - strong [ref=e59]: apenas neste navegador
+      - text: ", não na nuvem."
+      - button "Fazer login" [ref=e60] [cursor=pointer]
+    - generic [ref=e61]:
+      - heading "Dashboard" [level=2] [ref=e63]
+      - generic [ref=e64]:
+        - generic [ref=e66]:
+          - heading "Resumo da Jornada" [level=2] [ref=e67]
+          - generic [ref=e68]:
+            - generic [ref=e69]:
+              - generic [ref=e70]: "Acordo:"
+              - combobox "Acordo:" [ref=e74]:
+                - option "Todos os acordos" [selected]
+            - generic [ref=e75]:
+              - generic [ref=e76]: "Período:"
+              - combobox "Período:" [ref=e80]:
+                - option "Todos os registros"
+                - option "Mês atual" [selected]
+                - option "Mês anterior"
+                - option "Últimos 3 meses"
+                - option "Últimos 6 meses"
+                - option "Ano atual"
+                - option "Período customizado"
+            - button [ref=e82] [cursor=pointer]
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - generic [ref=e88]: Horas Trabalhadas (período)
+              - generic [ref=e89]: 00:00
+            - generic [ref=e90]:
+              - generic [ref=e91]: Saldo de Banco de Horas
+              - generic [ref=e92]: 00:00
+            - generic [ref=e93]:
+              - generic [ref=e94]: Horas Extras
+              - generic [ref=e95]: 00:00
+            - generic [ref=e96]:
+              - generic [ref=e97]: Horas em Acordo
+              - generic [ref=e98]: 00:00
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: Média diária
+              - generic [ref=e102]: 00:00
+            - generic [ref=e103]:
+              - generic [ref=e104]: Dias com registro
+              - generic [ref=e105]: "0"
+            - generic [ref=e106]:
+              - generic [ref=e107]: Saldo últimos 30d
+              - generic [ref=e108]: 00:00
+            - generic [ref=e109]:
+              - generic [ref=e110]: Tendência 30d vs 30d ant.
+              - generic [ref=e111]: 00:00 vs 30d ant.
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]: 🕐 Hora de Saída Estimada (Hoje)
+              - generic [ref=e115]: "--:--"
+              - generic [ref=e116]: Nenhum registro hoje
+            - generic [ref=e117]:
+              - generic [ref=e118]: 📋 Faltas/Ausências (período)
+              - generic [ref=e119]: "22"
+              - generic [ref=e120]: "Ex: 11/06/2026, 12/06/2026, 15/06/2026..."
+        - generic [ref=e121]:
+          - heading "📅 Resumo de Férias" [level=2] [ref=e122]
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic "Período Aquisitivo" [ref=e125]
+              - generic "Período Concessivo" [ref=e126]
+              - generic "Hoje" [ref=e127]
+            - generic [ref=e128]:
+              - generic [ref=e129]: 10/07/2025
+              - generic [ref=e130]: 10/07/2027
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: PERÍODO AQUISITIVO
+              - generic [ref=e134]: 10/07/2025 → 10/07/2026
+            - generic [ref=e135]:
+              - generic [ref=e136]: PERÍODO CONCESSIVO
+              - generic [ref=e137]: 11/07/2026 → 10/07/2027
+            - generic [ref=e138]:
+              - generic [ref=e139]: PRÓXIMA FÉRIAS
+              - generic [ref=e140]: Nenhuma férias agendada
+            - generic [ref=e141]:
+              - generic [ref=e142]: PODE TIRAR FÉRIAS A PARTIR DE
+              - generic "Considerando 30 dias de antecedência" [ref=e143]: 09/08/2026
+            - generic [ref=e144]:
+              - generic [ref=e145]: DIAS RESTANTES
+              - generic [ref=e146]: 30 / 30 dia(s)
+            - generic [ref=e149]:
+              - generic [ref=e150]: DIAS UTILIZADOS
+              - generic [ref=e151]: 0 / 30 dia(s)
+            - generic [ref=e154]:
+              - generic [ref=e155]: SALDO ACUMULADO (TODOS PERÍODOS)
+              - generic [ref=e156]: 30 dia(s)
+            - generic [ref=e157]:
+              - generic [ref=e158]: ABONO DISPONÍVEL
+              - generic [ref=e159]: "-"
+            - generic [ref=e160]:
+              - generic [ref=e161]: HORAS A PAGAR
+              - generic [ref=e162]: "-"
+            - generic [ref=e163]:
+              - generic [ref=e164]: STATUS
+              - generic [ref=e165]: ✅ OK
+        - generic [ref=e166]:
+          - heading "⚠️ Avisos" [level=2] [ref=e167]
+          - list [ref=e168]:
+            - listitem [ref=e169]: Nenhum registro de ponto cadastrado ainda.
+      - generic [ref=e170]:
+        - generic [ref=e171]:
+          - heading [level=2] [ref=e172]
+          - button "Ocultar Gráficos" [ref=e176] [cursor=pointer]
+        - generic [ref=e179]:
+          - heading "Horas Trabalhadas" [level=3] [ref=e181]
+          - heading "Saldo Mensal" [level=3] [ref=e185]
+          - heading "Distribuição Semanal" [level=3] [ref=e189]
+          - heading "Tipos de Eventos" [level=3] [ref=e193]
+  - generic [ref=e197]:
+    - img "Informação" [ref=e199]
+    - generic [ref=e201]: Nenhum registro encontrado com os filtros aplicados
+    - button "Fechar notificação" [ref=e202] [cursor=pointer]:
+      - img "Fechar notificação" [ref=e203]

@@ -173,3 +173,7 @@ const DateUtils = {
         return `${dia}/${mes}/${ano} ${hh}:${mm}`;
     }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = DateUtils;
+}

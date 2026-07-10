@@ -4,6 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Controle de Ponto</title>
+    <!-- Ordem de cascata explícita: cada arquivo CSS declara seu conteúdo dentro da
+         camada (@layer) correspondente. Uma camada declarada depois sempre vence uma
+         anterior, independente de especificidade — substitui a necessidade de !important
+         entre arquivos (mantém o comportamento visual atual, já que a ordem das camadas
+         abaixo é a mesma ordem de carregamento que já existia). -->
+    <style>@layer base, theme, improvements, slate, imbel;</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="theme-redesign.css">
     <link rel="stylesheet" href="design-improvements.css">
@@ -105,8 +114,14 @@
         </div>
     </aside>
 
-    <!-- TOPBAR TOPO (apenas para controles compactos) -->
+    <!-- Backdrop do menu mobile -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <!-- TOPBAR TOPO (controles compactos + menu mobile) -->
     <div class="main-topbar" id="mainTopbar">
+        <button id="sidebarToggleMobile" type="button" class="sidebar-toggle-mobile" aria-label="Abrir menu">
+            <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </button>
         <button id="btnToggleCompact" type="button" class="btn-header" title="Modo compacto" style="display:none;">Compacto</button>
     </div>
 
@@ -670,6 +685,7 @@
                             📤 Importar Acordos
                             <input type="file" id="importarAcordosInput" accept=".json" onchange="importarAcordosJSON(event)" style="display: none;">
                         </label>
+                        <input type="text" id="buscaAcordos" placeholder="Buscar acordo por nome..." class="rp-filter-input" style="flex:1; min-width:180px;">
                     </div>
                     <div id="listaAcordos" style="margin-top:16px;"></div>
                 </div>
@@ -1715,6 +1731,22 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 // Filtros da tabela de Registros
 (function(){
+    function popularFiltroRegPeriodo(){
+        const select = document.getElementById('filtroRegPeriodo');
+        const tbody = document.querySelector('#tabelaRegistros tbody');
+        if (!select || !tbody) return;
+
+        const valores = Array.from(tbody.rows)
+            .map(row => (row.cells[5]?.innerText || '').trim())
+            .filter(Boolean);
+        const unicos = Array.from(new Set(valores)).sort();
+
+        const valorAtual = select.value;
+        select.innerHTML = '<option value="">Todos</option>' +
+            unicos.map(v => `<option value="${v.replace(/"/g, '&quot;')}">${v}</option>`).join('');
+        if (unicos.includes(valorAtual)) select.value = valorAtual;
+    }
+
     function aplicarFiltrosRegistros(){
         const tbody = document.querySelector('#tabelaRegistros tbody');
         if (!tbody) return;
@@ -1790,10 +1822,13 @@ document.addEventListener('DOMContentLoaded', function(){
             el.addEventListener(ev, aplicarFiltrosRegistros);
         });
         
-        // Observar mudanças no tbody para reaplicar filtros
+        // Observar mudanças no tbody para reaplicar filtros e repopular o dropdown de justificativa
         const tbody = document.querySelector('#tabelaRegistros tbody');
         if (tbody) {
-            const mo = new MutationObserver(() => setTimeout(aplicarFiltrosRegistros, 50));
+            const mo = new MutationObserver(() => setTimeout(() => {
+                popularFiltroRegPeriodo();
+                aplicarFiltrosRegistros();
+            }, 50));
             mo.observe(tbody, { childList: true });
         }
     });
@@ -1914,6 +1949,40 @@ document.addEventListener('DOMContentLoaded', function(){
         if (submenu && navPontoBtn && navPontoBtn.classList.contains('active')) {
             submenu.classList.add('nav-submenu--open');
         }
+    })();
+    </script>
+
+    <script>
+    // ── Sidebar mobile: abrir/fechar como drawer (abaixo de 640px) ──
+    (function(){
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const btnOpen = document.getElementById('sidebarToggleMobile');
+        if (!sidebar || !backdrop || !btnOpen) return;
+
+        function openMobileMenu(){
+            sidebar.classList.add('sidebar--mobile-open');
+            backdrop.classList.add('visible');
+        }
+        function closeMobileMenu(){
+            sidebar.classList.remove('sidebar--mobile-open');
+            backdrop.classList.remove('visible');
+        }
+
+        btnOpen.addEventListener('click', openMobileMenu);
+        backdrop.addEventListener('click', closeMobileMenu);
+
+        // Fechar automaticamente ao navegar entre abas/subabas em mobile
+        document.querySelectorAll('.nav-item[data-tab], .nav-subitem[data-subtab]').forEach(function(el){
+            el.addEventListener('click', function(){
+                if (window.innerWidth <= 640) closeMobileMenu();
+            });
+        });
+
+        // Se a tela crescer para desktop com o menu mobile aberto, limpar o estado
+        window.addEventListener('resize', function(){
+            if (window.innerWidth > 640) closeMobileMenu();
+        });
     })();
     </script>
 </body>

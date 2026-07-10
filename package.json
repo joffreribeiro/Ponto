@@ -1,0 +1,13 @@
+{
+  "name": "ponto",
+  "private": true,
+  "version": "1.2.8",
+  "description": "Controle de Ponto — testes unitários da lógica de cálculo (calculations.js, validators.js)",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  }
+}

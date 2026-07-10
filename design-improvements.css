@@ -1,3 +1,4 @@
+@layer improvements {
 /* ═══════════════════════════════════════════════════════════════════
    DESIGN IMPROVEMENTS — camada de correção e refinamento
    Carregado APÓS styles.css e theme-redesign.css
@@ -771,4 +772,6 @@ html[data-theme="dark"] .subtab-btn.active {
 
 html[data-theme="dark"] .badge {
     letter-spacing: .2px;
+}
+
 }

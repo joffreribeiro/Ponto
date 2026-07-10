@@ -137,9 +137,9 @@ const Calculations = {
         }
 
         // Calcular almoço
-        const almocoPadrao = regra.almocoMin || 60;
-        const tolAlmoco = regra.tolAlmoco || 5;
-        const tolSaida = regra.tolSaida || 5;
+        const almocoPadrao = (regra.almocoMin != null) ? regra.almocoMin : 60;
+        const tolAlmoco = (regra.tolAlmoco != null) ? regra.tolAlmoco : 5;
+        const tolSaida = (regra.tolSaida != null) ? regra.tolSaida : 5;
 
         let duracaoAlmoco = almocoPadrao;
 
@@ -372,3 +372,7 @@ const Calculations = {
         };
     }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Calculations;
+}

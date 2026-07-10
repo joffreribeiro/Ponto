@@ -1,0 +1,4 @@
+[     137ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[     137ms] [WARNING] AtividadesTabela: rendered 0 rows even though items length = 0 @ http://localhost:5173/atividades-tabela.js?v=1.1.0:80
+[     149ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/index-refatorado:0
+[     152ms] [LOG] [PWA] Service Worker registrado: ServiceWorkerRegistration @ http://localhost:5173/pwa.js?v=1.2.0:36
