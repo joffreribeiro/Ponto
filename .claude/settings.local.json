@@ -24,7 +24,10 @@
       "Bash(Get-ChildItem -Path \"e:\\\\MEUS DOCUMENTOS\\\\OneDrive\\\\Documentos\\\\Sistemas\\\\Ponto\" -Recurse -File)",
       "Bash(Select-Object -ExpandProperty Name)",
       "Bash(Sort-Object)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_click"
     ],
     "additionalDirectories": [
       "E:\\MEUS DOCUMENTOS\\OneDrive\\Documentos\\Sistemas\\Integrado"

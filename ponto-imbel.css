@@ -230,16 +230,28 @@ body { margin: 0 !important; }
 .sidebar-logo-icon {
   width: 32px !important;
   height: 32px !important;
-  border-radius: var(--im-r-sm) !important;
-  background: linear-gradient(135deg, #1a3060 0%, #0d1f45 100%) !important;
-  border: 1px solid rgba(229,161,40,.35) !important;
-  color: var(--im-amber) !important;
+  border-radius: 9px !important;
+  background: linear-gradient(155deg, #f0b448, var(--im-amber) 55%, var(--im-amber-d)) !important;
+  border: none !important;
+  color: #0f1e31 !important;
   display: grid !important;
   place-items: center !important;
   flex-shrink: 0 !important;
   font-size: 15px !important;
-  box-shadow: none !important;
+  position: relative !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -6px 10px rgba(0,0,0,.18), 0 1px 3px rgba(0,0,0,.25) !important;
   filter: none !important;
+}
+.sidebar-logo-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255,255,255,.25);
+  pointer-events: none;
+}
+.sidebar-logo-icon svg {
+  filter: drop-shadow(0 1px 0 rgba(255,255,255,.3));
 }
 .sidebar-logo-title {
   font-family: var(--im-font) !important;
@@ -1363,6 +1375,37 @@ table:not(.timesheet-table) tbody tr:hover td {
 
 /* Login modal — controlado via JS */
 #loginModal { display: none; }
+.login-modal-overlay { background: rgba(5,10,20,.62) !important; backdrop-filter: blur(4px) !important; }
+.login-modal-box {
+  background: var(--im-surface) !important;
+  color: var(--im-text) !important;
+  border: 1px solid var(--im-border) !important;
+  border-radius: var(--im-r) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18) !important;
+  font-family: var(--im-font) !important;
+}
+.login-modal-close { color: var(--im-text-m) !important; }
+.login-modal-close:hover { background: rgba(255,255,255,.08) !important; color: var(--im-text) !important; }
+.login-modal-title { color: var(--im-text) !important; font-family: var(--im-font) !important; }
+.login-modal-subtitle { color: var(--im-text-m) !important; }
+.login-modal-field label { color: var(--im-text-m) !important; }
+.login-modal-field input {
+  background: var(--im-surface-2) !important;
+  border: 1px solid var(--im-border) !important;
+  color: var(--im-text) !important;
+  border-radius: var(--im-r-xs) !important;
+}
+.login-modal-field input:focus {
+  border-color: var(--im-amber) !important;
+  box-shadow: 0 0 0 2px rgba(229,161,40,.28) !important;
+}
+.login-modal-btn {
+  background: var(--im-amber) !important;
+  color: #0f1e31 !important;
+  border-radius: var(--im-r-xs) !important;
+  font-weight: 700 !important;
+}
+.login-modal-btn:hover { background: var(--im-amber-d) !important; }
 
 /* ══ CONFIGURAÇÕES ═══════════════════════════════════════════════════════ */
 #configuracoes .card { border-top: 3px solid var(--im-amber) !important; }
