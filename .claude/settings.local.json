@@ -27,7 +27,8 @@
       "Bash(node -e ' *)",
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_click"
+      "mcp__playwright__browser_click",
+      "Bash(grep -n \"^// ═\\\\|^// ──\\\\|^// ===\\\\|^/\\\\*\\\\*$\\\\|^function \\\\|^const [A-Z]\" app-refatorado.js)"
     ],
     "additionalDirectories": [
       "E:\\MEUS DOCUMENTOS\\OneDrive\\Documentos\\Sistemas\\Integrado"

@@ -468,6 +468,20 @@ function inicializar() {
         // Inicializar módulo de Atividades
         ensureAtividadesDefault();
         renderizarAtividades();
+        // Inicializar módulo de Relacionamento (CRM)
+        try { if (window.CrmStore) CrmStore.ensureCrmDefault(); } catch(e) { console.error('Erro ao inicializar CRM:', e); }
+        // Faz falhas de persistência (localStorage cheio, Firestore rejeitando) deixarem
+        // de ser silenciosas — sem isso o app parecia funcionar normalmente enquanto
+        // perdia dados (ver Storage._notificarErroPersistencia em storage.js).
+        Storage.onPersistError = function(origem, erro) {
+            console.error('Falha ao persistir dados (' + origem + '):', erro);
+            try { atualizarStatusSyncCloud('error', localStorage.getItem(LAST_CLOUD_SYNC_KEY)); } catch(_) {}
+            try {
+                Notifications.error(origem === 'localStorage'
+                    ? 'Não foi possível salvar localmente: armazenamento cheio. Considere exportar e limpar dados antigos.'
+                    : 'Falha ao sincronizar com a nuvem. Suas alterações continuam salvas neste navegador.');
+            } catch(_) {}
+        };
         // Inicializar UI de autenticação (login/logout) e proteção de ações
         try { setupAuthUI(); } catch(e) { console.warn('setupAuthUI falhou:', e); }
         // Listener global para o botão de login (garante funcionamento independente de race conditions)

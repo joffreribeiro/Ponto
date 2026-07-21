@@ -36,6 +36,18 @@ const Storage = {
             { id: 'compensar_acordo', nome: 'Pagar Hora (acordo)', cor: '#db2777' },
             { id: 'outro', nome: 'Outro', cor: '#64748b' }
         ],
+        // Módulo de Relacionamento (CRM). Forma completa normalizada por
+        // CrmModel.normalizarCrm/CrmStore.ensureCrmDefault — aqui só o esqueleto,
+        // para que Storage não precise conhecer o schema do CRM.
+        crm: {
+            versao: 1,
+            funis: [],
+            negocios: [],
+            pessoas: [],
+            organizacoes: [],
+            historico: [],
+            config: {}
+        },
         updatedAt: 0
     },
 
@@ -85,6 +97,12 @@ const Storage = {
             dados.tiposEvento = JSON.parse(JSON.stringify(this.DEFAULT_DATA.tiposEvento));
         }
         if (!dados.updatedAt) dados.updatedAt = 0;
+        // Guarda mínima: só garante que a chave existe como objeto. O preenchimento
+        // profundo (arrays, IDs, config) é responsabilidade de CrmStore.ensureCrmDefault,
+        // que conhece o schema do CRM — Storage não deve conhecê-lo.
+        if (!dados.crm || typeof dados.crm !== 'object') {
+            dados.crm = { versao: 1 };
+        }
         return dados;
     },
 
@@ -92,6 +110,21 @@ const Storage = {
     //  SAVE — Firestore (primário) + localStorage (cache)
     //  Com controle de conflitos (updatedAt) e fila de saves
     // ──────────────────────────────────────────────
+
+    /**
+     * Hook opcional: chamado (sem afetar o valor de retorno de `save()`, que
+     * outros pontos do app já dependem) quando localStorage ou Firestore
+     * falham silenciosamente. Ver `onPersistError` — sem isso, um
+     * QuotaExceededError ou uma rejeição do Firestore nunca chegavam a lugar
+     * nenhum e o usuário via o app "funcionando" enquanto perdia dados.
+     */
+    onPersistError: null,
+
+    _notificarErroPersistencia(origem, erro) {
+        if (typeof this.onPersistError === 'function') {
+            try { this.onPersistError(origem, erro); } catch (_) { /* nunca deixar o notificador quebrar o save */ }
+        }
+    },
 
     /**
      * Salva dados no Firestore E no localStorage.
@@ -105,7 +138,11 @@ const Storage = {
             dados.updatedAt = Date.now();
 
             // Cache local (síncrono)
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); } catch(_){}
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+            } catch (errLocal) {
+                this._notificarErroPersistencia('localStorage', errLocal);
+            }
 
             // Firestore (assíncrono com fila)
             this._enqueueFirestoreSave(dados);
@@ -131,7 +168,7 @@ const Storage = {
 
         this._saving = true;
         window.FirebaseSync.saveToFirestore(dados)
-            .catch(_ => {})
+            .catch(err => { this._notificarErroPersistencia('firestore', err); })
             .finally(() => {
                 this._saving = false;
                 // Se acumulou um save pendente, disparar agora
