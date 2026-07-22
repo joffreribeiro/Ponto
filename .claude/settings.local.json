@@ -29,7 +29,17 @@
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_click",
       "Bash(grep -n \"^// ═\\\\|^// ──\\\\|^// ===\\\\|^/\\\\*\\\\*$\\\\|^function \\\\|^const [A-Z]\" app-refatorado.js)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__javascript_tool",
+      "Read(//tmp/**)",
+      "Bash(sed -e 's/<text:p[^>]*>/\\\\n/g; s/<text:h[^>]*>/\\\\n## /g; s/<text:line-break[^>]*>/\\\\n/g; s/<text:tab[^>]*>/\\\\t/g; s/<[^>]*>//g' content.xml)",
+      "Bash(grep -v \"^\\\\s*$\")",
+      "Bash(echo \"TMPDIR=$TMPDIR\"; ls \"$TMPDIR/pipedrive-odt\" 2>/dev/null || find /c/Users/Joffre/AppData/Local/Temp -maxdepth 2 -name \"pipedrive-odt\" -type d 2>/dev/null | head -2)",
+      "Bash(cd /tmp)",
+      "Bash(pwd -W)",
+      "PowerShell($scratch = \"C:\\\\Users\\\\Joffre\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\odt-extract\"; New-Item -ItemType Directory -Force $scratch | Out-Null; Copy-Item \"E:\\\\MEUS DOCUMENTOS\\\\Downloads\\\\Pipedrive.odt\" \"$scratch\\\\Pipedrive.zip\" -Force; Expand-Archive \"$scratch\\\\Pipedrive.zip\" \"$scratch\\\\out\" -Force; Get-ChildItem \"$scratch\\\\out\" | Select-Object Name, Length)"
     ],
     "additionalDirectories": [
       "E:\\MEUS DOCUMENTOS\\OneDrive\\Documentos\\Sistemas\\Integrado"
