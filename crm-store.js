@@ -74,10 +74,31 @@
         return crm.funis.filter(function (f) { return f.id === crm.config.funilAtivoId; })[0] || crm.funis[0] || null;
     }
 
+    /**
+     * Negócios ativos (fora da lixeira). Todos os consumidores normais usam
+     * esta função; a lixeira usa listarNegociosExcluidos.
+     */
     function listarNegocios(funilId) {
         var crm = getCrm();
         if (!crm) return [];
-        return funilId ? crm.negocios.filter(function (n) { return n.funilId === funilId; }) : crm.negocios.slice();
+        return crm.negocios.filter(function (n) {
+            return !n.excluidoEm && (!funilId || n.funilId === funilId);
+        });
+    }
+
+    function listarNegociosExcluidos(funilId) {
+        var crm = getCrm();
+        if (!crm) return [];
+        return crm.negocios.filter(function (n) {
+            return !!n.excluidoEm && (!funilId || n.funilId === funilId);
+        });
+    }
+
+    function listarAtividades(negocioId) {
+        var crm = getCrm();
+        if (!crm) return [];
+        var todas = crm.atividades || [];
+        return negocioId ? todas.filter(function (a) { return a.negocioId === negocioId; }) : todas.slice();
     }
 
     function listarPessoas() {
@@ -109,7 +130,8 @@
     function setVisao(visao) {
         var crm = getCrm();
         if (!crm) return;
-        emLote(function () { crm.config.visao = (visao === 'lista') ? 'lista' : 'kanban'; });
+        var validas = ['kanban', 'lista', 'previsao', 'excluidos'];
+        emLote(function () { crm.config.visao = validas.indexOf(visao) !== -1 ? visao : 'kanban'; });
     }
 
     function setSubaba(subaba) {
@@ -330,7 +352,36 @@
         return n;
     }
 
+    /**
+     * Exclusão em duas etapas, padrão Pipedrive: remover manda para a lixeira
+     * (soft delete); a exclusão definitiva só acontece a partir da visão
+     * Excluídos, e aí sim apaga o negócio, suas atividades e seu histórico.
+     */
     function removerNegocio(id) {
+        var crm = getCrm();
+        if (!crm) return false;
+        var n = crm.negocios.filter(function (x) { return x.id === id; })[0];
+        if (!n || n.excluidoEm) return false;
+        emLote(function () {
+            n.excluidoEm = new Date().toISOString();
+            registrarHistorico('negocio', id, 'exclusao', 'Negócio movido para Excluídos');
+        });
+        return true;
+    }
+
+    function restaurarNegocio(id) {
+        var crm = getCrm();
+        if (!crm) return false;
+        var n = crm.negocios.filter(function (x) { return x.id === id; })[0];
+        if (!n || !n.excluidoEm) return false;
+        emLote(function () {
+            n.excluidoEm = null;
+            registrarHistorico('negocio', id, 'exclusao', 'Negócio restaurado da lixeira');
+        });
+        return true;
+    }
+
+    function excluirNegocioDefinitivo(id) {
         var crm = getCrm();
         if (!crm) return false;
         var idx = -1;
@@ -338,7 +389,23 @@
         if (idx === -1) return false;
         emLote(function () {
             crm.negocios.splice(idx, 1);
-            registrarHistorico('negocio', id, 'exclusao', 'Negócio excluído');
+            // Reatribuição única (não splice em série) — ver comentário em podarHistorico
+            crm.atividades = (crm.atividades || []).filter(function (a) { return a.negocioId !== id; });
+            crm.historico = crm.historico.filter(function (h) {
+                return !(h.entidade === 'negocio' && h.entidadeId === id);
+            });
+        });
+        return true;
+    }
+
+    function setParticipantes(negocioId, pessoaIds) {
+        var crm = getCrm();
+        if (!crm) return false;
+        var n = crm.negocios.filter(function (x) { return x.id === negocioId; })[0];
+        if (!n) return false;
+        emLote(function () {
+            n.participantes = (pessoaIds || []).slice();
+            n.atualizadoEm = new Date().toISOString();
         });
         return true;
     }
@@ -415,6 +482,69 @@
             emLote(function () { n.motivoPerda = motivo; });
         }
         return ok;
+    }
+
+    // ──────────────────────────────────────────────
+    //  ATIVIDADES (agendáveis, padrão Pipedrive)
+    // ──────────────────────────────────────────────
+
+    function criarAtividade(dados) {
+        var crm = getCrm();
+        if (!crm) return null;
+        var atividade = CrmModel.criarAtividade(dados);
+        emLote(function () {
+            if (!crm.atividades) crm.atividades = [];
+            crm.atividades.push(atividade);
+            var rotulo = (CrmModel.TIPOS_ATIVIDADE[atividade.tipo] || {}).rotulo || atividade.tipo;
+            registrarHistorico('negocio', atividade.negocioId, 'atividade',
+                rotulo + ' agendada: ' + atividade.assunto,
+                { atividadeId: atividade.id, acao: 'criada' });
+        });
+        return atividade;
+    }
+
+    function atualizarAtividade(id, patch) {
+        var crm = getCrm();
+        if (!crm) return null;
+        var a = (crm.atividades || []).filter(function (x) { return x.id === id; })[0];
+        if (!a) return null;
+        emLote(function () {
+            Object.keys(patch || {}).forEach(function (campo) {
+                if (campo === 'id') return;
+                a[campo] = patch[campo];
+            });
+            a.atualizadoEm = new Date().toISOString();
+        });
+        return a;
+    }
+
+    /** Marca/desmarca como feita, registrando no histórico do negócio. */
+    function concluirAtividade(id, feito) {
+        var crm = getCrm();
+        if (!crm) return false;
+        var a = (crm.atividades || []).filter(function (x) { return x.id === id; })[0];
+        if (!a) return false;
+        var marcar = (feito !== false);
+        emLote(function () {
+            a.feito = marcar;
+            a.feitoEm = marcar ? new Date().toISOString() : null;
+            a.atualizadoEm = new Date().toISOString();
+            var rotulo = (CrmModel.TIPOS_ATIVIDADE[a.tipo] || {}).rotulo || a.tipo;
+            registrarHistorico('negocio', a.negocioId, 'atividade',
+                rotulo + (marcar ? ' concluída: ' : ' reaberta: ') + a.assunto,
+                { atividadeId: a.id, acao: marcar ? 'concluida' : 'reaberta' });
+        });
+        return true;
+    }
+
+    function removerAtividade(id) {
+        var crm = getCrm();
+        if (!crm) return false;
+        var idx = -1;
+        (crm.atividades || []).forEach(function (a, i) { if (a.id === id) idx = i; });
+        if (idx === -1) return false;
+        emLote(function () { crm.atividades.splice(idx, 1); });
+        return true;
     }
 
     // ──────────────────────────────────────────────
@@ -580,9 +710,19 @@
         criarNegocio: criarNegocio,
         atualizarNegocio: atualizarNegocio,
         removerNegocio: removerNegocio,
+        restaurarNegocio: restaurarNegocio,
+        excluirNegocioDefinitivo: excluirNegocioDefinitivo,
+        listarNegociosExcluidos: listarNegociosExcluidos,
+        setParticipantes: setParticipantes,
         moverNegocio: moverNegocio,
         marcarGanho: marcarGanho,
         marcarPerdido: marcarPerdido,
+
+        listarAtividades: listarAtividades,
+        criarAtividade: criarAtividade,
+        atualizarAtividade: atualizarAtividade,
+        concluirAtividade: concluirAtividade,
+        removerAtividade: removerAtividade,
 
         criarPessoa: criarPessoa,
         atualizarPessoa: atualizarPessoa,

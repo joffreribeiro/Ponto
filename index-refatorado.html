@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="design-improvements.css">
     <link rel="stylesheet" href="slate-redesign.css">
     <link rel="stylesheet" href="ponto-imbel.css">
-    <link rel="stylesheet" href="crm.css?v=1.0.1">
+    <link rel="stylesheet" href="crm.css?v=1.1.0">
     <style>
     /* Login styles moved to styles.css — kept minimal reset here */
     </style>
@@ -525,36 +525,56 @@
         <!-- RELACIONAMENTO (CRM) -->
         <section id="crm" class="tab-content">
 
-            <!-- Visão principal: seletor de funil, Kanban/Lista, subabas Negócios/Contatos/Organizações -->
+            <!-- Visão principal: toolbar estilo Pipedrive (4 visões), subabas Negócios/Contatos/Organizações -->
             <div id="crmViewPrincipal">
                 <div class="card">
                     <div class="ativ-toolbar">
-                        <h2 class="ativ-title">Relacionamento</h2>
+                        <h2 class="ativ-title">Negócios</h2>
+                        <div class="crm-pills" id="crmSubabas" style="align-items:center;">
+                            <button type="button" class="crm-pill active" data-crm-action="subaba" data-valor="negocios">Negócios</button>
+                            <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="pessoas">Contatos</button>
+                            <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="organizacoes">Organizações</button>
+                        </div>
                         <div class="ativ-toolbar-right">
-                            <select id="crmSelectFunil" aria-label="Funil"></select>
-                            <button type="button" class="btn-secondary" data-crm-action="editarFunil" title="Configurar funil">Configurar</button>
+                            <span id="crmContagem" class="small-text"></span>
+                            <select id="crmSelectFunil" aria-label="Funil" title="Funil (pipeline)"></select>
+                            <button type="button" class="btn-secondary crm-btn-icone" data-crm-action="editarFunil" title="Editar este funil">✏️</button>
                             <button type="button" class="btn-secondary" data-crm-action="novoFunil" title="Novo funil">+ Funil</button>
-                            <input id="crmBusca" class="ativ-search" placeholder="Buscar negócio, contato…" aria-label="Buscar no Relacionamento">
-                            <div class="crm-pills">
-                                <button type="button" class="crm-pill active" data-crm-action="visao" data-valor="kanban">Kanban</button>
-                                <button type="button" class="crm-pill" data-crm-action="visao" data-valor="lista">Lista</button>
-                            </div>
-                            <button type="button" class="btn-primary" data-crm-action="novoNegocio" data-auth="true">+ Negócio</button>
+                            <input id="crmBusca" class="ativ-search" placeholder="Filtrar…" aria-label="Buscar no Relacionamento">
                         </div>
                     </div>
 
-                    <div class="crm-pills" id="crmSubabas" style="margin-top:10px; align-items:center;">
-                        <button type="button" class="crm-pill active" data-crm-action="subaba" data-valor="negocios">Negócios</button>
-                        <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="pessoas">Contatos</button>
-                        <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="organizacoes">Organizações</button>
-                        <button type="button" class="btn-secondary" id="crmBtnNovoContato" data-crm-action="novoContato" data-auth="true" style="display:none; margin-left:auto;">+ Contato</button>
-                        <button type="button" class="btn-secondary" id="crmBtnNovaOrganizacao" data-crm-action="novaOrganizacao" data-auth="true" style="display:none; margin-left:auto;">+ Organização</button>
+                    <div class="crm-barra-visoes" id="crmBarraNegocios">
+                        <div class="crm-visao-toggle" role="tablist" aria-label="Visão dos negócios">
+                            <button type="button" class="crm-visao-btn active" data-crm-action="visao" data-valor="kanban" title="Quadro (Kanban)">▦</button>
+                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="lista" title="Lista">☰</button>
+                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="previsao" title="Previsão (por mês de fechamento)">📅</button>
+                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="excluidos" title="Negócios excluídos">🗑</button>
+                        </div>
+                        <button type="button" class="crm-btn-negocio" data-crm-action="novoNegocio" data-auth="true">+ Negócio</button>
+                        <label class="small-text crm-check-fechados"><input type="checkbox" id="crmMostrarFechados" data-crm-action="mostrarFechados"> Mostrar negócios fechados</label>
+                        <span style="flex:1;"></span>
+                        <label class="small-text" for="crmOrdenar">Ordenar por:</label>
+                        <select id="crmOrdenar" data-crm-action="ordenar" aria-label="Ordenar negócios">
+                            <option value="proxima">Próxima atividade</option>
+                            <option value="ordem">Posição manual</option>
+                            <option value="valor">Valor</option>
+                            <option value="previsao">Data de fechamento</option>
+                            <option value="atualizado">Última atualização</option>
+                        </select>
+                    </div>
+
+                    <div class="crm-barra-visoes" id="crmBarraContatos" style="display:none;">
+                        <button type="button" class="crm-btn-negocio" id="crmBtnNovoContato" data-crm-action="novoContato" data-auth="true">+ Pessoa</button>
+                        <button type="button" class="crm-btn-negocio" id="crmBtnNovaOrganizacao" data-crm-action="novaOrganizacao" data-auth="true" style="display:none;">+ Organização</button>
                     </div>
 
                     <div id="crmResumo" class="crm-resumo"></div>
 
                     <div id="crmKanban" style="margin-top:12px;"></div>
                     <div id="crmListaNegocios" style="margin-top:12px; display:none;"></div>
+                    <div id="crmPrevisao" style="margin-top:12px; display:none;"></div>
+                    <div id="crmExcluidos" style="margin-top:12px; display:none;"></div>
                     <div id="crmListaPessoas" style="margin-top:12px; display:none;"></div>
                     <div id="crmListaOrganizacoes" style="margin-top:12px; display:none;"></div>
                 </div>
@@ -1434,11 +1454,11 @@ window._loadXLSX = function() {
 <script src="atividades-tabela.js?v=1.1.0"></script>
 <script src="atividades-kanban.js?v=1.0.0"></script>
 <script src="atividades-timeline.js?v=1.0.0"></script>
-<script src="crm-model.js?v=1.0.2"></script>
-<script src="crm-calculos.js?v=1.0.2"></script>
-<script src="crm-store.js?v=1.0.2"></script>
-<script src="crm-kanban.js?v=1.0.2"></script>
-<script src="crm-ui.js?v=1.0.2"></script>
+<script src="crm-model.js?v=1.1.0"></script>
+<script src="crm-calculos.js?v=1.1.0"></script>
+<script src="crm-store.js?v=1.1.0"></script>
+<script src="crm-kanban.js?v=1.1.0"></script>
+<script src="crm-ui.js?v=1.1.0"></script>
 <script>
     // Função para atualizar estado visual dos botões (exposta globalmente)
     window.updateToggleButtonsState = function(){
@@ -1675,86 +1695,108 @@ window._loadXLSX = function() {
 
 <!-- Modal: Negócio -->
 <div id="modalNegocio" class="modal">
-    <div class="modal-content modal-medium">
+    <div class="modal-content modal-medium crm-modal-negocio">
         <div class="modal-header">
-            <h2 id="crmModalNegocioTitulo">Novo Negócio</h2>
+            <h2 id="crmModalNegocioTitulo">Adicionar negócio</h2>
             <button type="button" class="modal-close" data-crm-action="fecharModalNegocio" aria-label="Fechar"><svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.87 18.29 9.17 12 2.87 5.71 4.29 4.29 10.59 10.6 16.88 4.29z"/></svg></button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="crmNegocioId">
-            <div class="form-row">
-                <div class="form-group" style="flex:2;">
-                    <label for="crmNegocioTitulo">Título *</label>
-                    <input type="text" id="crmNegocioTitulo" placeholder="Ex.: Contrato de manutenção 2027">
+            <div class="crm-modal-grid">
+                <!-- Painel esquerdo: campos do negócio -->
+                <div class="crm-modal-esq">
+                    <div class="form-group crm-autocomplete" id="crmACPessoa">
+                        <label for="crmNegocioPessoaBusca">Pessoa de contato</label>
+                        <input type="text" id="crmNegocioPessoaBusca" placeholder="Buscar ou criar contato…" autocomplete="off">
+                        <input type="hidden" id="crmNegocioPessoa">
+                        <div class="crm-ac-lista" id="crmACPessoaLista" style="display:none;"></div>
+                    </div>
+                    <div class="form-group crm-autocomplete" id="crmACOrganizacao">
+                        <label for="crmNegocioOrganizacaoBusca">Organização</label>
+                        <input type="text" id="crmNegocioOrganizacaoBusca" placeholder="Buscar ou criar organização…" autocomplete="off">
+                        <input type="hidden" id="crmNegocioOrganizacao">
+                        <div class="crm-ac-lista" id="crmACOrganizacaoLista" style="display:none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioTitulo">Título *</label>
+                        <input type="text" id="crmNegocioTitulo" placeholder="Ex.: Contrato de manutenção 2027">
+                    </div>
+                    <div class="form-row" id="crmNegocioValorGroup">
+                        <div class="form-group" style="flex:2;">
+                            <label for="crmNegocioValor">Valor</label>
+                            <input type="number" id="crmNegocioValor" min="0" step="0.01" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label for="crmNegocioMoeda">Moeda</label>
+                            <select id="crmNegocioMoeda">
+                                <option value="BRL" selected>Real brasileiro</option>
+                                <option value="USD">Dólar americano</option>
+                                <option value="EUR">Euro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Funil e etapa</label>
+                        <select id="crmNegocioFunil" style="margin-bottom:6px;"></select>
+                        <div class="crm-chevrons" id="crmNegocioEtapaChevrons"></div>
+                        <input type="hidden" id="crmNegocioEtapa">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioTags">Etiqueta</label>
+                        <input type="text" id="crmNegocioTags" placeholder="ex.: urgente, quente (separe por vírgula)">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioPrevisao">Data de fechamento esperada</label>
+                        <input type="date" id="crmNegocioPrevisao">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioResponsavel">Proprietário</label>
+                        <input type="text" id="crmNegocioResponsavel" placeholder="Responsável pelo negócio">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioOrigem">Canal de origem</label>
+                        <input type="text" id="crmNegocioOrigem" placeholder="Ex.: e-mail do Cliente X, SEI 12345.000678/2026-90">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioCanalId">ID do canal de origem</label>
+                        <input type="text" id="crmNegocioCanalId" placeholder="Identificador p/ integração externa">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioRecebimento">Data de recebimento</label>
+                        <input type="date" id="crmNegocioRecebimento">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioVisivel">Visível para</label>
+                        <select id="crmNegocioVisivel" disabled title="Sistema de usuário único"><option>Somente você</option></select>
+                    </div>
+                    <div class="form-group" id="crmNegocioMotivoPerdaGroup" style="display:none;">
+                        <label for="crmNegocioMotivoPerda">Motivo da perda</label>
+                        <input type="text" id="crmNegocioMotivoPerda" placeholder="Por que este negócio foi perdido?">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioDescricao">Descrição</label>
+                        <textarea id="crmNegocioDescricao" rows="2"></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="crmNegocioFunil">Funil</label>
-                    <select id="crmNegocioFunil"></select>
-                </div>
-                <div class="form-group">
-                    <label for="crmNegocioEtapa">Etapa</label>
-                    <select id="crmNegocioEtapa"></select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group" style="flex:2;">
-                    <label for="crmNegocioOrigem">Origem</label>
-                    <input type="text" id="crmNegocioOrigem" placeholder="Ex.: e-mail do Cliente X, SEI 12345.000678/2026-90">
-                </div>
-                <div class="form-group">
-                    <label for="crmNegocioRecebimento">Data de recebimento</label>
-                    <input type="date" id="crmNegocioRecebimento">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group" id="crmNegocioValorGroup">
-                    <label for="crmNegocioValor">Valor (R$)</label>
-                    <input type="number" id="crmNegocioValor" min="0" step="0.01" placeholder="0,00">
-                </div>
-                <div class="form-group">
-                    <label for="crmNegocioPrevisao">Prazo / Previsão</label>
-                    <input type="date" id="crmNegocioPrevisao">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="crmNegocioOrganizacao">Organização</label>
-                    <select id="crmNegocioOrganizacao"><option value="">— Nenhuma —</option></select>
-                </div>
-                <div class="form-group">
-                    <label for="crmNegocioPessoa">Contato</label>
-                    <select id="crmNegocioPessoa"><option value="">— Nenhum —</option></select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="crmNegocioResponsavel">Responsável</label>
-                    <input type="text" id="crmNegocioResponsavel" placeholder="Nome do responsável">
-                </div>
-                <div class="form-group">
-                    <label for="crmNegocioTags">Tags (separadas por vírgula)</label>
-                    <input type="text" id="crmNegocioTags" placeholder="ex.: urgente, renovação">
-                </div>
-            </div>
-            <div class="form-row" id="crmNegocioMotivoPerdaGroup" style="display:none;">
-                <div class="form-group">
-                    <label for="crmNegocioMotivoPerda">Motivo da perda</label>
-                    <input type="text" id="crmNegocioMotivoPerda" placeholder="Por que este negócio foi perdido?">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="crmNegocioDescricao">Descrição</label>
-                    <textarea id="crmNegocioDescricao" rows="3"></textarea>
+                <!-- Painel direito: dados da pessoa nova -->
+                <div class="crm-modal-dir">
+                    <div class="crm-modal-dir-titulo">PESSOA</div>
+                    <div class="form-group">
+                        <label for="crmNegocioPessoaTelefone">Telefone</label>
+                        <input type="text" id="crmNegocioPessoaTelefone" placeholder="Telefone do contato">
+                    </div>
+                    <div class="form-group">
+                        <label for="crmNegocioPessoaEmail">E-mail</label>
+                        <input type="email" id="crmNegocioPessoaEmail" placeholder="E-mail do contato">
+                    </div>
+                    <p class="small-text" id="crmNegocioPessoaAviso">Preenchidos ao criar um contato novo; para contato existente, edite na aba Contatos.</p>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn-danger" id="crmBtnExcluirNegocio" data-crm-action="excluirNegocio" style="display:none; margin-right:auto;">Excluir</button>
             <button type="button" class="btn-secondary" data-crm-action="fecharModalNegocio">Cancelar</button>
-            <button type="button" class="btn-primary" data-crm-action="salvarNegocio" data-auth="true">Salvar</button>
+            <button type="button" class="crm-btn-negocio" data-crm-action="salvarNegocio" data-auth="true">Salvar</button>
         </div>
     </div>
 </div>

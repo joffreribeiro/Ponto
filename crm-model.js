@@ -10,6 +10,17 @@ const TIPOS_FUNIL = ['vendas', 'demandas', 'projetos'];
 const TIPOS_ETAPA = ['aberta', 'ganho', 'perdido'];
 const STATUS_NEGOCIO = ['aberto', 'ganho', 'perdido'];
 
+// Tipos de atividade agendável (padrão Pipedrive). O ícone é um emoji para
+// não depender de icons.js nos módulos puros.
+const TIPOS_ATIVIDADE = {
+    chamada: { rotulo: 'Chamada', icone: '📞' },
+    reuniao: { rotulo: 'Reunião', icone: '👥' },
+    tarefa: { rotulo: 'Tarefa', icone: '✔️' },
+    prazo: { rotulo: 'Prazo', icone: '🚩' },
+    email: { rotulo: 'E-mail', icone: '✉️' },
+    almoco: { rotulo: 'Almoço', icone: '🍽️' }
+};
+
 const TEMPLATES_FUNIL = {
     vendas: {
         nome: 'Comercial',
@@ -96,11 +107,14 @@ function normalizarNegocio(nBruto) {
         status: STATUS_NEGOCIO.indexOf(n.status) !== -1 ? n.status : 'aberto',
         motivoPerda: typeof n.motivoPerda === 'string' ? n.motivoPerda : '',
         origem: typeof n.origem === 'string' ? n.origem : '',
+        canalOrigemId: typeof n.canalOrigemId === 'string' ? n.canalOrigemId : '',
         dataRecebimento: n.dataRecebimento || null,
         dataPrevisao: n.dataPrevisao || null,
         dataFechamento: n.dataFechamento || null,
         ordem: Number.isFinite(n.ordem) ? n.ordem : 0,
         tags: Array.isArray(n.tags) ? n.tags.slice() : [],
+        participantes: Array.isArray(n.participantes) ? n.participantes.slice() : [],
+        excluidoEm: n.excluidoEm || null,
         descricao: typeof n.descricao === 'string' ? n.descricao : '',
         criadoEm: n.criadoEm || nowIso(),
         atualizadoEm: n.atualizadoEm || nowIso()
@@ -139,6 +153,25 @@ function normalizarOrganizacao(oBruta) {
     };
 }
 
+function normalizarAtividade(aBruta) {
+    const a = ehObjeto(aBruta) ? aBruta : {};
+    const tipo = Object.prototype.hasOwnProperty.call(TIPOS_ATIVIDADE, a.tipo) ? a.tipo : 'tarefa';
+    return {
+        id: a.id || novoId('atv'),
+        negocioId: a.negocioId || null,
+        tipo,
+        assunto: typeof a.assunto === 'string' ? a.assunto : '',
+        descricao: typeof a.descricao === 'string' ? a.descricao : '',
+        data: a.data || null,
+        horaInicio: typeof a.horaInicio === 'string' ? a.horaInicio : '',
+        horaFim: typeof a.horaFim === 'string' ? a.horaFim : '',
+        feito: !!a.feito,
+        feitoEm: a.feitoEm || null,
+        criadoEm: a.criadoEm || nowIso(),
+        atualizadoEm: a.atualizadoEm || nowIso()
+    };
+}
+
 function normalizarHistoricoItem(hBruto) {
     const h = ehObjeto(hBruto) ? hBruto : {};
     const tipo = typeof h.tipo === 'string' && h.tipo ? h.tipo : 'campo';
@@ -162,7 +195,7 @@ function normalizarConfig(cBruta, funis) {
     const filtrosBrutos = ehObjeto(c.filtros) ? c.filtros : {};
     return {
         funilAtivoId,
-        visao: c.visao === 'lista' ? 'lista' : 'kanban',
+        visao: ['kanban', 'lista', 'previsao', 'excluidos'].indexOf(c.visao) !== -1 ? c.visao : 'kanban',
         subaba: ['negocios', 'pessoas', 'organizacoes'].indexOf(c.subaba) !== -1 ? c.subaba : 'negocios',
         detalheAbertoId: c.detalheAbertoId || null,
         filtros: {
@@ -210,6 +243,14 @@ function normalizarCrm(crmBruto) {
     const pessoas = (Array.isArray(crm.pessoas) ? crm.pessoas : []).map(normalizarPessoa);
     const organizacoes = (Array.isArray(crm.organizacoes) ? crm.organizacoes : []).map(normalizarOrganizacao);
     const historico = (Array.isArray(crm.historico) ? crm.historico : []).map(normalizarHistoricoItem);
+
+    // Atividades órfãs (negócio apagado de vez) são descartadas
+    const idsNegocioValidos = {};
+    negocios.forEach(n => { idsNegocioValidos[n.id] = true; });
+    const atividades = (Array.isArray(crm.atividades) ? crm.atividades : [])
+        .map(normalizarAtividade)
+        .filter(a => a.negocioId && idsNegocioValidos[a.negocioId]);
+
     const config = normalizarConfig(crm.config, funis);
 
     return {
@@ -218,6 +259,7 @@ function normalizarCrm(crmBruto) {
         negocios,
         pessoas,
         organizacoes,
+        atividades,
         historico,
         config
     };
@@ -231,6 +273,7 @@ function criarFunil(dados) { return normalizarFunil(dados); }
 function criarNegocio(dados) { return normalizarNegocio(dados); }
 function criarPessoa(dados) { return normalizarPessoa(dados); }
 function criarOrganizacao(dados) { return normalizarOrganizacao(dados); }
+function criarAtividade(dados) { return normalizarAtividade(dados); }
 
 /**
  * Monta um funil completo a partir de um template nomeado (ver TEMPLATES_FUNIL).
@@ -279,6 +322,30 @@ function validarNegocio(negocio, funil) {
     return erros;
 }
 
+function validarAtividade(atividade) {
+    const erros = [];
+    if (!ehObjeto(atividade)) {
+        erros.push('Atividade deve ser um objeto válido');
+        return erros;
+    }
+    if (!atividade.assunto || !String(atividade.assunto).trim()) {
+        erros.push('Assunto é obrigatório');
+    }
+    if (!atividade.negocioId) {
+        erros.push('Atividade precisa estar vinculada a um negócio');
+    }
+    if (!atividade.data || !/^\d{4}-\d{2}-\d{2}$/.test(atividade.data)) {
+        erros.push('Data da atividade é obrigatória (formato YYYY-MM-DD)');
+    }
+    if (atividade.horaInicio && !/^\d{2}:\d{2}$/.test(atividade.horaInicio)) {
+        erros.push('Hora de início inválida (use HH:MM)');
+    }
+    if (atividade.horaFim && !/^\d{2}:\d{2}$/.test(atividade.horaFim)) {
+        erros.push('Hora de fim inválida (use HH:MM)');
+    }
+    return erros;
+}
+
 function validarPessoa(pessoa) {
     const erros = [];
     if (!ehObjeto(pessoa)) {
@@ -311,6 +378,7 @@ const CrmModel = {
     TIPOS_FUNIL,
     TIPOS_ETAPA,
     STATUS_NEGOCIO,
+    TIPOS_ATIVIDADE,
     TEMPLATES_FUNIL,
 
     novoId,
@@ -321,6 +389,7 @@ const CrmModel = {
     normalizarNegocio,
     normalizarPessoa,
     normalizarOrganizacao,
+    normalizarAtividade,
     normalizarHistoricoItem,
     normalizarConfig,
 
@@ -328,11 +397,13 @@ const CrmModel = {
     criarNegocio,
     criarPessoa,
     criarOrganizacao,
+    criarAtividade,
     funilDeTemplate,
 
     validarNegocio,
     validarPessoa,
-    validarOrganizacao
+    validarOrganizacao,
+    validarAtividade
 };
 
 if (typeof window !== 'undefined') {

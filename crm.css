@@ -309,6 +309,378 @@
 
     .crm-outro-negocio:hover { text-decoration: underline; }
 
+    /* ════════════════════════════════════════════════
+       FASE 2 — visual Pipedrive
+       ════════════════════════════════════════════════ */
+
+    /* ── Barra de visões (Quadro/Lista/Previsão/Excluídos + verde "+ Negócio") ── */
+    .crm-barra-visoes {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .crm-visao-toggle {
+        display: inline-flex;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--bg-card);
+    }
+
+    .crm-visao-btn {
+        border: none;
+        background: none;
+        padding: 7px 12px;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--text-muted);
+        border-right: 1px solid var(--border-soft);
+    }
+
+    .crm-visao-btn:last-child { border-right: none; }
+    .crm-visao-btn:hover { background: var(--bg-soft); }
+
+    .crm-visao-btn.active {
+        background: var(--primary-soft, #dbeafe);
+        color: var(--primary, #1e3a8a);
+    }
+
+    .crm-btn-negocio {
+        background: #16a34a;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .crm-btn-negocio:hover { background: #15803d; }
+
+    .crm-btn-icone { padding: 6px 9px; }
+
+    .crm-check-fechados { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+
+    .crm-link { color: var(--primary, #1e3a8a); cursor: pointer; font-weight: 600; }
+    .crm-link:hover { text-decoration: underline; }
+
+    .crm-alerta-atividade { color: #d97706; cursor: default; }
+
+    /* ── Card Kanban estilo Pipedrive ── */
+    .crm-card-topo { display: flex; align-items: flex-start; gap: 6px; justify-content: space-between; }
+    .crm-card-vinculos { color: var(--text-muted); }
+
+    .crm-card-rodape {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .crm-card-avatar {
+        font-size: 13px;
+        background: var(--bg-soft);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .crm-card-rodape .crm-card-valor { margin: 0; font-size: 13px; }
+
+    /* ── Modal de negócio em 2 painéis ── */
+    .crm-modal-negocio .modal-body { max-height: 70vh; overflow-y: auto; }
+
+    .crm-modal-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 0 20px;
+    }
+
+    .crm-modal-dir {
+        border-left: 1px solid var(--border-soft);
+        padding-left: 20px;
+    }
+
+    .crm-modal-dir-titulo {
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 720px) {
+        .crm-modal-grid { grid-template-columns: 1fr; }
+        .crm-modal-dir { border-left: none; padding-left: 0; margin-top: 14px; }
+    }
+
+    /* Chevrons de etapa (barra segmentada clicável) */
+    .crm-chevrons { display: flex; gap: 3px; }
+
+    .crm-chevron {
+        flex: 1;
+        height: 16px;
+        border: none;
+        cursor: pointer;
+        background: var(--bg-soft);
+        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%);
+        transition: background 0.15s ease;
+    }
+
+    .crm-chevron:first-child { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); border-radius: 3px 0 0 3px; }
+    .crm-chevron-ativo { background: #16a34a; }
+    .crm-chevron:hover { filter: brightness(0.92); }
+
+    /* Autocomplete pessoa/organização */
+    .crm-autocomplete { position: relative; }
+
+    .crm-ac-lista {
+        position: absolute;
+        z-index: 60;
+        left: 0;
+        right: 0;
+        top: 100%;
+        background: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .crm-ac-item { padding: 8px 12px; cursor: pointer; font-size: 13.5px; color: var(--text-main); }
+    .crm-ac-item:hover { background: var(--bg-soft); }
+    .crm-ac-novo { color: var(--primary, #1e3a8a); font-weight: 600; }
+    .crm-ac-vazio { color: var(--text-muted); cursor: default; }
+
+    .crm-ac-input-novo {
+        border-color: #2563eb !important;
+        background-image: linear-gradient(transparent, transparent); /* marca via ::after não dá em input; borda azul basta */
+    }
+
+    /* ── Detalhe: cabeçalho com barra de progresso ── */
+    .crm-det-header { margin-bottom: 14px; }
+
+    .crm-det-header-linha {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .crm-det-titulo { margin: 0; font-size: 20px; }
+    .crm-det-valor { font-weight: 700; color: var(--positive, #16a34a); }
+    .crm-det-proprietario-rotulo { display: block; font-size: 10.5px; color: var(--text-light, var(--text-muted)); }
+
+    .crm-btn-ganho, .crm-btn-perdido {
+        border: none;
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 700;
+        font-size: 13px;
+        color: #ffffff;
+        cursor: pointer;
+    }
+
+    .crm-btn-ganho { background: #16a34a; }
+    .crm-btn-ganho:hover { background: #15803d; }
+    .crm-btn-perdido { background: #dc2626; }
+    .crm-btn-perdido:hover { background: #b91c1c; }
+
+    .crm-badge-status {
+        border-radius: 6px;
+        padding: 3px 10px;
+        font-size: 11.5px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #fff;
+    }
+    .crm-badge-ganho { background: #16a34a; }
+    .crm-badge-perdido { background: #dc2626; }
+
+    .crm-prog-barra { display: flex; gap: 3px; margin-bottom: 6px; }
+
+    .crm-prog-seg {
+        flex: 1;
+        border: none;
+        cursor: pointer;
+        padding: 5px 4px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: var(--bg-soft);
+        clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: filter 0.15s ease;
+    }
+
+    .crm-prog-seg:first-child { clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); border-radius: 4px 0 0 4px; }
+    .crm-prog-seg:hover { filter: brightness(0.93); }
+    .crm-prog-passada { background: #16a34a; color: #ffffff; }
+    .crm-prog-atual { background: #15803d; color: #ffffff; }
+
+    /* ── Detalhe: grid 2 colunas e seções colapsáveis ── */
+    .crm-detalhe-grid-2col { grid-template-columns: 340px 1fr; }
+
+    @media (max-width: 900px) {
+        .crm-detalhe-grid-2col { grid-template-columns: 1fr; }
+    }
+
+    .crm-det-esquerda { padding: 0; overflow: hidden; }
+
+    .crm-secao { border-bottom: 1px solid var(--border-soft); }
+    .crm-secao:last-child { border-bottom: none; }
+
+    .crm-secao-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 14px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .crm-secao-header:hover { background: var(--bg-soft); }
+    .crm-secao-seta { color: var(--text-muted); font-size: 11px; }
+    .crm-secao-titulo { font-weight: 700; font-size: 13.5px; color: var(--text-main); }
+    .crm-secao-corpo { padding: 0 14px 12px 14px; }
+
+    .crm-part-add { display: flex; gap: 6px; margin-top: 8px; }
+    .crm-part-add select { flex: 1; }
+    .crm-chip-x { cursor: pointer; opacity: 0.7; }
+    .crm-chip-x:hover { opacity: 1; }
+
+    .crm-btn-mini { font-size: 11.5px !important; padding: 3px 9px !important; }
+
+    /* ── Detalhe: abas do centro ── */
+    .crm-det-abas {
+        display: flex;
+        gap: 2px;
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .crm-det-aba {
+        border: none;
+        background: none;
+        padding: 8px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+    }
+
+    .crm-det-aba.active {
+        color: var(--primary, #1e3a8a);
+        border-bottom-color: var(--primary, #1e3a8a);
+    }
+
+    .crm-det-aba-off { opacity: 0.45; cursor: not-allowed; }
+
+    .crm-det-bloco { margin-top: 18px; }
+
+    .crm-bloco-titulo { font-weight: 700; font-size: 14px; color: var(--text-main); margin-bottom: 8px; }
+
+    /* ── Composer de atividade ── */
+    .crm-atv-composer input[type="text"],
+    .crm-atv-composer textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-soft);
+        background: var(--bg-card);
+        color: var(--text-main);
+        font-family: inherit;
+        margin-bottom: 8px;
+    }
+
+    .crm-atv-tipos { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    .crm-atv-tipo {
+        border: 1px solid var(--border-soft);
+        background: var(--bg-card);
+        color: var(--text-muted);
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .crm-atv-tipo.active {
+        background: var(--primary-soft, #dbeafe);
+        color: var(--primary, #1e3a8a);
+        border-color: var(--primary, #1e3a8a);
+    }
+
+    .crm-atv-linha { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .crm-atv-linha input { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-main); }
+    .crm-atv-acoes { display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* ── Foco ── */
+    .crm-foco-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        margin-bottom: 6px;
+        background: var(--bg-card);
+    }
+
+    .crm-foco-atrasada { border-left: 3px solid #dc2626; }
+    .crm-foco-corpo { flex: 1; min-width: 0; }
+    .crm-foco-assunto { font-weight: 600; font-size: 13.5px; color: var(--text-main); }
+
+    .crm-foco-check {
+        border: 2px solid var(--border-soft);
+        background: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        color: transparent;
+        font-size: 13px;
+        line-height: 1;
+        flex: 0 0 auto;
+    }
+
+    .crm-foco-check:hover { border-color: #16a34a; color: #16a34a; }
+
+    /* ── Histórico com filtros ── */
+    .crm-hist-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+
+    .crm-hist-pill {
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .crm-hist-pill:hover { background: var(--bg-soft); }
+    .crm-hist-pill.active { background: var(--primary-soft, #dbeafe); color: var(--primary, #1e3a8a); }
+
     /* ── Tema escuro ── */
     html[data-theme="dark"] .crm-resumo,
     html[data-theme="dark"] .crm-step:not(.crm-step-atual) {
@@ -319,5 +691,18 @@
     html[data-theme="dark"] .crm-pills {
         background: var(--bg-soft);
         border-color: var(--border-table, var(--border-soft));
+    }
+
+    html[data-theme="dark"] .crm-visao-toggle,
+    html[data-theme="dark"] .crm-ac-lista,
+    html[data-theme="dark"] .crm-foco-item,
+    html[data-theme="dark"] .crm-atv-tipo {
+        background: var(--bg-card);
+        border-color: var(--border-table, var(--border-soft));
+    }
+
+    html[data-theme="dark"] .crm-chevron:not(.crm-chevron-ativo),
+    html[data-theme="dark"] .crm-prog-seg:not(.crm-prog-passada):not(.crm-prog-atual) {
+        background: var(--bg-soft);
     }
 }

@@ -15,34 +15,52 @@
         return org ? org.nome : '';
     }
 
-    function renderizarCard(n, mostrarValor) {
-        var valorHtml = (mostrarValor && n.valor !== null && n.valor !== undefined)
-            ? '<div class="crm-card-valor">' + esc(CrmCalculos.formatarMoeda(n.valor, n.moeda)) + '</div>'
-            : '';
+    function nomePessoa(negocio) {
+        if (!negocio.pessoaId) return '';
+        var crm = CrmStore.getCrm();
+        if (!crm) return '';
+        var p = crm.pessoas.filter(function (x) { return x.id === negocio.pessoaId; })[0];
+        return p ? p.nome : '';
+    }
+
+    /**
+     * Card padrão Pipedrive: título, linha org/pessoa em cinza, rodapé com
+     * avatar + valor, e ⚠️ quando não há nenhuma atividade pendente agendada.
+     */
+    function renderizarCard(n, mostrarValor, atividades) {
         var orgNome = nomeOrganizacao(n);
-        // DateUtils é um `const` de topo (dateUtils.js) — não existe em `window`
-        var previsaoFormatada = n.dataPrevisao
-            ? ((typeof DateUtils !== 'undefined' && DateUtils.formatBR) ? DateUtils.formatBR(n.dataPrevisao) : n.dataPrevisao)
+        var pessoaNome = nomePessoa(n);
+        var linhaVinculos = [orgNome, pessoaNome].filter(Boolean).join(', ');
+
+        var temPendente = window.CrmCalculos && CrmCalculos.temAtividadePendente
+            ? CrmCalculos.temAtividadePendente(atividades || [], n.id)
+            : true;
+        var alertaHtml = temPendente
+            ? ''
+            : '<span class="crm-alerta-atividade" title="Nenhuma atividade agendada — agende a próxima ação">⚠️</span>';
+
+        var valorHtml = (mostrarValor && n.valor !== null && n.valor !== undefined)
+            ? '<span class="crm-card-valor">' + esc(CrmCalculos.formatarMoeda(n.valor, n.moeda)) + '</span>'
             : '';
-        var previsaoHtml = previsaoFormatada ? (' &bull; ' + esc(previsaoFormatada)) : '';
 
         return '' +
             '<div class="kanban-card crm-card" draggable="true" data-id="' + esc(n.id) + '" data-crm-action="abrirDetalhe">' +
-                '<strong>' + esc(n.titulo || '(sem título)') + '</strong>' +
-                valorHtml +
-                (n.origem ? '<div class="small-text">' + esc(n.origem) + '</div>' : '') +
-                (orgNome ? '<div class="small-text">' + esc(orgNome) + '</div>' : '') +
-                '<div class="small-text">' + esc(n.responsavel || '—') + previsaoHtml + '</div>' +
+                '<div class="crm-card-topo"><strong>' + esc(n.titulo || '(sem título)') + '</strong>' + alertaHtml + '</div>' +
+                (linhaVinculos ? '<div class="small-text crm-card-vinculos">' + esc(linhaVinculos) + '</div>' : '') +
+                (n.origem ? '<div class="small-text crm-card-vinculos">' + esc(n.origem) + '</div>' : '') +
+                '<div class="crm-card-rodape"><span class="crm-card-avatar" title="' + esc(n.responsavel || '—') + '">👤</span>' + valorHtml + '</div>' +
             '</div>';
     }
 
     /**
      * Renderiza o board inteiro a partir do funil ativo e da lista de negócios
      * já filtrada para esse funil. `funil` pode ser null (nenhum funil ainda).
+     * opcoes.atividades: lista completa de atividades (para o alerta ⚠️).
      */
-    function renderizarBoard(funil, negocios) {
+    function renderizarBoard(funil, negocios, opcoes) {
         var board = document.getElementById('crmKanban');
         if (!board) return;
+        var atividades = (opcoes && opcoes.atividades) || [];
 
         if (!funil) {
             board.innerHTML = '<div class="crm-empty">Crie um funil para começar.</div>';
@@ -56,14 +74,15 @@
         var colunas = etapasOrdenadas.map(function (etapa) {
             var itens = porEtapa[etapa.id] || [];
             var soma = CrmCalculos.somarValor(itens);
-            var cards = itens.map(function (n) { return renderizarCard(n, mostrarValor); }).join('');
+            var cards = itens.map(function (n) { return renderizarCard(n, mostrarValor, atividades); }).join('');
+            var subtitulo = (mostrarValor ? esc(CrmCalculos.formatarMoeda(soma, funil.moeda)) + ' · ' : '') +
+                itens.length + (itens.length === 1 ? ' negócio' : ' negócios');
 
             return '' +
                 '<div class="kanban-column crm-column" data-etapa-id="' + esc(etapa.id) + '" style="--crm-etapa-cor:' + esc(etapa.cor || '#64748b') + '">' +
                     '<h4>' +
                         '<span class="crm-col-nome">' + esc(etapa.nome) + '</span>' +
-                        '<span class="crm-col-count">' + itens.length + '</span>' +
-                        (mostrarValor ? '<span class="crm-col-soma">' + esc(CrmCalculos.formatarMoeda(soma, funil.moeda)) + '</span>' : '') +
+                        '<span class="crm-col-soma">' + subtitulo + '</span>' +
                     '</h4>' +
                     '<div class="kanban-list" data-etapa-id="' + esc(etapa.id) + '">' + cards + '</div>' +
                 '</div>';

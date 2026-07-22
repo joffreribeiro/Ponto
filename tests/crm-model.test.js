@@ -122,6 +122,60 @@ describe('CrmModel.validarNegocio', () => {
   });
 });
 
+describe('CrmModel.normalizarAtividade / validarAtividade', () => {
+  it('preenche defaults e força tipo válido', () => {
+    const a = CrmModel.normalizarAtividade({ tipo: 'inexistente' });
+    expect(a.tipo).toBe('tarefa');
+    expect(a.feito).toBe(false);
+    expect(a.negocioId).toBeNull();
+    expect(a.id).toMatch(/^atv_/);
+  });
+
+  it('validarAtividade exige assunto, negócio e data', () => {
+    const erros = CrmModel.validarAtividade({ assunto: '', negocioId: null, data: null });
+    expect(erros.length).toBe(3);
+    const ok = CrmModel.validarAtividade({ assunto: 'Ligar', negocioId: 'n1', data: '2026-07-25' });
+    expect(ok).toEqual([]);
+  });
+
+  it('rejeita hora malformada', () => {
+    const erros = CrmModel.validarAtividade({ assunto: 'X', negocioId: 'n1', data: '2026-07-25', horaInicio: '9h' });
+    expect(erros.length).toBeGreaterThan(0);
+  });
+});
+
+describe('CrmModel.normalizarCrm — fase 2', () => {
+  it('garante array de atividades e descarta atividades órfãs', () => {
+    const crm = CrmModel.normalizarCrm({
+      funis: [{ id: 'f1', etapas: [{ id: 'e1', tipo: 'aberta' }] }],
+      negocios: [{ id: 'n1', funilId: 'f1', etapaId: 'e1' }],
+      atividades: [
+        { id: 'a1', negocioId: 'n1', assunto: 'ok' },
+        { id: 'a2', negocioId: 'apagado', assunto: 'órfã' },
+        { id: 'a3', negocioId: null, assunto: 'solta' }
+      ]
+    });
+    expect(crm.atividades.map(a => a.id)).toEqual(['a1']);
+  });
+
+  it('preserva excluidoEm, participantes e canalOrigemId do negócio', () => {
+    const crm = CrmModel.normalizarCrm({
+      funis: [{ id: 'f1', etapas: [{ id: 'e1', tipo: 'aberta' }] }],
+      negocios: [{ id: 'n1', funilId: 'f1', etapaId: 'e1', excluidoEm: '2026-07-01T00:00:00.000Z', participantes: ['p1'], canalOrigemId: 'ext-9' }]
+    });
+    expect(crm.negocios[0].excluidoEm).toBe('2026-07-01T00:00:00.000Z');
+    expect(crm.negocios[0].participantes).toEqual(['p1']);
+    expect(crm.negocios[0].canalOrigemId).toBe('ext-9');
+  });
+
+  it('aceita visao previsao/excluidos na config', () => {
+    const base = { funis: [{ id: 'f1', etapas: [{ id: 'e1', tipo: 'aberta' }] }] };
+    expect(CrmModel.normalizarCrm(Object.assign({}, base, { config: { visao: 'previsao' } })).config.visao).toBe('previsao');
+    expect(CrmModel.normalizarCrm(Object.assign({}, base, { config: { visao: 'excluidos' } })).config.visao).toBe('excluidos');
+    expect(CrmModel.normalizarCrm(Object.assign({}, base, { config: { visao: 'qualquer' } })).config.visao).toBe('kanban');
+  });
+});
+
 describe('CrmModel.validarPessoa / validarOrganizacao', () => {
   it('rejeita pessoa sem nome', () => {
     expect(CrmModel.validarPessoa({ nome: '' }).length).toBeGreaterThan(0);

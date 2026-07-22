@@ -160,6 +160,94 @@ function negociosDaPessoa(negocios, pessoaId) {
     return (negocios || []).filter(n => n.pessoaId === pessoaId);
 }
 
+// ──────────────────────────────────────────────
+//  ATIVIDADES E MÉTRICAS DERIVADAS (padrão Pipedrive)
+//  Todas aceitam `hoje` (YYYY-MM-DD) como parâmetro para serem testáveis;
+//  quando omitido usam a data corrente.
+// ──────────────────────────────────────────────
+
+function hojeIso(hoje) {
+    return hoje || new Date().toISOString().slice(0, 10);
+}
+
+function diasEntre(isoAntigo, isoNovo) {
+    const a = new Date(String(isoAntigo).slice(0, 10) + 'T00:00:00Z');
+    const b = new Date(String(isoNovo).slice(0, 10) + 'T00:00:00Z');
+    if (isNaN(a) || isNaN(b)) return 0;
+    return Math.max(0, Math.round((b - a) / 86400000));
+}
+
+/**
+ * Atividades pendentes de um negócio, ordenadas pela data/hora mais próxima.
+ */
+function atividadesPendentesDe(atividades, negocioId) {
+    return (atividades || [])
+        .filter(a => a.negocioId === negocioId && !a.feito)
+        .slice()
+        .sort((a, b) => String(a.data || '9999') .localeCompare(String(b.data || '9999'))
+            || String(a.horaInicio || '99:99').localeCompare(String(b.horaInicio || '99:99')));
+}
+
+/**
+ * Próxima atividade pendente do negócio (a de menor data, mesmo se atrasada),
+ * ou null se não houver nenhuma — estado que gera o alerta ⚠️ no card.
+ */
+function proximaAtividade(atividades, negocioId) {
+    return atividadesPendentesDe(atividades, negocioId)[0] || null;
+}
+
+function temAtividadePendente(atividades, negocioId) {
+    return !!proximaAtividade(atividades, negocioId);
+}
+
+/**
+ * Dias que o negócio está na etapa atual: conta desde o último evento de
+ * histórico tipo 'etapa' (ou desde a criação, se nunca mudou de etapa).
+ */
+function diasNaEtapa(historico, negocio, hoje) {
+    const mudancas = (historico || [])
+        .filter(h => h.entidade === 'negocio' && h.entidadeId === negocio.id && h.tipo === 'etapa')
+        .sort((a, b) => String(b.criadoEm || '').localeCompare(String(a.criadoEm || '')));
+    const desde = (mudancas[0] && mudancas[0].criadoEm) || negocio.criadoEm;
+    return diasEntre(desde, hojeIso(hoje));
+}
+
+function idadeEmDias(negocio, hoje) {
+    return diasEntre(negocio.criadoEm, hojeIso(hoje));
+}
+
+/**
+ * Dias sem nenhum movimento: desde o mais recente entre atualizadoEm e a
+ * última atividade concluída do negócio.
+ */
+function diasInativo(negocio, atividades, hoje) {
+    let ultimo = negocio.atualizadoEm || negocio.criadoEm;
+    (atividades || []).forEach(a => {
+        if (a.negocioId === negocio.id && a.feitoEm && String(a.feitoEm) > String(ultimo)) {
+            ultimo = a.feitoEm;
+        }
+    });
+    return diasEntre(ultimo, hojeIso(hoje));
+}
+
+/**
+ * Agrupa negócios pelo mês da data de fechamento esperada (visão Previsão).
+ * Devolve lista ordenada de { mes: 'YYYY-MM'|null, negocios: [...] };
+ * sem data entra no grupo mes:null, sempre por último.
+ */
+function agruparPorMesFechamento(negocios) {
+    const porMes = {};
+    const semData = [];
+    (negocios || []).forEach(n => {
+        const mes = (n.dataPrevisao && /^\d{4}-\d{2}/.test(n.dataPrevisao)) ? n.dataPrevisao.slice(0, 7) : null;
+        if (!mes) { semData.push(n); return; }
+        (porMes[mes] = porMes[mes] || []).push(n);
+    });
+    const grupos = Object.keys(porMes).sort().map(mes => ({ mes, negocios: porMes[mes] }));
+    if (semData.length) grupos.push({ mes: null, negocios: semData });
+    return grupos;
+}
+
 /**
  * Itens de histórico de uma entidade específica, mais recentes primeiro.
  */
@@ -181,7 +269,15 @@ const CrmCalculos = {
     formatarMoeda,
     negociosDaOrganizacao,
     negociosDaPessoa,
-    timelineDe
+    timelineDe,
+
+    atividadesPendentesDe,
+    proximaAtividade,
+    temAtividadePendente,
+    diasNaEtapa,
+    idadeEmDias,
+    diasInativo,
+    agruparPorMesFechamento
 };
 
 if (typeof window !== 'undefined') {

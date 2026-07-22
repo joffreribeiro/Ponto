@@ -3,7 +3,7 @@
  * Permite funcionamento offline e cache inteligente
  */
 
-const CACHE_NAME = 'controle-ponto-v4';
+const CACHE_NAME = 'controle-ponto-v5';
 const CACHE_ASSETS = [
     'index-refatorado.html',
     'styles.css',

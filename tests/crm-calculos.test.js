@@ -159,6 +159,57 @@ describe('CrmCalculos.formatarMoeda', () => {
   });
 });
 
+describe('CrmCalculos — atividades e métricas derivadas', () => {
+  const atividades = [
+    { id: 'a1', negocioId: 'n1', data: '2026-07-30', horaInicio: '10:00', feito: false },
+    { id: 'a2', negocioId: 'n1', data: '2026-07-25', horaInicio: '14:00', feito: false },
+    { id: 'a3', negocioId: 'n1', data: '2026-07-20', feito: true, feitoEm: '2026-07-20T15:00:00.000Z' },
+    { id: 'a4', negocioId: 'n2', data: '2026-08-01', feito: false }
+  ];
+
+  it('proximaAtividade devolve a pendente de menor data (mesmo atrasada)', () => {
+    expect(CrmCalculos.proximaAtividade(atividades, 'n1').id).toBe('a2');
+  });
+
+  it('temAtividadePendente é false quando só há atividades feitas', () => {
+    const soFeitas = [{ negocioId: 'n9', data: '2026-07-01', feito: true }];
+    expect(CrmCalculos.temAtividadePendente(soFeitas, 'n9')).toBe(false);
+    expect(CrmCalculos.temAtividadePendente(atividades, 'n1')).toBe(true);
+  });
+
+  it('diasNaEtapa conta desde a última mudança de etapa, com fallback na criação', () => {
+    const negocio = { id: 'n1', criadoEm: '2026-07-01T12:00:00.000Z' };
+    const historico = [
+      { entidade: 'negocio', entidadeId: 'n1', tipo: 'etapa', criadoEm: '2026-07-10T09:00:00.000Z' },
+      { entidade: 'negocio', entidadeId: 'n1', tipo: 'etapa', criadoEm: '2026-07-05T09:00:00.000Z' },
+      { entidade: 'negocio', entidadeId: 'n1', tipo: 'nota', criadoEm: '2026-07-18T09:00:00.000Z' }
+    ];
+    expect(CrmCalculos.diasNaEtapa(historico, negocio, '2026-07-22')).toBe(12);
+    expect(CrmCalculos.diasNaEtapa([], negocio, '2026-07-22')).toBe(21);
+  });
+
+  it('idadeEmDias e diasInativo', () => {
+    const negocio = { id: 'n1', criadoEm: '2026-07-01T00:00:00.000Z', atualizadoEm: '2026-07-15T00:00:00.000Z' };
+    expect(CrmCalculos.idadeEmDias(negocio, '2026-07-22')).toBe(21);
+    // última atividade feita (20/07) é mais recente que atualizadoEm (15/07)
+    expect(CrmCalculos.diasInativo(negocio, atividades, '2026-07-22')).toBe(2);
+    expect(CrmCalculos.diasInativo(negocio, [], '2026-07-22')).toBe(7);
+  });
+
+  it('agruparPorMesFechamento ordena meses e põe "sem data" por último', () => {
+    const negocios = [
+      { id: 'n1', dataPrevisao: '2026-08-15' },
+      { id: 'n2', dataPrevisao: '2026-07-30' },
+      { id: 'n3', dataPrevisao: null },
+      { id: 'n4', dataPrevisao: '2026-08-01' }
+    ];
+    const grupos = CrmCalculos.agruparPorMesFechamento(negocios);
+    expect(grupos.map(g => g.mes)).toEqual(['2026-07', '2026-08', null]);
+    expect(grupos[1].negocios.map(n => n.id)).toEqual(['n1', 'n4']);
+    expect(grupos[2].negocios.map(n => n.id)).toEqual(['n3']);
+  });
+});
+
 describe('CrmCalculos.timelineDe', () => {
   it('filtra pela entidade e ordena do mais recente para o mais antigo', () => {
     const historico = [
