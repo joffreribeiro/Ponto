@@ -72,10 +72,18 @@
             btn.classList.toggle('active', btn.dataset.valor === crm.config.visao);
         });
 
+        // .btn-secondary tem `display: inline-flex !important` (ponto-imbel.css), que
+        // sobrepõe um simples style.display='none' inline — por isso o !important aqui.
         var btnContato = document.getElementById('crmBtnNovoContato');
         var btnOrganizacao = document.getElementById('crmBtnNovaOrganizacao');
-        if (btnContato) btnContato.style.display = (crm.config.subaba === 'pessoas') ? '' : 'none';
-        if (btnOrganizacao) btnOrganizacao.style.display = (crm.config.subaba === 'organizacoes') ? '' : 'none';
+        if (btnContato) {
+            if (crm.config.subaba === 'pessoas') btnContato.style.removeProperty('display');
+            else btnContato.style.setProperty('display', 'none', 'important');
+        }
+        if (btnOrganizacao) {
+            if (crm.config.subaba === 'organizacoes') btnOrganizacao.style.removeProperty('display');
+            else btnOrganizacao.style.setProperty('display', 'none', 'important');
+        }
     }
 
     function renderizarResumo() {
