@@ -3,7 +3,7 @@
  * Permite funcionamento offline e cache inteligente
  */
 
-const CACHE_NAME = 'controle-ponto-v3';
+const CACHE_NAME = 'controle-ponto-v4';
 const CACHE_ASSETS = [
     'index-refatorado.html',
     'styles.css',
@@ -22,7 +22,13 @@ const CACHE_ASSETS = [
     'atividades-tabela.js',
     'atividades-kanban.js',
     'firebase-init.js',
-    'app-refatorado.js'
+    'app-refatorado.js',
+    'crm-model.js',
+    'crm-calculos.js',
+    'crm-store.js',
+    'crm-kanban.js',
+    'crm-ui.js',
+    'crm.css'
 ];
 
 // Instalação - cachear assets

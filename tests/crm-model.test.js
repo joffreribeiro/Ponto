@@ -47,6 +47,19 @@ describe('CrmModel.normalizarCrm', () => {
     expect(crm.negocios[0].etapaId).toBe('etp_x');
   });
 
+  it('preenche defaults de origem e dataRecebimento e preserva valores existentes', () => {
+    const semCampos = CrmModel.normalizarNegocio({});
+    expect(semCampos.origem).toBe('');
+    expect(semCampos.dataRecebimento).toBeNull();
+
+    const comCampos = CrmModel.normalizarNegocio({
+      origem: 'e-mail do Cliente X',
+      dataRecebimento: '2026-07-20'
+    });
+    expect(comCampos.origem).toBe('e-mail do Cliente X');
+    expect(comCampos.dataRecebimento).toBe('2026-07-20');
+  });
+
   it('é idempotente: normalizar(normalizar(x)) é igual a normalizar(x)', () => {
     const entrada = {
       funis: [{ nome: 'Comercial', etapas: [{ nome: 'Qualificação' }, { nome: 'Ganho', tipo: 'ganho' }] }],
@@ -101,6 +114,11 @@ describe('CrmModel.validarNegocio', () => {
   it('rejeita valor negativo', () => {
     const erros = CrmModel.validarNegocio({ titulo: 'X', valor: -10 }, funilComValor);
     expect(erros.length).toBeGreaterThan(0);
+  });
+
+  it('rejeita dataRecebimento malformada e aceita YYYY-MM-DD', () => {
+    expect(CrmModel.validarNegocio({ titulo: 'X', dataRecebimento: '20/07/2026' }, funilSemValor).length).toBeGreaterThan(0);
+    expect(CrmModel.validarNegocio({ titulo: 'X', dataRecebimento: '2026-07-20' }, funilSemValor)).toEqual([]);
   });
 });
 

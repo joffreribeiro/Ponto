@@ -20,13 +20,17 @@
             ? '<div class="crm-card-valor">' + esc(CrmCalculos.formatarMoeda(n.valor, n.moeda)) + '</div>'
             : '';
         var orgNome = nomeOrganizacao(n);
-        var previsaoFormatada = n.dataPrevisao && window.DateUtils ? DateUtils.formatBR(n.dataPrevisao) : (n.dataPrevisao || '');
+        // DateUtils é um `const` de topo (dateUtils.js) — não existe em `window`
+        var previsaoFormatada = n.dataPrevisao
+            ? ((typeof DateUtils !== 'undefined' && DateUtils.formatBR) ? DateUtils.formatBR(n.dataPrevisao) : n.dataPrevisao)
+            : '';
         var previsaoHtml = previsaoFormatada ? (' &bull; ' + esc(previsaoFormatada)) : '';
 
         return '' +
             '<div class="kanban-card crm-card" draggable="true" data-id="' + esc(n.id) + '" data-crm-action="abrirDetalhe">' +
                 '<strong>' + esc(n.titulo || '(sem título)') + '</strong>' +
                 valorHtml +
+                (n.origem ? '<div class="small-text">' + esc(n.origem) + '</div>' : '') +
                 (orgNome ? '<div class="small-text">' + esc(orgNome) + '</div>' : '') +
                 '<div class="small-text">' + esc(n.responsavel || '—') + previsaoHtml + '</div>' +
             '</div>';

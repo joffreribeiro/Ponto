@@ -25,6 +25,13 @@
         }
     }
 
+    // DateUtils também é um `const` de topo (dateUtils.js) — `window.DateUtils`
+    // não existe; checar pela variável global via typeof.
+    function dataBR(iso) {
+        if (!iso) return '—';
+        return (typeof DateUtils !== 'undefined' && DateUtils.formatBR) ? DateUtils.formatBR(iso) : iso;
+    }
+
     function secao() {
         return document.getElementById('crm');
     }
@@ -163,11 +170,13 @@
             return '' +
                 '<tr>' +
                     '<td>' + esc(n.titulo || '(sem título)') + '</td>' +
+                    '<td>' + esc(n.origem || '—') + '</td>' +
                     '<td>' + esc(etapa ? etapa.nome : '—') + '</td>' +
                     (mostrarValor ? '<td>' + esc(n.valor != null ? CrmCalculos.formatarMoeda(n.valor, n.moeda) : '—') + '</td>' : '') +
                     '<td>' + esc(org ? org.nome : '—') + '</td>' +
                     '<td>' + esc(n.responsavel || '—') + '</td>' +
-                    '<td>' + esc(n.dataPrevisao && window.DateUtils ? DateUtils.formatBR(n.dataPrevisao) : (n.dataPrevisao || '—')) + '</td>' +
+                    '<td>' + esc(dataBR(n.dataRecebimento)) + '</td>' +
+                    '<td>' + esc(dataBR(n.dataPrevisao)) + '</td>' +
                     '<td>' +
                         '<button type="button" class="btn-secondary" data-crm-action="abrirDetalhe" data-id="' + esc(n.id) + '">Ver</button> ' +
                         '<button type="button" class="btn-secondary" data-crm-action="editarNegocio" data-id="' + esc(n.id) + '">Editar</button>' +
@@ -179,11 +188,11 @@
             '<div class="table-container">' +
                 '<table>' +
                     '<thead><tr>' +
-                        '<th>Título</th><th>Etapa</th>' +
+                        '<th>Título</th><th>Origem</th><th>Etapa</th>' +
                         (mostrarValor ? '<th>Valor</th>' : '') +
-                        '<th>Organização</th><th>Responsável</th><th>Previsão</th><th>Ações</th>' +
+                        '<th>Organização</th><th>Responsável</th><th>Recebida</th><th>Prazo</th><th>Ações</th>' +
                     '</tr></thead>' +
-                    '<tbody>' + (linhas || '<tr><td colspan="7">Nenhum negócio neste funil.</td></tr>') + '</tbody>' +
+                    '<tbody>' + (linhas || '<tr><td colspan="9">Nenhum negócio neste funil.</td></tr>') + '</tbody>' +
                 '</table>' +
             '</div>';
     }
@@ -372,8 +381,10 @@
                 (mostrarValor && negocio.valor !== null && negocio.valor !== undefined ? '<div class="crm-detalhe-valor">' + esc(CrmCalculos.formatarMoeda(negocio.valor, negocio.moeda)) + '</div>' : '') +
                 '<div class="crm-stepper">' + stepperHtml + '</div>' +
                 '<dl class="crm-detalhe-campos">' +
+                    (negocio.origem ? '<dt>Origem</dt><dd>' + esc(negocio.origem) + '</dd>' : '') +
+                    (negocio.dataRecebimento ? '<dt>Recebida em</dt><dd>' + esc(dataBR(negocio.dataRecebimento)) + '</dd>' : '') +
                     '<dt>Responsável</dt><dd>' + esc(negocio.responsavel || '—') + '</dd>' +
-                    '<dt>Previsão</dt><dd>' + esc(negocio.dataPrevisao && window.DateUtils ? DateUtils.formatBR(negocio.dataPrevisao) : (negocio.dataPrevisao || '—')) + '</dd>' +
+                    '<dt>Prazo</dt><dd>' + esc(dataBR(negocio.dataPrevisao)) + '</dd>' +
                     '<dt>Status</dt><dd>' + esc(negocio.status) + '</dd>' +
                     ((negocio.status === 'perdido' && negocio.motivoPerda) ? '<dt>Motivo da perda</dt><dd>' + esc(negocio.motivoPerda) + '</dd>' : '') +
                 '</dl>' +
@@ -486,6 +497,11 @@
         document.getElementById('crmNegocioId').value = negocio ? negocio.id : '';
         document.getElementById('crmNegocioTitulo').value = negocio ? negocio.titulo : '';
         document.getElementById('crmNegocioValor').value = (negocio && negocio.valor != null) ? negocio.valor : '';
+        document.getElementById('crmNegocioOrigem').value = negocio ? (negocio.origem || '') : '';
+        // Numa demanda nova, a data de recebimento quase sempre é hoje — pré-preenche
+        document.getElementById('crmNegocioRecebimento').value = negocio
+            ? (negocio.dataRecebimento || '')
+            : new Date().toISOString().slice(0, 10);
         document.getElementById('crmNegocioPrevisao').value = negocio && negocio.dataPrevisao ? negocio.dataPrevisao : '';
         document.getElementById('crmNegocioResponsavel').value = negocio ? negocio.responsavel : '';
         document.getElementById('crmNegocioTags').value = negocio && negocio.tags ? negocio.tags.join(', ') : '';
@@ -521,6 +537,8 @@
             organizacaoId: document.getElementById('crmNegocioOrganizacao').value || null,
             pessoaId: document.getElementById('crmNegocioPessoa').value || null,
             responsavel: document.getElementById('crmNegocioResponsavel').value.trim(),
+            origem: document.getElementById('crmNegocioOrigem').value.trim(),
+            dataRecebimento: document.getElementById('crmNegocioRecebimento').value || null,
             dataPrevisao: document.getElementById('crmNegocioPrevisao').value || null,
             motivoPerda: document.getElementById('crmNegocioMotivoPerda').value.trim(),
             tags: tagsBrutas ? tagsBrutas.split(',').map(function (t) { return t.trim(); }).filter(Boolean) : [],

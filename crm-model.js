@@ -4,7 +4,7 @@
  * Sem DOM, sem AppState — testável isoladamente com Vitest.
  */
 
-const CAMPOS_AUDITAVEIS_NEGOCIO = ['titulo', 'valor', 'etapaId', 'responsavel', 'dataPrevisao', 'status'];
+const CAMPOS_AUDITAVEIS_NEGOCIO = ['titulo', 'valor', 'etapaId', 'responsavel', 'dataPrevisao', 'status', 'origem', 'dataRecebimento'];
 
 const TIPOS_FUNIL = ['vendas', 'demandas', 'projetos'];
 const TIPOS_ETAPA = ['aberta', 'ganho', 'perdido'];
@@ -95,6 +95,8 @@ function normalizarNegocio(nBruto) {
         responsavel: typeof n.responsavel === 'string' ? n.responsavel : '',
         status: STATUS_NEGOCIO.indexOf(n.status) !== -1 ? n.status : 'aberto',
         motivoPerda: typeof n.motivoPerda === 'string' ? n.motivoPerda : '',
+        origem: typeof n.origem === 'string' ? n.origem : '',
+        dataRecebimento: n.dataRecebimento || null,
         dataPrevisao: n.dataPrevisao || null,
         dataFechamento: n.dataFechamento || null,
         ordem: Number.isFinite(n.ordem) ? n.ordem : 0,
@@ -270,6 +272,9 @@ function validarNegocio(negocio, funil) {
     }
     if (negocio.dataPrevisao && !/^\d{4}-\d{2}-\d{2}$/.test(negocio.dataPrevisao)) {
         erros.push('Data de previsão inválida (use formato YYYY-MM-DD)');
+    }
+    if (negocio.dataRecebimento && !/^\d{4}-\d{2}-\d{2}$/.test(negocio.dataRecebimento)) {
+        erros.push('Data de recebimento inválida (use formato YYYY-MM-DD)');
     }
     return erros;
 }

@@ -1434,11 +1434,11 @@ window._loadXLSX = function() {
 <script src="atividades-tabela.js?v=1.1.0"></script>
 <script src="atividades-kanban.js?v=1.0.0"></script>
 <script src="atividades-timeline.js?v=1.0.0"></script>
-<script src="crm-model.js?v=1.0.1"></script>
-<script src="crm-calculos.js?v=1.0.1"></script>
-<script src="crm-store.js?v=1.0.1"></script>
-<script src="crm-kanban.js?v=1.0.1"></script>
-<script src="crm-ui.js?v=1.0.1"></script>
+<script src="crm-model.js?v=1.0.2"></script>
+<script src="crm-calculos.js?v=1.0.2"></script>
+<script src="crm-store.js?v=1.0.2"></script>
+<script src="crm-kanban.js?v=1.0.2"></script>
+<script src="crm-ui.js?v=1.0.2"></script>
 <script>
     // Função para atualizar estado visual dos botões (exposta globalmente)
     window.updateToggleButtonsState = function(){
@@ -1699,12 +1699,22 @@ window._loadXLSX = function() {
                 </div>
             </div>
             <div class="form-row">
+                <div class="form-group" style="flex:2;">
+                    <label for="crmNegocioOrigem">Origem</label>
+                    <input type="text" id="crmNegocioOrigem" placeholder="Ex.: e-mail do Cliente X, SEI 12345.000678/2026-90">
+                </div>
+                <div class="form-group">
+                    <label for="crmNegocioRecebimento">Data de recebimento</label>
+                    <input type="date" id="crmNegocioRecebimento">
+                </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group" id="crmNegocioValorGroup">
                     <label for="crmNegocioValor">Valor (R$)</label>
                     <input type="number" id="crmNegocioValor" min="0" step="0.01" placeholder="0,00">
                 </div>
                 <div class="form-group">
-                    <label for="crmNegocioPrevisao">Previsão de fechamento</label>
+                    <label for="crmNegocioPrevisao">Prazo / Previsão</label>
                     <input type="date" id="crmNegocioPrevisao">
                 </div>
             </div>
