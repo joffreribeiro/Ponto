@@ -18,7 +18,6 @@
     <link rel="stylesheet" href="design-improvements.css">
     <link rel="stylesheet" href="slate-redesign.css">
     <link rel="stylesheet" href="ponto-imbel.css">
-    <link rel="stylesheet" href="crm.css?v=1.1.0">
     <style>
     /* Login styles moved to styles.css — kept minimal reset here */
     </style>
@@ -70,24 +69,6 @@
                     <button class="nav-subitem" data-subtab="ponto-eventos">Eventos</button>
                     <button class="nav-subitem" data-subtab="ponto-ferias">Férias</button>
                 </div>
-            </div>
-
-            <!-- Atividades -->
-            <div class="sidebar-group">
-                <span class="sidebar-group-label">Trabalho</span>
-                <button class="nav-item" data-tab="atividades">
-                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-                    <span class="nav-label">Atividades</span>
-                </button>
-            </div>
-
-            <!-- Relacionamento (CRM) -->
-            <div class="sidebar-group">
-                <span class="sidebar-group-label">Relacionamento</span>
-                <button class="nav-item" data-tab="crm">
-                    <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span>
-                    <span class="nav-label">Relacionamento</span>
-                </button>
             </div>
 
             <!-- Configurações -->
@@ -398,192 +379,6 @@
                 </div>
             </div>
         </section>
-        <!-- ATIVIDADES -->
-        <section id="atividades" class="tab-content">
-            <div class="card">
-                <!-- Toolbar do redesign: título + busca + pills de view + botão Nova -->
-                <div class="ativ-toolbar">
-                    <h2 class="ativ-title">Atividades</h2>
-                    <div class="ativ-toolbar-right">
-                        <input id="topFiltroBusca" class="ativ-search" placeholder="Buscar objeto, TED, assunto…" aria-label="Buscar texto em qualquer coluna">
-                        <select id="topFiltroOrdem" aria-label="Ordenar por" title="Ordenar / Agrupar" style="font-size:13px; padding:5px 8px; border-radius:6px; border:1px solid var(--border-soft); background:var(--bg-card); color:var(--text-main);">
-                            <option value="prioridade">Ordenar: Prioridade</option>
-                            <option value="prazo">Ordenar: Prazo</option>
-                            <option value="criadoEm">Ordenar: Criado</option>
-                            <option value="assunto">Agrupar por Assunto</option>
-                        </select>
-                        <div class="subtabs ativ-view-pills">
-                            <button class="subtab-btn active" data-action="toggleAtividadesTable">Tabela</button>
-                            <button class="subtab-btn" data-action="toggleAtividadesKanban">Kanban</button>
-                            <button class="subtab-btn" data-action="toggleAtividadesTimeline">Timeline</button>
-                        </div>
-                        <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel" title="Exportar atividades para Excel (.xlsx)">Exportar</button>
-                        <button class="btn-primary" data-action="novaAtividade" data-auth="true" title="Adicionar nova atividade">+ Nova</button>
-                    </div>
-                </div>
-
-                <!-- Filtros avançados (colapsáveis, mantidos para compatibilidade) -->
-                <div id="atividadesFiltrosAvancados" style="margin-top:10px; display:none;">
-                    <div class="advanced-filters-grid" style="width:100%;">
-                        <select id="topFiltroStatusCol" aria-label="Filtrar por status">
-                            <option value="">Todos</option>
-                            <option value="pendente">Pendente</option>
-                            <option value="em andamento">Em andamento</option>
-                            <option value="concluida">Concluída</option>
-                            <option value="bloqueada">Bloqueada</option>
-                        </select>
-                        <select id="topFiltroPrioridade" aria-label="Filtrar por prioridade">
-                            <option value="">Todas prioridades</option>
-                            <option value="baixa">Baixa</option>
-                            <option value="media">Média</option>
-                            <option value="alta">Alta</option>
-                            <option value="critica">Crítica</option>
-                        </select>
-                        <input id="topFiltroResponsavel" placeholder="Responsável" aria-label="Filtrar por responsável">
-                        <input id="topFiltroOrdemExtra" placeholder="Ordem (ref.)" aria-label="Ordem de referência">
-                        <input id="topFiltroTedPtrab" placeholder="TED/Ptrab" aria-label="Filtrar por TED ou Ptrab">
-                        <input id="topFiltroObjeto" placeholder="Objeto" aria-label="Filtrar por objeto">
-                        <input id="topFiltroProcessoPrincipal" placeholder="Processo Principal" aria-label="Filtrar por processo principal">
-                        <input id="topFiltroAssunto" placeholder="Assunto" aria-label="Filtrar por assunto">
-                        <input id="topFiltroProcessoSolicitacao" placeholder="Processo Solicitação" aria-label="Filtrar por processo de solicitação">
-                        <input id="topFiltroDataDe" placeholder="Data De (DD/MM/AAAA)" aria-label="Data inicial do filtro">
-                        <input id="topFiltroDataAte" placeholder="Data Até (DD/MM/AAAA)" aria-label="Data final do filtro">
-                        <input id="topFiltroTipoDoc" placeholder="Tipo Doc" aria-label="Filtrar por tipo de documento">
-                        <input id="topFiltroNumeroDoc" placeholder="Nº Doc." aria-label="Filtrar por número do documento">
-                        <input id="topFiltroRemetente" placeholder="Remetente" aria-label="Filtrar por remetente">
-                        <input id="topFiltroDestinatario" placeholder="Destinatário" aria-label="Filtrar por destinatário">
-                        <input id="topFiltroAcaoRealizar" placeholder="Ação a Realizar" aria-label="Filtrar por ação a realizar">
-                        <input id="topFiltroPrazoDe" placeholder="Prazo De (DD/MM/AAAA)" aria-label="Data inicial do prazo">
-                        <input id="topFiltroPrazoAte" placeholder="Prazo Até (DD/MM/AAAA)" aria-label="Data final do prazo">
-                        <input id="topFiltroDias" placeholder="Dias" aria-label="Filtrar por dias até prazo">
-                        <input id="topFiltroObservacoes" placeholder="Observações" aria-label="Filtrar por observações">
-                        <select id="topFiltroFinalizado" aria-label="Filtrar por finalizado"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
-                        <div style="grid-column: 1 / -1; display:flex; gap:8px; justify-content:flex-end;">
-                            <button id="topBtnLimparFiltros" class="btn btn-secondary">Limpar filtros</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="atividadesContainer" style="margin-top:12px;">
-                    <div id="atividadesControls" style="display:none;">
-                        <!-- botões legados mantidos ocultos para compatibilidade com JS -->
-                        <button class="btn-secondary" data-action="toggleAtividadesTable"></button>
-                        <button class="btn-secondary" data-action="toggleAtividadesCards"></button>
-                        <button class="btn-secondary" data-action="toggleAtividadesKanban"></button>
-                        <button class="btn-secondary btn-excel" data-action="exportarAtividadesExcel"></button>
-                        <button class="btn-secondary btn-excel" data-action="importarAtividadesExcel"></button>
-                        <input type="file" id="importarAtividadesInput" accept=".xlsx,.xls,.csv" style="display:none;">
-                    </div>
-                    <!-- Painel inline Nova Atividade (oculto por padrão) -->
-                    <div id="novaAtividadeInline" style="display:none; margin-bottom:12px;">
-                        <!-- ... formulário omitido para brevidade (mantido no arquivo original) ... -->
-                    </div>
-                    <div id="atividadesLista" style="display:none;"></div>
-                    <div id="atividadesTableContainer" style="margin-top:12px; display:block;">
-                        <div class="table-container">
-                            <table id="tabelaAtividades">
-                                <colgroup>
-                                    <col style="width:40px" />   <!-- Nº -->
-                                    <col style="width:80px" />   <!-- Recebido -->
-                                    <col style="width:130px" />  <!-- Assunto -->
-                                    <col style="width:110px" />  <!-- Origem -->
-                                    <col style="width:140px" />  <!-- Objeto -->
-                                    <col style="width:140px" />  <!-- Ação -->
-                                    <col style="width:90px" />   <!-- Status -->
-                                    <col style="width:60px" />   <!-- Concluído? -->
-                                    <col style="width:90px" />   <!-- Concluído em -->
-                                    <col style="width:160px" />  <!-- O que foi feito -->
-                                    <col style="width:80px" />   <!-- Prazo -->
-                                    <col style="width:70px" />   <!-- Ações -->
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th>Nº</th>
-                                        <th>Recebido</th>
-                                        <th>Assunto</th>
-                                        <th>Origem</th>
-                                        <th>Objeto</th>
-                                        <th>Ação</th>
-                                        <th>Status</th>
-                                        <th>Conc.?</th>
-                                        <th>Concluído em</th>
-                                        <th>O que foi feito</th>
-                                        <th>Prazo</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div id="atividadesKanban" style="display:none;margin-top:8px;"></div>
-                    <div id="atividadesTimeline" style="display:none;margin-top:8px;"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- RELACIONAMENTO (CRM) -->
-        <section id="crm" class="tab-content">
-
-            <!-- Visão principal: toolbar estilo Pipedrive (4 visões), subabas Negócios/Contatos/Organizações -->
-            <div id="crmViewPrincipal">
-                <div class="card">
-                    <div class="ativ-toolbar">
-                        <h2 class="ativ-title">Negócios</h2>
-                        <div class="crm-pills" id="crmSubabas" style="align-items:center;">
-                            <button type="button" class="crm-pill active" data-crm-action="subaba" data-valor="negocios">Negócios</button>
-                            <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="pessoas">Contatos</button>
-                            <button type="button" class="crm-pill" data-crm-action="subaba" data-valor="organizacoes">Organizações</button>
-                        </div>
-                        <div class="ativ-toolbar-right">
-                            <span id="crmContagem" class="small-text"></span>
-                            <select id="crmSelectFunil" aria-label="Funil" title="Funil (pipeline)"></select>
-                            <button type="button" class="btn-secondary crm-btn-icone" data-crm-action="editarFunil" title="Editar este funil">✏️</button>
-                            <button type="button" class="btn-secondary" data-crm-action="novoFunil" title="Novo funil">+ Funil</button>
-                            <input id="crmBusca" class="ativ-search" placeholder="Filtrar…" aria-label="Buscar no Relacionamento">
-                        </div>
-                    </div>
-
-                    <div class="crm-barra-visoes" id="crmBarraNegocios">
-                        <div class="crm-visao-toggle" role="tablist" aria-label="Visão dos negócios">
-                            <button type="button" class="crm-visao-btn active" data-crm-action="visao" data-valor="kanban" title="Quadro (Kanban)">▦</button>
-                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="lista" title="Lista">☰</button>
-                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="previsao" title="Previsão (por mês de fechamento)">📅</button>
-                            <button type="button" class="crm-visao-btn" data-crm-action="visao" data-valor="excluidos" title="Negócios excluídos">🗑</button>
-                        </div>
-                        <button type="button" class="crm-btn-negocio" data-crm-action="novoNegocio" data-auth="true">+ Negócio</button>
-                        <label class="small-text crm-check-fechados"><input type="checkbox" id="crmMostrarFechados" data-crm-action="mostrarFechados"> Mostrar negócios fechados</label>
-                        <span style="flex:1;"></span>
-                        <label class="small-text" for="crmOrdenar">Ordenar por:</label>
-                        <select id="crmOrdenar" data-crm-action="ordenar" aria-label="Ordenar negócios">
-                            <option value="proxima">Próxima atividade</option>
-                            <option value="ordem">Posição manual</option>
-                            <option value="valor">Valor</option>
-                            <option value="previsao">Data de fechamento</option>
-                            <option value="atualizado">Última atualização</option>
-                        </select>
-                    </div>
-
-                    <div class="crm-barra-visoes" id="crmBarraContatos" style="display:none;">
-                        <button type="button" class="crm-btn-negocio" id="crmBtnNovoContato" data-crm-action="novoContato" data-auth="true">+ Pessoa</button>
-                        <button type="button" class="crm-btn-negocio" id="crmBtnNovaOrganizacao" data-crm-action="novaOrganizacao" data-auth="true" style="display:none;">+ Organização</button>
-                    </div>
-
-                    <div id="crmResumo" class="crm-resumo"></div>
-
-                    <div id="crmKanban" style="margin-top:12px;"></div>
-                    <div id="crmListaNegocios" style="margin-top:12px; display:none;"></div>
-                    <div id="crmPrevisao" style="margin-top:12px; display:none;"></div>
-                    <div id="crmExcluidos" style="margin-top:12px; display:none;"></div>
-                    <div id="crmListaPessoas" style="margin-top:12px; display:none;"></div>
-                    <div id="crmListaOrganizacoes" style="margin-top:12px; display:none;"></div>
-                </div>
-            </div>
-
-            <!-- Visão de detalhe 360° (troca de sub-view sem router, ver crm-ui.js) -->
-            <div id="crmViewDetalhe" style="display:none;"></div>
-
-        </section>
 
         <!-- PONTO (sub-abas) -->
         <section id="ponto" class="tab-content">
@@ -860,7 +655,7 @@
                         Documento atual: <strong id="crmTamanhoDadosValor">—</strong> de ~1&nbsp;MB (limite do Firestore).
                     </p>
                     <p id="crmTamanhoDadosAviso" style="margin: 6px 0 0; font-size: 12.5px; color: var(--warning, #d97706); display: none;">
-                        ⚠️ O documento está ficando grande. Considere exportar um backup e revisar o histórico de negócios antigos no módulo de Relacionamento.
+                        ⚠️ O documento está ficando grande. Considere exportar um backup.
                     </p>
                 </div>
 
@@ -1451,58 +1246,8 @@ window._loadXLSX = function() {
 <script src="validators.js?v=1.2.0"></script>
 <script src="storage.js?v=1.2.1"></script>
 <script src="calculations.js?v=1.2.0"></script>
-<script src="atividades-tabela.js?v=1.1.0"></script>
-<script src="atividades-kanban.js?v=1.0.0"></script>
-<script src="atividades-timeline.js?v=1.0.0"></script>
-<script src="crm-model.js?v=1.1.0"></script>
-<script src="crm-calculos.js?v=1.1.0"></script>
-<script src="crm-store.js?v=1.1.0"></script>
-<script src="crm-kanban.js?v=1.1.0"></script>
-<script src="crm-ui.js?v=1.1.0"></script>
 <script>
-    // Função para atualizar estado visual dos botões (exposta globalmente)
-    window.updateToggleButtonsState = function(){
-        const tableCont=document.getElementById('atividadesTableContainer'); 
-        const cardsCont=document.getElementById('atividadesLista'); 
-        const kanbanCont=document.getElementById('atividadesKanban');
-        const tableVisible = tableCont && window.getComputedStyle(tableCont).display !== 'none';
-        const cardsVisible = cardsCont && window.getComputedStyle(cardsCont).display !== 'none';
-        const kanbanVisible = kanbanCont && window.getComputedStyle(kanbanCont).display !== 'none';
-        document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b=>{ if (tableVisible) b.classList.add('active'); else b.classList.remove('active'); });
-        document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b=>{ if (cardsVisible) b.classList.add('active'); else b.classList.remove('active'); });
-        document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b=>{ if (kanbanVisible) b.classList.add('active'); else b.classList.remove('active'); });
-    };
-    
-    // Event listeners para os botões de visualização (após app-refatorado.js carregar)
-    document.addEventListener('DOMContentLoaded', function(){
-        // Aguardar app-refatorado.js carregar
-        setTimeout(function(){
-            document.querySelectorAll('[data-action="toggleAtividadesTable"]').forEach(b => {
-                b.addEventListener('click', function(e){ 
-                    e.preventDefault(); 
-                    if(typeof toggleAtividadesTable === 'function') toggleAtividadesTable(); 
-                });
-            });
-            document.querySelectorAll('[data-action="toggleAtividadesCards"]').forEach(b => {
-                b.addEventListener('click', function(e){ 
-                    e.preventDefault(); 
-                    if(typeof toggleAtividadesCards === 'function') toggleAtividadesCards(); 
-                });
-            });
-            document.querySelectorAll('[data-action="toggleAtividadesKanban"]').forEach(b => {
-                b.addEventListener('click', function(e){ 
-                    e.preventDefault(); 
-                    if(typeof toggleAtividadesKanban === 'function') toggleAtividadesKanban(); 
-                });
-            });
-            document.querySelectorAll('[data-action="novaAtividade"]').forEach(b => b.addEventListener('click', function(){
-                if (typeof abrirModalAtividade === 'function') abrirModalAtividade();
-                else if (typeof abrirAbaNovaAtividade === 'function') abrirAbaNovaAtividade();
-            }));
-            // Atualizar estado inicial dos botões
-            updateToggleButtonsState();
-        }, 100);
-    });
+    // CRM initialization handled separately
 </script>
 
 <script>
@@ -1977,98 +1722,7 @@ window._loadXLSX = function() {
 
 // end fallback
 
-// Filtros: versão que usa controles topFiltro*
-(function(){
-    function getText(row, idx){
-        return (row.cells[idx] && row.cells[idx].innerText || '').trim().toLowerCase();
-    }
-    function parseBrDate(s){
-        if (!s) return null;
-        s=(s||'').trim();
-        const re1=/^(\d{2})\/(\d{2})\/(\d{4})$/;
-        const m1=s.match(re1);
-        if (m1) return new Date(parseInt(m1[3],10),parseInt(m1[2],10)-1,parseInt(m1[1],10));
-        const re2=/^(\d{4})-(\d{2})-(\d{2})$/;
-        const m2=s.match(re2);
-        if (m2) return new Date(parseInt(m2[1],10),parseInt(m2[2],10)-1,parseInt(m2[3],10));
-        return null;
-    }
-    function aplicarFiltrosTabelaAtividades(){
-        const tbody=document.querySelector('#tabelaAtividades tbody'); if (!tbody) return;
-        const filtros={
-            ordemExtra:(document.getElementById('topFiltroOrdemExtra')||{}).value.trim().toLowerCase(),
-            busca:(document.getElementById('topFiltroBusca')||{}).value.trim().toLowerCase(),
-            ted:(document.getElementById('topFiltroTedPtrab')||{}).value.trim().toLowerCase(),
-            objeto:(document.getElementById('topFiltroObjeto')||{}).value.trim().toLowerCase(),
-            procPrincipal:(document.getElementById('topFiltroProcessoPrincipal')||{}).value.trim().toLowerCase(),
-            assunto:(document.getElementById('topFiltroAssunto')||{}).value.trim().toLowerCase(),
-            procSolic:(document.getElementById('topFiltroProcessoSolicitacao')||{}).value.trim().toLowerCase(),
-            dataDe:(document.getElementById('topFiltroDataDe')||{}).value.trim(),
-            dataAte:(document.getElementById('topFiltroDataAte')||{}).value.trim(),
-            tipoDoc:(document.getElementById('topFiltroTipoDoc')||{}).value.trim().toLowerCase(),
-            numeroDoc:(document.getElementById('topFiltroNumeroDoc')||{}).value.trim().toLowerCase(),
-            remetente:(document.getElementById('topFiltroRemetente')||{}).value.trim().toLowerCase(),
-            destinatario:(document.getElementById('topFiltroDestinatario')||{}).value.trim().toLowerCase(),
-            acao:(document.getElementById('topFiltroAcaoRealizar')||{}).value.trim().toLowerCase(),
-            prazoDe:(document.getElementById('topFiltroPrazoDe')||{}).value.trim(),
-            prazoAte:(document.getElementById('topFiltroPrazoAte')||{}).value.trim(),
-            dias:(document.getElementById('topFiltroDias')||{}).value.trim().toLowerCase(),
-            obs:(document.getElementById('topFiltroObservacoes')||{}).value.trim().toLowerCase(),
-            finalizado:(document.getElementById('topFiltroFinalizado')||{}).value,
-            status:(document.getElementById('topFiltroStatusCol')||{}).value.trim().toLowerCase()
-        };
-        const dataDeDate=parseBrDate(filtros.dataDe)||null;
-        const dataAteDate=parseBrDate(filtros.dataAte)||null;
-        const prazoDeDate=parseBrDate(filtros.prazoDe)||null;
-        const prazoAteDate=parseBrDate(filtros.prazoAte)||null;
-        Array.from(tbody.rows).forEach(row=>{
-            let match=true;
-            if (filtros.ordemExtra && !getText(row,0).includes(filtros.ordemExtra)) match=false;
-            if (filtros.ted && !getText(row,1).includes(filtros.ted)) match=false;
-            if (filtros.objeto && !getText(row,2).includes(filtros.objeto)) match=false;
-            if (filtros.procPrincipal && !getText(row,3).includes(filtros.procPrincipal)) match=false;
-            if (filtros.assunto && !getText(row,4).includes(filtros.assunto)) match=false;
-            if (filtros.procSolic && !getText(row,5).includes(filtros.procSolic)) match=false;
-            if ((dataDeDate||dataAteDate)){
-                const cell=(row.cells[6]&&row.cells[6].innerText||'').trim();
-                const rowDate=parseBrDate(cell);
-                if (!rowDate) match=false; else { if (dataDeDate && rowDate < dataDeDate) match=false; if (dataAteDate && rowDate > dataAteDate) match=false; }
-            }
-            if (filtros.tipoDoc && !getText(row,7).includes(filtros.tipoDoc)) match=false;
-            if (filtros.numeroDoc && !getText(row,8).includes(filtros.numeroDoc)) match=false;
-            if (filtros.remetente && !getText(row,9).includes(filtros.remetente)) match=false;
-            if (filtros.destinatario && !getText(row,10).includes(filtros.destinatario)) match=false;
-            if (filtros.acao && !getText(row,11).includes(filtros.acao)) match=false;
-            if ((prazoDeDate||prazoAteDate)){
-                const cellP=(row.cells[12]&&row.cells[12].innerText||'').trim();
-                const rowPrazo=parseBrDate(cellP);
-                if (!rowPrazo) match=false; else { if (prazoDeDate && rowPrazo < prazoDeDate) match=false; if (prazoAteDate && rowPrazo > prazoAteDate) match=false; }
-            }
-            if (filtros.dias && !getText(row,13).includes(filtros.dias)) match=false;
-            if (filtros.obs && !getText(row,14).includes(filtros.obs)) match=false;
-            if (filtros.finalizado) { const cell=getText(row,15); if (filtros.finalizado==='sim' && !(cell==='sim'||cell==='true'||cell==='yes')) match=false; if (filtros.finalizado==='nao' && (cell==='sim'||cell==='true'||cell==='yes')) match=false; }
-            if (filtros.status && !getText(row,16).includes(filtros.status)) match=false;
-            if (filtros.busca) { const text=(row.innerText||'').toLowerCase(); if (!text.includes(filtros.busca)) match=false; }
-            row.style.display = match ? '' : 'none';
-        });
-    }
-    function attachTopFilters(){
-        const ids=['topFiltroBusca','topFiltroOrdem','topFiltroTedPtrab','topFiltroObjeto','topFiltroProcessoPrincipal','topFiltroAssunto','topFiltroProcessoSolicitacao','topFiltroDataDe','topFiltroDataAte','topFiltroTipoDoc','topFiltroNumeroDoc','topFiltroRemetente','topFiltroDestinatario','topFiltroAcaoRealizar','topFiltroPrazoDe','topFiltroPrazoAte','topFiltroDias','topFiltroObservacoes','topFiltroFinalizado','topFiltroStatusCol','topFiltroPrioridade','topFiltroResponsavel'];
-        ids.forEach(id=>{ const el=document.getElementById(id); if(!el) return; const ev=el.tagName.toLowerCase()==='select'?'change':'input'; el.addEventListener(ev, aplicarFiltrosTabelaAtividades); });
-        const clearBtn=document.getElementById('topBtnLimparFiltros'); if (clearBtn) clearBtn.addEventListener('click', function(){ ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; e.value=''; }); aplicarFiltrosTabelaAtividades(); });
-        const tbody=document.querySelector('#tabelaAtividades tbody'); if (tbody) { const obs=new MutationObserver(()=>setTimeout(aplicarFiltrosTabelaAtividades,20)); obs.observe(tbody, { childList:true, subtree:true }); }
-    }
-document.addEventListener('DOMContentLoaded', function(){
-    attachTopFilters();
-    if(typeof updateToggleButtonsState==='function') updateToggleButtonsState();
-    setTimeout(aplicarFiltrosTabelaAtividades,50);
-    // Agrupamento por assunto: re-renderiza via JS quando topFiltroOrdem muda
-    const ordemEl = document.getElementById('topFiltroOrdem');
-    if (ordemEl) ordemEl.addEventListener('change', function(){
-        if (typeof renderizarAtividades === 'function') renderizarAtividades();
-    });
-});
-})();
+// Removed Activities filters
 </script>
 
 <script>
@@ -2243,12 +1897,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
 
                 // Callbacks especiais
-                if (alvo === 'atividades' && typeof renderizarAtividades === 'function') {
-                    setTimeout(renderizarAtividades, 50);
-                }
-                if (alvo === 'crm' && window.Crm && typeof Crm.renderizar === 'function') {
-                    setTimeout(function(){ try { Crm.renderizar(); } catch(e){ console.error('Erro ao renderizar CRM:', e); } }, 50);
-                }
                 if (alvo === 'configuracoes' && window.CrmStore && typeof CrmStore.atualizarIndicadorTamanho === 'function') {
                     setTimeout(function(){ try { CrmStore.atualizarIndicadorTamanho(); } catch(e){ console.error('Erro ao atualizar indicador de tamanho:', e); } }, 50);
                 }
